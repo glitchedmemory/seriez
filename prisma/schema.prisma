@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  email        String   @unique
+  avatarUrl    String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  trackings    MediaTracking[]
+  reviews      Review[]
+  lists        UserList[]
+
+  followers    Follow[]  @relation("following")
+  following    Follow[]  @relation("follower")
+
+  @@map("users")
+}
+
+model MediaTracking {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tmdbId    Int      @map("tmdb_id")
+  anilistId Int?     @map("anilist_id")
+  mediaType String   @map("media_type") // movie, tv, anime
+  status    String   // watching, completed, plan_to_watch, on_hold, dropped
+  rating    Float?   // 0.5 ~ 5.0
+  progress  Int?     // episode count for TV
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tmdbId, mediaType])
+  @@map("media_trackings")
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  tmdbId     Int      @map("tmdb_id")
+  mediaType  String   @map("media_type")
+  content    String
+  hasSpoiler Boolean  @default(false) @map("has_spoiler")
+  likesCount Int      @default(0) @map("likes_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model UserList {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  name      String
+  isPublic  Boolean  @default(true) @map("is_public")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items ListItem[]
+
+  @@map("user_lists")
+}
+
+model ListItem {
+  id        String   @id @default(uuid())
+  listId    String   @map("list_id")
+  tmdbId    Int      @map("tmdb_id")
+  mediaType String   @map("media_type")
+  addedAt   DateTime @default(now()) @map("added_at")
+
+  list UserList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@map("list_items")
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  follower  User @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("follower", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
