@@ -6,6 +6,7 @@ export interface MediaItem {
   type: "movie" | "tv" | "anime";
   reason?: string;
   boxOffice?: string;
+  daysUntil?: number;
   gradient: string;
 }
 
@@ -60,4 +61,13 @@ export const streamingTop10 = [
   { platform: "Max", title: "Backrooms", rank: 2 },
   { platform: "Prime", title: "The Crash", rank: 1 },
   { platform: "Prime", title: "GOAT", rank: 2 },
+];
+
+export const upcoming: MediaItem[] = [
+  { id: 201, title: "Avatar: Fire & Ash", gradient: "from-cyan-500 to-blue-700", rating: 0, year: 2026, type: "movie", daysUntil: 14 },
+  { id: 202, title: "Spider-Man: Beyond", gradient: "from-red-500 to-red-700", rating: 0, year: 2027, type: "movie", daysUntil: 28 },
+  { id: 203, title: "Stranger Things S5", gradient: "from-red-600 to-orange-700", rating: 0, year: 2026, type: "tv", daysUntil: 45 },
+  { id: 204, title: "Attack on Titan Movie", gradient: "from-amber-600 to-yellow-800", rating: 0, year: 2026, type: "anime", daysUntil: 7 },
+  { id: 205, title: "The Batman II", gradient: "from-slate-700 to-gray-900", rating: 0, year: 2027, type: "movie", daysUntil: 90 },
+  { id: 206, title: "Jujutsu Kaisen S3", gradient: "from-purple-600 to-indigo-800", rating: 0, year: 2026, type: "anime", daysUntil: 21 },
 ];

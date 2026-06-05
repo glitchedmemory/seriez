@@ -1,6 +1,6 @@
 {
-  "name": "Bingr",
-  "short_name": "Bingr",
+  "name": "Reelist",
+  "short_name": "Reelist",
   "description": "Track movies, TV shows, and anime. Get smart recommendations.",
   "start_url": "/",
   "display": "standalone",

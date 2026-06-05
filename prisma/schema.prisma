@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client"
+  output   = "../.prisma/client"
 }
 
 datasource db {
@@ -43,15 +44,17 @@ model MediaTracking {
 
 model Review {
   id         String   @id @default(uuid())
-  userId     String   @map("user_id")
+  userId     String?  @map("user_id")
+  username   String   @default("Anonymous")
   tmdbId     Int      @map("tmdb_id")
   mediaType  String   @map("media_type")
   content    String
+  rating     Int      @default(0)
   hasSpoiler Boolean  @default(false) @map("has_spoiler")
   likesCount Int      @default(0) @map("likes_count")
   createdAt  DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("reviews")
 }
