@@ -1,0 +1,9 @@
+{
+  "name": "Bingr",
+  "short_name": "Bingr",
+  "description": "Track movies, TV shows, and anime. Get smart recommendations.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f1a",
+  "theme_color": "#0f0f1a"
+}
