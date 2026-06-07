@@ -1,0 +1,100 @@
+"use client";
+
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+
+export const dynamic = "force-dynamic";
+
+export default function SignupPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+  const supabase = createClient();
+
+  async function handleSignup(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const oldUsername = localStorage.getItem("seriez-username");
+
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: {
+          username: username.trim(),
+          migrated_from: oldUsername || null,
+        },
+      },
+    });
+
+    if (signUpError) {
+      setError(signUpError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data.user) {
+      localStorage.setItem("seriez-username", username.trim());
+      router.push("/profile?welcome=1");
+      router.refresh();
+    }
+  }
+
+  return (
+    <div className="max-w-sm mx-auto px-4 pt-20 pb-32">
+      <h1 className="text-2xl font-bold text-white mb-2">Create account</h1>
+      <p className="text-sm text-[#9ca3af] mb-6">Start tracking what you watch</p>
+
+      <form onSubmit={handleSignup}>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="w-full bg-[#1a1a2e] text-white rounded-xl px-4 py-3 outline-none border border-[#2d2d4a] focus:border-[#6366f1] mb-3"
+          required
+          maxLength={20}
+        />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full bg-[#1a1a2e] text-white rounded-xl px-4 py-3 outline-none border border-[#2d2d4a] focus:border-[#6366f1] mb-3"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password (min 6 characters)"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full bg-[#1a1a2e] text-white rounded-xl px-4 py-3 outline-none border border-[#2d2d4a] focus:border-[#6366f1] mb-1"
+          required
+          minLength={6}
+        />
+        {error && <p className="text-red-400 text-xs mb-3">{error}</p>}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3 rounded-xl bg-[#6366f1] text-white font-semibold hover:bg-[#818cf8] transition-colors disabled:opacity-50 mb-3"
+        >
+          Create account
+        </button>
+      </form>
+
+      <p className="text-center text-sm text-[#9ca3af]">
+        Already have an account?{" "}
+        <a href="/login" className="text-[#6366f1] hover:underline">
+          Sign in
+        </a>
+      </p>
+    </div>
+  );
+}

@@ -2,6 +2,48 @@ import { NextRequest, NextResponse } from "next/server";
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE = "https://api.themoviedb.org/3";
+const ANILIST_API = "https://graphql.anilist.co";
+
+const ANILIST_SEARCH_QUERY = `
+query($search: String) {
+  Page(perPage: 5) {
+    media(search: $search, type: ANIME) {
+      id
+      title { romaji english }
+      startDate { year }
+      coverImage { medium }
+      averageScore
+    }
+  }
+}
+`;
+
+async function searchAniList(query: string) {
+  try {
+    const res = await fetch(ANILIST_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: ANILIST_SEARCH_QUERY,
+        variables: { search: query },
+      }),
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const media = json.data?.Page?.media || [];
+    return media.map((m: any) => ({
+      id: m.id,
+      title: m.title.english || m.title.romaji || "Unknown",
+      year: m.startDate?.year?.toString() || "",
+      type: "anime",
+      poster: m.coverImage?.medium || null,
+      rating: (m.averageScore || 0) / 10,
+      genres: [],
+    }));
+  } catch {
+    return [];
+  }
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -11,25 +53,33 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ results: [] });
   }
 
-  const url = `${TMDB_BASE}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(q.trim())}&language=en-US&page=1`;
-  const res = await fetch(url, { next: { revalidate: 3600 } });
-  if (!res.ok) return NextResponse.json({ results: [] }, { status: res.status });
+  const tmdbUrl = `${TMDB_BASE}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(q.trim())}&language=en-US&page=1`;
 
-  const data = await res.json();
-  const results = (data.results || [])
-    .filter((r: any) => r.media_type === "movie" || r.media_type === "tv")
-    .slice(0, 8)
-    .map((r: any) => ({
-      id: r.id,
-      title: r.title || r.name || "Unknown",
-      year: (r.release_date || r.first_air_date || "").slice(0, 4),
-      type: r.media_type,
-      poster: r.poster_path
-        ? `https://image.tmdb.org/t/p/w92${r.poster_path}`
-        : null,
-      rating: Math.round((r.vote_average || 0) * 10) / 10,
-      genres: [],
-    }));
+  const [tmdbRes, animeResults] = await Promise.all([
+    fetch(tmdbUrl, { next: { revalidate: 3600 } }),
+    searchAniList(q.trim()),
+  ]);
+
+  let tmdbResults: any[] = [];
+  if (tmdbRes.ok) {
+    const data = await tmdbRes.json();
+    tmdbResults = (data.results || [])
+      .filter((r: any) => r.media_type === "movie" || r.media_type === "tv")
+      .slice(0, 6)
+      .map((r: any) => ({
+        id: r.id,
+        title: r.title || r.name || "Unknown",
+        year: (r.release_date || r.first_air_date || "").slice(0, 4),
+        type: r.media_type,
+        poster: r.poster_path
+          ? `https://image.tmdb.org/t/p/w92${r.poster_path}`
+          : null,
+        rating: Math.round((r.vote_average || 0) * 10) / 10,
+        genres: [],
+      }));
+  }
+
+  const results = [...tmdbResults, ...animeResults];
 
   return NextResponse.json({ results });
 }

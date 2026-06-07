@@ -1,29 +1,104 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { TmdbResult } from "@/lib/tmdb";
+import PosterImage from "@/components/PosterImage";
 
 export function HeroCard({ item, nextItem, region }: { item: TmdbResult; nextItem?: TmdbResult; region: string }) {
+  const router = useRouter();
+  // Collections state
+  const [collections, setCollections] = useState<{ id: string; name: string; itemCount: number }[]>([]);
+  const [showCollDropdown, setShowCollDropdown] = useState(false);
+  const [addingCollId, setAddingCollId] = useState<string | null>(null);
+  const [collFeedback, setCollFeedback] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const username = localStorage.getItem("seriez-username") || "Anonymous";
+    fetch(`/api/collections?username=${encodeURIComponent(username)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.collections) setCollections(data.collections);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!showCollDropdown) return;
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowCollDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showCollDropdown]);
+
+  async function addToCollection(listId: string, listName: string) {
+    const username = localStorage.getItem("seriez-username") || "Anonymous";
+    setAddingCollId(listId);
+    setCollFeedback(null);
+    try {
+      const res = await fetch(`/api/collections/${listId}/items`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, tmdbId: item.id, mediaType: item.type }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setCollFeedback(`Added to "${listName}" ✓`);
+        setCollections((prev) => prev.map((c) => (c.id === listId ? { ...c, itemCount: c.itemCount + 1 } : c)));
+      } else {
+        setCollFeedback(json.error || "Failed to add");
+      }
+    } catch {
+      setCollFeedback("Failed to add");
+    }
+    setAddingCollId(null);
+    setTimeout(() => setCollFeedback(null), 2500);
+  }
+
+  function handleWatchNow(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = item.type === "tv"
+      ? `/title/${item.id}/season/1#trailers`
+      : `/title/${item.id}?type=${item.type}#trailers`;
+    router.push(url);
+  }
+
+  function handlePlusClick(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowCollDropdown(!showCollDropdown);
+  }
+
   return (
     <div className="px-0 pt-0 pb-2">
       {/* Main Hero */}
       <a
         href={`/title/${item.id}?type=${item.type}`}
-        className="relative block rounded-none md:rounded-2xl overflow-hidden min-h-[280px] md:min-h-[340px] group cursor-pointer"
+        className="relative block rounded-none md:rounded-2xl min-h-[280px] md:min-h-[340px] group cursor-pointer"
       >
         {/* Backdrop background */}
-        {item.backdrop ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={item.backdrop}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            loading="eager"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#25253a] to-[#312e81]" />
-        )}
+        <div className="absolute inset-0 overflow-hidden rounded-none md:rounded-2xl">
+        <div className="relative w-full h-full">
+        <PosterImage
+          src={item.backdrop}
+          alt=""
+          fill
+          className="rounded-none md:rounded-2xl group-hover:scale-105 transition-transform duration-700"
+          priority
+        />
+        </div>
 
         {/* Dark overlay gradient - left side darker for text readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f1a]/95 via-[#0f0f1a]/60 to-[#0f0f1a]/20" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f1a]/90 via-transparent to-transparent" />
+        </div>
 
         {/* Top badges */}
         <div className="absolute top-4 left-4">
@@ -60,13 +135,51 @@ export function HeroCard({ item, nextItem, region }: { item: TmdbResult; nextIte
           )}
 
           {/* Action buttons */}
-          <div className="flex gap-2">
-            <span className="px-5 py-2 rounded-full bg-white text-black text-sm font-semibold hover:bg-gray-200 transition-colors inline-flex items-center gap-1.5">
+          <div className="flex gap-2 items-center relative" ref={dropdownRef}>
+            <button
+              onClick={handleWatchNow}
+              className="px-5 py-2 rounded-full bg-white text-black text-sm font-semibold hover:bg-gray-200 transition-colors inline-flex items-center gap-1.5 border-none cursor-pointer"
+            >
               ▶ Watch Now
-            </span>
-            <span className="px-3 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors inline-flex items-center gap-1.5">
+            </button>
+            <button
+              onClick={handlePlusClick}
+              className="px-3 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors inline-flex items-center gap-1.5 border-none cursor-pointer"
+            >
               +
-            </span>
+            </button>
+            {collFeedback && (
+              <span className="text-[11px] text-[#6366f1]">{collFeedback}</span>
+            )}
+            {showCollDropdown && (
+              <div className="absolute top-full mt-2 left-0 w-52 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl shadow-2xl z-50">
+                {collections.length === 0 ? (
+                  <div className="px-3 py-3 text-[11px] text-[#6b7280] text-center">
+                    No collections yet.
+                    <a href="/library?tab=collections" className="block mt-1 text-[#6366f1] hover:underline">
+                      Create one →
+                    </a>
+                  </div>
+                ) : (
+                  collections.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        addToCollection(c.id, c.name);
+                        setShowCollDropdown(false);
+                      }}
+                      disabled={addingCollId === c.id}
+                      className="w-full text-left px-3 py-2.5 text-xs text-white hover:bg-[#25253a] flex justify-between items-center transition-colors disabled:opacity-50 border-none cursor-pointer"
+                    >
+                      <span>{c.name}</span>
+                      <span className="text-[10px] text-[#6b7280]">{c.itemCount}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       </a>
@@ -78,20 +191,14 @@ export function HeroCard({ item, nextItem, region }: { item: TmdbResult; nextIte
           className="mt-3 mx-4 md:mx-0 flex items-center gap-3 bg-[#1a1a2e] hover:bg-[#25253a] rounded-xl p-2.5 transition-colors cursor-pointer"
         >
           {/* Poster thumbnail */}
-          <div className="flex-shrink-0 w-12 h-[72px] rounded-lg overflow-hidden bg-[#0f0f1a]">
-            {nextItem.poster ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={nextItem.poster}
-                alt={nextItem.title}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white/20 text-xs font-bold">
-                {nextItem.title.slice(0, 2)}
-              </div>
-            )}
+          <div className="flex-shrink-0 w-12 h-[72px] rounded-lg overflow-hidden bg-[#0f0f1a] relative">
+            <PosterImage
+              src={nextItem.poster}
+              alt={nextItem.title}
+              fill
+              className="rounded-lg"
+              sizes="48px"
+            />
           </div>
 
           <div className="flex-1 min-w-0">

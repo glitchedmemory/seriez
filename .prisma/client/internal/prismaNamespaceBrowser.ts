@@ -54,6 +54,7 @@ export const ModelName = {
   User: 'User',
   MediaTracking: 'MediaTracking',
   Review: 'Review',
+  EpisodeWatch: 'EpisodeWatch',
   UserList: 'UserList',
   ListItem: 'ListItem',
   Follow: 'Follow'
@@ -89,7 +90,7 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 
 export const MediaTrackingScalarFieldEnum = {
   id: 'id',
-  userId: 'userId',
+  username: 'username',
   tmdbId: 'tmdbId',
   anilistId: 'anilistId',
   mediaType: 'mediaType',
@@ -116,6 +117,18 @@ export const ReviewScalarFieldEnum = {
 } as const
 
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
+
+
+export const EpisodeWatchScalarFieldEnum = {
+  id: 'id',
+  username: 'username',
+  tmdbId: 'tmdbId',
+  seasonNumber: 'seasonNumber',
+  episodeNumber: 'episodeNumber',
+  watchedAt: 'watchedAt'
+} as const
+
+export type EpisodeWatchScalarFieldEnum = (typeof EpisodeWatchScalarFieldEnum)[keyof typeof EpisodeWatchScalarFieldEnum]
 
 
 export const UserListScalarFieldEnum = {

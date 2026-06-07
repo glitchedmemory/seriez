@@ -41,18 +41,26 @@ export function StarInput({
             key={star}
             type="button"
             onClick={() => handleClick(star)}
-            className="text-2xl select-none p-0 m-0 leading-none"
-            style={{
-              background:
-                fill > 0
-                  ? `linear-gradient(to right, #f59e0b ${fill}%, #4b5563 ${fill}%)`
-                  : "#4b5563",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
+            className="select-none p-0 m-0 leading-none bg-transparent border-0 cursor-pointer"
+            style={{ fontSize: 32, lineHeight: 1 }}
           >
-            ★
+            {fill === 100 ? (
+              <span style={{ color: "#f59e0b" }}>★</span>
+            ) : fill === 50 ? (
+              <span
+                style={{
+                  backgroundImage: "linear-gradient(to right, #f59e0b 50%, #4b5563 50%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  color: "transparent",
+                }}
+              >
+                ★
+              </span>
+            ) : (
+              <span style={{ color: "#4b5563" }}>☆</span>
+            )}
           </button>
         );
       })}

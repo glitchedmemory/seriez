@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getTrending, getUpcoming, getNowPlaying } from "@/lib/tmdb";
 import HomeClient from "@/components/HomeClient";
 import { headers } from "next/headers";
@@ -21,5 +23,5 @@ export default async function Home() {
     // fallback: empty arrays, HomeClient shows empty states
   }
 
-  return <HomeClient trending={trending} upcoming={upcoming} boxOffice={boxOffice} region={country} />;
+  return <HomeClient trending={trending} upcoming={upcoming} boxOffice={boxOffice} region={country} randomSeed={Date.now()} />;
 }

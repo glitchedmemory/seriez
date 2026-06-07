@@ -1,6 +1,7 @@
 "use client";
 
 import type { PersonDetail } from "@/lib/tmdb";
+import PosterImage from "@/components/PosterImage";
 
 function CreditCard({ item, type }: { item: { id: number; title: string; character: string; year: number; poster: string | null; rating: number }; type: "movie" | "tv" }) {
   return (
@@ -8,20 +9,14 @@ function CreditCard({ item, type }: { item: { id: number; title: string; charact
       href={`/title/${item.id}?type=${type}`}
       className="flex items-center gap-3 bg-[#1a1a2e] rounded-xl p-3 hover:bg-[#25253a] transition-colors"
     >
-      <div className="flex-shrink-0 w-10 h-[60px] rounded-lg overflow-hidden bg-[#0f0f1a]">
-        {item.poster ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={item.poster}
-            alt={item.title}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-white/20 text-xs font-bold">
-            {item.title.slice(0, 2)}
-          </div>
-        )}
+      <div className="flex-shrink-0 w-10 h-[60px] rounded-lg overflow-hidden bg-[#0f0f1a] relative">
+        <PosterImage
+          src={item.poster}
+          alt={item.title}
+          fill
+          className="rounded-lg"
+          sizes="40px"
+        />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-white truncate">{item.title}</p>
@@ -40,19 +35,14 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
       <div className="flex flex-col md:flex-row gap-6 pt-8">
         {/* Photo */}
         <div className="flex-shrink-0 w-32 h-32 md:w-48 md:h-48 mx-auto md:mx-0">
-          <div className="w-full h-full rounded-2xl overflow-hidden bg-[#1a1a2e]">
-            {person.photo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={person.photo}
-                alt={person.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white/30 text-4xl font-bold">
-                {person.name[0]}
-              </div>
-            )}
+          <div className="w-full h-full rounded-2xl overflow-hidden bg-[#1a1a2e] relative">
+            <PosterImage
+              src={person.photo}
+              alt={person.name}
+              fill
+              className="rounded-2xl"
+              sizes="(max-width: 768px) 128px, 192px"
+            />
           </div>
         </div>
 
@@ -92,8 +82,8 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
             🎬 Movies ({person.movieCredits.length})
           </h2>
           <div className="space-y-2">
-            {person.movieCredits.map((m) => (
-              <CreditCard key={`movie-${m.id}`} item={m} type="movie" />
+            {person.movieCredits.map((m, i) => (
+              <CreditCard key={`movie-${m.id}-${i}`} item={m} type="movie" />
             ))}
           </div>
         </section>
@@ -106,8 +96,8 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
             📺 TV Shows ({person.tvCredits.length})
           </h2>
           <div className="space-y-2">
-            {person.tvCredits.map((t) => (
-              <CreditCard key={`tv-${t.id}`} item={t} type="tv" />
+            {person.tvCredits.map((t, i) => (
+              <CreditCard key={`tv-${t.id}-${i}`} item={t} type="tv" />
             ))}
           </div>
         </section>

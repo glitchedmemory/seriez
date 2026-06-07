@@ -11,6 +11,7 @@
 export type * from './models/User'
 export type * from './models/MediaTracking'
 export type * from './models/Review'
+export type * from './models/EpisodeWatch'
 export type * from './models/UserList'
 export type * from './models/ListItem'
 export type * from './models/Follow'

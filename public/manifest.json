@@ -1,9 +1,24 @@
 {
-  "name": "Reelist",
-  "short_name": "Reelist",
-  "description": "Track movies, TV shows, and anime. Get smart recommendations.",
+  "name": "Seriez - Movies & TV Shows, Anime Tracker",
+  "short_name": "Seriez",
+  "description": "Track movies, TV shows, and anime. Save what you watch.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f0f1a",
-  "theme_color": "#0f0f1a"
+  "theme_color": "#0f0f1a",
+  "categories": ["entertainment", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }

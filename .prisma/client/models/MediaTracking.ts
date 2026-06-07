@@ -42,7 +42,7 @@ export type MediaTrackingSumAggregateOutputType = {
 
 export type MediaTrackingMinAggregateOutputType = {
   id: string | null
-  userId: string | null
+  username: string | null
   tmdbId: number | null
   anilistId: number | null
   mediaType: string | null
@@ -54,7 +54,7 @@ export type MediaTrackingMinAggregateOutputType = {
 
 export type MediaTrackingMaxAggregateOutputType = {
   id: string | null
-  userId: string | null
+  username: string | null
   tmdbId: number | null
   anilistId: number | null
   mediaType: string | null
@@ -66,7 +66,7 @@ export type MediaTrackingMaxAggregateOutputType = {
 
 export type MediaTrackingCountAggregateOutputType = {
   id: number
-  userId: number
+  username: number
   tmdbId: number
   anilistId: number
   mediaType: number
@@ -94,7 +94,7 @@ export type MediaTrackingSumAggregateInputType = {
 
 export type MediaTrackingMinAggregateInputType = {
   id?: true
-  userId?: true
+  username?: true
   tmdbId?: true
   anilistId?: true
   mediaType?: true
@@ -106,7 +106,7 @@ export type MediaTrackingMinAggregateInputType = {
 
 export type MediaTrackingMaxAggregateInputType = {
   id?: true
-  userId?: true
+  username?: true
   tmdbId?: true
   anilistId?: true
   mediaType?: true
@@ -118,7 +118,7 @@ export type MediaTrackingMaxAggregateInputType = {
 
 export type MediaTrackingCountAggregateInputType = {
   id?: true
-  userId?: true
+  username?: true
   tmdbId?: true
   anilistId?: true
   mediaType?: true
@@ -217,7 +217,7 @@ export type MediaTrackingGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
 
 export type MediaTrackingGroupByOutputType = {
   id: string
-  userId: string
+  username: string
   tmdbId: number
   anilistId: number | null
   mediaType: string
@@ -252,7 +252,7 @@ export type MediaTrackingWhereInput = {
   OR?: Prisma.MediaTrackingWhereInput[]
   NOT?: Prisma.MediaTrackingWhereInput | Prisma.MediaTrackingWhereInput[]
   id?: Prisma.StringFilter<"MediaTracking"> | string
-  userId?: Prisma.StringFilter<"MediaTracking"> | string
+  username?: Prisma.StringFilter<"MediaTracking"> | string
   tmdbId?: Prisma.IntFilter<"MediaTracking"> | number
   anilistId?: Prisma.IntNullableFilter<"MediaTracking"> | number | null
   mediaType?: Prisma.StringFilter<"MediaTracking"> | string
@@ -260,12 +260,11 @@ export type MediaTrackingWhereInput = {
   rating?: Prisma.FloatNullableFilter<"MediaTracking"> | number | null
   progress?: Prisma.IntNullableFilter<"MediaTracking"> | number | null
   updatedAt?: Prisma.DateTimeFilter<"MediaTracking"> | Date | string
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
 export type MediaTrackingOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
+  username?: Prisma.SortOrder
   tmdbId?: Prisma.SortOrder
   anilistId?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaType?: Prisma.SortOrder
@@ -273,16 +272,15 @@ export type MediaTrackingOrderByWithRelationInput = {
   rating?: Prisma.SortOrderInput | Prisma.SortOrder
   progress?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  user?: Prisma.UserOrderByWithRelationInput
 }
 
 export type MediaTrackingWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  userId_tmdbId_mediaType?: Prisma.MediaTrackingUserIdTmdbIdMediaTypeCompoundUniqueInput
+  username_tmdbId_mediaType?: Prisma.MediaTrackingUsernameTmdbIdMediaTypeCompoundUniqueInput
   AND?: Prisma.MediaTrackingWhereInput | Prisma.MediaTrackingWhereInput[]
   OR?: Prisma.MediaTrackingWhereInput[]
   NOT?: Prisma.MediaTrackingWhereInput | Prisma.MediaTrackingWhereInput[]
-  userId?: Prisma.StringFilter<"MediaTracking"> | string
+  username?: Prisma.StringFilter<"MediaTracking"> | string
   tmdbId?: Prisma.IntFilter<"MediaTracking"> | number
   anilistId?: Prisma.IntNullableFilter<"MediaTracking"> | number | null
   mediaType?: Prisma.StringFilter<"MediaTracking"> | string
@@ -290,12 +288,11 @@ export type MediaTrackingWhereUniqueInput = Prisma.AtLeast<{
   rating?: Prisma.FloatNullableFilter<"MediaTracking"> | number | null
   progress?: Prisma.IntNullableFilter<"MediaTracking"> | number | null
   updatedAt?: Prisma.DateTimeFilter<"MediaTracking"> | Date | string
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id" | "userId_tmdbId_mediaType">
+}, "id" | "username_tmdbId_mediaType">
 
 export type MediaTrackingOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
+  username?: Prisma.SortOrder
   tmdbId?: Prisma.SortOrder
   anilistId?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaType?: Prisma.SortOrder
@@ -315,7 +312,7 @@ export type MediaTrackingScalarWhereWithAggregatesInput = {
   OR?: Prisma.MediaTrackingScalarWhereWithAggregatesInput[]
   NOT?: Prisma.MediaTrackingScalarWhereWithAggregatesInput | Prisma.MediaTrackingScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"MediaTracking"> | string
-  userId?: Prisma.StringWithAggregatesFilter<"MediaTracking"> | string
+  username?: Prisma.StringWithAggregatesFilter<"MediaTracking"> | string
   tmdbId?: Prisma.IntWithAggregatesFilter<"MediaTracking"> | number
   anilistId?: Prisma.IntNullableWithAggregatesFilter<"MediaTracking"> | number | null
   mediaType?: Prisma.StringWithAggregatesFilter<"MediaTracking"> | string
@@ -327,6 +324,7 @@ export type MediaTrackingScalarWhereWithAggregatesInput = {
 
 export type MediaTrackingCreateInput = {
   id?: string
+  username: string
   tmdbId: number
   anilistId?: number | null
   mediaType: string
@@ -334,12 +332,11 @@ export type MediaTrackingCreateInput = {
   rating?: number | null
   progress?: number | null
   updatedAt?: Date | string
-  user: Prisma.UserCreateNestedOneWithoutTrackingsInput
 }
 
 export type MediaTrackingUncheckedCreateInput = {
   id?: string
-  userId: string
+  username: string
   tmdbId: number
   anilistId?: number | null
   mediaType: string
@@ -351,6 +348,7 @@ export type MediaTrackingUncheckedCreateInput = {
 
 export type MediaTrackingUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
   tmdbId?: Prisma.IntFieldUpdateOperationsInput | number
   anilistId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   mediaType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -358,12 +356,11 @@ export type MediaTrackingUpdateInput = {
   rating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   progress?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  user?: Prisma.UserUpdateOneRequiredWithoutTrackingsNestedInput
 }
 
 export type MediaTrackingUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
   tmdbId?: Prisma.IntFieldUpdateOperationsInput | number
   anilistId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   mediaType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -375,7 +372,7 @@ export type MediaTrackingUncheckedUpdateInput = {
 
 export type MediaTrackingCreateManyInput = {
   id?: string
-  userId: string
+  username: string
   tmdbId: number
   anilistId?: number | null
   mediaType: string
@@ -387,6 +384,7 @@ export type MediaTrackingCreateManyInput = {
 
 export type MediaTrackingUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
   tmdbId?: Prisma.IntFieldUpdateOperationsInput | number
   anilistId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   mediaType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -398,7 +396,7 @@ export type MediaTrackingUpdateManyMutationInput = {
 
 export type MediaTrackingUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
   tmdbId?: Prisma.IntFieldUpdateOperationsInput | number
   anilistId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   mediaType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -408,25 +406,15 @@ export type MediaTrackingUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type MediaTrackingListRelationFilter = {
-  every?: Prisma.MediaTrackingWhereInput
-  some?: Prisma.MediaTrackingWhereInput
-  none?: Prisma.MediaTrackingWhereInput
-}
-
-export type MediaTrackingOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
-}
-
-export type MediaTrackingUserIdTmdbIdMediaTypeCompoundUniqueInput = {
-  userId: string
+export type MediaTrackingUsernameTmdbIdMediaTypeCompoundUniqueInput = {
+  username: string
   tmdbId: number
   mediaType: string
 }
 
 export type MediaTrackingCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
+  username?: Prisma.SortOrder
   tmdbId?: Prisma.SortOrder
   anilistId?: Prisma.SortOrder
   mediaType?: Prisma.SortOrder
@@ -445,7 +433,7 @@ export type MediaTrackingAvgOrderByAggregateInput = {
 
 export type MediaTrackingMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
+  username?: Prisma.SortOrder
   tmdbId?: Prisma.SortOrder
   anilistId?: Prisma.SortOrder
   mediaType?: Prisma.SortOrder
@@ -457,7 +445,7 @@ export type MediaTrackingMaxOrderByAggregateInput = {
 
 export type MediaTrackingMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
+  username?: Prisma.SortOrder
   tmdbId?: Prisma.SortOrder
   anilistId?: Prisma.SortOrder
   mediaType?: Prisma.SortOrder
@@ -472,48 +460,6 @@ export type MediaTrackingSumOrderByAggregateInput = {
   anilistId?: Prisma.SortOrder
   rating?: Prisma.SortOrder
   progress?: Prisma.SortOrder
-}
-
-export type MediaTrackingCreateNestedManyWithoutUserInput = {
-  create?: Prisma.XOR<Prisma.MediaTrackingCreateWithoutUserInput, Prisma.MediaTrackingUncheckedCreateWithoutUserInput> | Prisma.MediaTrackingCreateWithoutUserInput[] | Prisma.MediaTrackingUncheckedCreateWithoutUserInput[]
-  connectOrCreate?: Prisma.MediaTrackingCreateOrConnectWithoutUserInput | Prisma.MediaTrackingCreateOrConnectWithoutUserInput[]
-  createMany?: Prisma.MediaTrackingCreateManyUserInputEnvelope
-  connect?: Prisma.MediaTrackingWhereUniqueInput | Prisma.MediaTrackingWhereUniqueInput[]
-}
-
-export type MediaTrackingUncheckedCreateNestedManyWithoutUserInput = {
-  create?: Prisma.XOR<Prisma.MediaTrackingCreateWithoutUserInput, Prisma.MediaTrackingUncheckedCreateWithoutUserInput> | Prisma.MediaTrackingCreateWithoutUserInput[] | Prisma.MediaTrackingUncheckedCreateWithoutUserInput[]
-  connectOrCreate?: Prisma.MediaTrackingCreateOrConnectWithoutUserInput | Prisma.MediaTrackingCreateOrConnectWithoutUserInput[]
-  createMany?: Prisma.MediaTrackingCreateManyUserInputEnvelope
-  connect?: Prisma.MediaTrackingWhereUniqueInput | Prisma.MediaTrackingWhereUniqueInput[]
-}
-
-export type MediaTrackingUpdateManyWithoutUserNestedInput = {
-  create?: Prisma.XOR<Prisma.MediaTrackingCreateWithoutUserInput, Prisma.MediaTrackingUncheckedCreateWithoutUserInput> | Prisma.MediaTrackingCreateWithoutUserInput[] | Prisma.MediaTrackingUncheckedCreateWithoutUserInput[]
-  connectOrCreate?: Prisma.MediaTrackingCreateOrConnectWithoutUserInput | Prisma.MediaTrackingCreateOrConnectWithoutUserInput[]
-  upsert?: Prisma.MediaTrackingUpsertWithWhereUniqueWithoutUserInput | Prisma.MediaTrackingUpsertWithWhereUniqueWithoutUserInput[]
-  createMany?: Prisma.MediaTrackingCreateManyUserInputEnvelope
-  set?: Prisma.MediaTrackingWhereUniqueInput | Prisma.MediaTrackingWhereUniqueInput[]
-  disconnect?: Prisma.MediaTrackingWhereUniqueInput | Prisma.MediaTrackingWhereUniqueInput[]
-  delete?: Prisma.MediaTrackingWhereUniqueInput | Prisma.MediaTrackingWhereUniqueInput[]
-  connect?: Prisma.MediaTrackingWhereUniqueInput | Prisma.MediaTrackingWhereUniqueInput[]
-  update?: Prisma.MediaTrackingUpdateWithWhereUniqueWithoutUserInput | Prisma.MediaTrackingUpdateWithWhereUniqueWithoutUserInput[]
-  updateMany?: Prisma.MediaTrackingUpdateManyWithWhereWithoutUserInput | Prisma.MediaTrackingUpdateManyWithWhereWithoutUserInput[]
-  deleteMany?: Prisma.MediaTrackingScalarWhereInput | Prisma.MediaTrackingScalarWhereInput[]
-}
-
-export type MediaTrackingUncheckedUpdateManyWithoutUserNestedInput = {
-  create?: Prisma.XOR<Prisma.MediaTrackingCreateWithoutUserInput, Prisma.MediaTrackingUncheckedCreateWithoutUserInput> | Prisma.MediaTrackingCreateWithoutUserInput[] | Prisma.MediaTrackingUncheckedCreateWithoutUserInput[]
-  connectOrCreate?: Prisma.MediaTrackingCreateOrConnectWithoutUserInput | Prisma.MediaTrackingCreateOrConnectWithoutUserInput[]
-  upsert?: Prisma.MediaTrackingUpsertWithWhereUniqueWithoutUserInput | Prisma.MediaTrackingUpsertWithWhereUniqueWithoutUserInput[]
-  createMany?: Prisma.MediaTrackingCreateManyUserInputEnvelope
-  set?: Prisma.MediaTrackingWhereUniqueInput | Prisma.MediaTrackingWhereUniqueInput[]
-  disconnect?: Prisma.MediaTrackingWhereUniqueInput | Prisma.MediaTrackingWhereUniqueInput[]
-  delete?: Prisma.MediaTrackingWhereUniqueInput | Prisma.MediaTrackingWhereUniqueInput[]
-  connect?: Prisma.MediaTrackingWhereUniqueInput | Prisma.MediaTrackingWhereUniqueInput[]
-  update?: Prisma.MediaTrackingUpdateWithWhereUniqueWithoutUserInput | Prisma.MediaTrackingUpdateWithWhereUniqueWithoutUserInput[]
-  updateMany?: Prisma.MediaTrackingUpdateManyWithWhereWithoutUserInput | Prisma.MediaTrackingUpdateManyWithWhereWithoutUserInput[]
-  deleteMany?: Prisma.MediaTrackingScalarWhereInput | Prisma.MediaTrackingScalarWhereInput[]
 }
 
 export type IntFieldUpdateOperationsInput = {
@@ -540,118 +486,11 @@ export type NullableFloatFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type MediaTrackingCreateWithoutUserInput = {
-  id?: string
-  tmdbId: number
-  anilistId?: number | null
-  mediaType: string
-  status: string
-  rating?: number | null
-  progress?: number | null
-  updatedAt?: Date | string
-}
-
-export type MediaTrackingUncheckedCreateWithoutUserInput = {
-  id?: string
-  tmdbId: number
-  anilistId?: number | null
-  mediaType: string
-  status: string
-  rating?: number | null
-  progress?: number | null
-  updatedAt?: Date | string
-}
-
-export type MediaTrackingCreateOrConnectWithoutUserInput = {
-  where: Prisma.MediaTrackingWhereUniqueInput
-  create: Prisma.XOR<Prisma.MediaTrackingCreateWithoutUserInput, Prisma.MediaTrackingUncheckedCreateWithoutUserInput>
-}
-
-export type MediaTrackingCreateManyUserInputEnvelope = {
-  data: Prisma.MediaTrackingCreateManyUserInput | Prisma.MediaTrackingCreateManyUserInput[]
-  skipDuplicates?: boolean
-}
-
-export type MediaTrackingUpsertWithWhereUniqueWithoutUserInput = {
-  where: Prisma.MediaTrackingWhereUniqueInput
-  update: Prisma.XOR<Prisma.MediaTrackingUpdateWithoutUserInput, Prisma.MediaTrackingUncheckedUpdateWithoutUserInput>
-  create: Prisma.XOR<Prisma.MediaTrackingCreateWithoutUserInput, Prisma.MediaTrackingUncheckedCreateWithoutUserInput>
-}
-
-export type MediaTrackingUpdateWithWhereUniqueWithoutUserInput = {
-  where: Prisma.MediaTrackingWhereUniqueInput
-  data: Prisma.XOR<Prisma.MediaTrackingUpdateWithoutUserInput, Prisma.MediaTrackingUncheckedUpdateWithoutUserInput>
-}
-
-export type MediaTrackingUpdateManyWithWhereWithoutUserInput = {
-  where: Prisma.MediaTrackingScalarWhereInput
-  data: Prisma.XOR<Prisma.MediaTrackingUpdateManyMutationInput, Prisma.MediaTrackingUncheckedUpdateManyWithoutUserInput>
-}
-
-export type MediaTrackingScalarWhereInput = {
-  AND?: Prisma.MediaTrackingScalarWhereInput | Prisma.MediaTrackingScalarWhereInput[]
-  OR?: Prisma.MediaTrackingScalarWhereInput[]
-  NOT?: Prisma.MediaTrackingScalarWhereInput | Prisma.MediaTrackingScalarWhereInput[]
-  id?: Prisma.StringFilter<"MediaTracking"> | string
-  userId?: Prisma.StringFilter<"MediaTracking"> | string
-  tmdbId?: Prisma.IntFilter<"MediaTracking"> | number
-  anilistId?: Prisma.IntNullableFilter<"MediaTracking"> | number | null
-  mediaType?: Prisma.StringFilter<"MediaTracking"> | string
-  status?: Prisma.StringFilter<"MediaTracking"> | string
-  rating?: Prisma.FloatNullableFilter<"MediaTracking"> | number | null
-  progress?: Prisma.IntNullableFilter<"MediaTracking"> | number | null
-  updatedAt?: Prisma.DateTimeFilter<"MediaTracking"> | Date | string
-}
-
-export type MediaTrackingCreateManyUserInput = {
-  id?: string
-  tmdbId: number
-  anilistId?: number | null
-  mediaType: string
-  status: string
-  rating?: number | null
-  progress?: number | null
-  updatedAt?: Date | string
-}
-
-export type MediaTrackingUpdateWithoutUserInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  tmdbId?: Prisma.IntFieldUpdateOperationsInput | number
-  anilistId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  rating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  progress?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type MediaTrackingUncheckedUpdateWithoutUserInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  tmdbId?: Prisma.IntFieldUpdateOperationsInput | number
-  anilistId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  rating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  progress?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type MediaTrackingUncheckedUpdateManyWithoutUserInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  tmdbId?: Prisma.IntFieldUpdateOperationsInput | number
-  anilistId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  mediaType?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
-  rating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  progress?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
 
 
 export type MediaTrackingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  userId?: boolean
+  username?: boolean
   tmdbId?: boolean
   anilistId?: boolean
   mediaType?: boolean
@@ -659,12 +498,11 @@ export type MediaTrackingSelect<ExtArgs extends runtime.Types.Extensions.Interna
   rating?: boolean
   progress?: boolean
   updatedAt?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["mediaTracking"]>
 
 export type MediaTrackingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  userId?: boolean
+  username?: boolean
   tmdbId?: boolean
   anilistId?: boolean
   mediaType?: boolean
@@ -672,12 +510,11 @@ export type MediaTrackingSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   rating?: boolean
   progress?: boolean
   updatedAt?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["mediaTracking"]>
 
 export type MediaTrackingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  userId?: boolean
+  username?: boolean
   tmdbId?: boolean
   anilistId?: boolean
   mediaType?: boolean
@@ -685,12 +522,11 @@ export type MediaTrackingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   rating?: boolean
   progress?: boolean
   updatedAt?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["mediaTracking"]>
 
 export type MediaTrackingSelectScalar = {
   id?: boolean
-  userId?: boolean
+  username?: boolean
   tmdbId?: boolean
   anilistId?: boolean
   mediaType?: boolean
@@ -700,25 +536,14 @@ export type MediaTrackingSelectScalar = {
   updatedAt?: boolean
 }
 
-export type MediaTrackingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "tmdbId" | "anilistId" | "mediaType" | "status" | "rating" | "progress" | "updatedAt", ExtArgs["result"]["mediaTracking"]>
-export type MediaTrackingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-}
-export type MediaTrackingIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-}
-export type MediaTrackingIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-}
+export type MediaTrackingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "tmdbId" | "anilistId" | "mediaType" | "status" | "rating" | "progress" | "updatedAt", ExtArgs["result"]["mediaTracking"]>
 
 export type $MediaTrackingPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "MediaTracking"
-  objects: {
-    user: Prisma.$UserPayload<ExtArgs>
-  }
+  objects: {}
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    userId: string
+    username: string
     tmdbId: number
     anilistId: number | null
     mediaType: string
@@ -1120,7 +945,6 @@ readonly fields: MediaTrackingFieldRefs;
  */
 export interface Prisma__MediaTrackingClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1151,7 +975,7 @@ export interface Prisma__MediaTrackingClient<T, Null = never, ExtArgs extends ru
  */
 export interface MediaTrackingFieldRefs {
   readonly id: Prisma.FieldRef<"MediaTracking", 'String'>
-  readonly userId: Prisma.FieldRef<"MediaTracking", 'String'>
+  readonly username: Prisma.FieldRef<"MediaTracking", 'String'>
   readonly tmdbId: Prisma.FieldRef<"MediaTracking", 'Int'>
   readonly anilistId: Prisma.FieldRef<"MediaTracking", 'Int'>
   readonly mediaType: Prisma.FieldRef<"MediaTracking", 'String'>
@@ -1176,10 +1000,6 @@ export type MediaTrackingFindUniqueArgs<ExtArgs extends runtime.Types.Extensions
    */
   omit?: Prisma.MediaTrackingOmit<ExtArgs> | null
   /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MediaTrackingInclude<ExtArgs> | null
-  /**
    * Filter, which MediaTracking to fetch.
    */
   where: Prisma.MediaTrackingWhereUniqueInput
@@ -1198,10 +1018,6 @@ export type MediaTrackingFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Ext
    */
   omit?: Prisma.MediaTrackingOmit<ExtArgs> | null
   /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MediaTrackingInclude<ExtArgs> | null
-  /**
    * Filter, which MediaTracking to fetch.
    */
   where: Prisma.MediaTrackingWhereUniqueInput
@@ -1219,10 +1035,6 @@ export type MediaTrackingFindFirstArgs<ExtArgs extends runtime.Types.Extensions.
    * Omit specific fields from the MediaTracking
    */
   omit?: Prisma.MediaTrackingOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MediaTrackingInclude<ExtArgs> | null
   /**
    * Filter, which MediaTracking to fetch.
    */
@@ -1272,10 +1084,6 @@ export type MediaTrackingFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Exte
    */
   omit?: Prisma.MediaTrackingOmit<ExtArgs> | null
   /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MediaTrackingInclude<ExtArgs> | null
-  /**
    * Filter, which MediaTracking to fetch.
    */
   where?: Prisma.MediaTrackingWhereInput
@@ -1323,10 +1131,6 @@ export type MediaTrackingFindManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the MediaTracking
    */
   omit?: Prisma.MediaTrackingOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MediaTrackingInclude<ExtArgs> | null
   /**
    * Filter, which MediaTrackings to fetch.
    */
@@ -1376,10 +1180,6 @@ export type MediaTrackingCreateArgs<ExtArgs extends runtime.Types.Extensions.Int
    */
   omit?: Prisma.MediaTrackingOmit<ExtArgs> | null
   /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MediaTrackingInclude<ExtArgs> | null
-  /**
    * The data needed to create a MediaTracking.
    */
   data: Prisma.XOR<Prisma.MediaTrackingCreateInput, Prisma.MediaTrackingUncheckedCreateInput>
@@ -1413,10 +1213,6 @@ export type MediaTrackingCreateManyAndReturnArgs<ExtArgs extends runtime.Types.E
    */
   data: Prisma.MediaTrackingCreateManyInput | Prisma.MediaTrackingCreateManyInput[]
   skipDuplicates?: boolean
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MediaTrackingIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1431,10 +1227,6 @@ export type MediaTrackingUpdateArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the MediaTracking
    */
   omit?: Prisma.MediaTrackingOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MediaTrackingInclude<ExtArgs> | null
   /**
    * The data needed to update a MediaTracking.
    */
@@ -1487,10 +1279,6 @@ export type MediaTrackingUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.E
    * Limit how many MediaTrackings to update.
    */
   limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MediaTrackingIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1505,10 +1293,6 @@ export type MediaTrackingUpsertArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the MediaTracking
    */
   omit?: Prisma.MediaTrackingOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MediaTrackingInclude<ExtArgs> | null
   /**
    * The filter to search for the MediaTracking to update in case it exists.
    */
@@ -1535,10 +1319,6 @@ export type MediaTrackingDeleteArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the MediaTracking
    */
   omit?: Prisma.MediaTrackingOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MediaTrackingInclude<ExtArgs> | null
   /**
    * Filter which MediaTracking to delete.
    */
@@ -1571,8 +1351,4 @@ export type MediaTrackingDefaultArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the MediaTracking
    */
   omit?: Prisma.MediaTrackingOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MediaTrackingInclude<ExtArgs> | null
 }

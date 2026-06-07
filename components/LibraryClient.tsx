@@ -1,0 +1,186 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { ListSkeleton } from "@/components/Skeletons";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import PosterImage from "@/components/PosterImage";
+import EmptyState from "@/components/EmptyState";
+
+// ─── Types ───
+interface LibraryItem {
+  tmdbId: number; mediaType: string; status: string; rating: number | null;
+  progress: number | null; updatedAt: string; title: string; poster: string | null;
+  year: number | null; tmdbRating: number;
+}
+interface Collection { id: string; name: string; isPublic: boolean; itemCount: number; createdAt: string; }
+interface CollectionItem { tmdbId: number; mediaType: string; title: string; poster: string | null; year: number | null; rating: number; addedAt: string; }
+
+const TABS = [
+  { key: "", label: "All" },
+  { key: "plan_to_watch", label: "Plan to Watch" },
+  { key: "watching", label: "Watching" },
+  { key: "completed", label: "Watched" },
+  { key: "collections", label: "Collections" },
+];
+
+// ─── Tracking grid ───
+function TrackingGrid({ activeTab }: { activeTab: string }) {
+  const [items, setItems] = useState<LibraryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const username = localStorage.getItem("seriez-username") || "Anonymous";
+    const url = activeTab
+      ? `/api/library?username=${encodeURIComponent(username)}&status=${activeTab}`
+      : `/api/library?username=${encodeURIComponent(username)}`;
+    setLoading(true);
+    fetch(url).then(r => r.json()).then(data => { setItems(data.items || []); setLoading(false); }).catch(() => setLoading(false));
+  }, [activeTab]);
+
+  if (loading) return <ListSkeleton rows={6} />;
+  if (items.length === 0) return <EmptyState icon="📚" title={activeTab ? `No ${TABS.find(t=>t.key===activeTab)?.label || "items"} yet` : "Your library is empty"} description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />;
+
+  return (
+    <div className="px-4 mt-4 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+      {items.map(item => (
+        <a key={`${item.mediaType}-${item.tmdbId}`} href={`/title/${item.tmdbId}${item.mediaType === "tv" ? "/season/1" : `?type=${item.mediaType}`}`} className="block group">
+          <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-[#1a1a2e]">
+            {item.poster ? <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-white/20 text-2xl font-bold">{item.title.slice(0,2)}</div>}
+            <div className="absolute top-2 left-2"><span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${item.status==="completed"?"bg-green-500/20 text-green-400":item.status==="watching"?"bg-blue-500/20 text-blue-400":"bg-amber-500/20 text-amber-400"}`}>{item.status==="completed"?"Watched":item.status==="watching"?"Watching":"Plan"}</span></div>
+            {item.tmdbRating > 0 && <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-[#f59e0b]">★ {item.tmdbRating}</div>}
+            {item.rating && <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-pink-400">★ {item.rating}</div>}
+          </div>
+          <p className="mt-1.5 text-xs font-medium text-white leading-tight line-clamp-2 group-hover:text-[#6366f1] transition-colors">{item.title}</p>
+          <p className="text-[10px] text-[#6b7280]">{item.year || "—"} · {item.mediaType==="movie"?"Movie":"TV"}</p>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+// ─── Collections view ───
+function CollectionsView() {
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newName, setNewName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [items, setItems] = useState<CollectionItem[]>([]);
+  const [itemsLoading, setItemsLoading] = useState(false);
+  const [authUser, setAuthUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
+  const supabase = createClient();
+  const username = typeof window !== "undefined" ? localStorage.getItem("seriez-username") || "" : "";
+
+  const fetchCollections = () => {
+    setLoading(true);
+    fetch(`/api/collections?username=${encodeURIComponent(username)}`)
+      .then(r => r.json()).then(d => { setCollections(d.collections || []); setLoading(false); }).catch(() => setLoading(false));
+  };
+
+  useEffect(() => { fetchCollections(); supabase.auth.getUser().then(({ data }) => setAuthUser(data.user ?? null)).catch(() => {}); }, []);
+
+  const fetchItems = (listId: string) => {
+    setItemsLoading(true);
+    fetch(`/api/collections/${listId}/items?username=${encodeURIComponent(username)}`)
+      .then(r => r.json()).then(d => { setItems(d.items || []); setItemsLoading(false); }).catch(() => setItemsLoading(false));
+  };
+
+  const createCollection = async () => {
+    if (!newName.trim() || creating || !authUser) return;
+    setCreating(true);
+    const res = await fetch("/api/collections", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, name: newName.trim() }) });
+    if (res.ok) { setNewName(""); fetchCollections(); }
+    setCreating(false);
+  };
+
+  const deleteCollection = async (id: string) => {
+    await fetch("/api/collections", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, listId: id }) });
+    if (selectedId === id) setSelectedId(null);
+    fetchCollections();
+  };
+
+  const removeItem = async (listId: string, tmdbId: number, mediaType: string) => {
+    await fetch(`/api/collections/${listId}/items`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId, mediaType }) });
+    fetchItems(listId); fetchCollections();
+  };
+
+  if (selectedId) {
+    const collection = collections.find(c => c.id === selectedId);
+    return (
+      <div className="px-4 mt-4">
+        <div className="flex items-center gap-3 mb-4">
+          <button onClick={() => setSelectedId(null)} className="text-[#9ca3af] hover:text-white text-sm">← Back</button>
+          <h2 className="text-lg font-semibold text-white">{collection?.name}</h2>
+          <span className="text-xs text-[#9ca3af]">{items.length} items</span>
+        </div>
+        {itemsLoading ? <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin" /></div>
+        : items.length === 0 ? <EmptyState icon="🎞️" title="No items yet" description="Add movies and shows to this collection." action={{ label: "Browse titles", href: "/" }} />
+        : <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {items.map(item => (
+            <div key={`${item.mediaType}-${item.tmdbId}`} className="relative group">
+              <a href={`/title/${item.tmdbId}${item.mediaType==="tv"?"/season/1":`?type=${item.mediaType}`}`} className="block">
+                <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-[#1a1a2e]">
+                  {item.poster ? <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-white/20 text-2xl font-bold">{item.title.slice(0,2)}</div>}
+                  {item.rating > 0 && <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-[#f59e0b]">★ {item.rating}</div>}
+                  <button onClick={(e) => { e.preventDefault(); removeItem(selectedId, item.tmdbId, item.mediaType); }} className="absolute top-2 left-2 bg-red-500/80 hover:bg-red-500 rounded-full w-5 h-5 flex items-center justify-center text-white text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                </div>
+                <p className="mt-1.5 text-xs font-medium text-white leading-tight line-clamp-2">{item.title}</p>
+                <p className="text-[10px] text-[#6b7280]">{item.year||"—"} · {item.mediaType==="movie"?"Movie":"TV"}</p>
+              </a>
+            </div>
+          ))}
+        </div>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-4 mt-4">
+      {!authUser ? (
+        <EmptyState icon="🔐" title="Sign in to create collections" description="Create an account to make custom collections and share them." action={{ label: "Create account", href: "/signup" }} />
+      ) : (
+      <>
+      <div className="flex gap-2 mb-4">
+        <input value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key==="Enter" && createCollection()}
+          placeholder="New collection name..." className="flex-1 bg-[#1a1a2e] text-white text-sm rounded-xl px-3 py-2 outline-none border border-[#2d2d4a] focus:border-[#6366f1] placeholder:text-[#6b7280]" maxLength={50} />
+        <button onClick={createCollection} disabled={creating || !newName.trim()}
+          className="px-4 py-2 rounded-xl bg-[#6366f1] text-white text-sm font-medium disabled:opacity-40 hover:bg-[#5558e7] transition-colors">Create</button>
+      </div>
+      {loading ? <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin" /></div>
+      : collections.length === 0 ? <EmptyState icon="🗂️" title="No collections yet" description="Create your first collection to organize your favorite titles." />
+      : <div className="space-y-2">
+        {collections.map(c => (
+          <div key={c.id} className="flex items-center gap-3 bg-[#1a1a2e] rounded-xl p-3 hover:bg-[#25253a] transition-colors cursor-pointer group" onClick={() => { setSelectedId(c.id); fetchItems(c.id); }}>
+            <div className="flex-1 min-w-0"><p className="text-sm font-medium text-white truncate">{c.name}</p><p className="text-xs text-[#6b7280]">{c.itemCount} item{c.itemCount !== 1 ? "s" : ""}</p></div>
+            <button onClick={e => { e.stopPropagation(); deleteCollection(c.id); }} className="text-[#6b7280] hover:text-red-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity">🗑</button>
+          </div>
+        ))}
+      </div>}
+      </>
+      )}
+    </div>
+  );
+}
+
+// ─── Main Library ───
+export default function LibraryClient() {
+  const [activeTab, setActiveTab] = useState("");
+
+  return (
+    <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
+      <header className="sticky top-0 z-40 bg-[#0f0f1a]/95 backdrop-blur-md px-4 py-3 border-b border-[#1a1a2e]">
+        <h1 className="text-xl font-bold bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">My List</h1>
+        <div className="flex gap-1 mt-2 overflow-x-auto hide-scrollbar">
+          {TABS.map(tab => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${activeTab === tab.key ? "bg-[#6366f1] text-white" : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white"}`}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </header>
+      {activeTab === "collections" ? <CollectionsView /> : <TrackingGrid activeTab={activeTab} />}
+    </div>
+  );
+}

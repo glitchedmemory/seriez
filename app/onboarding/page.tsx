@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { GENRE_MAP, type TmdbResult } from "@/lib/tmdb";
+import PosterImage from "@/components/PosterImage";
 
 // ── Search dropdown item ──
 type SearchItem = {
@@ -273,10 +274,13 @@ export default function OnboardingPage() {
                   } min-h-[56px]`}
                 >
                   {w?.poster ? (
-                    <img
+                    <PosterImage
                       src={w.poster}
                       alt={w.title}
-                      className="w-10 h-14 rounded object-cover flex-shrink-0"
+                      width={40}
+                      height={56}
+                      className="rounded flex-shrink-0"
+                      sizes="40px"
                     />
                   ) : (
                     <div className="w-10 h-14 rounded bg-[#25253a] flex-shrink-0 flex items-center justify-center text-[#6b7280] text-xs">
@@ -340,10 +344,13 @@ export default function OnboardingPage() {
                         className="w-full flex items-center gap-3 p-2.5 hover:bg-[#25253a] transition-colors text-left disabled:opacity-30"
                       >
                         {r.poster ? (
-                          <img
+                          <PosterImage
                             src={r.poster}
                             alt={r.title}
-                            className="w-8 h-12 rounded object-cover flex-shrink-0"
+                            width={32}
+                            height={48}
+                            className="rounded flex-shrink-0"
+                            sizes="32px"
                           />
                         ) : (
                           <div className="w-8 h-12 rounded bg-[#25253a] flex-shrink-0" />
@@ -390,18 +397,14 @@ export default function OnboardingPage() {
             {/* Clean curation card — no overlays on image */}
             <div className="w-full max-w-[220px] mx-auto mb-6">
               {/* Poster with strong neon glow */}
-              <div className="rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(99,102,241,0.4),0_0_60px_rgba(168,85,247,0.2)] ring-2 ring-[#6366f1]/30">
-                {curation.item.poster ? (
-                  <img
-                    src={curation.item.poster.replace("w342", "w780")}
-                    alt={curation.item.title}
-                    className="w-full aspect-[2/3] object-cover"
-                  />
-                ) : (
-                  <div className="w-full aspect-[2/3] flex items-center justify-center bg-[#25253a]">
-                    <span className="text-4xl font-bold text-white/10">{curation.item.title.slice(0, 2)}</span>
-                  </div>
-                )}
+              <div className="rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(99,102,241,0.4),0_0_60px_rgba(168,85,247,0.2)] ring-2 ring-[#6366f1]/30 aspect-[2/3] relative">
+                <PosterImage
+                  src={curation.item.poster?.replace("w342", "w780") || ""}
+                  alt={curation.item.title}
+                  fill
+                  className="rounded-2xl"
+                  priority
+                />
               </div>
 
               {/* Metadata below image */}

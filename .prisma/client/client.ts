@@ -57,6 +57,11 @@ export type MediaTracking = Prisma.MediaTrackingModel
  */
 export type Review = Prisma.ReviewModel
 /**
+ * Model EpisodeWatch
+ * 
+ */
+export type EpisodeWatch = Prisma.EpisodeWatchModel
+/**
  * Model UserList
  * 
  */

@@ -387,6 +387,7 @@ export const ModelName = {
   User: 'User',
   MediaTracking: 'MediaTracking',
   Review: 'Review',
+  EpisodeWatch: 'EpisodeWatch',
   UserList: 'UserList',
   ListItem: 'ListItem',
   Follow: 'Follow'
@@ -405,7 +406,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "mediaTracking" | "review" | "userList" | "listItem" | "follow"
+    modelProps: "user" | "mediaTracking" | "review" | "episodeWatch" | "userList" | "listItem" | "follow"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -628,6 +629,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ReviewCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ReviewCountAggregateOutputType> | number
+        }
+      }
+    }
+    EpisodeWatch: {
+      payload: Prisma.$EpisodeWatchPayload<ExtArgs>
+      fields: Prisma.EpisodeWatchFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EpisodeWatchFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EpisodeWatchPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EpisodeWatchFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EpisodeWatchPayload>
+        }
+        findFirst: {
+          args: Prisma.EpisodeWatchFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EpisodeWatchPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EpisodeWatchFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EpisodeWatchPayload>
+        }
+        findMany: {
+          args: Prisma.EpisodeWatchFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EpisodeWatchPayload>[]
+        }
+        create: {
+          args: Prisma.EpisodeWatchCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EpisodeWatchPayload>
+        }
+        createMany: {
+          args: Prisma.EpisodeWatchCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EpisodeWatchCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EpisodeWatchPayload>[]
+        }
+        delete: {
+          args: Prisma.EpisodeWatchDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EpisodeWatchPayload>
+        }
+        update: {
+          args: Prisma.EpisodeWatchUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EpisodeWatchPayload>
+        }
+        deleteMany: {
+          args: Prisma.EpisodeWatchDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EpisodeWatchUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EpisodeWatchUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EpisodeWatchPayload>[]
+        }
+        upsert: {
+          args: Prisma.EpisodeWatchUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EpisodeWatchPayload>
+        }
+        aggregate: {
+          args: Prisma.EpisodeWatchAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEpisodeWatch>
+        }
+        groupBy: {
+          args: Prisma.EpisodeWatchGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EpisodeWatchGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EpisodeWatchCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EpisodeWatchCountAggregateOutputType> | number
         }
       }
     }
@@ -906,7 +981,7 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 
 export const MediaTrackingScalarFieldEnum = {
   id: 'id',
-  userId: 'userId',
+  username: 'username',
   tmdbId: 'tmdbId',
   anilistId: 'anilistId',
   mediaType: 'mediaType',
@@ -933,6 +1008,18 @@ export const ReviewScalarFieldEnum = {
 } as const
 
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
+
+
+export const EpisodeWatchScalarFieldEnum = {
+  id: 'id',
+  username: 'username',
+  tmdbId: 'tmdbId',
+  seasonNumber: 'seasonNumber',
+  episodeNumber: 'episodeNumber',
+  watchedAt: 'watchedAt'
+} as const
+
+export type EpisodeWatchScalarFieldEnum = (typeof EpisodeWatchScalarFieldEnum)[keyof typeof EpisodeWatchScalarFieldEnum]
 
 
 export const UserListScalarFieldEnum = {
@@ -1172,6 +1259,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   mediaTracking?: Prisma.MediaTrackingOmit
   review?: Prisma.ReviewOmit
+  episodeWatch?: Prisma.EpisodeWatchOmit
   userList?: Prisma.UserListOmit
   listItem?: Prisma.ListItemOmit
   follow?: Prisma.FollowOmit

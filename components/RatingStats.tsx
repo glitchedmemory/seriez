@@ -25,7 +25,7 @@ export function RatingStats({ stats }: { stats: RatingStatsData }) {
           ? `${(stats.total / 10000).toFixed(1)}만`
           : stats.total >= 1000
             ? `${(stats.total / 1000).toFixed(1)}천`
-            : stats.total.toLocaleString()}
+            : String(stats.total)}
       </p>
 
       {/* Vertical bar chart — CSS grid, unified baseline */}

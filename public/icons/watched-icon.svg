@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Bookmark body with v-notch -->
+  <path d="M 5,3 L 19,3 L 19,20 L 12,24 L 5,20 Z"/>
+  <!-- Star on upper-right corner, extending beyond -->
+  <path d="M 18.5,2.5 L 19.2,5.5 L 22,5.8 L 19.8,8 L 20.5,11 L 18.5,9.5 L 16.5,11 L 17.2,8 L 15,5.8 L 17.8,5.5 Z"/>
+</svg>

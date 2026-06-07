@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { resolveUsername } from "@/lib/auth-helper";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
-// rating is stored as integer × 10 (e.g. 3.5 → 35) because column is integer
-// Legacy: old ratings stored as plain integers (2,3,4,5) before half‑star support
 const TO_DB = (r: number) => Math.round(r * 10);
 const FROM_DB = (v: number) => v >= 10 ? v / 10 : v;
 
@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
   const tmdbId = searchParams.get("tmdbId");
   const mediaType = searchParams.get("mediaType");
   const statsOnly = searchParams.get("stats") === "true";
+  const username = await resolveUsername(req);
 
   if (!tmdbId || !mediaType) {
     return NextResponse.json({ error: "Missing params" }, { status: 400 });
@@ -23,145 +24,109 @@ export async function GET(req: NextRequest) {
   const tmdbIdNum = parseInt(tmdbId);
 
   if (statsOnly) {
-    const { data, error } = await supabase
-      .from("reviews")
-      .select("rating")
-      .eq("tmdb_id", tmdbIdNum)
-      .eq("media_type", mediaType);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    // distribution: half-star buckets 0.5…5.0
+    const [revRes, trackRes] = await Promise.all([
+      supabase.from("reviews").select("rating").eq("tmdb_id", tmdbIdNum).eq("media_type", mediaType),
+      supabase.from("media_trackings").select("rating").eq("tmdb_id", tmdbIdNum).eq("media_type", mediaType).eq("status", "completed").not("rating", "is", null),
+    ]);
+    if (revRes.error) return NextResponse.json({ error: revRes.error.message }, { status: 500 });
+    if (trackRes.error) return NextResponse.json({ error: trackRes.error.message }, { status: 500 });
     const distribution: Record<number, number> = {};
     for (let i = 1; i <= 10; i++) distribution[i / 2] = 0;
-
-    let total = 0;
-    let sum = 0;
-    for (const r of data) {
-      const realRating = FROM_DB(r.rating);
-      const bucket = Math.round(realRating * 2) / 2; // snap to nearest 0.5
-      if (bucket >= 0.5 && bucket <= 5.0) {
-        distribution[bucket]++;
-        total++;
-        sum += realRating;
-      }
+    let total = 0, sum = 0;
+    const allRatings = [...revRes.data.map((r: any) => FROM_DB(r.rating)), ...trackRes.data.map((t: any) => t.rating as number)];
+    for (const realRating of allRatings) {
+      const bucket = Math.round(realRating * 2) / 2;
+      if (bucket >= 0.5 && bucket <= 5.0) { distribution[bucket]++; total++; sum += realRating; }
     }
-    const average = total > 0 ? Math.round((sum / total) * 10) / 10 : 0;
-
-    return NextResponse.json({ average, total, distribution });
+    return NextResponse.json({ average: total > 0 ? Math.round((sum / total) * 10) / 10 : 0, total, distribution });
   }
 
-  // Full reviews list
   const { data, error } = await supabase
     .from("reviews")
     .select("id, username, content, rating, likes_count, created_at")
-    .eq("tmdb_id", tmdbIdNum)
-    .eq("media_type", mediaType)
-    .order("created_at", { ascending: false })
-    .limit(50);
+    .eq("tmdb_id", tmdbIdNum).eq("media_type", mediaType)
+    .order("created_at", { ascending: false }).limit(50);
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  let likedSet = new Set<string>();
+  if (username?.trim()) {
+    const { data: likes } = await supabaseAdmin
+      .from("review_likes").select("review_id").eq("username", username.trim());
+    if (likes) likedSet = new Set(likes.map((l: any) => l.review_id));
   }
 
-  return NextResponse.json(
-    data.map((r) => ({
-      id: r.id,
-      username: r.username || "Anonymous",
-      content: r.content,
-      rating: FROM_DB(r.rating || 0),
-      likes: r.likes_count || 0,
-      createdAt: r.created_at,
-    }))
-  );
+  return NextResponse.json(data.map((r) => ({
+    id: r.id, username: r.username || "Anonymous", content: r.content,
+    rating: FROM_DB(r.rating || 0), likes: r.likes_count || 0, liked: likedSet.has(r.id), createdAt: r.created_at,
+  })));
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { tmdbId, mediaType, username, content, rating } = body;
+    const username = await resolveUsername(req);
+    if (!username) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
 
-    if (!tmdbId || !mediaType || !username?.trim() || !content?.trim() || rating === undefined || rating === null) {
+    const body = await req.json();
+    const { tmdbId, mediaType, content, rating } = body;
+    if (!tmdbId || !mediaType || !content?.trim()) {
       return NextResponse.json({ error: "All fields required" }, { status: 400 });
     }
-    // Validate rating: 0.5–5.0, 0.5 increments
-    if (typeof rating !== "number" || rating < 0.5 || rating > 5 || (rating * 2) % 1 !== 0) {
-      return NextResponse.json({ error: "Rating must be 0.5–5 in 0.5 steps" }, { status: 400 });
+    let dbRating = 0;
+    if (rating !== undefined && rating !== null) {
+      if (typeof rating !== "number" || rating < 0.5 || rating > 5 || (rating * 2) % 1 !== 0) {
+        return NextResponse.json({ error: "Rating must be 0.5–5 in 0.5 steps" }, { status: 400 });
+      }
+      dbRating = TO_DB(rating);
     }
-
     const { data, error } = await supabase
-      .from("reviews")
-      .insert({
-        tmdb_id: tmdbId,
-        media_type: mediaType,
-        username: username.trim().slice(0, 20),
-        content: content.trim().slice(0, 2000),
-        rating: TO_DB(rating),
-      })
-      .select("id, username, content, rating, likes_count, created_at")
-      .single();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json(
-      {
-        id: data.id,
-        username: data.username,
-        content: data.content,
-        rating: FROM_DB(data.rating),
-        likes: data.likes_count || 0,
-        createdAt: data.created_at,
-      },
-      { status: 201 }
-    );
-  } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-  }
+      .from("reviews").insert({ tmdb_id: tmdbId, media_type: mediaType, username: username.trim().slice(0, 20), content: content.trim().slice(0, 2000), rating: dbRating })
+      .select("id, username, content, rating, likes_count, created_at").single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ id: data.id, username: data.username, content: data.content, rating: FROM_DB(data.rating), likes: data.likes_count || 0, liked: false, createdAt: data.created_at }, { status: 201 });
+  } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
 }
 
 export async function PATCH(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { reviewId, action } = body;
-
-    if (!reviewId) {
-      return NextResponse.json({ error: "Missing reviewId" }, { status: 400 });
+    const username = await resolveUsername(req);
+    if (!username) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
+    const body = await req.json();
+    const { reviewId, action } = body;
+    if (!reviewId) {
+      return NextResponse.json({ error: "Missing reviewId or username" }, { status: 400 });
+    }
+    const user = username.trim();
+
     if (action === "like") {
-      const { data, error } = await supabase.rpc("increment_likes", {
-        review_id: reviewId,
-      });
-
-      if (error) {
-        const { data: current } = await supabase
-          .from("reviews")
-          .select("likes_count")
-          .eq("id", reviewId)
-          .single();
-
-        const { data: updated, error: updateErr } = await supabase
-          .from("reviews")
-          .update({ likes_count: (current?.likes_count || 0) + 1 })
-          .eq("id", reviewId)
-          .select("likes_count")
-          .single();
-
-        if (updateErr) {
-          return NextResponse.json({ error: updateErr.message }, { status: 500 });
-        }
-        return NextResponse.json({ likes: updated?.likes_count || 0 });
+      const { data: existing } = await supabaseAdmin.from("review_likes").select("review_id").eq("review_id", reviewId).eq("username", user);
+      if (existing && existing.length > 0) {
+        return NextResponse.json({ error: "Already liked" }, { status: 409 });
       }
+      const { error: insertErr } = await supabaseAdmin.from("review_likes").insert({ review_id: reviewId, username: user });
+      if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 });
 
-      return NextResponse.json({ likes: data });
+      const { data: cur } = await supabaseAdmin.from("reviews").select("likes_count").eq("id", reviewId);
+      const newCount = (cur?.[0]?.likes_count || 0) + 1;
+      await supabaseAdmin.from("reviews").update({ likes_count: newCount }).eq("id", reviewId);
+      return NextResponse.json({ likes: newCount, liked: true });
+    }
+
+    if (action === "unlike") {
+      const { error: deleteErr } = await supabaseAdmin.from("review_likes").delete().eq("review_id", reviewId).eq("username", user);
+      if (deleteErr) return NextResponse.json({ error: deleteErr.message }, { status: 500 });
+
+      const { data: cur } = await supabaseAdmin.from("reviews").select("likes_count").eq("id", reviewId);
+      const newCount = Math.max(0, (cur?.[0]?.likes_count || 0) - 1);
+      await supabaseAdmin.from("reviews").update({ likes_count: newCount }).eq("id", reviewId);
+      return NextResponse.json({ likes: newCount, liked: false });
     }
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
-  } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-  }
+  } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
 }

@@ -15,7 +15,6 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  trackings    MediaTracking[]
   reviews      Review[]
   lists        UserList[]
 
@@ -27,7 +26,7 @@ model User {
 
 model MediaTracking {
   id        String   @id @default(uuid())
-  userId    String   @map("user_id")
+  username  String
   tmdbId    Int      @map("tmdb_id")
   anilistId Int?     @map("anilist_id")
   mediaType String   @map("media_type") // movie, tv, anime
@@ -36,9 +35,7 @@ model MediaTracking {
   progress  Int?     // episode count for TV
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, tmdbId, mediaType])
+  @@unique([username, tmdbId, mediaType])
   @@map("media_trackings")
 }
 
@@ -57,6 +54,19 @@ model Review {
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("reviews")
+}
+
+model EpisodeWatch {
+  id            String   @id @default(uuid())
+  username      String
+  tmdbId        Int      @map("tmdb_id")
+  seasonNumber  Int      @map("season_number")
+  episodeNumber Int      @map("episode_number")
+  watchedAt     DateTime @default(now()) @map("watched_at")
+
+  @@unique([username, tmdbId, seasonNumber, episodeNumber])
+  @@index([username, tmdbId])
+  @@map("episode_watches")
 }
 
 model UserList {
