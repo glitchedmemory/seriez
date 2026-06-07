@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
   // Resolve IDs to usernames
   const { data: followedUsers } = await supabase
-    .from("public_profiles")
+    .from("users")
     .select("id, username")
     .in("id", followingIds);
 
