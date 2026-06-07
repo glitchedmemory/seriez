@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   }
 
   const { data, error } = await supabase
-    .from("public_profiles")
+    .from("users")
     .select("username, created_at")
     .ilike("username", `%${q.trim()}%`)
     .order("created_at", { ascending: false })

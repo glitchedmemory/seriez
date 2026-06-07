@@ -41,7 +41,7 @@ export async function GET(
   try {
     // ── 1. Get user_id ──
     const { data: userData } = await supabase
-      .from("public_profiles")
+      .from("users")
       .select("id")
       .eq("username", username)
       .single();

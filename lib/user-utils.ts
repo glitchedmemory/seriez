@@ -24,7 +24,7 @@ export async function resolveUserId(username: string): Promise<string | null> {
   const supabase = getSupabase();
 
   const { data: existing } = await supabase
-    .from("public_profiles")
+    .from("users")
     .select("id")
     .eq("username", trimmed)
     .maybeSingle();

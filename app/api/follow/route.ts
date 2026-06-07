@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     const users = await Promise.all(
       (data || []).map(async (f) => {
         const { data: u } = await supabase
-          .from("public_profiles")
+          .from("users")
           .select("username")
           .eq("id", f.follower_id)
           .maybeSingle();
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
     const users = await Promise.all(
       (data || []).map(async (f) => {
         const { data: u } = await supabase
-          .from("public_profiles")
+          .from("users")
           .select("username")
           .eq("id", f.following_id)
           .maybeSingle();
