@@ -73,8 +73,14 @@ async function getTmdbInfo(
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const username = await resolveUsername(req);
   const monthParam = searchParams.get("month"); // "2026-06"
+  const queryUsername = searchParams.get("username");
+
+  // Try auth first, then fallback to query param
+  let username = await resolveUsername(req);
+  if (!username && queryUsername) {
+    username = queryUsername;
+  }
 
   if (!username) {
     return NextResponse.json(
