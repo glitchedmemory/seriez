@@ -302,15 +302,15 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
 
   return (
     <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
-      {/* Backdrop */}
-      {detail.backdrop && (
+      {/* Backdrop — fallback to blurred poster when no backdrop */}
+      {(detail.backdrop || detail.poster) && (
         <div className="relative w-full h-48 md:h-72 overflow-hidden">
-          <PosterImage src={detail.backdrop} alt="" fill priority />
+          <PosterImage src={detail.backdrop || detail.poster} alt="" fill priority className={!detail.backdrop ? "blur-2xl scale-125 opacity-50" : ""} />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f1a] via-[#0f0f1a]/60 to-transparent" />
         </div>
       )}
 
-      <div className="relative px-4 md:px-0 -mt-20 md:-mt-32 z-10">
+      <div className={`relative px-4 md:px-0 z-10 ${(detail.backdrop || detail.poster) ? '-mt-20 md:-mt-32' : ''}`}>
         <div className="flex flex-col md:flex-row gap-6">
           {/* Poster */}
           <div className="flex-shrink-0 w-36 md:w-48 mx-auto md:mx-0">
