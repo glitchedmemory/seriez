@@ -2,10 +2,31 @@ import SeasonClient from "@/components/SeasonClient";
 import { notFound } from "next/navigation";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
+const ANILIST_API = "https://graphql.anilist.co";
 const API_KEY = process.env.TMDB_API_KEY!;
 
 function poster(path: string | null) {
   return path ? `https://image.tmdb.org/t/p/w342${path}` : null;
+}
+
+/** Fetch AniList banner image for a given anime title */
+async function fetchAnilistBanner(title: string): Promise<string | null> {
+  try {
+    const res = await fetch(ANILIST_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: `query($search: String) { Media(search: $search, type: ANIME) { bannerImage } }`,
+        variables: { search: title },
+      }),
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data?.Media?.bannerImage || null;
+  } catch {
+    return null;
+  }
 }
 
 async function get(endpoint: string, params: Record<string, string> = {}) {
@@ -38,6 +59,12 @@ export default async function SeasonPage({ params }: Props) {
       get(`/tv/${seriesId}/season/${seasonNum}`),
       get(`/tv/${seriesId}/keywords`).catch(() => ({ results: [] })),
     ]);
+
+    // AniList banner fallback for anime without TMDB backdrop
+    const isAnimated = (seriesData.genres || []).some((g: any) => g.id === 16);
+    const anilistBanner = (!seriesData.backdrop_path && isAnimated)
+      ? await fetchAnilistBanner(seriesData.name).catch(() => null)
+      : null;
 
     // Extract keyword IDs
     const keywordIds: number[] = ((keywordsData as any).results || []).map((k: any) => k.id);
@@ -211,6 +238,7 @@ export default async function SeasonPage({ params }: Props) {
       overview: seriesData.overview || "",
       posterPath: poster(seriesData.poster_path),
       backdropPath: poster(seriesData.backdrop_path),
+      anilistBanner: anilistBanner || null,
       rating: Math.round(seriesData.vote_average * 10) / 10,
       voteCount: seriesData.vote_count || 0,
       year: seriesData.first_air_date ? parseInt(seriesData.first_air_date.slice(0, 4)) : 0,
