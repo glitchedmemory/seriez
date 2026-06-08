@@ -423,12 +423,15 @@ export async function getAnimeEpisodes(
   idMal?: number
 ): Promise<AnimeEpisode[]> {
   // Track A: Kitsu (has episode thumbnails + titles + air dates)
+  // Only use Kitsu if episodes have actual titles (not sparse entries)
   const searchTitle = titleRomaji || title;
   let kitsuEps = await fetchKitsuEpisodes(searchTitle);
   if (kitsuEps.length === 0 && title !== searchTitle) {
     kitsuEps = await fetchKitsuEpisodes(title);
   }
-  if (kitsuEps.length > 0) return kitsuEps;
+  // Check if Kitsu returned usable data (non-null titles)
+  const hasTitles = kitsuEps.length > 0 && kitsuEps.some(ep => ep.title && ep.title !== `Episode ${ep.number}`);
+  if (hasTitles) return kitsuEps;
 
   // Track B: Jikan (MyAnimeList) — reliable but no thumbnails
   if (idMal && idMal > 0) {
