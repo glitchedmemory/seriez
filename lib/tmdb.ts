@@ -104,7 +104,7 @@ export async function getUpcoming(): Promise<TmdbResult[]> {
 
 export async function getNowPlaying(region: string = "US"): Promise<TmdbResult[]> {
   const data = await get("/movie/now_playing", { region });
-  return (data.results as TmdbItem[]).slice(0, 5).map(format);
+  return (data.results as TmdbItem[]).slice(0, 7).map(format);
 }
 
 export async function getPopularMovies(): Promise<TmdbResult[]> {
