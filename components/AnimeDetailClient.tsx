@@ -58,6 +58,8 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
   const [trackedAt, setTrackedAt] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [authUser, setAuthUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
+  const [watchedEpisodes, setWatchedEpisodes] = useState<Set<string>>(new Set());
+  const [epToggleLoading, setEpToggleLoading] = useState<string | null>(null);
   const supabase = createClient();
 
   // Collections
@@ -88,6 +90,20 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
             setRating(match.rating || 0);
             setTrackedAt(match.updatedAt || null);
           }
+        }
+      })
+      .catch(() => {});
+
+    // Fetch watched episodes
+    fetch(`/api/episodes?username=${encodeURIComponent(username)}&tmdbId=${detail.id}`)
+      .then((r) => r.json())
+      .then((epData) => {
+        if (epData.episodes) {
+          const set = new Set<string>();
+          epData.episodes.forEach((ep: { seasonNumber: number; episodeNumber: number }) => {
+            set.add(`${ep.seasonNumber}-${ep.episodeNumber}`);
+          });
+          setWatchedEpisodes(set);
         }
       })
       .catch(() => {});
@@ -137,6 +153,21 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         });
         const json = await res.json();
         setTrackedAt(json.updatedAt || new Date().toISOString());
+        // Marking as Watched → check all episodes
+        if (newStatus === "completed" && trackStatus !== "completed" && episodes.length > 0) {
+          setWatchedEpisodes((prev) => {
+            const all = new Set(prev);
+            episodes.forEach((ep) => all.add(`1-${ep.number}`));
+            return all;
+          });
+          episodes.forEach((ep) => {
+            fetch("/api/episodes", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ username, tmdbId: detail.id, seasonNumber: 1, episodeNumber: ep.number }),
+            }).catch(() => {});
+          });
+        }
       } else {
         await fetch("/api/track", {
           method: "DELETE",
@@ -144,12 +175,81 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime" }),
         });
         setTrackedAt(null);
+        // If manually unchecking Watching/Watched → uncheck all episodes
+        if ((trackStatus === "watching" || trackStatus === "completed") && watchedEpisodes.size > 0) {
+          setWatchedEpisodes(new Set());
+          for (const key of watchedEpisodes) {
+            const [, en] = key.split("-").map(Number);
+            fetch("/api/episodes", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ username, tmdbId: detail.id, seasonNumber: 1, episodeNumber: en }),
+            }).catch(() => {});
+          }
+        }
       }
       setTrackStatus(newStatus);
       setTrackVersion(v => v + 1);
     } catch {}
     setTrackLoading(false);
   }
+
+  async function toggleEpisode(episodeNumber: number) {
+    if (!authUser) return;
+    const key = `1-${episodeNumber}`; // anime uses season 1
+    const username = authUser.user_metadata?.username || "";
+    const wasWatched = watchedEpisodes.has(key);
+
+    // Optimistic update
+    setWatchedEpisodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+    setEpToggleLoading(key);
+
+    // Auto-manage tracking status
+    const willHaveWatched = !wasWatched || watchedEpisodes.size > 1;
+    if (willHaveWatched && !trackStatus) {
+      setTrackStatus("watching");
+      await fetch("/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching" }),
+      });
+    } else if (!willHaveWatched && trackStatus === "watching") {
+      setTrackStatus(null);
+      await fetch("/api/track", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime" }),
+      });
+    }
+
+    try {
+      await fetch("/api/episodes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, tmdbId: detail.id, seasonNumber: 1, episodeNumber }),
+      });
+    } catch {}
+    setEpToggleLoading(null);
+
+    // All episodes checked → auto-complete
+    const nowAllWatched = !wasWatched && watchedEpisodes.size + 1 >= episodes.length;
+    if (nowAllWatched && trackStatus !== "completed") {
+      setTrackStatus("completed");
+      setTrackedAt(new Date().toISOString());
+      fetch("/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "completed" }),
+      }).catch(() => {});
+    }
+  }
+
+  const watchedCount = episodes.filter((ep) => watchedEpisodes.has(`1-${ep.number}`)).length;
 
   const isWanted = trackStatus === "plan_to_watch";
   const isWatching = trackStatus === "watching";
@@ -390,6 +490,98 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           </section>
         )}
 
+        {/* Episodes — interactive with watch tracking */}
+        {episodes.length > 0 ? (
+          <section className="mt-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-white">
+                Episodes · {episodes.length}
+              </h2>
+              {watchedCount > 0 && (
+                <span className="text-xs text-[#9ca3af]">
+                  Watched {watchedCount}/{episodes.length}
+                </span>
+              )}
+            </div>
+            <div className="space-y-3">
+              {episodes.map((ep) => {
+                const epKey = `1-${ep.number}`;
+                const isWatched = watchedEpisodes.has(epKey);
+                const isLoading = epToggleLoading === epKey;
+                return (
+                <div
+                  key={ep.number}
+                  className={`flex gap-3 bg-[#1a1a2e] rounded-xl p-3 transition-all ${isWatched ? "opacity-50" : "hover:bg-[#25253a]"}`}
+                >
+                  {/* Checkbox */}
+                  <button
+                    onClick={() => toggleEpisode(ep.number)}
+                    disabled={isLoading || !authUser}
+                    className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all mt-2 ${
+                      isWatched
+                        ? "bg-[#6366f1] border-[#6366f1]"
+                        : "border-[#3d3d5c] hover:border-[#6366f1]"
+                    } ${isLoading ? "animate-pulse" : ""}`}
+                    title={authUser ? (isWatched ? "Mark unwatched" : "Mark watched") : "Sign in to track"}
+                  >
+                    {isWatched && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    )}
+                  </button>
+                  {/* Thumbnail */}
+                  <div className="flex-shrink-0 w-28 md:w-36 aspect-video rounded-lg overflow-hidden bg-[#0f0f1a] relative">
+                    {ep.thumbnail ? (
+                      <PosterImage src={ep.thumbnail} alt={ep.title} fill className="rounded-lg" sizes="(max-width: 768px) 112px, 144px" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[#6b7280] text-xs">
+                        No preview
+                      </div>
+                    )}
+                  </div>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-[#6366f1] bg-[#6366f1]/10 px-1.5 py-0.5 rounded">
+                        {ep.number}
+                      </span>
+                      <h3 className="text-sm font-medium text-white truncate">{ep.title}</h3>
+                    </div>
+                    {ep.titleJapanese && (
+                      <p className="text-[11px] text-[#6b7280] mt-0.5 truncate">
+                        {ep.titleJapanese}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-3 mt-1 text-[10px] text-[#6b7280]">
+                      {ep.airDate && <span>{ep.airDate}</span>}
+                      {ep.duration > 0 && <span>{ep.duration}m</span>}
+                    </div>
+                    {ep.synopsis && (
+                      <p className="text-[11px] text-[#9ca3af] leading-relaxed mt-1 line-clamp-2">
+                        {ep.synopsis}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )})}
+            </div>
+            {!authUser && (
+              <p className="text-[11px] text-[#6b7280] mt-2 text-center">
+                <a href="/login" className="text-[#6366f1] hover:underline">Sign in</a> to track watched episodes
+              </p>
+            )}
+          </section>
+        ) : episodes.length === 0 && detail.episodes > 0 ? (
+          <section className="mt-6">
+            <h2 className="text-lg font-semibold text-white mb-3">Episodes</h2>
+            <div className="bg-[#1a1a2e] rounded-xl p-4 text-center">
+              <p className="text-sm text-[#9ca3af]">Episode data not available for this title.</p>
+              <p className="text-[11px] text-[#6b7280] mt-1">{detail.episodes} episodes total</p>
+            </div>
+          </section>
+        ) : null}
+
         {/* Characters + Voice Actors */}
         {detail.characters.length > 0 && (
           <section className="mt-6">
@@ -443,60 +635,6 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         {/* Recommendations */}
         {detail.recommendations.length > 0 && (
           <AnimeRecSection items={detail.recommendations} />
-        )}
-
-        {/* Episodes */}
-        {episodes.length > 0 && (
-          <section className="mt-6">
-            <h2 className="text-lg font-semibold text-white mb-3">
-              Episodes · {episodes.length}
-            </h2>
-            <div className="space-y-1">
-              {episodes.map((ep) => (
-                <div
-                  key={ep.number}
-                  className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-[#1a1a2e] hover:bg-[#25253a] transition-colors border border-[#2d2d4a] hover:border-[#6366f1] group"
-                >
-                  {/* Thumbnail */}
-                  <div className="flex-shrink-0 w-28 md:w-36 aspect-video rounded-lg overflow-hidden bg-[#0f0f1a] relative">
-                    {ep.thumbnail ? (
-                      <PosterImage src={ep.thumbnail} alt={ep.title} fill className="rounded-lg" sizes="(max-width: 768px) 112px, 144px" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[#6b7280] text-xs">
-                        No preview
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-[#6366f1] bg-[#6366f1]/10 px-1.5 py-0.5 rounded">
-                        {ep.number}
-                      </span>
-                      <h3 className="text-sm font-medium text-white truncate group-hover:text-[#a5b4fc] transition-colors">
-                        {ep.title}
-                      </h3>
-                    </div>
-                    {ep.titleJapanese && (
-                      <p className="text-[11px] text-[#6b7280] mt-0.5 truncate">
-                        {ep.titleJapanese}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-3 mt-1 text-[10px] text-[#6b7280]">
-                      {ep.airDate && <span>{ep.airDate}</span>}
-                      {ep.duration > 0 && <span>{ep.duration}m</span>}
-                    </div>
-                    {ep.synopsis && (
-                      <p className="text-[11px] text-[#9ca3af] leading-relaxed mt-1 line-clamp-2 group-hover:line-clamp-none transition-all">
-                        {ep.synopsis}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
         )}
 
         {/* Reviews */}
