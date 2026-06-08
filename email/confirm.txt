@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#0f0f1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0f0f1a;padding:40px 0">
+  <tr>
+    <td align="center">
+      <table width="480" cellpadding="0" cellspacing="0" style="background:#1a1a2e;border-radius:16px;overflow:hidden;border:1px solid #2d2d4a">
+        
+        <!-- Header -->
+        <tr>
+          <td style="padding:0">
+            <img src="https://seriez.app/email-header-gpt2.webp" alt="Seriez" width="480" height="270" style="display:block;width:100%;height:auto;border-radius:16px 16px 0 0">
+          </td>
+        </tr>
+
+        <!-- Divider -->
+        <tr>
+          <td style="padding:24px 32px 0">
+            <div style="height:1px;background:#2d2d4a"></div>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:28px 32px;text-align:center">
+            <h2 style="color:#fff;font-size:18px;margin:0 0 8px;font-weight:600">Confirm your email address</h2>
+            <p style="color:#9ca3af;font-size:14px;line-height:1.5;margin:0 0 24px">
+              One last step to start building your watchlist.
+            </p>
+
+            <!-- Button -->
+            <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#6366f1;color:#fff;font-size:15px;font-weight:600;padding:14px 36px;border-radius:10px;text-decoration:none;letter-spacing:0.2px">
+              Confirm Email
+            </a>
+
+            <!-- Fallback link -->
+            <p style="color:#6b7280;font-size:12px;margin:20px 0 0;line-height:1.4">
+              Button not working? Copy this link:<br>
+              <a href="{{ .ConfirmationURL }}" style="color:#6366f1;word-break:break-all;font-size:11px">{{ .ConfirmationURL }}</a>
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:20px 32px;text-align:center;border-top:1px solid #2d2d4a">
+            <p style="color:#6b7280;font-size:11px;margin:0;line-height:1.4">
+              Didn't create an account on Seriez? You can ignore this email.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+
+      <p style="color:#4b5563;font-size:11px;margin-top:20px">
+        © 2026 Seriez. All rights reserved.
+      </p>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
