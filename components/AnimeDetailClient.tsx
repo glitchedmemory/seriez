@@ -51,8 +51,8 @@ function formatDate(iso: string) {
 
 export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeDetail; episodes: AnimeEpisode[] }) {
   const [showAllCast, setShowAllCast] = useState(false);
-  const [showAllEp, setShowAllEp] = useState(false);
-  const MAX_VISIBLE_EPS = 30;
+  const [currentPage, setCurrentPage] = useState(1);
+  const EPISODES_PER_PAGE = 50;
   const [trackStatus, setTrackStatus] = useState<string | null>(null);
   const [trackLoading, setTrackLoading] = useState(false);
   const [rating, setRating] = useState(0);
@@ -72,7 +72,8 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const visibleCast = showAllCast ? detail.characters : detail.characters.slice(0, 6);
-  const visibleEpisodes = showAllEp ? episodes : episodes.slice(0, MAX_VISIBLE_EPS);
+  const totalPages = Math.ceil(episodes.length / EPISODES_PER_PAGE);
+  const visibleEpisodes = episodes.slice((currentPage - 1) * EPISODES_PER_PAGE, currentPage * EPISODES_PER_PAGE);
 
   // Fetch current tracking status + collections on mount
   useEffect(() => {
@@ -485,11 +486,18 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
               <h2 className="text-lg font-semibold text-white">
                 Episodes · {episodes.length}
               </h2>
-              {watchedCount > 0 && (
-                <span className="text-xs text-[#9ca3af]">
-                  Watched {watchedCount}/{episodes.length}
-                </span>
-              )}
+              <div className="flex items-center gap-3">
+                {totalPages > 1 && (
+                  <span className="text-[11px] text-[#6b7280]">
+                    {(currentPage - 1) * EPISODES_PER_PAGE + 1}–{Math.min(currentPage * EPISODES_PER_PAGE, episodes.length)}
+                  </span>
+                )}
+                {watchedCount > 0 && (
+                  <span className="text-xs text-[#9ca3af]">
+                    Watched {watchedCount}/{episodes.length}
+                  </span>
+                )}
+              </div>
             </div>
             <div className="space-y-3">
               {visibleEpisodes.map((ep) => {
@@ -554,13 +562,47 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                 </div>
               )})}
             </div>
-            {episodes.length > MAX_VISIBLE_EPS && (
-              <button
-                onClick={() => setShowAllEp(!showAllEp)}
-                className="mt-3 text-xs text-[#6366f1] hover:underline mx-auto block"
-              >
-                {showAllEp ? "Show less" : `Show all ${episodes.length} episodes`}
-              </button>
+            {episodes.length > EPISODES_PER_PAGE && (
+              <div className="mt-4 flex items-center justify-center gap-1 flex-wrap">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2 py-1 text-xs rounded bg-[#1a1a2e] text-[#9ca3af] hover:text-white disabled:opacity-30 transition-colors"
+                >
+                  ← Prev
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2)
+                  .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((item, i) =>
+                    item === "..." ? (
+                      <span key={`dots-${i}`} className="px-1 text-[10px] text-[#6b7280]">…</span>
+                    ) : (
+                      <button
+                        key={item}
+                        onClick={() => setCurrentPage(item as number)}
+                        className={`w-7 h-7 text-xs rounded-full transition-colors ${
+                          currentPage === item
+                            ? "bg-[#6366f1] text-white"
+                            : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    )
+                  )}
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-2 py-1 text-xs rounded bg-[#1a1a2e] text-[#9ca3af] hover:text-white disabled:opacity-30 transition-colors"
+                >
+                  Next →
+                </button>
+              </div>
             )}
             {!authUser && (
               <p className="text-[11px] text-[#6b7280] mt-2 text-center">

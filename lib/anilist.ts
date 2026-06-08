@@ -445,16 +445,26 @@ async function fetchTMDBThumbnails(title: string): Promise<Map<number, string>> 
     const tvData = await tvRes.json();
     const seasons = (tvData.seasons || []).filter((s: any) => s.season_number > 0);
 
-    // Step 3: Fetch episodes for each season (only first 3 seasons to limit requests)
-    for (const season of seasons.slice(0, 3)) {
-      const epRes = await fetch(
-        `${TMDB_API}/tv/${tvId}/season/${season.season_number}?api_key=${TMDB_KEY}`,
-        { next: { revalidate: 86400 } }
-      );
-      if (!epRes.ok) continue;
-      const epData = await epRes.json();
-      for (const ep of epData.episodes || []) {
-        if (ep.still_path && ep.episode_number) {
+    // Step 3: Fetch all seasons' episodes in parallel (TMDB has per-season still images)
+    const seasonNumbers = seasons.map((s: any) => s.season_number);
+    const seasonResults = await Promise.all(
+      seasonNumbers.map(async (sn: number) => {
+        try {
+          const epRes = await fetch(
+            `${TMDB_API}/tv/${tvId}/season/${sn}?api_key=${TMDB_KEY}`,
+            { next: { revalidate: 86400 } }
+          );
+          if (!epRes.ok) return [];
+          const epData = await epRes.json();
+          return (epData.episodes || []).filter((ep: any) => ep.still_path);
+        } catch {
+          return [];
+        }
+      })
+    );
+    for (const epList of seasonResults) {
+      for (const ep of epList) {
+        if (ep.episode_number) {
           thumbs.set(ep.episode_number, `${TMDB_IMAGE_BASE}${ep.still_path}`);
         }
       }
@@ -553,6 +563,26 @@ export async function getAnimeEpisodes(
         const thumb = tmdbThumbs.get(ep.number);
         return thumb ? { ...ep, thumbnail: thumb } : ep;
       });
+    }
+
+    // Kitsu thumbnail merge — fill gaps for episodes still without thumbnails
+    const missingThumbs = episodes.filter(ep => !ep.thumbnail).length;
+    if (missingThumbs > 0 && episodes.length > 50) {
+      const searchTitle = titleRomaji || title;
+      const kitsuEps = await fetchKitsuEpisodes(searchTitle);
+      if (kitsuEps.length > 0) {
+        const kitsuThumbs = new Map<number, string>();
+        for (const ke of kitsuEps) {
+          if (ke.thumbnail) kitsuThumbs.set(ke.number, ke.thumbnail);
+        }
+        if (kitsuThumbs.size > 0) {
+          episodes = episodes.map(ep => {
+            if (ep.thumbnail) return ep;
+            const thumb = kitsuThumbs.get(ep.number);
+            return thumb ? { ...ep, thumbnail: thumb } : ep;
+          });
+        }
+      }
     }
   }
 
