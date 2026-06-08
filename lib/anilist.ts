@@ -464,6 +464,40 @@ async function fetchTMDBThumbnails(title: string): Promise<Map<number, string>> 
   return thumbs;
 }
 
+// ─── TVmaze Episode Thumbnails (free, no API key) ───
+
+async function fetchTVmazeThumbnails(title: string): Promise<Map<number, string>> {
+  const thumbs = new Map<number, string>();
+  try {
+    // Step 1: Search TVmaze
+    const searchUrl = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(title)}`;
+    const searchRes = await fetch(searchUrl, { next: { revalidate: 86400 } });
+    if (!searchRes.ok) return thumbs;
+    const searchData = await searchRes.json();
+    if (!searchData.length) return thumbs;
+    const showId = searchData[0].show.id;
+
+    // Step 2: Fetch all episodes
+    const epRes = await fetch(`https://api.tvmaze.com/shows/${showId}/episodes`, {
+      next: { revalidate: 86400 },
+    });
+    if (!epRes.ok) return thumbs;
+    const episodes = await epRes.json();
+
+    // Map by sequential episode number across all seasons
+    for (let i = 0; i < episodes.length; i++) {
+      const ep = episodes[i];
+      if (ep.image?.medium) {
+        // Use sequential number (1-based) — matches Jikan/Kitsu flat numbering
+        thumbs.set(i + 1, ep.image.medium);
+      }
+    }
+  } catch {
+    // Fail silently
+  }
+  return thumbs;
+}
+
 export async function getAnimeEpisodes(
   title: string,
   titleRomaji: string,
@@ -495,14 +529,18 @@ export async function getAnimeEpisodes(
     if (anidbEps.length > 0) episodes = anidbEps;
   }
 
-  // Merge TMDB thumbnails into episodes (runs regardless of source)
+  // Merge TMDB + TVmaze thumbnails into episodes (runs regardless of source)
   if (episodes.length > 0) {
-    const searchForTMDB = titleRomaji || title;
-    const tmdbThumbs = await fetchTMDBThumbnails(searchForTMDB);
+    const searchForThumbs = titleRomaji || title;
+    // Try TMDB first (higher quality), then TVmaze (free fallback)
+    let tmdbThumbs = await fetchTMDBThumbnails(searchForThumbs);
+    if (tmdbThumbs.size === 0) {
+      tmdbThumbs = await fetchTVmazeThumbnails(searchForThumbs);
+    }
     if (tmdbThumbs.size > 0) {
       episodes = episodes.map(ep => {
-        const tmdbThumb = tmdbThumbs.get(ep.number);
-        return tmdbThumb ? { ...ep, thumbnail: tmdbThumb } : ep;
+        const thumb = tmdbThumbs.get(ep.number);
+        return thumb ? { ...ep, thumbnail: thumb } : ep;
       });
     }
   }
