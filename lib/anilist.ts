@@ -531,11 +531,19 @@ export async function getAnimeEpisodes(
 
   // Merge TMDB + TVmaze thumbnails into episodes (runs regardless of source)
   if (episodes.length > 0) {
-    const searchForThumbs = titleRomaji || title;
-    // Try TMDB first (higher quality), then TVmaze (free fallback)
-    let tmdbThumbs = await fetchTMDBThumbnails(searchForThumbs);
+    // Try both romaji and english titles for best coverage
+    const searchTitles = [titleRomaji, title].filter(Boolean) as string[];
+    let tmdbThumbs = new Map<number, string>();
+    for (const t of searchTitles) {
+      tmdbThumbs = await fetchTMDBThumbnails(t);
+      if (tmdbThumbs.size > 0) break;
+    }
+    // TVmaze as fallback
     if (tmdbThumbs.size === 0) {
-      tmdbThumbs = await fetchTVmazeThumbnails(searchForThumbs);
+      for (const t of searchTitles) {
+        tmdbThumbs = await fetchTVmazeThumbnails(t);
+        if (tmdbThumbs.size > 0) break;
+      }
     }
     if (tmdbThumbs.size > 0) {
       episodes = episodes.map(ep => {
