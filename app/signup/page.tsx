@@ -26,6 +26,16 @@ export default function SignupPage() {
       setLoading(false);
       return;
     }
+    if (!/[A-Z]/.test(password)) {
+      setError("Password must include at least one uppercase letter");
+      setLoading(false);
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      setError("Password must include at least one lowercase letter");
+      setLoading(false);
+      return;
+    }
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) {
       setError("Password must include at least one special character (!@#$ etc.)");
       setLoading(false);
@@ -84,7 +94,7 @@ export default function SignupPage() {
         />
         <input
           type="password"
-          placeholder="Password (min 8 characters, include special character)"
+          placeholder="Password (8+ chars, upper/lower/special)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="w-full bg-[#1a1a2e] text-white rounded-xl px-4 py-3 outline-none border border-[#2d2d4a] focus:border-[#6366f1] mb-1"
