@@ -106,6 +106,12 @@ query($id: Int) {
         format
       }
     }
+    streamingEpisodes {
+      title
+      thumbnail
+      url
+      site
+    }
   }
 }`;
 
@@ -508,6 +514,81 @@ async function fetchTVmazeThumbnails(title: string): Promise<Map<number, string>
   return thumbs;
 }
 
+// ─── AniList streamingEpisodes → Crunchyroll thumbnails ───
+
+async function fetchAniListStreamingThumbnails(title: string): Promise<Map<number, string>> {
+  const thumbs = new Map<number, string>();
+  try {
+    // Search AniList by title, get streamingEpisodes
+    const query = `
+    query($search: String) {
+      Media(search: $search, type: ANIME) {
+        streamingEpisodes {
+          title
+          thumbnail
+          url
+          site
+        }
+      }
+    }`;
+    const res = await fetch("https://graphql.anilist.co", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ query, variables: { search: title } }),
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return thumbs;
+    const json = await res.json();
+    const eps = json.data?.Media?.streamingEpisodes || [];
+
+    for (const ep of eps) {
+      if (ep.site !== "Crunchyroll" || !ep.thumbnail) continue;
+      // Extract episode number from title (e.g., "Episode 130 - ...")
+      const numMatch = ep.title?.match(/Episode\s+(\d+)/i);
+      if (!numMatch) continue;
+      const num = parseInt(numMatch[1]);
+      thumbs.set(num, ep.thumbnail);
+    }
+  } catch {
+    // Fail silently
+  }
+  return thumbs;
+}
+
+// ─── Crunchyroll RSS Episode Thumbnails (free, no API key) ───
+
+async function fetchCrunchyrollThumbnails(title: string): Promise<Map<number, string>> {
+  const thumbs = new Map<number, string>();
+  try {
+    const res = await fetch("https://www.crunchyroll.com/rss/anime", {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return thumbs;
+    const xml = await res.text();
+
+    // Parse RSS items — match series title and extract episode number + thumbnail
+    const titleLower = title.toLowerCase();
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+    let match;
+    while ((match = itemRegex.exec(xml)) !== null) {
+      const block = match[1];
+      const seriesTitle = block.match(/<crunchyroll:seriesTitle>([^<]*)<\/crunchyroll:seriesTitle>/)?.[1] || "";
+      if (!seriesTitle.toLowerCase().includes(titleLower)) continue;
+
+      const epNum = block.match(/<crunchyroll:episodeNumber>([^<]*)<\/crunchyroll:episodeNumber>/)?.[1] || "";
+      const num = parseInt(epNum);
+      if (!num) continue;
+
+      const enclosure = block.match(/<enclosure[^>]*url="([^"]+)"/)?.[1] || "";
+      if (enclosure) thumbs.set(num, enclosure);
+    }
+  } catch {
+    // Fail silently
+  }
+  return thumbs;
+}
+
 export async function getAnimeEpisodes(
   title: string,
   titleRomaji: string,
@@ -562,6 +643,30 @@ export async function getAnimeEpisodes(
         const thumb = tmdbThumbs.get(ep.number);
         return thumb ? { ...ep, thumbnail: thumb } : ep;
       });
+    }
+
+    // AniList streamingEpisodes (Crunchyroll) merge
+    {
+      const alThumbs = await fetchAniListStreamingThumbnails(titleRomaji || title);
+      if (alThumbs.size > 0) {
+        episodes = episodes.map(ep => {
+          if (ep.thumbnail) return ep;
+          const thumb = alThumbs.get(ep.number);
+          return thumb ? { ...ep, thumbnail: thumb } : ep;
+        });
+      }
+    }
+
+    // Crunchyroll RSS merge — latest episodes from RSS feed
+    {
+      const crThumbs = await fetchCrunchyrollThumbnails(titleRomaji || title);
+      if (crThumbs.size > 0) {
+        episodes = episodes.map(ep => {
+          if (ep.thumbnail) return ep;
+          const thumb = crThumbs.get(ep.number);
+          return thumb ? { ...ep, thumbnail: thumb } : ep;
+        });
+      }
     }
 
     // Kitsu thumbnail merge — fetch ALL thumbnails (max 70 pages = 1400 eps) from Japanese source

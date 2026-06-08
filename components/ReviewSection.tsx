@@ -311,7 +311,9 @@ export function ReviewSection({
         </form>
         ) : (
         <div className="bg-[#1a1a2e] rounded-xl p-4 mb-4 text-center border border-[#2d2d4a]">
-          <p className="text-sm text-[#6b7280] mb-2">Sign in to write a review</p>
+          <p className="text-sm text-[#6b7280] mb-2">
+            <a href="/signup" className="text-[#6366f1] hover:underline">Sign in</a> to write a review
+          </p>
           <a href="/signup" className="inline-block px-4 py-1.5 bg-[#6366f1] text-white text-sm font-medium rounded-lg hover:bg-[#818cf8] transition-colors">
             Create account
           </a>
@@ -319,7 +321,9 @@ export function ReviewSection({
         )
       ) : (
         <div className="bg-[#1a1a2e] rounded-xl p-4 mb-4 text-center border border-[#2d2d4a]">
-          <p className="text-sm text-[#6b7280] mb-2">Sign in to write a review</p>
+          <p className="text-sm text-[#6b7280] mb-2">
+            <a href="/signup" className="text-[#6366f1] hover:underline">Sign in</a> to write a review
+          </p>
         </div>
       )}
 
