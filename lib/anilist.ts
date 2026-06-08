@@ -288,23 +288,31 @@ async function fetchJikanEpisodes(malId: number): Promise<AnimeEpisode[]> {
 
 const KITSU_API = "https://kitsu.io/api/edge";
 
-async function fetchKitsuEpisodes(title: string, maxPages = 5): Promise<AnimeEpisode[]> {
+// ─── Kitsu Anime ID lookup (cached per title) ───
+
+async function findKitsuAnimeId(title: string): Promise<number | null> {
   try {
-    // Step 1: Search Kitsu by title
     const searchUrl = `${KITSU_API}/anime?filter[text]=${encodeURIComponent(title)}&page[limit]=3`;
-    const searchRes = await fetch(searchUrl, {
+    const res = await fetch(searchUrl, {
       headers: { "Accept": "application/vnd.api+json" },
       next: { revalidate: 86400 },
     });
-    if (!searchRes.ok) return [];
-    const searchData = await searchRes.json();
-    const results = searchData.data || [];
-    if (results.length === 0) return [];
+    if (!res.ok) return null;
+    const data = await res.json();
+    const results = data.data || [];
+    return results[0]?.id || null;
+  } catch {
+    return null;
+  }
+}
 
-    // Pick the best match (first result is usually correct)
-    const animeId = results[0].id;
+// ─── Kitsu Episode Fetch (sequential, for fallback) ───
 
-    // Step 2: Fetch episodes
+async function fetchKitsuEpisodes(title: string, maxPages = 5): Promise<AnimeEpisode[]> {
+  try {
+    const animeId = await findKitsuAnimeId(title);
+    if (!animeId) return [];
+
     const allEpisodes: any[] = [];
     let offset = 0;
     const pageLimit = 20;
@@ -319,7 +327,7 @@ async function fetchKitsuEpisodes(title: string, maxPages = 5): Promise<AnimeEpi
       const page = epData.data || [];
       if (page.length === 0) break;
       allEpisodes.push(...page);
-      if (page.length < pageLimit) break; // last page
+      if (page.length < pageLimit) break;
       offset += pageLimit;
     }
 
@@ -340,6 +348,66 @@ async function fetchKitsuEpisodes(title: string, maxPages = 5): Promise<AnimeEpi
   } catch {
     return [];
   }
+}
+
+// ─── Kitsu Thumbnails-Only (parallel, high performance) ───
+
+async function fetchKitsuThumbnails(title: string, totalPages = 100): Promise<Map<number, string>> {
+  const thumbs = new Map<number, string>();
+  try {
+    const animeId = await findKitsuAnimeId(title);
+    if (!animeId) return thumbs;
+
+    const pageLimit = 20;
+    const batchSize = 10; // parallel fetches per batch
+
+    // First: fetch page 1 to detect total pages
+    const firstUrl = `${KITSU_API}/anime/${animeId}/episodes?page%5Blimit%5D=${pageLimit}&page%5Boffset%5D=0&sort=number`;
+    const firstRes = await fetch(firstUrl, {
+      headers: { "Accept": "application/vnd.api+json" },
+      next: { revalidate: 86400 },
+    });
+    if (!firstRes.ok) return thumbs;
+    const firstData = await firstRes.json();
+    const firstPage = firstData.data || [];
+    for (const ep of firstPage) {
+      const attrs = ep.attributes || {};
+      const thumb = attrs.thumbnail?.original || null;
+      if (thumb) thumbs.set(attrs.number || 0, thumb);
+    }
+    if (firstPage.length < pageLimit) return thumbs; // single page series
+
+    // Batch-fetch remaining pages in parallel
+    const maxPages = Math.min(totalPages, Math.ceil(firstData.meta?.count / pageLimit) || totalPages);
+    for (let batchStart = 1; batchStart < maxPages; batchStart += batchSize) {
+      const batchEnd = Math.min(batchStart + batchSize, maxPages);
+      const promises: Promise<void>[] = [];
+
+      for (let page = batchStart; page < batchEnd; page++) {
+        const offset = page * pageLimit;
+        const url = `${KITSU_API}/anime/${animeId}/episodes?page%5Blimit%5D=${pageLimit}&page%5Boffset%5D=${offset}&sort=number`;
+        promises.push(
+          fetch(url, {
+            headers: { "Accept": "application/vnd.api+json" },
+            next: { revalidate: 86400 },
+          }).then(async (res) => {
+            if (!res.ok) return;
+            const data = await res.json();
+            for (const ep of data.data || []) {
+              const attrs = ep.attributes || {};
+              const thumb = attrs.thumbnail?.original || null;
+              if (thumb) thumbs.set(attrs.number || 0, thumb);
+            }
+          }).catch(() => {})
+        );
+      }
+
+      await Promise.all(promises);
+    }
+  } catch {
+    // Fail silently
+  }
+  return thumbs;
 }
 
 async function fetchAniDBEpisodes(title: string): Promise<AnimeEpisode[]> {
@@ -645,24 +713,18 @@ export async function getAnimeEpisodes(
       });
     }
 
-    // Kitsu thumbnail merge — main Japanese source, 70 pages = 1400 eps
+    // Kitsu thumbnail merge — main Japanese source, parallel 10x batches
     {
       const missingThumbs = episodes.filter(ep => !ep.thumbnail).length;
       if (missingThumbs > 0 && episodes.length > 50) {
         const searchTitle = titleRomaji || title;
-        const kitsuEps = await fetchKitsuEpisodes(searchTitle, 70);
-        if (kitsuEps.length > 0) {
-          const kitsuThumbs = new Map<number, string>();
-          for (const ke of kitsuEps) {
-            if (ke.thumbnail) kitsuThumbs.set(ke.number, ke.thumbnail);
-          }
-          if (kitsuThumbs.size > 0) {
-            episodes = episodes.map(ep => {
-              if (ep.thumbnail) return ep;
-              const thumb = kitsuThumbs.get(ep.number);
-              return thumb ? { ...ep, thumbnail: thumb } : ep;
-            });
-          }
+        const kitsuThumbs = await fetchKitsuThumbnails(searchTitle, 100);
+        if (kitsuThumbs.size > 0) {
+          episodes = episodes.map(ep => {
+            if (ep.thumbnail) return ep;
+            const thumb = kitsuThumbs.get(ep.number);
+            return thumb ? { ...ep, thumbnail: thumb } : ep;
+          });
         }
       }
     }
