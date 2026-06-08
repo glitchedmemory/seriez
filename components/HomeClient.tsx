@@ -213,8 +213,8 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
             </div>
             <PosterGrid>
               {(forYouItems && forYouItems.length > 0
-                ? forYouItems
-                : trending
+                ? forYouItems.slice(0, 14)
+                : trending.slice(0, 14)
               ).map((item) => (
                 <CardWrapper key={item.id} item={item} reasonText={forYouReasons[item.id]} />
               ))}
