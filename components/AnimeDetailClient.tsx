@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import type { AnimeDetail, AnimeRecItem } from "@/lib/anilist";
+import type { AnimeDetail, AnimeRecItem, AnimeEpisode } from "@/lib/anilist";
 import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
@@ -49,7 +49,7 @@ function formatDate(iso: string) {
 
 // ─── Main component ───
 
-export default function AnimeDetailClient({ detail }: { detail: AnimeDetail }) {
+export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeDetail; episodes: AnimeEpisode[] }) {
   const [showAllCast, setShowAllCast] = useState(false);
   const [trackStatus, setTrackStatus] = useState<string | null>(null);
   const [trackLoading, setTrackLoading] = useState(false);
@@ -443,6 +443,60 @@ export default function AnimeDetailClient({ detail }: { detail: AnimeDetail }) {
         {/* Recommendations */}
         {detail.recommendations.length > 0 && (
           <AnimeRecSection items={detail.recommendations} />
+        )}
+
+        {/* Episodes */}
+        {episodes.length > 0 && (
+          <section className="mt-6">
+            <h2 className="text-lg font-semibold text-white mb-3">
+              Episodes · {episodes.length}
+            </h2>
+            <div className="space-y-1">
+              {episodes.map((ep) => (
+                <div
+                  key={ep.number}
+                  className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-[#1a1a2e] hover:bg-[#25253a] transition-colors border border-[#2d2d4a] hover:border-[#6366f1] group"
+                >
+                  {/* Thumbnail */}
+                  <div className="flex-shrink-0 w-28 md:w-36 aspect-video rounded-lg overflow-hidden bg-[#0f0f1a] relative">
+                    {ep.thumbnail ? (
+                      <PosterImage src={ep.thumbnail} alt={ep.title} fill className="rounded-lg" sizes="(max-width: 768px) 112px, 144px" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[#6b7280] text-xs">
+                        No preview
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-[#6366f1] bg-[#6366f1]/10 px-1.5 py-0.5 rounded">
+                        {ep.number}
+                      </span>
+                      <h3 className="text-sm font-medium text-white truncate group-hover:text-[#a5b4fc] transition-colors">
+                        {ep.title}
+                      </h3>
+                    </div>
+                    {ep.titleJapanese && (
+                      <p className="text-[11px] text-[#6b7280] mt-0.5 truncate">
+                        {ep.titleJapanese}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-3 mt-1 text-[10px] text-[#6b7280]">
+                      {ep.airDate && <span>{ep.airDate}</span>}
+                      {ep.duration > 0 && <span>{ep.duration}m</span>}
+                    </div>
+                    {ep.synopsis && (
+                      <p className="text-[11px] text-[#9ca3af] leading-relaxed mt-1 line-clamp-2 group-hover:line-clamp-none transition-all">
+                        {ep.synopsis}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Reviews */}

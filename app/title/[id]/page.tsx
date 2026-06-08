@@ -1,6 +1,6 @@
 import { getMovieDetail } from "@/lib/tmdb";
 import DetailClient from "@/components/DetailClient";
-import { getAnimeDetail } from "@/lib/anilist";
+import { getAnimeDetail, getAnimeEpisodes } from "@/lib/anilist";
 import AnimeDetailClient from "@/components/AnimeDetailClient";
 import { notFound, redirect } from "next/navigation";
 
@@ -40,11 +40,16 @@ export default async function TitlePage({ params, searchParams }: Props) {
     notFound();
   }
 
-  // Anime detail — fetch from AniList
+  // Anime detail — fetch from AniList + episodes from Kitsu/AniDB
   if (type === "anime") {
     const detail = await getAnimeDetail(numId);
     if (!detail) notFound();
-    return <AnimeDetailClient detail={detail} />;
+    const episodes = await getAnimeEpisodes(
+      detail.title,
+      detail.titleRomaji,
+      detail.idMal
+    );
+    return <AnimeDetailClient detail={detail} episodes={episodes} />;
   }
 
   try {
