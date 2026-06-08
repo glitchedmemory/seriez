@@ -417,31 +417,95 @@ async function fetchAniDBEpisodes(title: string): Promise<AnimeEpisode[]> {
   }
 }
 
+// ─── TMDB Episode Thumbnails ───
+
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w300";
+const TMDB_API = "https://api.themoviedb.org/3";
+const TMDB_KEY = process.env.TMDB_API_KEY!;
+
+async function fetchTMDBThumbnails(title: string): Promise<Map<number, string>> {
+  const thumbs = new Map<number, string>();
+  try {
+    // Step 1: Search TMDB for the anime as a TV show
+    const searchUrl = `${TMDB_API}/search/tv?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}`;
+    const searchRes = await fetch(searchUrl, { next: { revalidate: 86400 } });
+    if (!searchRes.ok) return thumbs;
+    const searchData = await searchRes.json();
+    const tvResults = searchData.results || [];
+    if (tvResults.length === 0) return thumbs;
+    const tvId = tvResults[0].id;
+
+    // Step 2: Fetch all seasons' episodes
+    const tvRes = await fetch(
+      `${TMDB_API}/tv/${tvId}?api_key=${TMDB_KEY}`,
+      { next: { revalidate: 86400 } }
+    );
+    if (!tvRes.ok) return thumbs;
+    const tvData = await tvRes.json();
+    const seasons = (tvData.seasons || []).filter((s: any) => s.season_number > 0);
+
+    // Step 3: Fetch episodes for each season (only first 3 seasons to limit requests)
+    for (const season of seasons.slice(0, 3)) {
+      const epRes = await fetch(
+        `${TMDB_API}/tv/${tvId}/season/${season.season_number}?api_key=${TMDB_KEY}`,
+        { next: { revalidate: 86400 } }
+      );
+      if (!epRes.ok) continue;
+      const epData = await epRes.json();
+      for (const ep of epData.episodes || []) {
+        if (ep.still_path && ep.episode_number) {
+          thumbs.set(ep.episode_number, `${TMDB_IMAGE_BASE}${ep.still_path}`);
+        }
+      }
+    }
+  } catch {
+    // Fail silently — thumbnails are optional
+  }
+  return thumbs;
+}
+
 export async function getAnimeEpisodes(
   title: string,
   titleRomaji: string,
   idMal?: number
 ): Promise<AnimeEpisode[]> {
+  let episodes: AnimeEpisode[] = [];
+
   // Track A: Kitsu (has episode thumbnails + titles + air dates)
-  // Only use Kitsu if episodes have actual titles (not sparse entries)
   const searchTitle = titleRomaji || title;
   let kitsuEps = await fetchKitsuEpisodes(searchTitle);
   if (kitsuEps.length === 0 && title !== searchTitle) {
     kitsuEps = await fetchKitsuEpisodes(title);
   }
-  // Check if Kitsu returned usable data (non-null titles)
+  // Only use Kitsu if episodes have actual titles (not sparse entries)
   const hasTitles = kitsuEps.length > 0 && kitsuEps.some(ep => ep.title && ep.title !== `Episode ${ep.number}`);
-  if (hasTitles) return kitsuEps;
+  if (hasTitles) {
+    episodes = kitsuEps;
+  }
 
   // Track B: Jikan (MyAnimeList) — reliable but no thumbnails
-  if (idMal && idMal > 0) {
+  if (episodes.length === 0 && idMal && idMal > 0) {
     const jikanEps = await fetchJikanEpisodes(idMal);
-    if (jikanEps.length > 0) return jikanEps;
+    if (jikanEps.length > 0) episodes = jikanEps;
   }
 
   // Track C: AniDB fallback (slower, no thumbnails)
-  const anidbEps = await fetchAniDBEpisodes(titleRomaji || title);
-  if (anidbEps.length > 0) return anidbEps;
+  if (episodes.length === 0) {
+    const anidbEps = await fetchAniDBEpisodes(titleRomaji || title);
+    if (anidbEps.length > 0) episodes = anidbEps;
+  }
 
-  return [];
+  // Merge TMDB thumbnails into episodes (runs regardless of source)
+  if (episodes.length > 0) {
+    const searchForTMDB = titleRomaji || title;
+    const tmdbThumbs = await fetchTMDBThumbnails(searchForTMDB);
+    if (tmdbThumbs.size > 0) {
+      episodes = episodes.map(ep => {
+        const tmdbThumb = tmdbThumbs.get(ep.number);
+        return tmdbThumb ? { ...ep, thumbnail: tmdbThumb } : ep;
+      });
+    }
+  }
+
+  return episodes;
 }
