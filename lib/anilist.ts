@@ -298,11 +298,12 @@ async function fetchKitsuEpisodes(title: string): Promise<AnimeEpisode[]> {
     // Pick the best match (first result is usually correct)
     const animeId = results[0].id;
 
-    // Step 2: Fetch all episodes (Kitsu limit is 20 per page)
+    // Step 2: Fetch episodes (max 5 pages = 100 eps to avoid timeout on long series)
     const allEpisodes: any[] = [];
     let offset = 0;
     const pageLimit = 20;
-    while (true) {
+    const MAX_PAGES = 5;
+    while (allEpisodes.length < pageLimit * MAX_PAGES) {
       const epUrl = `${KITSU_API}/anime/${animeId}/episodes?page%5Blimit%5D=${pageLimit}&page%5Boffset%5D=${offset}&sort=number`;
       const epRes = await fetch(epUrl, {
         headers: { "Accept": "application/vnd.api+json" },
