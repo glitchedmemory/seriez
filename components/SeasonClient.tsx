@@ -104,6 +104,10 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
   const [authUser, setAuthUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
   const supabase = createClient();
 
+  // Episode pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const EPISODES_PER_PAGE = 30;
+
   // Collections
   const [collections, setCollections] = useState<{ id: string; name: string; itemCount: number }[]>([]);
   const [showCollDropdown, setShowCollDropdown] = useState(false);
@@ -112,6 +116,8 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const visibleCast = showAllCast ? data.cast : data.cast.slice(0, 6);
+  const totalEpPages = Math.ceil(data.episodes.length / EPISODES_PER_PAGE);
+  const visibleEpisodes = data.episodes.slice((currentPage - 1) * EPISODES_PER_PAGE, currentPage * EPISODES_PER_PAGE);
 
   // Fetch current tracking status + watched episodes on mount
   useEffect(() => {
@@ -579,14 +585,21 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
               <h2 className="text-lg font-semibold text-white">
                 Episodes · {data.episodes.length}
               </h2>
-              {watchedCount > 0 && (
-                <span className="text-xs text-[#9ca3af]">
-                  Watched {watchedCount}/{data.episodes.length}
-                </span>
-              )}
+              <div className="flex items-center gap-3">
+                {totalEpPages > 1 && (
+                  <span className="text-[11px] text-[#6b7280]">
+                    {(currentPage - 1) * EPISODES_PER_PAGE + 1}–{Math.min(currentPage * EPISODES_PER_PAGE, data.episodes.length)}
+                  </span>
+                )}
+                {watchedCount > 0 && (
+                  <span className="text-xs text-[#9ca3af]">
+                    Watched {watchedCount}/{data.episodes.length}
+                  </span>
+                )}
+              </div>
             </div>
             <div className="space-y-3">
-              {data.episodes.map((ep) => {
+              {visibleEpisodes.map((ep) => {
                 const epKey = `${data.seasonNumber}-${ep.number}`;
                 const isWatched = watchedEpisodes.has(epKey);
                 const isLoading = epToggleLoading === epKey;
@@ -645,6 +658,48 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 </div>
               )})}
             </div>
+            {data.episodes.length > EPISODES_PER_PAGE && (
+              <div className="mt-4 flex items-center justify-center gap-1 flex-wrap">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2 py-1 text-xs rounded bg-[#1a1a2e] text-[#9ca3af] hover:text-white disabled:opacity-30 transition-colors"
+                >
+                  ← Prev
+                </button>
+                {Array.from({ length: totalEpPages }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === totalEpPages || Math.abs(p - currentPage) <= 2)
+                  .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((item, i) =>
+                    item === "..." ? (
+                      <span key={`dots-${i}`} className="px-1 text-[10px] text-[#6b7280]">…</span>
+                    ) : (
+                      <button
+                        key={item}
+                        onClick={() => setCurrentPage(item as number)}
+                        className={`w-7 h-7 text-xs rounded-full transition-colors ${
+                          currentPage === item
+                            ? "bg-[#6366f1] text-white"
+                            : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    )
+                  )}
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalEpPages, p + 1))}
+                  disabled={currentPage === totalEpPages}
+                  className="px-2 py-1 text-xs rounded bg-[#1a1a2e] text-[#9ca3af] hover:text-white disabled:opacity-30 transition-colors"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
           </section>
         )}
 
