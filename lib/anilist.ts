@@ -395,5 +395,9 @@ export async function getAnimeEpisodes(
     if (kitsuEps2.length > 0) return kitsuEps2;
   }
 
+  // Track C: AniDB fallback (slower, no thumbnails)
+  const anidbEps = await fetchAniDBEpisodes(titleRomaji || title);
+  if (anidbEps.length > 0) return anidbEps;
+
   return [];
 }
