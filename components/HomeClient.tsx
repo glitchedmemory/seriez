@@ -283,13 +283,14 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
                 </div>
               ) : (
                 <PosterGrid>
-                  {animeTrending.map((item) => <CardWrapper key={item.id} item={item} />)}
+                  {animeTrending.slice(0, 7).map((item) => <CardWrapper key={item.id} item={item} />)}
                 </PosterGrid>
               )
             ) : (
               <PosterGrid>
                 {trending
                   .filter(item => item.type === trendingMode)
+                  .slice(0, 7)
                   .map((item) => <CardWrapper key={item.id} item={item} />)}
               </PosterGrid>
             )}
