@@ -474,7 +474,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         {/* Overview */}
         {detail.overview && (
           <section className="mt-6">
-            <h2 className="text-lg font-semibold text-white mb-2">Synopsis</h2>
+            <h2 className="text-lg font-semibold text-white mb-2">Overview</h2>
             <p className="text-sm text-[#d1d5db] leading-relaxed">{detail.overview}</p>
           </section>
         )}

@@ -85,7 +85,7 @@ query($id: Int) {
         voiceActors(language: JAPANESE) { name { full } image { medium } }
       }
     }
-    recommendations(sort: RATING_DESC, perPage: 5) {
+    recommendations(sort: RATING_DESC, perPage: 12) {
       nodes {
         mediaRecommendation {
           id
@@ -282,7 +282,7 @@ async function fetchJikanEpisodes(malId: number): Promise<AnimeEpisode[]> {
 
 const KITSU_API = "https://kitsu.io/api/edge";
 
-async function fetchKitsuEpisodes(title: string): Promise<AnimeEpisode[]> {
+async function fetchKitsuEpisodes(title: string, maxPages = 5): Promise<AnimeEpisode[]> {
   try {
     // Step 1: Search Kitsu by title
     const searchUrl = `${KITSU_API}/anime?filter[text]=${encodeURIComponent(title)}&page[limit]=3`;
@@ -298,12 +298,11 @@ async function fetchKitsuEpisodes(title: string): Promise<AnimeEpisode[]> {
     // Pick the best match (first result is usually correct)
     const animeId = results[0].id;
 
-    // Step 2: Fetch episodes (max 5 pages = 100 eps, used as fallback only)
+    // Step 2: Fetch episodes
     const allEpisodes: any[] = [];
     let offset = 0;
     const pageLimit = 20;
-    const MAX_PAGES = 5;
-    while (allEpisodes.length < pageLimit * MAX_PAGES) {
+    while (allEpisodes.length < pageLimit * maxPages) {
       const epUrl = `${KITSU_API}/anime/${animeId}/episodes?page%5Blimit%5D=${pageLimit}&page%5Boffset%5D=${offset}&sort=number`;
       const epRes = await fetch(epUrl, {
         headers: { "Accept": "application/vnd.api+json" },
@@ -565,11 +564,11 @@ export async function getAnimeEpisodes(
       });
     }
 
-    // Kitsu thumbnail merge — fill gaps for episodes still without thumbnails
+    // Kitsu thumbnail merge — fetch ALL thumbnails (max 70 pages = 1400 eps) from Japanese source
     const missingThumbs = episodes.filter(ep => !ep.thumbnail).length;
     if (missingThumbs > 0 && episodes.length > 50) {
       const searchTitle = titleRomaji || title;
-      const kitsuEps = await fetchKitsuEpisodes(searchTitle);
+      const kitsuEps = await fetchKitsuEpisodes(searchTitle, 70);
       if (kitsuEps.length > 0) {
         const kitsuThumbs = new Map<number, string>();
         for (const ke of kitsuEps) {
