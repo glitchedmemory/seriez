@@ -20,14 +20,28 @@ export default withPWA({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
+  // Exclude Turbopack-generated CSS chunks from precache
+  // (chunk names are non-deterministic — precaching them causes
+  //  stale references that result in CSS chunk mismatch 404s)
+  buildExcludes: [/chunks\/.*\.css$/, /chunks\/.*\.css\.map$/],
   runtimeCaching: [
-    // Static assets: cache-first (CSS, JS, fonts, icons)
+    // Static JS, fonts, icons: cache-first (deterministic names)
     {
-      urlPattern: /\.(?:css|js|woff2?|ttf|otf|png|svg|ico)$/,
+      urlPattern: /\.(?:js|woff2?|ttf|otf|png|svg|ico)$/,
       handler: "CacheFirst",
       options: {
         cacheName: "static-assets",
-        expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 },
+        expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 },
+      },
+    },
+    // CSS: network-first (Turbopack chunk names change every build)
+    {
+      urlPattern: /\.css(\?.*)?$/,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "css",
+        expiration: { maxEntries: 50, maxAgeSeconds: 7 * 24 * 60 * 60 },
+        networkTimeoutSeconds: 3,
       },
     },
     // TMDB images: stale-while-revalidate (show cached, update bg)
