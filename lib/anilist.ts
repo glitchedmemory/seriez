@@ -645,6 +645,28 @@ export async function getAnimeEpisodes(
       });
     }
 
+    // Kitsu thumbnail merge — main Japanese source, 70 pages = 1400 eps
+    {
+      const missingThumbs = episodes.filter(ep => !ep.thumbnail).length;
+      if (missingThumbs > 0 && episodes.length > 50) {
+        const searchTitle = titleRomaji || title;
+        const kitsuEps = await fetchKitsuEpisodes(searchTitle, 70);
+        if (kitsuEps.length > 0) {
+          const kitsuThumbs = new Map<number, string>();
+          for (const ke of kitsuEps) {
+            if (ke.thumbnail) kitsuThumbs.set(ke.number, ke.thumbnail);
+          }
+          if (kitsuThumbs.size > 0) {
+            episodes = episodes.map(ep => {
+              if (ep.thumbnail) return ep;
+              const thumb = kitsuThumbs.get(ep.number);
+              return thumb ? { ...ep, thumbnail: thumb } : ep;
+            });
+          }
+        }
+      }
+    }
+
     // AniList streamingEpisodes (Crunchyroll) merge
     {
       const alThumbs = await fetchAniListStreamingThumbnails(titleRomaji || title);
@@ -657,7 +679,7 @@ export async function getAnimeEpisodes(
       }
     }
 
-    // Crunchyroll RSS merge — latest episodes from RSS feed
+    // Crunchyroll RSS merge — last resort (may fail on datacenter IPs)
     {
       const crThumbs = await fetchCrunchyrollThumbnails(titleRomaji || title);
       if (crThumbs.size > 0) {
@@ -666,26 +688,6 @@ export async function getAnimeEpisodes(
           const thumb = crThumbs.get(ep.number);
           return thumb ? { ...ep, thumbnail: thumb } : ep;
         });
-      }
-    }
-
-    // Kitsu thumbnail merge — fetch ALL thumbnails (max 70 pages = 1400 eps) from Japanese source
-    const missingThumbs = episodes.filter(ep => !ep.thumbnail).length;
-    if (missingThumbs > 0 && episodes.length > 50) {
-      const searchTitle = titleRomaji || title;
-      const kitsuEps = await fetchKitsuEpisodes(searchTitle, 70);
-      if (kitsuEps.length > 0) {
-        const kitsuThumbs = new Map<number, string>();
-        for (const ke of kitsuEps) {
-          if (ke.thumbnail) kitsuThumbs.set(ke.number, ke.thumbnail);
-        }
-        if (kitsuThumbs.size > 0) {
-          episodes = episodes.map(ep => {
-            if (ep.thumbnail) return ep;
-            const thumb = kitsuThumbs.get(ep.number);
-            return thumb ? { ...ep, thumbnail: thumb } : ep;
-          });
-        }
       }
     }
   }
