@@ -4,6 +4,7 @@ const ANILIST_API = "https://graphql.anilist.co";
 
 export type AnimeDetail = {
   id: number;
+  idMal: number;
   title: string;
   titleRomaji: string;
   titleNative: string;
@@ -37,12 +38,23 @@ export type AnimeRecItem = {
   genres: string[];
 };
 
+export type AnimeEpisode = {
+  number: number;
+  title: string;
+  titleJapanese: string;
+  airDate: string;       // YYYY-MM-DD
+  thumbnail: string | null;
+  synopsis: string;
+  duration: number;       // minutes
+};
+
 // ─── GraphQL Query ───
 
 const DETAIL_QUERY = `
 query($id: Int) {
   Media(id: $id) {
     id
+    idMal
     title { romaji english native }
     description(asHtml: false)
     coverImage { extraLarge }
@@ -197,6 +209,7 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
 
     return {
       id: m.id,
+      idMal: m.idMal || 0,
       title: m.title?.english || m.title?.romaji || "Unknown",
       titleRomaji: m.title?.romaji || "",
       titleNative: m.title?.native || "",
@@ -223,4 +236,164 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
   } catch {
     return null;
   }
+}
+
+// ─── Episode fetching (Kitsu + AniDB fallback) ───
+
+const KITSU_API = "https://kitsu.io/api/edge";
+
+async function fetchKitsuEpisodes(title: string): Promise<AnimeEpisode[]> {
+  try {
+    // Step 1: Search Kitsu by title
+    const searchUrl = `${KITSU_API}/anime?filter[text]=${encodeURIComponent(title)}&page[limit]=3`;
+    const searchRes = await fetch(searchUrl, {
+      headers: { "Accept": "application/vnd.api+json" },
+      next: { revalidate: 86400 },
+    });
+    if (!searchRes.ok) return [];
+    const searchData = await searchRes.json();
+    const results = searchData.data || [];
+    if (results.length === 0) return [];
+
+    // Pick the best match (first result is usually correct)
+    const animeId = results[0].id;
+
+    // Step 2: Fetch all episodes (Kitsu limit is 20 per page)
+    const allEpisodes: any[] = [];
+    let offset = 0;
+    const pageLimit = 20;
+    while (true) {
+      const epUrl = `${KITSU_API}/anime/${animeId}/episodes?page%5Blimit%5D=${pageLimit}&page%5Boffset%5D=${offset}&sort=number`;
+      const epRes = await fetch(epUrl, {
+        headers: { "Accept": "application/vnd.api+json" },
+        next: { revalidate: 86400 },
+      });
+      if (!epRes.ok) break;
+      const epData = await epRes.json();
+      const page = epData.data || [];
+      if (page.length === 0) break;
+      allEpisodes.push(...page);
+      if (page.length < pageLimit) break; // last page
+      offset += pageLimit;
+    }
+
+    return allEpisodes.map((ep: any) => {
+      const attrs = ep.attributes || {};
+      const titles = attrs.titles || {};
+      const thumb = attrs.thumbnail?.original || null;
+      return {
+        number: attrs.number || 0,
+        title: attrs.canonicalTitle || titles.en_us || titles.en_jp || `Episode ${attrs.number}`,
+        titleJapanese: titles.ja_jp || "",
+        airDate: attrs.airdate || "",
+        thumbnail: thumb,
+        synopsis: attrs.synopsis || attrs.description || "",
+        duration: attrs.length || 0,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+async function fetchAniDBEpisodes(title: string): Promise<AnimeEpisode[]> {
+  try {
+    // Step 1: Download titles dump and find AID
+    const dumpRes = await fetch("https://anidb.net/api/animetitles.xml.gz", {
+      headers: { "User-Agent": "Mozilla/5.0", "Accept-Encoding": "gzip" },
+      next: { revalidate: 86400 },
+    });
+    if (!dumpRes.ok) return [];
+
+    // Gunzip in Node.js
+    const { gunzipSync } = await import("zlib");
+    const buf = Buffer.from(await dumpRes.arrayBuffer());
+    const xml = gunzipSync(buf).toString("utf-8");
+
+    // Simple regex to find matching anime ID
+    const titleLower = title.toLowerCase();
+    const animeRegex = /<anime\s+aid="(\d+)">([\s\S]*?)<\/anime>/g;
+    let aid: string | null = null;
+    let match;
+    while ((match = animeRegex.exec(xml)) !== null) {
+      const block = match[2].toLowerCase();
+      if (block.includes(titleLower)) {
+        aid = match[1];
+        break;
+      }
+    }
+    if (!aid) return [];
+
+    // Step 2: Fetch full anime data with episodes
+    const apiUrl = `http://api.anidb.net:9001/httpapi?request=anime&client=seriez&clientver=1&protover=1&aid=${aid}`;
+    const apiRes = await fetch(apiUrl, {
+      headers: { "User-Agent": "Mozilla/5.0", "Accept-Encoding": "gzip" },
+      next: { revalidate: 86400 },
+    });
+    if (!apiRes.ok) return [];
+
+    const apiBuf = Buffer.from(await apiRes.arrayBuffer());
+    let apiXml: string;
+    try {
+      apiXml = gunzipSync(apiBuf).toString("utf-8");
+    } catch {
+      apiXml = apiBuf.toString("utf-8");
+    }
+
+    // Parse episodes
+    const epRegex = /<episode[^>]*>([\s\S]*?)<\/episode>/g;
+    const episodes: AnimeEpisode[] = [];
+    let epMatch;
+    while ((epMatch = epRegex.exec(apiXml)) !== null) {
+      const block = epMatch[1];
+
+      // Skip OPs/EDs (type != 1)
+      const typeMatch = block.match(/<epno[^>]*type="(\d+)"/);
+      if (typeMatch && typeMatch[1] !== "1") continue;
+
+      const num = parseInt(block.match(/<epno[^>]*>(\d+)<\/epno>/)?.[1] || "0");
+      if (num === 0) continue;
+
+      const enTitle = block.match(/<title xml:lang="en">([^<]*)<\/title>/)?.[1] || "";
+      const jaTitle = block.match(/<title xml:lang="ja">([^<]*)<\/title>/)?.[1] || "";
+      const airDate = block.match(/<airdate>([^<]*)<\/airdate>/)?.[1] || "";
+      const duration = parseInt(block.match(/<length>(\d+)<\/length>/)?.[1] || "0");
+      const synopsis = (block.match(/<summary>([\s\S]*?)<\/summary>/)?.[1] || "").trim();
+
+      episodes.push({
+        number: num,
+        title: enTitle || `Episode ${num}`,
+        titleJapanese: jaTitle,
+        airDate,
+        thumbnail: null,
+        synopsis,
+        duration,
+      });
+    }
+
+    return episodes.sort((a, b) => a.number - b.number);
+  } catch {
+    return [];
+  }
+}
+
+export async function getAnimeEpisodes(
+  title: string,
+  titleRomaji: string,
+  _idMal?: number
+): Promise<AnimeEpisode[]> {
+  // Prefer romaji title for Kitsu search (better match rate)
+  const searchTitle = titleRomaji || title;
+
+  // Track A: Kitsu (fast, has thumbnails, most comprehensive)
+  const kitsuEps = await fetchKitsuEpisodes(searchTitle);
+  if (kitsuEps.length > 0) return kitsuEps;
+
+  // Track B: Fallback — try Kitsu with English title
+  if (title !== searchTitle) {
+    const kitsuEps2 = await fetchKitsuEpisodes(title);
+    if (kitsuEps2.length > 0) return kitsuEps2;
+  }
+
+  return [];
 }
