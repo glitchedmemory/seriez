@@ -1,15 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { resolveUserId } from "@/lib/user-utils";
-import { resolveUsername } from "@/lib/auth-helper";
-import { GENRE_MAP } from "@/lib/tmdb";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE = "https://api.themoviedb.org/3";
+
+// ─── User resolution ───
+
+async function resolveUserIdByUsername(username: string): Promise<string | null> {
+  const trimmed = username.trim().slice(0, 20);
+  if (!trimmed) return null;
+
+  const { data: existing } = await supabaseAdmin
+    .from("users")
+    .select("id")
+    .eq("username", trimmed)
+    .maybeSingle();
+
+  if (existing) return existing.id;
+
+  // Auto-create user
+  const crypto = await import("crypto");
+  const hash = crypto.createHash("sha256").update("seriez:" + trimmed).digest();
+  hash[6] = (hash[6] & 0x0f) | 0x50;
+  hash[8] = (hash[8] & 0x3f) | 0x80;
+  const hex = hash.toString("hex");
+  const userId = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+
+  await supabaseAdmin.from("users").insert({
+    id: userId,
+    username: trimmed,
+    email: `${trimmed}@seriezuser.com`,
+  });
+
+  return userId;
+}
 
 // ─── TMDB helpers ───
 
@@ -17,7 +45,7 @@ async function tmdbGet(endpoint: string) {
   const url = new URL(`${TMDB_BASE}${endpoint}`);
   url.searchParams.set("api_key", TMDB_API_KEY);
   url.searchParams.set("language", "en-US");
-  const res = await fetch(url, { next: { revalidate: 86400 } });
+  const res = await fetch(url.toString());
   if (!res.ok) return null;
   return res.json();
 }
@@ -25,7 +53,7 @@ async function tmdbGet(endpoint: string) {
 interface TmdbCache {
   title: string;
   posterPath: string | null;
-  runtime: number | null; // movies: total, tv/anime: per episode
+  runtime: number | null;
   genres: { id: number; name: string }[];
 }
 
@@ -42,14 +70,13 @@ async function getTmdbInfo(
     const ep = mediaType === "movie" ? `/movie/${tmdbId}` : `/tv/${tmdbId}`;
     const detail = await tmdbGet(ep);
     if (!detail) {
-      tmdbCache.set(cacheKey, null as any);
+      tmdbCache.set(cacheKey, null!);
       return null;
     }
 
     const title = detail.title || detail.name || "Unknown";
     const posterPath = detail.poster_path || null;
 
-    // Runtime: movies have runtime in minutes; TV has episode_run_time array
     let runtime: number | null = null;
     if (mediaType === "movie") {
       runtime = detail.runtime || null;
@@ -66,30 +93,26 @@ async function getTmdbInfo(
     tmdbCache.set(cacheKey, result);
     return result;
   } catch {
-    tmdbCache.set(cacheKey, null as any);
+    tmdbCache.set(cacheKey, null!);
     return null;
   }
 }
 
+// ─── GET /api/history ───
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const monthParam = searchParams.get("month"); // "2026-06"
+  const monthParam = searchParams.get("month");
   const queryUsername = searchParams.get("username");
 
-  // Try auth first, then fallback to query param
-  let username = await resolveUsername(req);
-  if (!username && queryUsername) {
-    username = queryUsername;
-  }
-
-  if (!username) {
+  if (!queryUsername) {
     return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
+      { error: "Missing username parameter" },
+      { status: 400 }
     );
   }
 
-  const userId = await resolveUserId(username);
+  const userId = await resolveUserIdByUsername(queryUsername);
   if (!userId) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
@@ -107,18 +130,13 @@ export async function GET(req: NextRequest) {
     targetMonth = now.getMonth() + 1;
   }
 
-  // ─── 1. Fetch episode watches for target month + 12 months for graph ───
-  const startOfTarget = `${targetYear}-${String(targetMonth).padStart(2, "0")}-01`;
-  const endOfTarget = new Date(targetYear, targetMonth, 0)
-    .toISOString()
-    .split("T")[0];
-
-  // For monthly graph: last 12 months from target month
+  // Graph range: last 12 months
   const graphStart = new Date(targetYear, targetMonth - 12, 1)
     .toISOString()
     .split("T")[0];
 
-  const { data: watches, error: watchError } = await supabase
+  // ─── Fetch watches ───
+  const { data: watches, error: watchError } = await supabaseAdmin
     .from("episode_watches")
     .select("tmdb_id, season_number, episode_number, watched_at")
     .eq("username", userId)
@@ -126,14 +144,11 @@ export async function GET(req: NextRequest) {
     .order("watched_at", { ascending: false });
 
   if (watchError) {
-    return NextResponse.json(
-      { error: watchError.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: watchError.message }, { status: 500 });
   }
 
-  // ─── 2. Fetch all MediaTracking for ratings ───
-  const { data: tracking } = await supabase
+  // ─── Fetch trackings ───
+  const { data: tracking } = await supabaseAdmin
     .from("media_trackings")
     .select("tmdb_id, media_type, status, rating, updated_at")
     .eq("username", userId);
@@ -153,7 +168,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // ─── 3. Build calendar data ───
+  // ─── Build calendar ───
   interface DayEntry {
     tmdbId: number;
     title: string;
@@ -170,18 +185,14 @@ export async function GET(req: NextRequest) {
 
   for (const w of watches || []) {
     const dateKey = new Date(w.watched_at).toISOString().split("T")[0];
-
-    // Monthly graph data
-    const monthKey = dateKey.slice(0, 7); // "2026-06"
+    const monthKey = dateKey.slice(0, 7);
     monthEpisodeCounts[monthKey] = (monthEpisodeCounts[monthKey] || 0) + 1;
 
-    // Only include target month in calendar
     if (!dateKey.startsWith(`${targetYear}-${String(targetMonth).padStart(2, "0")}`))
       continue;
 
     if (!calendar[dateKey]) calendar[dateKey] = [];
 
-    // Check if this tmdbId already added for this day (dedup)
     const existingIndex = calendar[dateKey].findIndex(
       (e) => e.tmdbId === w.tmdb_id
     );
@@ -204,60 +215,53 @@ export async function GET(req: NextRequest) {
       episodeCount: 1,
     });
 
-    // Genre rating tracking
     if (tmdbInfo && trackingInfo?.rating) {
       for (const genre of tmdbInfo.genres) {
         if (!genreRatings[genre.name]) {
           genreRatings[genre.name] = { total: 0, count: 0 };
         }
-        // Only count each title once per genre
         genreRatings[genre.name].total += trackingInfo.rating;
         genreRatings[genre.name].count += 1;
       }
     }
   }
 
-  // ─── 4. Compute stats ───
+  // ─── Stats ───
   let totalRuntimeMinutes = 0;
   let totalEpisodes = 0;
   const uniqueTitles = new Set<number>();
 
-  for (const [dateKey, entries] of Object.entries(calendar)) {
+  for (const entries of Object.values(calendar)) {
     for (const entry of entries) {
       uniqueTitles.add(entry.tmdbId);
-      if (entry.runtime) {
-        totalRuntimeMinutes += entry.runtime * entry.episodeCount;
-      }
+      if (entry.runtime) totalRuntimeMinutes += entry.runtime * entry.episodeCount;
       totalEpisodes += entry.episodeCount;
     }
   }
 
-  const totalHours = Math.round(totalRuntimeMinutes / 6) / 10; // round to 1 decimal
-
-  const allRatings = Array.from(ratingMap.values()).filter(
-    (r) => r.rating > 0
-  );
+  const totalHours = Math.round(totalRuntimeMinutes / 6) / 10;
+  const allRatings = Array.from(ratingMap.values()).filter((r) => r.rating > 0);
   const avgRating =
     allRatings.length > 0
       ? Math.round(
-          (allRatings.reduce((s, r) => s + r.rating, 0) / allRatings.length) *
-            10
+          (allRatings.reduce((s, r) => s + r.rating, 0) / allRatings.length) * 10
         ) / 10
       : 0;
 
-  // ─── 5. Monthly graph (last 12 months) ───
+  // ─── Monthly graph ───
   const months: string[] = [];
   for (let i = 11; i >= 0; i--) {
     const d = new Date(targetYear, targetMonth - 1 - i, 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    months.push(key);
+    months.push(
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+    );
   }
   const monthlyGraph = months.map((month) => ({
     month,
     count: monthEpisodeCounts[month] || 0,
   }));
 
-  // ─── 6. Top genres by average rating ───
+  // ─── Top genres ───
   const topGenres = Object.entries(genreRatings)
     .map(([name, { total, count }]) => ({
       name,
@@ -267,17 +271,17 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => b.avgRating - a.avgRating)
     .slice(0, 3);
 
-  // ─── 7. Watch list (with TMDB info) ───
+  // ─── Watch list ───
   const uniqueTracked = Array.from(
     new Map(
       (tracking || [])
-        .filter((t) => t.status === "completed" || t.status === "watching")
-        .map((t) => [t.tmdb_id, t])
+        .filter((t: any) => t.status === "completed" || t.status === "watching")
+        .map((t: any) => [t.tmdb_id, t])
     ).values()
   );
 
   const watchList = [];
-  for (const t of uniqueTracked) {
+  for (const t of uniqueTracked as any[]) {
     const tmdbInfo = await getTmdbInfo(t.tmdb_id, t.media_type);
     watchList.push({
       tmdbId: t.tmdb_id,
