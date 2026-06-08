@@ -475,21 +475,6 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           </section>
         )}
 
-        {/* Trailer */}
-        {detail.trailer && (
-          <section className="mt-6">
-            <h2 className="text-lg font-semibold text-white mb-3">🎬 Trailer</h2>
-            <div className="aspect-video rounded-xl overflow-hidden bg-[#1a1a2e]">
-              <iframe
-                src={`https://www.youtube.com/embed/${detail.trailer.id}`}
-                title="Trailer"
-                allowFullScreen
-                className="w-full h-full"
-              />
-            </div>
-          </section>
-        )}
-
         {/* Episodes — interactive with watch tracking */}
         {episodes.length > 0 ? (
           <section className="mt-6">
@@ -581,6 +566,21 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
             </div>
           </section>
         ) : null}
+
+        {/* Trailer */}
+        {detail.trailer && (
+          <section className="mt-6">
+            <h2 className="text-lg font-semibold text-white mb-3">🎬 Trailer</h2>
+            <div className="aspect-video rounded-xl overflow-hidden bg-[#1a1a2e]">
+              <iframe
+                src={`https://www.youtube.com/embed/${detail.trailer.id}`}
+                title="Trailer"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          </section>
+        )}
 
         {/* Characters + Voice Actors */}
         {detail.characters.length > 0 && (
