@@ -267,7 +267,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
                       trendingMode === "anime" ? "text-white" : "text-[#6b7280]"
                     }`}
                     aria-label="Show trending anime"
-                  >🎌 Anime</button>
+                  >🍿 Anime</button>
                 </div>
               </div>
             </div>
