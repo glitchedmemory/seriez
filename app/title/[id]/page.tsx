@@ -21,17 +21,17 @@ async function getTVSeasonCount(id: number): Promise<number | null> {
   }
 }
 
-async function findTMDBByTitle(title: string): Promise<number | null> {
+async function findTMDBTVShows(title: string): Promise<number[]> {
   try {
     const res = await fetch(
       `${TMDB_BASE}/search/tv?api_key=${API_KEY}&query=${encodeURIComponent(title)}`,
       { next: { revalidate: 86400 } }
     );
-    if (!res.ok) return null;
+    if (!res.ok) return [];
     const data = await res.json();
-    return data.results?.[0]?.id || null;
+    return (data.results || []).slice(0, 3).map((r: any) => r.id as number);
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -59,15 +59,25 @@ export default async function TitlePage({ params, searchParams }: Props) {
     const detail = await getAnimeDetail(numId);
     if (!detail) notFound();
 
-    // Try to find the TMDB version using native Japanese title
-    if (detail.titleNative) {
-      const tmdbId = await findTMDBByTitle(detail.titleNative);
-      if (tmdbId) {
-        const latestSeason = await getTVSeasonCount(tmdbId);
-        if (latestSeason) {
-          redirect(`/title/${tmdbId}/season/${latestSeason}`);
+    // Search TMDB with multiple titles, pick match with most seasons
+    const searchTitles = [detail.titleRomaji, detail.title, detail.titleNative].filter(Boolean);
+    const seenIds = new Set<number>();
+    let bestTmdbId: number | null = null;
+    let bestSeasons = 0;
+    for (const t of [...new Set(searchTitles)]) {
+      const ids = await findTMDBTVShows(t);
+      for (const tmdbId of ids) {
+        if (seenIds.has(tmdbId)) continue;
+        seenIds.add(tmdbId);
+        const seasons = await getTVSeasonCount(tmdbId);
+        if (seasons && seasons > bestSeasons) {
+          bestSeasons = seasons;
+          bestTmdbId = tmdbId;
         }
       }
+    }
+    if (bestTmdbId && bestSeasons > 0) {
+      redirect(`/title/${bestTmdbId}/season/${bestSeasons}`);
     }
 
     // Fallback: render from AniList
