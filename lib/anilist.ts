@@ -511,9 +511,7 @@ export async function getAnimeEpisodes(
   if (kitsuEps.length === 0 && title !== searchTitle) {
     kitsuEps = await fetchKitsuEpisodes(title);
   }
-  // Only use Kitsu if episodes have actual titles (not sparse entries)
-  const hasTitles = kitsuEps.length > 0 && kitsuEps.some(ep => ep.title && ep.title !== `Episode ${ep.number}`);
-  if (hasTitles) {
+  if (kitsuEps.length > 0) {
     episodes = kitsuEps;
   }
 
