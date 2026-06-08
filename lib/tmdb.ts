@@ -86,7 +86,7 @@ function format(item: TmdbItem): TmdbResult {
 
 export async function getTrending(): Promise<TmdbResult[]> {
   const data = await get("/trending/all/week");
-  return (data.results as TmdbItem[]).slice(0, 20).map(format);
+  return (data.results as TmdbItem[]).slice(0, 28).map(format);
 }
 
 export async function getUpcoming(): Promise<TmdbResult[]> {
