@@ -21,6 +21,20 @@ async function getTVSeasonCount(id: number): Promise<number | null> {
   }
 }
 
+async function findTMDBByTitle(title: string): Promise<number | null> {
+  try {
+    const res = await fetch(
+      `${TMDB_BASE}/search/tv?api_key=${API_KEY}&query=${encodeURIComponent(title)}`,
+      { next: { revalidate: 86400 } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.results?.[0]?.id || null;
+  } catch {
+    return null;
+  }
+}
+
 interface Props {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ type?: string }>;
@@ -40,10 +54,23 @@ export default async function TitlePage({ params, searchParams }: Props) {
     notFound();
   }
 
-  // Anime detail — fetch from AniList + episodes from Kitsu/AniDB
+  // Anime detail — try TMDB first (richer: seasons, episode stills), fallback to AniList
   if (type === "anime") {
     const detail = await getAnimeDetail(numId);
     if (!detail) notFound();
+
+    // Try to find the TMDB version using native Japanese title
+    if (detail.titleNative) {
+      const tmdbId = await findTMDBByTitle(detail.titleNative);
+      if (tmdbId) {
+        const latestSeason = await getTVSeasonCount(tmdbId);
+        if (latestSeason) {
+          redirect(`/title/${tmdbId}/season/${latestSeason}`);
+        }
+      }
+    }
+
+    // Fallback: render from AniList
     const episodes = await getAnimeEpisodes(
       detail.title,
       detail.titleRomaji,
