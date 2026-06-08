@@ -47,7 +47,8 @@ export default async function TitlePage({ params, searchParams }: Props) {
     const episodes = await getAnimeEpisodes(
       detail.title,
       detail.titleRomaji,
-      detail.idMal
+      detail.idMal,
+      detail.titleNative
     );
     return <AnimeDetailClient detail={detail} episodes={episodes} />;
   }

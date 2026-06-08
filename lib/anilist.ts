@@ -501,7 +501,8 @@ async function fetchTVmazeThumbnails(title: string): Promise<Map<number, string>
 export async function getAnimeEpisodes(
   title: string,
   titleRomaji: string,
-  idMal?: number
+  idMal?: number,
+  titleNative?: string
 ): Promise<AnimeEpisode[]> {
   let episodes: AnimeEpisode[] = [];
 
@@ -529,8 +530,8 @@ export async function getAnimeEpisodes(
 
   // Merge TMDB + TVmaze thumbnails into episodes (runs regardless of source)
   if (episodes.length > 0) {
-    // Try both romaji and english titles for best coverage
-    const searchTitles = [titleRomaji, title].filter(Boolean) as string[];
+    // Try romaji, english, and native japanese titles for best coverage
+    const searchTitles = [titleRomaji, title, titleNative].filter(Boolean) as string[];
     let tmdbThumbs = new Map<number, string>();
     for (const t of searchTitles) {
       tmdbThumbs = await fetchTMDBThumbnails(t);
