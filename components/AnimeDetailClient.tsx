@@ -72,6 +72,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const visibleCast = showAllCast ? detail.characters : detail.characters.slice(0, 6);
+  const visibleEpisodes = showAllEp ? episodes : episodes.slice(0, MAX_VISIBLE_EPS);
 
   // Fetch current tracking status + collections on mount
   useEffect(() => {
@@ -478,9 +479,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         )}
 
         {/* Episodes — interactive with watch tracking */}
-        {episodes.length > 0 ? (() => {
-          const visibleEpisodes = showAllEp ? episodes : episodes.slice(0, MAX_VISIBLE_EPS);
-          return (
+        {episodes.length > 0 ? (
           <section className="mt-6">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold text-white">
@@ -569,7 +568,6 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
               </p>
             )}
           </section>
-          )})()}
         ) : episodes.length === 0 && detail.episodes > 0 ? (
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-white mb-3">Episodes</h2>
