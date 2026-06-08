@@ -1,5 +1,7 @@
 import { getMovieDetail } from "@/lib/tmdb";
 import DetailClient from "@/components/DetailClient";
+import { getAnimeDetail } from "@/lib/anilist";
+import AnimeDetailClient from "@/components/AnimeDetailClient";
 import { notFound, redirect } from "next/navigation";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
@@ -40,10 +42,8 @@ export default async function TitlePage({ params, searchParams }: Props) {
 
   // Anime detail — fetch from AniList
   if (type === "anime") {
-    const { getAnimeDetail } = await import("@/lib/anilist");
     const detail = await getAnimeDetail(numId);
     if (!detail) notFound();
-    const { default: AnimeDetailClient } = await import("@/components/AnimeDetailClient");
     return <AnimeDetailClient detail={detail} />;
   }
 
