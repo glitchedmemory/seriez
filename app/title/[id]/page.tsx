@@ -31,11 +31,6 @@ export default async function TitlePage({ params, searchParams }: Props) {
   const numId = parseInt(id);
   if (isNaN(numId)) notFound();
 
-  // DEBUG
-  if (type !== "tv" && type !== "anime") {
-    return <div style={{color:"white",padding:40}}>DEBUG: type=&quot;{type || "undefined"}&quot; id={numId}</div>;
-  }
-
   // TV shows have no main page — redirect to latest season
   if (type === "tv") {
     const latestSeason = await getTVSeasonCount(numId);
