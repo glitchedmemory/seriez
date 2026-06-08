@@ -5,6 +5,9 @@ export NEXT_PUBLIC_SUPABASE_URL=https://zntyjtjodyzizoafxord.supabase.co
 export NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpudHlqdGpvZHl6aXpvYWZ4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MzMwOTcsImV4cCI6MjA5NjIwOTA5N30.3KFa93KLzv8np-oJlg_7l-Y27emr7qynnP-59G9mjGU
 fuser -k 3000/tcp 2>/dev/null
 sleep 1
+# Kill any remaining zombie node processes on port 3000
+ss -tlnp | grep ':3000' | grep -oP 'pid=\d+' | cut -d= -f2 | xargs -r kill -9 2>/dev/null
+sleep 1
 npm run build
 pm2 delete seriez 2>/dev/null
 sleep 1
