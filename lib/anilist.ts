@@ -298,11 +298,12 @@ async function fetchKitsuEpisodes(title: string): Promise<AnimeEpisode[]> {
     // Pick the best match (first result is usually correct)
     const animeId = results[0].id;
 
-    // Step 2: Fetch all episodes (no arbitrary limit — paginate until empty)
+    // Step 2: Fetch episodes (max 5 pages = 100 eps, used as fallback only)
     const allEpisodes: any[] = [];
     let offset = 0;
     const pageLimit = 20;
-    while (true) {
+    const MAX_PAGES = 5;
+    while (allEpisodes.length < pageLimit * MAX_PAGES) {
       const epUrl = `${KITSU_API}/anime/${animeId}/episodes?page%5Blimit%5D=${pageLimit}&page%5Boffset%5D=${offset}&sort=number`;
       const epRes = await fetch(epUrl, {
         headers: { "Accept": "application/vnd.api+json" },
@@ -506,20 +507,23 @@ export async function getAnimeEpisodes(
 ): Promise<AnimeEpisode[]> {
   let episodes: AnimeEpisode[] = [];
 
-  // Track A: Kitsu (has episode thumbnails + titles + air dates)
-  const searchTitle = titleRomaji || title;
-  let kitsuEps = await fetchKitsuEpisodes(searchTitle);
-  if (kitsuEps.length === 0 && title !== searchTitle) {
-    kitsuEps = await fetchKitsuEpisodes(title);
-  }
-  if (kitsuEps.length > 0) {
-    episodes = kitsuEps;
-  }
-
-  // Track B: Jikan (MyAnimeList) — reliable but no thumbnails
-  if (episodes.length === 0 && idMal && idMal > 0) {
+  // Track A: Jikan (MyAnimeList) — fastest, no page limit, reliable for all episode counts
+  if (idMal && idMal > 0) {
     const jikanEps = await fetchJikanEpisodes(idMal);
     if (jikanEps.length > 0) episodes = jikanEps;
+  }
+
+  // Track B: Kitsu (has episode thumbnails + titles + air dates)
+  // Only used if Jikan fails — kept with page limit for safety
+  if (episodes.length === 0) {
+    const searchTitle = titleRomaji || title;
+    let kitsuEps = await fetchKitsuEpisodes(searchTitle);
+    if (kitsuEps.length === 0 && title !== searchTitle) {
+      kitsuEps = await fetchKitsuEpisodes(title);
+    }
+    if (kitsuEps.length > 0) {
+      episodes = kitsuEps;
+    }
   }
 
   // Track C: AniDB fallback (slower, no thumbnails)
