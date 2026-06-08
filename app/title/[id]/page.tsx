@@ -38,18 +38,13 @@ export default async function TitlePage({ params, searchParams }: Props) {
     notFound();
   }
 
-  // Anime detail not yet supported — show friendly message
+  // Anime detail — fetch from AniList
   if (type === "anime") {
-    return (
-      <div className="max-w-lg mx-auto min-h-screen flex items-center justify-center px-4 pb-24">
-        <div className="text-center">
-          <p className="text-6xl mb-4">🎌</p>
-          <h1 className="text-xl font-bold text-white mb-2">Anime detail coming soon</h1>
-          <p className="text-sm text-[#9ca3af] mb-4">AniList integration is in development</p>
-          <a href="/search" className="text-[#6366f1] hover:underline text-sm">← Back to search</a>
-        </div>
-      </div>
-    );
+    const { getAnimeDetail } = await import("@/lib/anilist");
+    const detail = await getAnimeDetail(numId);
+    if (!detail) notFound();
+    const { default: AnimeDetailClient } = await import("@/components/AnimeDetailClient");
+    return <AnimeDetailClient detail={detail} />;
   }
 
   try {
