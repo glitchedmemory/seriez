@@ -85,8 +85,13 @@ function format(item: TmdbItem): TmdbResult {
 }
 
 export async function getTrending(): Promise<TmdbResult[]> {
-  const data = await get("/trending/all/week");
-  return (data.results as TmdbItem[]).slice(0, 28).map(format);
+  const [movieData, tvData] = await Promise.all([
+    get("/trending/movie/week"),
+    get("/trending/tv/week"),
+  ]);
+  const movies = (movieData.results as TmdbItem[]).map(item => ({ ...format(item), type: "movie" as const }));
+  const tvs = (tvData.results as TmdbItem[]).map(item => ({ ...format(item), type: "tv" as const }));
+  return [...movies, ...tvs];
 }
 
 export async function getUpcoming(): Promise<TmdbResult[]> {
