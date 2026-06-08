@@ -422,20 +422,18 @@ export async function getAnimeEpisodes(
   titleRomaji: string,
   idMal?: number
 ): Promise<AnimeEpisode[]> {
-  // Track A: Jikan (MyAnimeList) — most reliable, uses stable ID
+  // Track A: Kitsu (has episode thumbnails + titles + air dates)
+  const searchTitle = titleRomaji || title;
+  let kitsuEps = await fetchKitsuEpisodes(searchTitle);
+  if (kitsuEps.length === 0 && title !== searchTitle) {
+    kitsuEps = await fetchKitsuEpisodes(title);
+  }
+  if (kitsuEps.length > 0) return kitsuEps;
+
+  // Track B: Jikan (MyAnimeList) — reliable but no thumbnails
   if (idMal && idMal > 0) {
     const jikanEps = await fetchJikanEpisodes(idMal);
     if (jikanEps.length > 0) return jikanEps;
-  }
-
-  // Track B: Kitsu (has thumbnails but API is unreliable)
-  const searchTitle = titleRomaji || title;
-  const kitsuEps = await fetchKitsuEpisodes(searchTitle);
-  if (kitsuEps.length > 0) return kitsuEps;
-
-  if (title !== searchTitle) {
-    const kitsuEps2 = await fetchKitsuEpisodes(title);
-    if (kitsuEps2.length > 0) return kitsuEps2;
   }
 
   // Track C: AniDB fallback (slower, no thumbnails)
