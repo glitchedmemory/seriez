@@ -51,6 +51,8 @@ function formatDate(iso: string) {
 
 export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeDetail; episodes: AnimeEpisode[] }) {
   const [showAllCast, setShowAllCast] = useState(false);
+  const [showAllEp, setShowAllEp] = useState(false);
+  const MAX_VISIBLE_EPS = 30;
   const [trackStatus, setTrackStatus] = useState<string | null>(null);
   const [trackLoading, setTrackLoading] = useState(false);
   const [rating, setRating] = useState(0);
@@ -476,7 +478,9 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         )}
 
         {/* Episodes — interactive with watch tracking */}
-        {episodes.length > 0 ? (
+        {episodes.length > 0 ? (() => {
+          const visibleEpisodes = showAllEp ? episodes : episodes.slice(0, MAX_VISIBLE_EPS);
+          return (
           <section className="mt-6">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold text-white">
@@ -489,7 +493,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
               )}
             </div>
             <div className="space-y-3">
-              {episodes.map((ep) => {
+              {visibleEpisodes.map((ep) => {
                 const epKey = `1-${ep.number}`;
                 const isWatched = watchedEpisodes.has(epKey);
                 const isLoading = epToggleLoading === epKey;
@@ -551,12 +555,21 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                 </div>
               )})}
             </div>
+            {episodes.length > MAX_VISIBLE_EPS && (
+              <button
+                onClick={() => setShowAllEp(!showAllEp)}
+                className="mt-3 text-xs text-[#6366f1] hover:underline mx-auto block"
+              >
+                {showAllEp ? "Show less" : `Show all ${episodes.length} episodes`}
+              </button>
+            )}
             {!authUser && (
               <p className="text-[11px] text-[#6b7280] mt-2 text-center">
                 <a href="/login" className="text-[#6366f1] hover:underline">Sign in</a> to track watched episodes
               </p>
             )}
           </section>
+          )})()}
         ) : episodes.length === 0 && detail.episodes > 0 ? (
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-white mb-3">Episodes</h2>
