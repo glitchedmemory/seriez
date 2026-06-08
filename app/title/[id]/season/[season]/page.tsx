@@ -1,4 +1,5 @@
 import SeasonClient from "@/components/SeasonClient";
+import { fetchKitsuThumbnails } from "@/lib/anilist";
 import { notFound } from "next/navigation";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
@@ -153,6 +154,18 @@ export default async function SeasonPage({ params }: Props) {
       airDate: ep.air_date || "",
       runtime: ep.runtime || 0,
     }));
+
+    // Merge Kitsu thumbnails for episodes without TMDB stills (anime only)
+    if (isAnimated && episodes.some((ep: any) => !ep.still)) {
+      const kitsuThumbs = await fetchKitsuThumbnails(seriesData.name, 50).catch(() => new Map());
+      if (kitsuThumbs.size > 0) {
+        for (const ep of episodes) {
+          if (!ep.still && kitsuThumbs.has(ep.number)) {
+            ep.still = kitsuThumbs.get(ep.number)!;
+          }
+        }
+      }
+    }
 
     // Format similar with deep curation (genre + keyword + overview text similarity)
     const sourceGenreIds: number[] = (seriesData.genres || []).map((g: any) => g.id);

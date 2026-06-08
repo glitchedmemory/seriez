@@ -352,7 +352,7 @@ async function fetchKitsuEpisodes(title: string, maxPages = 5): Promise<AnimeEpi
 
 // ─── Kitsu Thumbnails-Only (parallel, high performance) ───
 
-async function fetchKitsuThumbnails(title: string, totalPages = 100): Promise<Map<number, string>> {
+export async function fetchKitsuThumbnails(title: string, totalPages = 100): Promise<Map<number, string>> {
   const thumbs = new Map<number, string>();
   try {
     const animeId = await findKitsuAnimeId(title);
