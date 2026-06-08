@@ -629,7 +629,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-white mb-3">Related</h2>
             <div className="flex flex-wrap gap-2">
-              {detail.relations.map((r) => (
+              {detail.relations.slice(0, 5).map((r) => (
                 <a
                   key={r.id}
                   href={`/title/${r.id}?type=anime`}

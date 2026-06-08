@@ -85,7 +85,7 @@ query($id: Int) {
         voiceActors(language: JAPANESE) { name { full } image { medium } }
       }
     }
-    recommendations(sort: RATING_DESC, perPage: 12) {
+    recommendations(sort: RATING_DESC, perPage: 5) {
       nodes {
         mediaRecommendation {
           id
@@ -298,12 +298,11 @@ async function fetchKitsuEpisodes(title: string): Promise<AnimeEpisode[]> {
     // Pick the best match (first result is usually correct)
     const animeId = results[0].id;
 
-    // Step 2: Fetch episodes (max 5 pages = 100 eps to avoid timeout on long series)
+    // Step 2: Fetch all episodes (no arbitrary limit — paginate until empty)
     const allEpisodes: any[] = [];
     let offset = 0;
     const pageLimit = 20;
-    const MAX_PAGES = 5;
-    while (allEpisodes.length < pageLimit * MAX_PAGES) {
+    while (true) {
       const epUrl = `${KITSU_API}/anime/${animeId}/episodes?page%5Blimit%5D=${pageLimit}&page%5Boffset%5D=${offset}&sort=number`;
       const epRes = await fetch(epUrl, {
         headers: { "Accept": "application/vnd.api+json" },
@@ -531,8 +530,8 @@ export async function getAnimeEpisodes(
 
   // Merge TMDB + TVmaze thumbnails into episodes (runs regardless of source)
   if (episodes.length > 0) {
-    // Try romaji, english, and native japanese titles for best coverage
-    const searchTitles = [titleRomaji, title, titleNative].filter(Boolean) as string[];
+    // Try native Japanese first (correct TMDB anime entry), then romaji, then english
+    const searchTitles = [titleNative, titleRomaji, title].filter(Boolean) as string[];
     let tmdbThumbs = new Map<number, string>();
     for (const t of searchTitles) {
       tmdbThumbs = await fetchTMDBThumbnails(t);
