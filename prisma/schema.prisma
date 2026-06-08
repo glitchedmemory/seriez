@@ -11,6 +11,7 @@ model User {
   id           String   @id @default(uuid())
   username     String   @unique
   email        String   @unique
+  role         String   @default("user") // user | admin
   avatarUrl    String?
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
