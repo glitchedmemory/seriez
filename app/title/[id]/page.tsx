@@ -1,6 +1,6 @@
 import { getMovieDetail } from "@/lib/tmdb";
 import DetailClient from "@/components/DetailClient";
-import { getAnimeDetail, getAnimeEpisodes } from "@/lib/anilist";
+import { getAnimeDetail, getAnimeEpisodes, enrichAnimeRelations } from "@/lib/anilist";
 import AnimeDetailClient from "@/components/AnimeDetailClient";
 import { notFound, redirect } from "next/navigation";
 
@@ -44,6 +44,9 @@ export default async function TitlePage({ params, searchParams }: Props) {
   if (type === "anime") {
     const detail = await getAnimeDetail(numId);
     if (!detail) notFound();
+
+    // Enrich relations: fetch 2 levels deep to catch all seasons
+    detail.relations = await enrichAnimeRelations(numId, detail.relations);
 
     const episodes = await getAnimeEpisodes(
       detail.title,

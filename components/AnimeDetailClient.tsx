@@ -305,19 +305,22 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
     );
     if (relatedTV.length === 0) return [];
 
-    // Combine current + relations, sort by season number in title
-    const getSeasonNum = (title: string): number => {
-      const m = title.match(/season\s*(\d+)/i) || title.match(/(\d+)(?:st|nd|rd|th)\s*season/i);
-      if (m) return parseInt(m[1]);
-      // Fallback: try to find any number in title
-      const n = title.match(/\b(\d+)\b/);
-      return n ? parseInt(n[1]) : 999;
-    };
-
+    // Combine current + relations, sort by seasonYear then title
     const allItems = [
-      { id: detail.id, title: detail.title },
-      ...relatedTV.map(r => ({ id: r.id, title: r.title })),
-    ].sort((a, b) => getSeasonNum(a.title) - getSeasonNum(b.title));
+      { id: detail.id, title: detail.title, seasonYear: detail.year || null as number | null },
+      ...relatedTV.map(r => ({ id: r.id, title: r.title, seasonYear: r.seasonYear })),
+    ].sort((a, b) => {
+      // Sort by seasonYear (nulls last)
+      if (a.seasonYear && b.seasonYear) return a.seasonYear - b.seasonYear;
+      if (a.seasonYear) return -1;
+      if (b.seasonYear) return 1;
+      // Fallback: season number in title
+      const getNum = (t: string) => {
+        const m = t.match(/season\s*(\d+)/i) || t.match(/(\d+)(?:st|nd|rd|th)\s*season/i);
+        return m ? parseInt(m[1]) : 999;
+      };
+      return getNum(a.title) - getNum(b.title);
+    });
 
     const tabs = allItems.map((item, i) => ({
       id: item.id,

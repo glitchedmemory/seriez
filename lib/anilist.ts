@@ -26,7 +26,7 @@ export type AnimeDetail = {
   characters: { name: string; role: string; voiceActor: string; image: string | null }[];
   recommendations: AnimeRecItem[];
   trailer: { id: string; site: string } | null;
-  relations: { id: number; title: string; type: string; format: string }[];
+  relations: { id: number; title: string; type: string; format: string; seasonYear: number | null }[];
 };
 
 export type AnimeRecItem = {
@@ -104,6 +104,7 @@ query($id: Int) {
         title { romaji english }
         type
         format
+        seasonYear
       }
     }
     streamingEpisodes {
@@ -198,6 +199,7 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
         title: r.title?.english || r.title?.romaji || "Unknown",
         type: r.type || "ANIME",
         format: r.format || "",
+        seasonYear: r.seasonYear || null,
       }));
 
     // Trailer
@@ -755,4 +757,75 @@ export async function getAnimeEpisodes(
   }
 
   return episodes;
+}
+
+// ─── Deep relations enrichment (2 levels) ───
+
+const RELATIONS_ONLY_QUERY = `
+query($id: Int) {
+  Media(id: $id) {
+    id
+    title { romaji english }
+    relations {
+      nodes {
+        id
+        title { romaji english }
+        type
+        format
+        seasonYear
+      }
+    }
+  }
+}`;
+
+/**
+ * Collect all unique TV anime relations up to 2 levels deep.
+ * Fixes entries like "Final Season" that only list 1-2 relations.
+ */
+export async function enrichAnimeRelations(
+  currentId: number,
+  existingRelations: { id: number; title: string; type: string; format: string; seasonYear: number | null }[]
+): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null }[]> {
+  const seen = new Set<number>([currentId]);
+  const result = [...existingRelations];
+  for (const r of result) seen.add(r.id);
+
+  // Fetch level-1: each TV relation's own relations
+  const tvRelations = existingRelations.filter(r => r.format === "TV" || !r.format);
+  const promises = tvRelations.map(async (rel) => {
+    try {
+      const res = await fetch(ANILIST_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: RELATIONS_ONLY_QUERY, variables: { id: rel.id } }),
+        next: { revalidate: 86400 },
+      });
+      if (!res.ok) return [];
+      const json = await res.json();
+      const nodes = json.data?.Media?.relations?.nodes || [];
+      return nodes
+        .filter((n: any) => n.type === "ANIME" && !seen.has(n.id))
+        .map((n: any) => ({
+          id: n.id,
+          title: n.title?.english || n.title?.romaji || "Unknown",
+          type: "ANIME" as const,
+          format: n.format || "",
+          seasonYear: n.seasonYear || null,
+        }));
+    } catch {
+      return [];
+    }
+  });
+
+  const level1Results = await Promise.all(promises);
+  for (const items of level1Results) {
+    for (const item of items) {
+      if (!seen.has(item.id)) {
+        seen.add(item.id);
+        result.push(item);
+      }
+    }
+  }
+
+  return result;
 }
