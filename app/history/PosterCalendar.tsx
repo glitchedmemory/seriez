@@ -148,15 +148,6 @@ export default function PosterCalendar({
         })}
       </div>
 
-      {/* View full calendar link */}
-      <div className="text-center mt-3 pb-1">
-        <button
-          onClick={() => onDayClick("", [])}
-          className="text-[13px] font-semibold text-[#6366f1] hover:text-[#818cf8] transition-colors"
-        >
-          View Full Calendar ›
-        </button>
-      </div>
     </div>
   );
 }
