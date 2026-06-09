@@ -64,11 +64,11 @@ function CommentTree({
                   {isAdmin && c.is_hidden && (
                     <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded">🚨 hidden</span>
                   )}
-                  {/* Report button on comment */}
-                  {authUsername && authUsername !== c.username && (
+                  {/* Report button on comment — always visible */}
+                  {authUsername !== c.username && (
                     <button
-                      onClick={() => onReport(c.id)}
-                      disabled={reportingComments.has(String(c.id))}
+                      onClick={() => authUsername ? onReport(c.id) : alert("Sign in to report")}
+                      disabled={reportingComments.has(String(c.id)) && !!authUsername}
                       className="text-[10px] text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50 ml-auto"
                       title="Report"
                     >
@@ -86,15 +86,13 @@ function CommentTree({
                   )}
                 </div>
                 <span className="text-xs text-[#d1d5db] whitespace-pre-wrap">{c.content}</span>
-                {/* Reply button */}
-                {authUsername && (
-                  <button
-                    onClick={() => onToggleReply(c.id)}
-                    className="text-[10px] text-[#6b7280] hover:text-[#a855f7] transition-colors mt-1"
-                  >
-                    💬 Reply
-                  </button>
-                )}
+                {/* Reply button — always visible */}
+                <button
+                  onClick={() => authUsername ? onToggleReply(c.id) : alert("Sign in to reply")}
+                  className="text-[10px] text-[#6b7280] hover:text-[#a855f7] transition-colors mt-1"
+                >
+                  💬 Reply
+                </button>
               </div>
             </div>
             {/* Reply input */}
@@ -637,10 +635,10 @@ export function ReviewSection({
                   <span>💬</span>
                   <span>{review.commentCount || "Comment"}</span>
                 </button>
-                {/* Report button */}
-                {authUser && authUser.user_metadata?.username !== review.username && (
+                {/* Report button — always visible */}
+                {authUser?.user_metadata?.username !== review.username && (
                   <button
-                    onClick={() => handleReport("review", review.id)}
+                    onClick={() => authUser ? handleReport("review", review.id) : alert("Sign in to report")}
                     disabled={reportingReview.has(review.id)}
                     className="flex items-center gap-1 text-xs text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50"
                     title="Report this review"
