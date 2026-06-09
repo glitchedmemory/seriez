@@ -1,12 +1,14 @@
 /**
  * YouTube trailer validation + DuckDuckGo fallback search.
- * Replaces region-blocked/deleted/private trailers with fresh search results.
+ * Two-phase validation: oEmbed (existence) + Data API v3 (region restrictions).
  */
 
 type Video = { key: string; name: string };
 
-/** Check if a YouTube video is playable via oEmbed API */
-async function isVideoValid(key: string): Promise<boolean> {
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || "";
+
+/** Check if a YouTube video exists (not deleted/private) via oEmbed */
+async function videoExists(key: string): Promise<boolean> {
   try {
     const res = await fetch(
       `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${key}`,
@@ -16,6 +18,37 @@ async function isVideoValid(key: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/** Check if a YouTube video has region restrictions (any blocked countries) */
+async function hasRegionRestrictions(key: string): Promise<boolean> {
+  if (!YOUTUBE_API_KEY) return false; // no key = skip check
+  try {
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${key}&key=${YOUTUBE_API_KEY}`,
+      { next: { revalidate: 86400 } } as any
+    );
+    if (!res.ok) return false;
+    const json = await res.json();
+    const items = json.items || [];
+    if (items.length === 0) return false;
+    const restrictions = items[0]?.contentDetails?.regionRestriction;
+    // blocked[] = countries where video is NOT available
+    // If blocked exists with any entries, the video is region-restricted
+    if (restrictions?.blocked && restrictions.blocked.length > 0) return true;
+    // allowed[] = opposite — only available in these countries
+    if (restrictions?.allowed && restrictions.allowed.length > 0) return true;
+    return false;
+  } catch {
+    return false; // API error = assume ok
+  }
+}
+
+/** Fully validate a video: exists + no region restrictions */
+async function isVideoFullyPlayable(key: string): Promise<boolean> {
+  if (!(await videoExists(key))) return false;
+  if (await hasRegionRestrictions(key)) return false;
+  return true;
 }
 
 /** Search DuckDuckGo for YouTube trailer IDs matching the query */
@@ -39,8 +72,8 @@ async function searchFallback(query: string, count: number): Promise<Video[]> {
 }
 
 /**
- * Validate each video and replace broken ones with DuckDuckGo fallback.
- * Returns at most `max` valid trailers.
+ * Validate each video (existence + region) and replace broken ones with DuckDuckGo fallback.
+ * Returns at most `max` valid, unrestricted trailers.
  */
 export async function validateAndReplaceTrailers(
   videos: Video[],
@@ -49,32 +82,27 @@ export async function validateAndReplaceTrailers(
   badKeys?: Set<string>
 ): Promise<Video[]> {
   const result: Video[] = [];
-  const brokenIndices: number[] = [];
+  const brokenCount: number = 0;
 
-  // Phase 1: validate existing videos
+  // Phase 1: validate existing videos (exists + no region block)
   for (let i = 0; i < videos.length; i++) {
-    if (badKeys?.has(videos[i].key)) {
-      brokenIndices.push(i);
-      continue;
-    }
-    const valid = await isVideoValid(videos[i].key);
-    if (valid) {
+    if (badKeys?.has(videos[i].key)) continue;
+    const playable = await isVideoFullyPlayable(videos[i].key);
+    if (playable) {
       result.push(videos[i]);
-    } else {
-      brokenIndices.push(i);
     }
   }
 
   // Phase 2: fill gaps with fallback search
   const needed = max - result.length;
-  if (needed > 0 && brokenIndices.length > 0) {
-    const fallbacks = await searchFallback(searchQuery, needed);
+  if (needed > 0) {
+    const fallbacks = await searchFallback(searchQuery, max * 2);
     for (const fb of fallbacks) {
       if (result.length >= max) break;
       if (result.some((v) => v.key === fb.key)) continue;
       if (badKeys?.has(fb.key)) continue;
-      const valid = await isVideoValid(fb.key);
-      if (valid) result.push(fb);
+      const playable = await isVideoFullyPlayable(fb.key);
+      if (playable) result.push(fb);
     }
   }
 
