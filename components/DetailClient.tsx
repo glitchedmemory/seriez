@@ -533,10 +533,8 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
           </section>
         )}
 
-        {/* Similar */}
-        {detail.similar.length > 0 && (
-          <SimilarSection items={detail.similar} />
-        )}
+        {/* Recommended */}
+        <SimilarSection items={detail.similar} />
 
         {/* Reviews */}
         <section className="mt-6">

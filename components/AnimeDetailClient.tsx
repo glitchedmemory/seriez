@@ -709,9 +709,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         )}
 
         {/* Recommendations */}
-        {detail.recommendations.length > 0 && (
-          <AnimeRecSection items={detail.recommendations} />
-        )}
+        <AnimeRecSection items={detail.recommendations} />
 
         {/* Reviews */}
         <section className="mt-6">
