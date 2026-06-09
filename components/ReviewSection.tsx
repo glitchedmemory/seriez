@@ -480,8 +480,8 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
         {total >= 10000 ? `${(total / 10000).toFixed(1)}만` : total >= 1000 ? `${(total / 1000).toFixed(1)}k` : String(total)}
       </p>
 
-      {/* Bar chart — flexbox, tight packed */}
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: BAR_HEIGHT, marginTop: 16 }}>
+      {/* Bar chart — flexbox, tight packed, bars fill columns */}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: BAR_HEIGHT, marginTop: 16 }}>
         {buckets.map((star) => {
           const count = distribution[star] || 0;
           const barMaxH = BAR_HEIGHT - 14;
@@ -501,16 +501,14 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
               <div
                 style={{
                   width: "100%",
-                  maxWidth: 28,
                   height: barH,
                   backgroundColor: "#ff2f6e",
-                  borderTopLeftRadius: 3,
-                  borderTopRightRadius: 3,
+                  borderRadius: 2,
                   transition: "height 0.5s",
                 }}
               />
               <span style={{
-                fontSize: 10,
+                fontSize: 9,
                 fontWeight: 500,
                 color: "#6b7280",
                 lineHeight: "14px",
