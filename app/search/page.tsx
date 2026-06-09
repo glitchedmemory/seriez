@@ -126,7 +126,7 @@ export default function SearchPage() {
               <div>
                 <p className="text-xs text-[#6b7280] mb-3 font-medium">🔥 Trending Searches</p>
                 <div className="flex flex-wrap gap-2">
-                  {trendingSearches.map((item) => (
+                  {trendingSearches.slice(0, 15).map((item) => (
                     <button
                       key={item.id}
                       onClick={() => setQuery(item.title)}
