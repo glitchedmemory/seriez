@@ -129,7 +129,8 @@ function CommentTree({
                 </button>
               </div>
             )}
-            {hasChildren && (!isFlat || expandedChains.has(String(c.id))) && (
+            {/* Depth 0-2: always render children */}
+            {hasChildren && depth < MAX_VISUAL_DEPTH && (
               <CommentTree
                 comments={comments}
                 depth={depth + 1}
@@ -152,14 +153,63 @@ function CommentTree({
                 authUsername={authUsername}
               />
             )}
-            {/* Collapse toggle for deep chains */}
-            {isFlat && hasChildren && (
-              <button
-                onClick={() => onToggleCollapse(c.id)}
-                className="text-[10px] text-[#6366f1] hover:text-[#818cf8] transition-colors mt-1 ml-8"
-              >
-                {expandedChains.has(String(c.id)) ? "📁 Hide replies" : "📂 Show replies"}
-              </button>
+            {/* Depth 3: collapsed by default, toggle button */}
+            {hasChildren && depth === MAX_VISUAL_DEPTH && (
+              <>
+                {expandedChains.has(String(c.id)) && (
+                  <CommentTree
+                    comments={comments}
+                    depth={depth + 1}
+                    parentId={c.id}
+                    isAdmin={isAdmin}
+                    onReport={onReport}
+                    onDelete={onDelete}
+                    onReply={onReply}
+                    onToggleReply={onToggleReply}
+                    onReplyChange={onReplyChange}
+                    reportingComments={reportingComments}
+                    replyInputs={replyInputs}
+                    replyingTo={replyingTo}
+                    expandedChains={expandedChains}
+                    onToggleCollapse={onToggleCollapse}
+                    reviewId={reviewId}
+                    reviewTmdbId={reviewTmdbId}
+                    reviewAuthor={reviewAuthor}
+                    titleName={titleName}
+                    authUsername={authUsername}
+                  />
+                )}
+                <button
+                  onClick={() => onToggleCollapse(c.id)}
+                  className="text-[10px] text-[#6366f1] hover:text-[#818cf8] transition-colors mt-1 ml-8"
+                >
+                  {expandedChains.has(String(c.id)) ? "▾ Hide thread" : "▸ Show thread"}
+                </button>
+              </>
+            )}
+            {/* Depth 4+: always render (controlled by depth 3 toggle) */}
+            {hasChildren && depth > MAX_VISUAL_DEPTH && (
+              <CommentTree
+                comments={comments}
+                depth={depth + 1}
+                parentId={c.id}
+                isAdmin={isAdmin}
+                onReport={onReport}
+                onDelete={onDelete}
+                onReply={onReply}
+                onToggleReply={onToggleReply}
+                onReplyChange={onReplyChange}
+                reportingComments={reportingComments}
+                replyInputs={replyInputs}
+                replyingTo={replyingTo}
+                expandedChains={expandedChains}
+                onToggleCollapse={onToggleCollapse}
+                reviewId={reviewId}
+                reviewTmdbId={reviewTmdbId}
+                reviewAuthor={reviewAuthor}
+                titleName={titleName}
+                authUsername={authUsername}
+              />
             )}
           </div>
         );
