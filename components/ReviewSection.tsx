@@ -41,34 +41,36 @@ function CommentTree({
   titleName: string;
   authUsername?: string;
 }) {
-  // parentId=undefined means show roots (parent_id IS NULL)
-  // parentId=number means show children of that parent
   const nodes = parentId != null
     ? comments.filter((c: any) => c.parent_id === parentId)
     : comments.filter((c: any) => c.parent_id == null);
 
   if (nodes.length === 0) return null;
 
+  const MAX_VISUAL_DEPTH = 3;
+  const isFlat = depth >= MAX_VISUAL_DEPTH;
+  const indent = Math.min(depth, MAX_VISUAL_DEPTH) * 12;
+
   return (
     <div className={depth === 0 ? "space-y-1 mb-3" : ""}>
       {nodes.map((c: any) => {
+        const hasChildren = comments.some((cc: any) => cc.parent_id === c.id);
         return (
           <div key={c.id}>
             <div
-              className="flex gap-2"
-              style={{ marginLeft: depth * 16 }}
+              className={`flex gap-2 ${isFlat ? "border-l-2 border-[#2d2d4a] pl-3 py-1" : ""}`}
+              style={{ marginLeft: isFlat ? 0 : indent }}
             >
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5">
                 {c.username[0]?.toUpperCase()}
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1">
+                  {isFlat && <span className="text-[10px] text-[#6366f1] mr-1">↳</span>}
                   <span className="text-xs font-medium text-white mr-2">{c.username}</span>
-                  {/* Hidden badge for admin */}
                   {isAdmin && c.is_hidden && (
                     <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded">🚨 hidden</span>
                   )}
-                  {/* Report button on comment — always visible */}
                   {authUsername !== c.username && (
                     <button
                       onClick={() => authUsername ? onReport(c.id) : alert("Sign in to report")}
@@ -79,7 +81,6 @@ function CommentTree({
                       🚩
                     </button>
                   )}
-                  {/* Admin delete comment */}
                   {isAdmin && c.is_hidden && (
                     <button
                       onClick={() => onDelete(c.id)}
@@ -90,7 +91,6 @@ function CommentTree({
                   )}
                 </div>
                 <span className="text-xs text-[#d1d5db] whitespace-pre-wrap">{c.content}</span>
-                {/* Reply button — always visible */}
                 <button
                   onClick={() => authUsername ? onToggleReply(c.id) : alert("Sign in to reply")}
                   className="text-[10px] text-[#6b7280] hover:text-[#a855f7] transition-colors mt-1"
@@ -101,7 +101,7 @@ function CommentTree({
             </div>
             {/* Reply input */}
             {replyingTo[String(c.id)] != null && (
-              <div className="flex gap-2 mt-1" style={{ marginLeft: depth * 16 + 21 }}>
+              <div className="flex gap-2 mt-1" style={{ marginLeft: indent + 21 }}>
                 <input
                   type="text"
                   placeholder="Write a reply..."
@@ -125,7 +125,7 @@ function CommentTree({
                 </button>
               </div>
             )}
-            {comments.some((cc: any) => cc.parent_id === c.id) && (
+            {hasChildren && (
               <CommentTree
                 comments={comments}
                 depth={depth + 1}
