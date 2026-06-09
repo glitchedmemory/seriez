@@ -1,5 +1,6 @@
 import SeasonClient from "@/components/SeasonClient";
 import { fetchKitsuThumbnails } from "@/lib/anilist";
+import { validateAndReplaceTrailers } from "@/lib/yt-validator";
 import { notFound } from "next/navigation";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
@@ -106,42 +107,19 @@ export default async function SeasonPage({ params }: Props) {
       });
     }
 
-    // Combine and deduplicate, prefer name matches (max 3)
-    const seen = new Set<string>();
-    const trailers: any[] = [];
-    for (const v of [...seasonMatched, ...dateMatched]) {
-      if (!seen.has(v.key)) {
-        seen.add(v.key);
-        trailers.push(v);
+    // Collect matching trailers, then validate and replace broken ones
+    const seasonTitles = [...seasonMatched, ...dateMatched];
+    const deduped: any[] = [];
+    const seenTrailer = new Set<string>();
+    for (const v of seasonTitles) {
+      if (!seenTrailer.has(v.key)) {
+        seenTrailer.add(v.key);
+        deduped.push(v);
       }
     }
-
-    // Fallback: search YouTube directly for season-specific trailer
-    if (trailers.length === 0) {
-      const query = encodeURIComponent(
-        `${seriesData.name} season ${seasonNum} official trailer`
-      );
-      try {
-        const ddgRes = await fetch(
-          `https://html.duckduckgo.com/html/?q=${query}+site:youtube.com`,
-          { headers: { "User-Agent": "Mozilla/5.0" }, next: { revalidate: 86400 } }
-        );
-        const html = await ddgRes.text();
-        // Extract YouTube video IDs from search results
-        const ytMatches = html.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/g) || [];
-        const ytIds = [...new Set(ytMatches.map((u: string) => u.split("v=")[1]?.slice(0, 11)))];
-        for (const ytId of ytIds.slice(0, 3)) {
-          trailers.push({
-            key: ytId,
-            name: `Season ${seasonNum} Trailer`,
-            site: "YouTube",
-            type: "Trailer",
-          });
-        }
-      } catch {
-        // silent — no trailers remain empty
-      }
-    }
+    const rawVideos = deduped.slice(0, 3).map((v: any) => ({ key: v.key, name: v.name || "Trailer" }));
+    const searchQuery = `${seriesData.name} season ${seasonNum} official trailer`;
+    const validatedTrailers = await validateAndReplaceTrailers(rawVideos, searchQuery);
 
     // Format episodes
     const episodes = (seasonData.episodes || []).map((ep: any) => ({
@@ -264,7 +242,7 @@ export default async function SeasonPage({ params }: Props) {
       networks: (seriesData.networks || []).map((n: any) => n.name),
       lastAirDate: seriesData.last_air_date || "",
       cast,
-      trailers: trailers.slice(0, 3),
+      trailers: validatedTrailers.map((v) => ({ key: v.key, name: v.name, site: "YouTube", type: "Trailer" })),
       similar: similarItems,
       // Season info
       seasonNumber: seasonNum,

@@ -1,6 +1,8 @@
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const API_KEY = process.env.TMDB_API_KEY!;
 
+import { validateAndReplaceTrailers } from "./yt-validator";
+
 const poster = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w342${path}` : null;
 
@@ -447,7 +449,7 @@ export async function getMovieDetail(id: number): Promise<TmdbDetail> {
     // For now, use the franchise info from the collection API
   }
 
-  return {
+  const result = {
     id: detail.id,
     title: detail.title || "Unknown",
     tagline: detail.tagline || "",
@@ -460,16 +462,25 @@ export async function getMovieDetail(id: number): Promise<TmdbDetail> {
     runtime: detail.runtime || 0,
     genres: (detail.genres || []).map((g: { name: string }) => g.name),
     status: detail.status || "Unknown",
-    type: "movie",
+    type: "movie" as const,
     budget: detail.budget || 0,
     revenue: detail.revenue || 0,
     director: (credits.crew || []).find((c: { job: string }) => c.job === "Director")?.name || "",
     cast: formatCredits(credits),
     similar: mergeSimilar(similarFiltered, discoverResults, franchiseResults, collectionId, collectionMap),
-    videos: (videos.results || [])
-      .filter((v: { site: string; type: string }) => v.site === "YouTube" && ["Trailer", "Teaser"].includes(v.type))
-      .slice(0, 3),
+    videos: [] as TmdbDetail["videos"],
   };
+
+  // Validate YouTube trailers and replace broken ones
+  const movieTitle = `${detail.title || ""} ${detail.release_date ? parseInt(detail.release_date.slice(0, 4)) : ""}`.trim();
+  const rawVideos = (videos.results || [])
+    .filter((v: { site: string; type: string }) => v.site === "YouTube" && ["Trailer", "Teaser"].includes(v.type))
+    .map((v: { key: string; name: string }) => ({ key: v.key, name: v.name }))
+    .slice(0, 3);
+  result.videos = (await validateAndReplaceTrailers(rawVideos, `${movieTitle} official trailer`))
+    .map((v) => ({ key: v.key, name: v.name, site: "YouTube", type: "Trailer" }));
+
+  return result;
 }
 
 export async function getTVDetail(id: number): Promise<TmdbDetail> {
@@ -487,7 +498,7 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
   const discoverResults = await discoverSimilar(genreIds, "tv", detail.id, keywords);
   const similarFiltered = formatSimilar(similar, genreIds, detail.id, "tv", keywords);
 
-  return {
+  const resultTV = {
     id: detail.id,
     title: detail.name || "Unknown",
     tagline: detail.tagline || "",
@@ -500,7 +511,7 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
     runtime: detail.episode_run_time?.[0] || 0,
     genres: (detail.genres || []).map((g: { name: string }) => g.name),
     status: detail.status || "Unknown",
-    type: "tv",
+    type: "tv" as const,
     seasons: detail.number_of_seasons || 0,
     episodes: detail.number_of_episodes || 0,
     createdBy: (detail.created_by || []).map((c: { name: string }) => c.name),
@@ -508,10 +519,19 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
     lastAirDate: detail.last_air_date || "",
     cast: formatCredits(credits),
     similar: mergeSimilar(similarFiltered, discoverResults),
-    videos: (videos.results || [])
-      .filter((v: { site: string; type: string }) => v.site === "YouTube" && ["Trailer", "Teaser"].includes(v.type))
-      .slice(0, 3),
+    videos: [] as TmdbDetail["videos"],
   };
+
+  // Validate YouTube trailers and replace broken ones
+  const tvTitle = `${detail.name || ""} ${detail.first_air_date ? parseInt(detail.first_air_date.slice(0, 4)) : ""}`.trim();
+  const rawVideos = (videos.results || [])
+    .filter((v: { site: string; type: string }) => v.site === "YouTube" && ["Trailer", "Teaser"].includes(v.type))
+    .map((v: { key: string; name: string }) => ({ key: v.key, name: v.name }))
+    .slice(0, 3);
+  resultTV.videos = (await validateAndReplaceTrailers(rawVideos, `${tvTitle} official trailer`))
+    .map((v) => ({ key: v.key, name: v.name, site: "YouTube", type: "Trailer" }));
+
+  return resultTV;
 }
 
 // ── TV Season types ──
