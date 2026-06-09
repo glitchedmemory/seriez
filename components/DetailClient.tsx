@@ -395,28 +395,6 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               </p>
             )}
 
-            {/* Season selector — TV only */}
-            {detail.type === "tv" && detail.seasons && detail.seasons > 0 && (
-              <div className="mt-3">
-                <p className="text-[10px] text-[#6b7280] mb-1.5 uppercase tracking-wide">
-                  Seasons · Rate each separately
-                </p>
-                <div className="flex flex-wrap gap-1.5 justify-center md:justify-start">
-                  {Array.from({ length: detail.seasons }, (_, i) => i + 1).map(
-                    (s) => (
-                      <a
-                        key={s}
-                        href={`/title/${detail.id}/season/${s}`}
-                        className="px-3 py-1 text-xs rounded-full bg-[#1a1a2e] hover:bg-[#6366f1] text-[#9ca3af] hover:text-white border border-[#2d2d4a] hover:border-[#6366f1] transition-all"
-                      >
-                        S{s}
-                      </a>
-                    )
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Extra info */}
             <div className="mt-3 text-xs text-[#6b7280] space-y-0.5">
               {detail.type === "movie" && detail.director && (

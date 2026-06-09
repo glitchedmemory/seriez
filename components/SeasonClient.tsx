@@ -518,31 +518,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
               </p>
             )}
 
-            {/* Season selector */}
-            {data.totalSeasons > 0 && (
-              <div className="mt-3">
-                <p className="text-[10px] text-[#6b7280] mb-1.5 uppercase tracking-wide">
-                  Seasons
-                </p>
-                <div className="flex flex-wrap gap-1.5 justify-center md:justify-start">
-                  {Array.from({ length: data.totalSeasons }, (_, i) => i + 1).map((s) => (
-                    <a
-                      key={s}
-                      href={`/title/${data.id}/season/${s}`}
-                      className={`px-3 py-1 text-xs rounded-full transition-all ${
-                        s === data.seasonNumber
-                          ? "bg-[#6366f1] text-white"
-                          : "bg-[#1a1a2e] hover:bg-[#25253a] text-[#9ca3af] border border-[#2d2d4a]"
-                      }`}
-                    >
-                      S{s}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Extra info */}
+            {/* Studios */}
             <div className="mt-3 text-xs text-[#6b7280] space-y-0.5">
               {data.createdBy && (
                 <p>
