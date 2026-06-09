@@ -1,5 +1,7 @@
 const ANILIST_API = "https://graphql.anilist.co";
 
+import { validateAndReplaceTrailers } from "./yt-validator";
+
 // ─── Types ───
 
 export type AnimeDetail = {
@@ -215,15 +217,16 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
       .slice(0, 8)
       .map((t: any) => ({ name: t.name, rank: t.rank }));
 
-    return {
+    // Build result first (without trailer — validated below)
+    const result: AnimeDetail = {
       id: m.id,
       idMal: m.idMal || 0,
       title: m.title?.english || m.title?.romaji || "Unknown",
       titleRomaji: m.title?.romaji || "",
       titleNative: m.title?.native || "",
       overview: (m.description || "").replace(/<br\s*\/?>/gi, " ").replace(/ {2,}/g, " ").trim(),
-      poster: m.coverImage?.extraLarge || null,
-      backdrop: m.bannerImage || null,
+      poster: m.coverImage?.extraLarge || m.coverImage?.large || "",
+      backdrop: m.bannerImage || "",
       rating: Math.round(((m.averageScore || 0) / 10) * 10) / 10,
       popularity: m.popularity || 0,
       year: m.seasonYear || 0,
@@ -238,9 +241,24 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
       staff,
       characters,
       recommendations,
-      trailer,
+      trailer: null as { id: string; site: string } | null,
       relations,
     };
+
+    // Validate trailer and replace if broken
+    if (trailer) {
+      const animeTitle = m.title?.english || m.title?.romaji || "";
+      const validated = await validateAndReplaceTrailers(
+        [{ key: trailer.id, name: "Trailer" }],
+        `${animeTitle} official trailer`,
+        1
+      );
+      if (validated.length > 0) {
+        result.trailer = { id: validated[0].key, site: "YouTube" };
+      }
+    }
+
+    return result;
   } catch {
     return null;
   }
