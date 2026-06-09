@@ -84,10 +84,20 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // Fetch premium status for visible reviewers
+  const reviewerNames = [...new Set(visible.map((r: any) => r.username))];
+  let premiumSet = new Set<string>();
+  if (reviewerNames.length > 0) {
+    const { data: premiumUsers } = await supabase
+      .from("users").select("username").eq("is_premium", true).in("username", reviewerNames);
+    if (premiumUsers) premiumSet = new Set(premiumUsers.map((u: any) => u.username));
+  }
+
   return NextResponse.json(visible.map((r) => ({
     id: r.id, username: r.username || "Anonymous", content: r.content,
     rating: FROM_DB(r.rating || 0), likes: r.likes_count || 0, liked: likedSet.has(r.id),
-    isHidden: r.is_hidden || false, commentCount: commentCounts[r.id] || 0, createdAt: r.created_at,
+    isHidden: r.is_hidden || false, commentCount: commentCounts[r.id] || 0,
+    isPremium: premiumSet.has(r.username), createdAt: r.created_at,
   })));
 }
 

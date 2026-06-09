@@ -50,10 +50,20 @@ export async function GET(req: NextRequest) {
       if (likes) likedSet = new Set(likes.map((l: any) => l.comment_id));
     }
 
+    // Fetch premium status for commenters
+    const commenterNames = [...new Set((data || []).map((c: any) => c.username))];
+    let premiumSet = new Set<string>();
+    if (commenterNames.length > 0) {
+      const { data: premiumUsers } = await supabaseAdmin
+        .from("users").select("username").eq("is_premium", true).in("username", commenterNames);
+      if (premiumUsers) premiumSet = new Set(premiumUsers.map((u: any) => u.username));
+    }
+
     const enriched = visible.map((c: any) => ({
       ...c,
       likes: c.likes_count || 0,
       liked: likedSet.has(c.id),
+      isPremium: premiumSet.has(c.username),
     }));
 
     return NextResponse.json(enriched);
