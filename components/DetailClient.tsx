@@ -457,7 +457,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               🎬 Trailers
             </h2>
             <div className="space-y-3">
-              {detail.videos.map((v) => (
+              {detail.videos.slice(0, 3).map((v) => (
                 <div key={v.key} className="aspect-video rounded-xl overflow-hidden bg-[#1a1a2e]">
                   <iframe
                     src={`https://www.youtube.com/embed/${v.key}`}
