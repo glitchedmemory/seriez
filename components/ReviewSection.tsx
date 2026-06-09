@@ -108,7 +108,10 @@ function CommentTree({
                         isExpanded ? "text-[#a855f7]" : "text-[#6b7280] hover:text-[#a855f7]"
                       }`}
                     >
-                      {isExpanded ? "▾" : "▸"} {replyCount} {replyCount === 1 ? "reply" : "replies"}
+                      {isExpanded ? "▾ " : "▸ "}
+                      {depth === 0
+                        ? `${replyCount} ${replyCount === 1 ? "reply" : "replies"}`
+                        : (isExpanded ? "Hide replies" : "Show replies")}
                     </button>
                   )}
                 </div>
