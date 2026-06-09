@@ -69,7 +69,7 @@ function CommentTree({
         return (
           <div key={c.id}>
             <div className="flex gap-2" style={{ marginLeft: indent }}>
-              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5">
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5 ${c.isPremium ? "bg-gradient-to-br from-[#f59e0b] to-[#d97706] ring-2 ring-[#f59e0b]/50 shadow-[0_0_8px_rgba(245,158,11,0.4)]" : "bg-gradient-to-br from-[#6366f1] to-[#a855f7]"}`}>
                 {c.username[0]?.toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
@@ -209,6 +209,7 @@ interface Review {
   likes: number;
   liked: boolean;
   isHidden?: boolean;
+  isPremium?: boolean;
   commentCount?: number;
   createdAt: string;
 }
@@ -672,7 +673,7 @@ export function ReviewSection({
             <div key={review.id} className="bg-[#1a1a2e] rounded-xl p-4">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-[10px] font-bold text-white">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 ${review.isPremium ? "bg-gradient-to-br from-[#f59e0b] to-[#d97706] ring-2 ring-[#f59e0b]/50 shadow-[0_0_8px_rgba(245,158,11,0.4)]" : "bg-gradient-to-br from-[#6366f1] to-[#a855f7]"}`}>
                     {review.username[0].toUpperCase()}
                   </div>
                   <span className="text-sm font-medium text-white">

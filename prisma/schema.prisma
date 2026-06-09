@@ -20,6 +20,7 @@ model User {
   username     String   @unique
   email        String   @unique
   role         String   @default("user") // user | admin
+  isPremium    Boolean  @default(false) @map("is_premium")
   avatarUrl    String?
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
