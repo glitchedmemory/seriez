@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-/** Recursive comment tree — builds hierarchy from flat list via parent_id */
+/** Recursive comment tree — each comment has its own reply count + expand */
 function CommentTree({
   comments,
   depth,
@@ -17,8 +17,8 @@ function CommentTree({
   reportingComments,
   replyInputs,
   replyingTo,
-  expandedChains,
-  onToggleCollapse,
+  expandedThreads,
+  onToggleThread,
   reviewId,
   reviewTmdbId,
   reviewAuthor,
@@ -37,8 +37,8 @@ function CommentTree({
   reportingComments: Set<string>;
   replyInputs: Record<string, string>;
   replyingTo: Record<string, string | null>;
-  expandedChains: Set<string>;
-  onToggleCollapse: (commentId: number) => void;
+  expandedThreads: Set<string>;
+  onToggleThread: (commentId: number) => void;
   reviewId: string;
   reviewTmdbId: number;
   reviewAuthor: string;
@@ -51,26 +51,25 @@ function CommentTree({
 
   if (nodes.length === 0) return null;
 
-  const MAX_VISUAL_DEPTH = 3;
-  const isFlat = depth >= MAX_VISUAL_DEPTH;
-  const indent = Math.min(depth, MAX_VISUAL_DEPTH) * 12;
+  const indent = depth * 12;
 
   return (
     <div className={depth === 0 ? "space-y-1 mb-3" : ""}>
       {nodes.map((c: any) => {
-        const hasChildren = comments.some((cc: any) => cc.parent_id === c.id);
+        const replyCount = comments.filter((cc: any) => cc.parent_id === c.id).length;
+        const hasChildren = replyCount > 0;
+        const isExpanded = expandedThreads.has(String(c.id));
         return (
           <div key={c.id}>
             <div
-              className={`flex gap-2 ${isFlat ? "border-l-2 border-[#2d2d4a] pl-3 py-1" : ""}`}
-              style={{ marginLeft: isFlat ? 0 : indent }}
+              className="flex gap-2"
+              style={{ marginLeft: indent }}
             >
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5">
                 {c.username[0]?.toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1">
-                  {isFlat && <span className="text-[10px] text-[#6366f1] mr-1">↳</span>}
                   <span className="text-xs font-medium text-white mr-2">{c.username}</span>
                   {isAdmin && c.is_hidden && (
                     <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded">🚨 hidden</span>
@@ -95,12 +94,24 @@ function CommentTree({
                   )}
                 </div>
                 <span className="text-xs text-[#d1d5db] whitespace-pre-wrap">{c.content}</span>
-                <button
-                  onClick={() => authUsername ? onToggleReply(c.id) : alert("Sign in to reply")}
-                  className="text-[10px] text-[#6b7280] hover:text-[#a855f7] transition-colors mt-1"
-                >
-                  💬 Reply
-                </button>
+                <div className="flex items-center gap-2 mt-1">
+                  <button
+                    onClick={() => authUsername ? onToggleReply(c.id) : alert("Sign in to reply")}
+                    className="text-[10px] text-[#6b7280] hover:text-[#a855f7] transition-colors"
+                  >
+                    💬 Reply
+                  </button>
+                  {hasChildren && (
+                    <button
+                      onClick={() => onToggleThread(c.id)}
+                      className={`text-[10px] transition-colors ${
+                        isExpanded ? "text-[#a855f7]" : "text-[#6b7280] hover:text-[#a855f7]"
+                      }`}
+                    >
+                      {isExpanded ? "▾" : "▸"} {replyCount} {replyCount === 1 ? "reply" : "replies"}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
             {/* Reply input */}
@@ -129,8 +140,8 @@ function CommentTree({
                 </button>
               </div>
             )}
-            {/* Depth 0-2: always render children */}
-            {hasChildren && depth < MAX_VISUAL_DEPTH && (
+            {/* Children — visible only when expanded */}
+            {hasChildren && isExpanded && (
               <CommentTree
                 comments={comments}
                 depth={depth + 1}
@@ -144,66 +155,8 @@ function CommentTree({
                 reportingComments={reportingComments}
                 replyInputs={replyInputs}
                 replyingTo={replyingTo}
-                expandedChains={expandedChains}
-                onToggleCollapse={onToggleCollapse}
-                reviewId={reviewId}
-                reviewTmdbId={reviewTmdbId}
-                reviewAuthor={reviewAuthor}
-                titleName={titleName}
-                authUsername={authUsername}
-              />
-            )}
-            {/* Depth 3: collapsed by default, toggle button */}
-            {hasChildren && depth === MAX_VISUAL_DEPTH && (
-              <>
-                {expandedChains.has(String(c.id)) && (
-                  <CommentTree
-                    comments={comments}
-                    depth={depth + 1}
-                    parentId={c.id}
-                    isAdmin={isAdmin}
-                    onReport={onReport}
-                    onDelete={onDelete}
-                    onReply={onReply}
-                    onToggleReply={onToggleReply}
-                    onReplyChange={onReplyChange}
-                    reportingComments={reportingComments}
-                    replyInputs={replyInputs}
-                    replyingTo={replyingTo}
-                    expandedChains={expandedChains}
-                    onToggleCollapse={onToggleCollapse}
-                    reviewId={reviewId}
-                    reviewTmdbId={reviewTmdbId}
-                    reviewAuthor={reviewAuthor}
-                    titleName={titleName}
-                    authUsername={authUsername}
-                  />
-                )}
-                <button
-                  onClick={() => onToggleCollapse(c.id)}
-                  className="text-[10px] text-[#6366f1] hover:text-[#818cf8] transition-colors mt-1 ml-8"
-                >
-                  {expandedChains.has(String(c.id)) ? "▾ Hide thread" : "▸ Show thread"}
-                </button>
-              </>
-            )}
-            {/* Depth 4+: always render (controlled by depth 3 toggle) */}
-            {hasChildren && depth > MAX_VISUAL_DEPTH && (
-              <CommentTree
-                comments={comments}
-                depth={depth + 1}
-                parentId={c.id}
-                isAdmin={isAdmin}
-                onReport={onReport}
-                onDelete={onDelete}
-                onReply={onReply}
-                onToggleReply={onToggleReply}
-                onReplyChange={onReplyChange}
-                reportingComments={reportingComments}
-                replyInputs={replyInputs}
-                replyingTo={replyingTo}
-                expandedChains={expandedChains}
-                onToggleCollapse={onToggleCollapse}
+                expandedThreads={expandedThreads}
+                onToggleThread={onToggleThread}
                 reviewId={reviewId}
                 reviewTmdbId={reviewTmdbId}
                 reviewAuthor={reviewAuthor}
@@ -310,7 +263,7 @@ export function ReviewSection({
   const [replyInputs, setReplyInputs] = useState<Record<string, string>>({});
   const [replyingTo, setReplyingTo] = useState<Record<string, string | null>>({});
   // Expand deep chains (empty = all collapsed by default)
-  const [expandedChains, setExpandedChains] = useState<Set<string>>(new Set());
+  const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
 
   const toggleComments = async (reviewId: string, reviewAuthor: string) => {
     const newExpanded = new Set(expandedComments);
@@ -477,8 +430,8 @@ export function ReviewSection({
   };
 
   // Expand deep chains (empty = all collapsed by default)
-  const toggleCollapse = (commentId: number) => {
-    setExpandedChains((prev) => {
+  const toggleThread = (commentId: number) => {
+    setExpandedThreads((prev) => {
       const next = new Set(prev);
       if (next.has(String(commentId))) next.delete(String(commentId));
       else next.add(String(commentId));
@@ -764,8 +717,8 @@ export function ReviewSection({
                       reportingComments={reportingComments}
                       replyInputs={replyInputs}
                       replyingTo={replyingTo}
-                      expandedChains={expandedChains}
-                      onToggleCollapse={toggleCollapse}
+                      expandedThreads={expandedThreads}
+                      onToggleThread={toggleThread}
                       reviewId={review.id}
                       reviewTmdbId={tmdbId}
                       reviewAuthor={review.username}
