@@ -42,7 +42,21 @@ export async function GET(req: NextRequest) {
     // Filter out hidden comments for non-admins
     const visible = isAdmin ? (data || []) : (data || []).filter((c: any) => !c.is_hidden);
 
-    return NextResponse.json(visible);
+    // Check which comments the current user has liked
+    let likedSet = new Set<number>();
+    if (username?.trim()) {
+      const { data: likes } = await supabaseAdmin
+        .from("comment_likes").select("comment_id").eq("username", username.trim());
+      if (likes) likedSet = new Set(likes.map((l: any) => l.comment_id));
+    }
+
+    const enriched = visible.map((c: any) => ({
+      ...c,
+      likes: c.likes_count || 0,
+      liked: likedSet.has(c.id),
+    }));
+
+    return NextResponse.json(enriched);
   } catch (err: any) {
     // Table might not exist yet
     if (err?.message?.includes("does not exist")) {
@@ -116,5 +130,63 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(comment);
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to create comment" }, { status: 500 });
+  }
+}
+
+// ─── PATCH: like / unlike a comment ───
+export async function PATCH(req: NextRequest) {
+  try {
+    const username = await resolveUsername(req);
+    if (!username) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { commentId, action } = body; // action: "like" | "unlike"
+
+    if (!commentId || !action) {
+      return NextResponse.json({ error: "commentId and action required" }, { status: 400 });
+    }
+
+    const user = username.trim();
+
+    if (action === "like") {
+      // Check duplicate
+      const { data: existing } = await supabaseAdmin
+        .from("comment_likes").select("comment_id")
+        .eq("comment_id", commentId).eq("username", user);
+      if (existing && existing.length > 0) {
+        return NextResponse.json({ error: "Already liked" }, { status: 409 });
+      }
+
+      const { error: insertErr } = await supabaseAdmin
+        .from("comment_likes").insert({ comment_id: commentId, username: user });
+      if (insertErr) throw insertErr;
+
+      const { data: cur } = await supabaseAdmin
+        .from("review_comments").select("likes_count").eq("id", commentId);
+      const newCount = (cur?.[0]?.likes_count || 0) + 1;
+      await supabaseAdmin.from("review_comments").update({ likes_count: newCount }).eq("id", commentId);
+
+      return NextResponse.json({ likes: newCount, liked: true });
+    }
+
+    if (action === "unlike") {
+      const { error: deleteErr } = await supabaseAdmin
+        .from("comment_likes").delete()
+        .eq("comment_id", commentId).eq("username", user);
+      if (deleteErr) throw deleteErr;
+
+      const { data: cur } = await supabaseAdmin
+        .from("review_comments").select("likes_count").eq("id", commentId);
+      const newCount = Math.max(0, (cur?.[0]?.likes_count || 0) - 1);
+      await supabaseAdmin.from("review_comments").update({ likes_count: newCount }).eq("id", commentId);
+
+      return NextResponse.json({ likes: newCount, liked: false });
+    }
+
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Failed" }, { status: 500 });
   }
 }

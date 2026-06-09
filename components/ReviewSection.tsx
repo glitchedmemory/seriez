@@ -22,6 +22,7 @@ function CommentTree({
   replyingTo,
   expandedThreads,
   onToggleThread,
+  onLike,
   reviewId,
   reviewTmdbId,
   reviewAuthor,
@@ -42,6 +43,7 @@ function CommentTree({
   replyingTo: Record<string, string | null>;
   expandedThreads: Set<string>;
   onToggleThread: (commentId: number) => void;
+  onLike: (commentId: number) => void;
   reviewId: string;
   reviewTmdbId: number;
   reviewAuthor: string;
@@ -89,6 +91,17 @@ function CommentTree({
                 </div>
                 <span className="text-xs text-[#d1d5db] whitespace-pre-wrap">{c.content}</span>
                 <div className="flex items-center gap-2 mt-1">
+                  <button onClick={() => onLike(c.id)}
+                    className={`flex items-center gap-1 text-[10px] transition-colors ${
+                      c.liked ? "text-[#6366f1]" : "text-[#6b7280] hover:text-[#6366f1]"
+                    }`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                      fill={c.liked ? "currentColor" : "none"} stroke="currentColor"
+                      strokeWidth={c.liked ? "0" : "1.5"} className="w-3 h-3">
+                      <path d="M1 8.25a1.25 1.25 0 112.5 0v7.5a1.25 1.25 0 11-2.5 0v-7.5zM11 3V1.7c0-.268-.14-.526-.292-.712A2.02 2.02 0 009.22.51L6.843 2.889A5.939 5.939 0 004.5 6.988V17.5h8.365a2.254 2.254 0 002.202-1.722l1.385-5.5A2.25 2.25 0 0014.25 7.5h-3.795l.612-3.16A8.13 8.13 0 0011 3z" />
+                    </svg>
+                    <span>{c.likes || 0}</span>
+                  </button>
                   <button onClick={() => authUsername ? onToggleReply(c.id) : alert("Sign in to reply")}
                     className="text-[10px] text-[#6b7280] hover:text-[#a855f7] transition-colors">💬 Reply</button>
                   {hasChildren && showInline && (
@@ -119,7 +132,7 @@ function CommentTree({
                 isAdmin={isAdmin} onReport={onReport} onDelete={onDelete}
                 onReply={onReply} onToggleReply={onToggleReply} onReplyChange={onReplyChange}
                 reportingComments={reportingComments} replyInputs={replyInputs} replyingTo={replyingTo}
-                expandedThreads={expandedThreads} onToggleThread={onToggleThread}
+                expandedThreads={expandedThreads} onToggleThread={onToggleThread} onLike={onLike}
                 reviewId={reviewId} reviewTmdbId={reviewTmdbId} reviewAuthor={reviewAuthor}
                 titleName={titleName} authUsername={authUsername} />
             )}
@@ -128,14 +141,14 @@ function CommentTree({
               <div style={{ marginLeft: indent + 21 }}>
                 <button onClick={() => onToggleThread(c.id)}
                   className="text-[10px] text-[#6366f1] hover:text-[#818cf8] transition-colors mt-1">
-                  {isExpanded ? "▾ Hide thread" : "▸ Continue this thread →"}
+                  {isExpanded ? "▾ Hide thread" : `▸ Continue this thread → (${replyCount} ${replyCount === 1 ? "reply" : "replies"})`}
                 </button>
                 {isExpanded && (
                   <CommentTree comments={comments} depth={depth + 1} parentId={c.id}
                     isAdmin={isAdmin} onReport={onReport} onDelete={onDelete}
                     onReply={onReply} onToggleReply={onToggleReply} onReplyChange={onReplyChange}
                     reportingComments={reportingComments} replyInputs={replyInputs} replyingTo={replyingTo}
-                    expandedThreads={expandedThreads} onToggleThread={onToggleThread}
+                    expandedThreads={expandedThreads} onToggleThread={onToggleThread} onLike={onLike}
                     reviewId={reviewId} reviewTmdbId={reviewTmdbId} reviewAuthor={reviewAuthor}
                     titleName={titleName} authUsername={authUsername} />
                 )}
@@ -388,6 +401,50 @@ export function ReviewSection({
 
   const handleDeleteCommentWrapper = (reviewId: string) => (commentId: number) => {
     handleDeleteComment(commentId, reviewId);
+  };
+
+  // ── Comment like ──
+  const handleCommentLike = (reviewId: string) => async (commentId: number) => {
+    if (!authUser) return;
+    const commentList = comments[reviewId] || [];
+    const comment = commentList.find((c: any) => c.id === commentId);
+    if (!comment) return;
+
+    const action = comment.liked ? "unlike" : "like";
+
+    // Optimistic update
+    setComments((prev) => ({
+      ...prev,
+      [reviewId]: (prev[reviewId] || []).map((c: any) =>
+        c.id === commentId
+          ? { ...c, liked: !comment.liked, likes: c.likes + (comment.liked ? -1 : 1) }
+          : c
+      ),
+    }));
+
+    try {
+      const res = await fetch("/api/review-comments", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ commentId, action }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setComments((prev) => ({
+          ...prev,
+          [reviewId]: (prev[reviewId] || []).map((c: any) =>
+            c.id === commentId ? { ...c, likes: data.likes, liked: data.liked } : c
+          ),
+        }));
+      } else {
+        // Revert
+        const refresh = await fetch(`/api/review-comments?review_id=${reviewId}`);
+        if (refresh.ok) setComments((prev) => ({ ...prev, [reviewId]: await refresh.json() }));
+      }
+    } catch {
+      const refresh = await fetch(`/api/review-comments?review_id=${reviewId}`);
+      if (refresh.ok) setComments((prev) => ({ ...prev, [reviewId]: await refresh.json() }));
+    }
   };
 
   // Reply helpers
@@ -696,6 +753,7 @@ export function ReviewSection({
                       replyingTo={replyingTo}
                       expandedThreads={expandedThreads}
                       onToggleThread={toggleThread}
+                      onLike={handleCommentLike(review.id)}
                       reviewId={review.id}
                       reviewTmdbId={tmdbId}
                       reviewAuthor={review.username}
