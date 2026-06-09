@@ -89,16 +89,21 @@ export async function GET(req: NextRequest) {
       }));
   }
 
-  // ─── Dedup: remove TMDB results that match AniList titles ───
+  // ─── Dedup: remove TMDB TV results that match AniList titles ───
   const animeAliases = animeResults.flatMap((a: any) => a._aliases);
   const filteredTmdb = tmdbResults.filter((tmdb: any) => {
+    // Only filter TV shows — movies are almost never anime conflicts
+    if (tmdb.type !== "tv") return true;
     const tmdbNorm = normalize(tmdb.title);
-    // Check if any AniList alias matches this TMDB title
-    const isAnime = animeAliases.some((alias: string) => {
+    // Check if any AniList alias closely matches this TMDB TV title
+    const isAnimeTV = animeAliases.some((alias: string) => {
       const aliasNorm = normalize(alias);
-      return tmdbNorm.includes(aliasNorm) || aliasNorm.includes(tmdbNorm);
+      // Stricter: both must be substantial matches (not just substring)
+      return tmdbNorm === aliasNorm ||
+        (tmdbNorm.length > 5 && aliasNorm.length > 5 &&
+         (tmdbNorm.includes(aliasNorm) || aliasNorm.includes(tmdbNorm)));
     });
-    return !isAnime; // Keep only if NOT matching an anime
+    return !isAnimeTV;
   }).slice(0, 6);
 
   // Clean up _aliases from results
