@@ -6,11 +6,12 @@ import type { DayEntry } from "./DayPopup";
 
 interface PosterCalendarProps {
   year: number;
-  month: number; // 1-12
+  month: number;
   days: Record<string, DayEntry[]>;
   onDayClick: (date: string, entries: DayEntry[]) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
+  fetching: boolean;
 }
 
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -26,6 +27,7 @@ export default function PosterCalendar({
   onDayClick,
   onPrevMonth,
   onNextMonth,
+  fetching,
 }: PosterCalendarProps) {
   const calendarGrid = useMemo(() => {
     const firstDay = new Date(year, month - 1, 1);
@@ -46,7 +48,7 @@ export default function PosterCalendar({
   const todayDate = today.getDate();
 
   return (
-    <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl p-3">
+    <div className={`bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl p-3 transition-opacity ${fetching ? "opacity-50" : ""}`}>
       {/* Month navigation */}
       <div className="flex items-center justify-between mb-3 px-1">
         <button
