@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 function CommentTree({
   comments,
   depth,
+  parentId,
   isAdmin,
   onReport,
   onDelete,
@@ -24,6 +25,7 @@ function CommentTree({
 }: {
   comments: any[];
   depth: number;
+  parentId?: number;
   isAdmin: boolean;
   onReport: (commentId: number) => void;
   onDelete: (commentId: number) => void;
@@ -39,15 +41,17 @@ function CommentTree({
   titleName: string;
   authUsername?: string;
 }) {
-  const roots = comments.filter((c: any) => c.parent_id == null);
-  const getChildren = (parentId: number) => comments.filter((c: any) => c.parent_id === parentId);
+  // parentId=undefined means show roots (parent_id IS NULL)
+  // parentId=number means show children of that parent
+  const nodes = parentId != null
+    ? comments.filter((c: any) => c.parent_id === parentId)
+    : comments.filter((c: any) => c.parent_id == null);
 
-  if (roots.length === 0) return null;
+  if (nodes.length === 0) return null;
 
   return (
     <div className={depth === 0 ? "space-y-1 mb-3" : ""}>
-      {roots.map((c: any) => {
-        const children = getChildren(c.id);
+      {nodes.map((c: any) => {
         return (
           <div key={c.id}>
             <div
@@ -121,10 +125,11 @@ function CommentTree({
                 </button>
               </div>
             )}
-            {children.length > 0 && (
+            {comments.some((cc: any) => cc.parent_id === c.id) && (
               <CommentTree
-                comments={children}
+                comments={comments}
                 depth={depth + 1}
+                parentId={c.id}
                 isAdmin={isAdmin}
                 onReport={onReport}
                 onDelete={onDelete}
