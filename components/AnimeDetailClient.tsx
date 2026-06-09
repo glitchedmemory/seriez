@@ -309,10 +309,10 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
     // AniList doesn't expose relation type in the public API, so we just list all TV relations
     // Build tabs: current show + all TV relations
     const tabs = [
-      { id: detail.id, title: `S1 · ${detail.title}`, isActive: true },
+      { id: detail.id, title: `S1`, isActive: true },
       ...relatedTV.map((r, i) => ({
         id: r.id,
-        title: `S${i + 2} · ${r.title}`,
+        title: `S${i + 2}`,
         isActive: false,
       })),
     ];
