@@ -46,11 +46,16 @@ export async function GET(req: NextRequest) {
     idToUsername[u.id] = u.username;
   }
 
+  const followingUsernames = Object.values(idToUsername);
+  if (!followingUsernames.length) {
+    return NextResponse.json({ activities: [] });
+  }
+
   // 2. Get recent reviews from followed users
   const { data: reviews } = await supabase
     .from("reviews")
     .select("username, tmdb_id, media_type, content, rating, created_at")
-    .in("username", followingIds)
+    .in("username", followingUsernames)
     .order("created_at", { ascending: false })
     .limit(30);
 
@@ -58,7 +63,7 @@ export async function GET(req: NextRequest) {
   const { data: tracking } = await supabase
     .from("media_trackings")
     .select("username, tmdb_id, media_type, status, rating, updated_at")
-    .in("username", followingIds)
+    .in("username", followingUsernames)
     .order("updated_at", { ascending: false })
     .limit(30);
 
