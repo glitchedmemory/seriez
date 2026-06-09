@@ -20,14 +20,9 @@ interface WatchListProps {
   monthlyView?: boolean;
 }
 
-const MEDIA_LABELS: Record<string, string> = {
-  movie: "Movie",
-  tv: "TV",
-  anime: "Anime",
-};
-
 export default function WatchList({ items, monthlyView }: WatchListProps) {
-  const displayItems = items.slice(0, 10);
+  const sorted = [...items].sort((a, b) => b.rating - a.rating);
+  const displayItems = sorted.slice(0, 10);
 
   if (displayItems.length === 0) {
     return (
@@ -76,8 +71,6 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
                 {item.title}
               </p>
               <p className="text-xs text-[#9ca3af] font-medium mt-0.5">
-                {MEDIA_LABELS[item.mediaType] || item.mediaType}
-                {" · "}
                 {new Date(item.updatedAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
