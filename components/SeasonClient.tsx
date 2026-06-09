@@ -814,7 +814,7 @@ function SimilarSection({ items }: { items: SimilarItem[] }) {
   return (
     <section className="mt-6">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold text-white">Similar Titles</h2>
+        <h2 className="text-lg font-semibold text-white">Recommended</h2>
         <div className="hidden md:flex gap-1">
           <button onClick={() => scroll("left")} className="w-8 h-8 rounded-full bg-[#1a1a2e] hover:bg-[#25253a] flex items-center justify-center text-white text-sm transition-colors">←</button>
           <button onClick={() => scroll("right")} className="w-8 h-8 rounded-full bg-[#1a1a2e] hover:bg-[#25253a] flex items-center justify-center text-white text-sm transition-colors">→</button>

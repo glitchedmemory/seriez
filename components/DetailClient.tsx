@@ -557,7 +557,7 @@ function SimilarSection({ items }: { items: TmdbDetail["similar"] }) {
   return (
     <section className="mt-6">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold text-white">Similar Titles</h2>
+        <h2 className="text-lg font-semibold text-white">Recommended</h2>
         <div className="hidden md:flex gap-1">
           <button
             onClick={() => scroll("left")}

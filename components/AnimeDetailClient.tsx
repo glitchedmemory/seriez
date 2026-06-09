@@ -378,25 +378,6 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
               <span className="bg-[#1a1a2e] px-2 py-0.5 rounded-full">{detail.status}</span>
             </div>
 
-            {/* Rating bar */}
-            <div className="flex items-center justify-center md:justify-start gap-3 mt-2">
-              {detail.rating > 0 && (
-                <div className="flex items-center gap-1">
-                  <span className="text-[#f59e0b] text-lg">★</span>
-                  <span className="text-white font-bold text-lg">{detail.rating}</span>
-                  <span className="text-[#6b7280] text-xs">/10</span>
-                </div>
-              )}
-              {detail.popularity > 0 && (
-                <span className="text-xs text-[#6b7280]">{detail.popularity.toLocaleString()} users</span>
-              )}
-              {totalMinutes > 0 && (
-                <span className="text-xs text-[#6b7280]">
-                  ~{Math.round(totalMinutes / 60)}h total
-                </span>
-              )}
-            </div>
-
             {/* Genres */}
             <div className="flex flex-wrap gap-1.5 mt-3 justify-center md:justify-start">
               {detail.genres.map((g) => (
@@ -724,25 +705,6 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                 {showAllCast ? "Show less" : `Show all ${detail.characters.length} characters`}
               </button>
             )}
-          </section>
-        )}
-
-        {/* Relations */}
-        {detail.relations.length > 0 && (
-          <section className="mt-6">
-            <h2 className="text-lg font-semibold text-white mb-3">Related</h2>
-            <div className="flex flex-wrap gap-2">
-              {detail.relations.slice(0, 5).map((r) => (
-                <a
-                  key={r.id}
-                  href={`/title/${r.id}?type=anime`}
-                  className="px-3 py-2 rounded-xl bg-[#1a1a2e] hover:bg-[#25253a] border border-[#2d2d4a] hover:border-[#6366f1] text-xs text-[#d1d5db] transition-all"
-                >
-                  {r.title}
-                  <span className="ml-1.5 text-[10px] text-[#6b7280]">{r.format}</span>
-                </a>
-              ))}
-            </div>
           </section>
         )}
 

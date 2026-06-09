@@ -779,50 +779,61 @@ query($id: Int) {
 }`;
 
 /**
- * Collect all unique TV anime relations up to 2 levels deep.
- * Fixes entries like "Final Season" that only list 1-2 relations.
+ * Collect ALL unique TV anime relations via BFS across the relation graph.
+ * Iterates until no new TV entries are discovered (full franchise coverage).
  */
 export async function enrichAnimeRelations(
   currentId: number,
   existingRelations: { id: number; title: string; type: string; format: string; seasonYear: number | null }[]
 ): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null }[]> {
   const seen = new Set<number>([currentId]);
-  const result = [...existingRelations];
-  for (const r of result) seen.add(r.id);
+  const result: { id: number; title: string; type: string; format: string; seasonYear: number | null }[] = [];
 
-  // Fetch level-1: each TV relation's own relations
-  const tvRelations = existingRelations.filter(r => r.format === "TV" || !r.format);
-  const promises = tvRelations.map(async (rel) => {
-    try {
-      const res = await fetch(ANILIST_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: RELATIONS_ONLY_QUERY, variables: { id: rel.id } }),
-        next: { revalidate: 86400 },
-      });
-      if (!res.ok) return [];
-      const json = await res.json();
-      const nodes = json.data?.Media?.relations?.nodes || [];
-      return nodes
-        .filter((n: any) => n.type === "ANIME" && !seen.has(n.id))
-        .map((n: any) => ({
-          id: n.id,
-          title: n.title?.english || n.title?.romaji || "Unknown",
-          type: "ANIME" as const,
-          format: n.format || "",
-          seasonYear: n.seasonYear || null,
-        }));
-    } catch {
-      return [];
+  // Start with existing TV relations
+  const queue = existingRelations.filter(r => r.format === "TV" || !r.format);
+  for (const r of queue) {
+    if (!seen.has(r.id)) {
+      seen.add(r.id);
+      result.push(r);
     }
-  });
+  }
 
-  const level1Results = await Promise.all(promises);
-  for (const items of level1Results) {
-    for (const item of items) {
-      if (!seen.has(item.id)) {
-        seen.add(item.id);
-        result.push(item);
+  // BFS: keep fetching relations until no new TV entries
+  while (queue.length > 0) {
+    const batch = queue.splice(0, 5); // fetch up to 5 at a time
+    const promises = batch.map(async (rel) => {
+      try {
+        const res = await fetch(ANILIST_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: RELATIONS_ONLY_QUERY, variables: { id: rel.id } }),
+          next: { revalidate: 86400 },
+        });
+        if (!res.ok) return [];
+        const json = await res.json();
+        const nodes = json.data?.Media?.relations?.nodes || [];
+        return nodes
+          .filter((n: any) => n.type === "ANIME" && (n.format === "TV" || !n.format))
+          .map((n: any) => ({
+            id: n.id,
+            title: n.title?.english || n.title?.romaji || "Unknown",
+            type: "ANIME" as const,
+            format: n.format || "",
+            seasonYear: n.seasonYear || null,
+          }));
+      } catch {
+        return [];
+      }
+    });
+
+    const results = await Promise.all(promises);
+    for (const items of results) {
+      for (const item of items) {
+        if (!seen.has(item.id)) {
+          seen.add(item.id);
+          result.push(item);
+          queue.push(item);
+        }
       }
     }
   }
