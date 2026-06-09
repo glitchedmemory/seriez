@@ -465,6 +465,8 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
 
   const average = total > 0 ? sum / total : 0;
   const maxCount = Math.max(...buckets.map((b) => distribution[b]), 1);
+  const BAR_WIDTH = 24;
+  const BAR_GAP = 6;
 
   return (
     <div style={{ padding: "12px 16px" }}>
@@ -480,8 +482,9 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
         {total >= 10000 ? `${(total / 10000).toFixed(1)}만` : total >= 1000 ? `${(total / 1000).toFixed(1)}k` : String(total)}
       </p>
 
-      {/* Bar chart — flexbox, tight packed, bars fill columns */}
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: BAR_HEIGHT, marginTop: 16 }}>
+      <div style={{ marginTop: 16 }}>
+      {/* Bars row */}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: BAR_GAP, height: BAR_HEIGHT }}>
         {buckets.map((star) => {
           const count = distribution[star] || 0;
           const barMaxH = BAR_HEIGHT - 14;
@@ -490,7 +493,7 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
             <div
               key={`bar-${star}`}
               style={{
-                flex: 1,
+                width: BAR_WIDTH,
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -498,28 +501,34 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
                 height: "100%",
               }}
             >
+              <span style={{ fontSize: 10, color: "#9ca3af", marginBottom: 4, fontWeight: 500 }}>
+                {count > 0 ? count : ""}
+              </span>
               <div
                 style={{
                   width: "100%",
                   height: barH,
                   backgroundColor: "#ff2f6e",
-                  borderRadius: 2,
-                  transition: "height 0.5s",
+                  borderTopLeftRadius: 4,
+                  borderTopRightRadius: 4,
+                  minHeight: count > 0 ? 4 : 0,
                 }}
               />
-              <span style={{
-                fontSize: 9,
-                fontWeight: 500,
-                color: "#6b7280",
-                lineHeight: "14px",
-                marginTop: 2,
-              }}>
-                {star % 1 === 0 ? star : ""}
-              </span>
             </div>
           );
         })}
       </div>
+      {/* Labels row */}
+      <div style={{ display: "flex", gap: BAR_GAP, marginTop: 6 }}>
+        {buckets.map((star) => (
+          <div key={`lbl-${star}`} style={{ width: BAR_WIDTH, textAlign: "center" }}>
+            <span style={{ fontSize: 10, color: "#6b7280" }}>
+              {star % 1 === 0 ? star : ""}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
     </div>
   );
 }
