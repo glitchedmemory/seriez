@@ -42,7 +42,7 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
         {displayItems.map((item) => (
           <Link
             key={item.tmdbId}
-            href={`/title/${item.tmdbId}`}
+            href={`/title/${item.tmdbId}?type=${item.mediaType}`}
             className="flex gap-3 py-3 items-center hover:bg-[#1a1a2e]/50 transition-colors -mx-1 px-1 rounded-lg"
           >
             {/* Poster */}
