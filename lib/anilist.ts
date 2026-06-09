@@ -718,7 +718,7 @@ export async function getAnimeEpisodes(
     // Kitsu thumbnail merge — main Japanese source, parallel 10x batches
     {
       const missingThumbs = episodes.filter(ep => !ep.thumbnail).length;
-      if (missingThumbs > 0 && episodes.length > 50) {
+      if (missingThumbs > 0) {
         const searchTitle = titleRomaji || title;
         const kitsuThumbs = await fetchKitsuThumbnails(searchTitle, 100);
         if (kitsuThumbs.size > 0) {
