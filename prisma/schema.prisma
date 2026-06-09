@@ -67,17 +67,30 @@ model Review {
 }
 
 model ReviewComment {
-  id        BigInt    @id @default(autoincrement())
-  reviewId  String    @map("review_id") @db.Uuid
-  username  String
-  content   String
-  parentId  BigInt?   @map("parent_id")
-  isHidden  Boolean   @default(false) @map("is_hidden")
-  createdAt DateTime  @default(now()) @map("created_at")
+  id         BigInt    @id @default(autoincrement())
+  reviewId   String    @map("review_id") @db.Uuid
+  username   String
+  content    String
+  parentId   BigInt?   @map("parent_id")
+  likesCount Int       @default(0) @map("likes_count")
+  isHidden   Boolean   @default(false) @map("is_hidden")
+  createdAt  DateTime  @default(now()) @map("created_at")
 
   @@index([reviewId])
   @@index([createdAt(sort: Desc)])
   @@map("review_comments")
+}
+
+model CommentLike {
+  id        BigInt    @id @default(autoincrement())
+  commentId BigInt    @map("comment_id")
+  username  String
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@unique([commentId, username])
+  @@index([commentId])
+  @@index([username])
+  @@map("comment_likes")
 }
 
 model Report {

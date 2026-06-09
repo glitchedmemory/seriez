@@ -29,11 +29,13 @@ export type AggregateReviewComment = {
 export type ReviewCommentAvgAggregateOutputType = {
   id: number | null
   parentId: number | null
+  likesCount: number | null
 }
 
 export type ReviewCommentSumAggregateOutputType = {
   id: bigint | null
   parentId: bigint | null
+  likesCount: number | null
 }
 
 export type ReviewCommentMinAggregateOutputType = {
@@ -42,6 +44,7 @@ export type ReviewCommentMinAggregateOutputType = {
   username: string | null
   content: string | null
   parentId: bigint | null
+  likesCount: number | null
   isHidden: boolean | null
   createdAt: Date | null
 }
@@ -52,6 +55,7 @@ export type ReviewCommentMaxAggregateOutputType = {
   username: string | null
   content: string | null
   parentId: bigint | null
+  likesCount: number | null
   isHidden: boolean | null
   createdAt: Date | null
 }
@@ -62,6 +66,7 @@ export type ReviewCommentCountAggregateOutputType = {
   username: number
   content: number
   parentId: number
+  likesCount: number
   isHidden: number
   createdAt: number
   _all: number
@@ -71,11 +76,13 @@ export type ReviewCommentCountAggregateOutputType = {
 export type ReviewCommentAvgAggregateInputType = {
   id?: true
   parentId?: true
+  likesCount?: true
 }
 
 export type ReviewCommentSumAggregateInputType = {
   id?: true
   parentId?: true
+  likesCount?: true
 }
 
 export type ReviewCommentMinAggregateInputType = {
@@ -84,6 +91,7 @@ export type ReviewCommentMinAggregateInputType = {
   username?: true
   content?: true
   parentId?: true
+  likesCount?: true
   isHidden?: true
   createdAt?: true
 }
@@ -94,6 +102,7 @@ export type ReviewCommentMaxAggregateInputType = {
   username?: true
   content?: true
   parentId?: true
+  likesCount?: true
   isHidden?: true
   createdAt?: true
 }
@@ -104,6 +113,7 @@ export type ReviewCommentCountAggregateInputType = {
   username?: true
   content?: true
   parentId?: true
+  likesCount?: true
   isHidden?: true
   createdAt?: true
   _all?: true
@@ -201,6 +211,7 @@ export type ReviewCommentGroupByOutputType = {
   username: string
   content: string
   parentId: bigint | null
+  likesCount: number
   isHidden: boolean
   createdAt: Date
   _count: ReviewCommentCountAggregateOutputType | null
@@ -234,6 +245,7 @@ export type ReviewCommentWhereInput = {
   username?: Prisma.StringFilter<"ReviewComment"> | string
   content?: Prisma.StringFilter<"ReviewComment"> | string
   parentId?: Prisma.BigIntNullableFilter<"ReviewComment"> | bigint | number | null
+  likesCount?: Prisma.IntFilter<"ReviewComment"> | number
   isHidden?: Prisma.BoolFilter<"ReviewComment"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ReviewComment"> | Date | string
 }
@@ -244,6 +256,7 @@ export type ReviewCommentOrderByWithRelationInput = {
   username?: Prisma.SortOrder
   content?: Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  likesCount?: Prisma.SortOrder
   isHidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -257,6 +270,7 @@ export type ReviewCommentWhereUniqueInput = Prisma.AtLeast<{
   username?: Prisma.StringFilter<"ReviewComment"> | string
   content?: Prisma.StringFilter<"ReviewComment"> | string
   parentId?: Prisma.BigIntNullableFilter<"ReviewComment"> | bigint | number | null
+  likesCount?: Prisma.IntFilter<"ReviewComment"> | number
   isHidden?: Prisma.BoolFilter<"ReviewComment"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ReviewComment"> | Date | string
 }, "id">
@@ -267,6 +281,7 @@ export type ReviewCommentOrderByWithAggregationInput = {
   username?: Prisma.SortOrder
   content?: Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  likesCount?: Prisma.SortOrder
   isHidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.ReviewCommentCountOrderByAggregateInput
@@ -285,6 +300,7 @@ export type ReviewCommentScalarWhereWithAggregatesInput = {
   username?: Prisma.StringWithAggregatesFilter<"ReviewComment"> | string
   content?: Prisma.StringWithAggregatesFilter<"ReviewComment"> | string
   parentId?: Prisma.BigIntNullableWithAggregatesFilter<"ReviewComment"> | bigint | number | null
+  likesCount?: Prisma.IntWithAggregatesFilter<"ReviewComment"> | number
   isHidden?: Prisma.BoolWithAggregatesFilter<"ReviewComment"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ReviewComment"> | Date | string
 }
@@ -295,6 +311,7 @@ export type ReviewCommentCreateInput = {
   username: string
   content: string
   parentId?: bigint | number | null
+  likesCount?: number
   isHidden?: boolean
   createdAt?: Date | string
 }
@@ -305,6 +322,7 @@ export type ReviewCommentUncheckedCreateInput = {
   username: string
   content: string
   parentId?: bigint | number | null
+  likesCount?: number
   isHidden?: boolean
   createdAt?: Date | string
 }
@@ -315,6 +333,7 @@ export type ReviewCommentUpdateInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   parentId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  likesCount?: Prisma.IntFieldUpdateOperationsInput | number
   isHidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -325,6 +344,7 @@ export type ReviewCommentUncheckedUpdateInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   parentId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  likesCount?: Prisma.IntFieldUpdateOperationsInput | number
   isHidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -335,6 +355,7 @@ export type ReviewCommentCreateManyInput = {
   username: string
   content: string
   parentId?: bigint | number | null
+  likesCount?: number
   isHidden?: boolean
   createdAt?: Date | string
 }
@@ -345,6 +366,7 @@ export type ReviewCommentUpdateManyMutationInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   parentId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  likesCount?: Prisma.IntFieldUpdateOperationsInput | number
   isHidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -355,6 +377,7 @@ export type ReviewCommentUncheckedUpdateManyInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   parentId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  likesCount?: Prisma.IntFieldUpdateOperationsInput | number
   isHidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -365,6 +388,7 @@ export type ReviewCommentCountOrderByAggregateInput = {
   username?: Prisma.SortOrder
   content?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
+  likesCount?: Prisma.SortOrder
   isHidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -372,6 +396,7 @@ export type ReviewCommentCountOrderByAggregateInput = {
 export type ReviewCommentAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
+  likesCount?: Prisma.SortOrder
 }
 
 export type ReviewCommentMaxOrderByAggregateInput = {
@@ -380,6 +405,7 @@ export type ReviewCommentMaxOrderByAggregateInput = {
   username?: Prisma.SortOrder
   content?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
+  likesCount?: Prisma.SortOrder
   isHidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -390,6 +416,7 @@ export type ReviewCommentMinOrderByAggregateInput = {
   username?: Prisma.SortOrder
   content?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
+  likesCount?: Prisma.SortOrder
   isHidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -397,6 +424,7 @@ export type ReviewCommentMinOrderByAggregateInput = {
 export type ReviewCommentSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
+  likesCount?: Prisma.SortOrder
 }
 
 export type NullableBigIntFieldUpdateOperationsInput = {
@@ -415,6 +443,7 @@ export type ReviewCommentSelect<ExtArgs extends runtime.Types.Extensions.Interna
   username?: boolean
   content?: boolean
   parentId?: boolean
+  likesCount?: boolean
   isHidden?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["reviewComment"]>
@@ -425,6 +454,7 @@ export type ReviewCommentSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   username?: boolean
   content?: boolean
   parentId?: boolean
+  likesCount?: boolean
   isHidden?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["reviewComment"]>
@@ -435,6 +465,7 @@ export type ReviewCommentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   username?: boolean
   content?: boolean
   parentId?: boolean
+  likesCount?: boolean
   isHidden?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["reviewComment"]>
@@ -445,11 +476,12 @@ export type ReviewCommentSelectScalar = {
   username?: boolean
   content?: boolean
   parentId?: boolean
+  likesCount?: boolean
   isHidden?: boolean
   createdAt?: boolean
 }
 
-export type ReviewCommentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "reviewId" | "username" | "content" | "parentId" | "isHidden" | "createdAt", ExtArgs["result"]["reviewComment"]>
+export type ReviewCommentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "reviewId" | "username" | "content" | "parentId" | "likesCount" | "isHidden" | "createdAt", ExtArgs["result"]["reviewComment"]>
 
 export type $ReviewCommentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ReviewComment"
@@ -460,6 +492,7 @@ export type $ReviewCommentPayload<ExtArgs extends runtime.Types.Extensions.Inter
     username: string
     content: string
     parentId: bigint | null
+    likesCount: number
     isHidden: boolean
     createdAt: Date
   }, ExtArgs["result"]["reviewComment"]>
@@ -890,6 +923,7 @@ export interface ReviewCommentFieldRefs {
   readonly username: Prisma.FieldRef<"ReviewComment", 'String'>
   readonly content: Prisma.FieldRef<"ReviewComment", 'String'>
   readonly parentId: Prisma.FieldRef<"ReviewComment", 'BigInt'>
+  readonly likesCount: Prisma.FieldRef<"ReviewComment", 'Int'>
   readonly isHidden: Prisma.FieldRef<"ReviewComment", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"ReviewComment", 'DateTime'>
 }
