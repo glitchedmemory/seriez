@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
@@ -104,6 +105,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
   const [epToggleLoading, setEpToggleLoading] = useState<string | null>(null);
   const [authUser, setAuthUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
   const supabase = createClient();
+  const router = useRouter();
 
   // Episode pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -563,6 +565,32 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
             </div>
           </div>
         </div>
+
+        {/* ─── Season Tabs ─── */}
+        {data.totalSeasons > 1 && (
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold text-white mb-3">Seasons</h2>
+            <div className="flex flex-wrap gap-2">
+              {Array.from({ length: data.totalSeasons }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  onClick={() => {
+                    if (n !== data.seasonNumber) {
+                      router.push(`/title/${data.id}/season/${n}?type=tv`);
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    n === data.seasonNumber
+                      ? "bg-[#6366f1] text-white cursor-default"
+                      : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white hover:bg-[#2d2d4a] border border-[#2d2d4a] hover:border-[#6366f1]"
+                  }`}
+                >
+                  S{n}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Overview */}
         {data.overview && (
