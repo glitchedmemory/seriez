@@ -56,6 +56,7 @@ export const ModelName = {
   MediaTracking: 'MediaTracking',
   Review: 'Review',
   ReviewComment: 'ReviewComment',
+  CommentLike: 'CommentLike',
   Report: 'Report',
   EpisodeWatch: 'EpisodeWatch',
   UserList: 'UserList',
@@ -139,11 +140,22 @@ export const ReviewCommentScalarFieldEnum = {
   username: 'username',
   content: 'content',
   parentId: 'parentId',
+  likesCount: 'likesCount',
   isHidden: 'isHidden',
   createdAt: 'createdAt'
 } as const
 
 export type ReviewCommentScalarFieldEnum = (typeof ReviewCommentScalarFieldEnum)[keyof typeof ReviewCommentScalarFieldEnum]
+
+
+export const CommentLikeScalarFieldEnum = {
+  id: 'id',
+  commentId: 'commentId',
+  username: 'username',
+  createdAt: 'createdAt'
+} as const
+
+export type CommentLikeScalarFieldEnum = (typeof CommentLikeScalarFieldEnum)[keyof typeof CommentLikeScalarFieldEnum]
 
 
 export const ReportScalarFieldEnum = {

@@ -67,6 +67,11 @@ export type Review = Prisma.ReviewModel
  */
 export type ReviewComment = Prisma.ReviewCommentModel
 /**
+ * Model CommentLike
+ * 
+ */
+export type CommentLike = Prisma.CommentLikeModel
+/**
  * Model Report
  * 
  */
