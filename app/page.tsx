@@ -23,5 +23,7 @@ export default async function Home() {
     // fallback: empty arrays, HomeClient shows empty states
   }
 
-  return <HomeClient trending={trending} upcoming={upcoming} boxOffice={boxOffice} region={country} randomSeed={Date.now()} />;
+  // Deterministic seed from data — avoids busting ISR cache on every request
+  const seed = trending.length > 0 ? trending[0].id : 0;
+  return <HomeClient trending={trending} upcoming={upcoming} boxOffice={boxOffice} region={country} randomSeed={seed} />;
 }
