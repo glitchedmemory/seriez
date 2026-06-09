@@ -70,6 +70,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const userId = await resolveUserId(username);
     if (!userId) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
+    // Verify ownership
+    const { data: list } = await supabase.from("user_lists").select("user_id").eq("id", listId).single();
+    if (!list) return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+    if (list.user_id !== userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
     const { error } = await supabase.from("list_items").insert({ list_id: listId, tmdb_id: tmdbId, media_type: mediaType });
     if (error) {
       if (error.code === "23505") return NextResponse.json({ error: "Already in collection" }, { status: 409 });
@@ -96,6 +101,11 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     const userId = await resolveUserId(username);
     if (!userId) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+    // Verify ownership
+    const { data: listDel } = await supabase.from("user_lists").select("user_id").eq("id", listId).single();
+    if (!listDel) return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+    if (listDel.user_id !== userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { error } = await supabase.from("list_items").delete().eq("list_id", listId).eq("tmdb_id", tmdbId).eq("media_type", mediaType);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
