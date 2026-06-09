@@ -26,6 +26,15 @@ export default function SearchPage() {
       .catch(() => {});
   }, []);
 
+  // Log search when user clicks a trending term or presses Enter
+  function logSearch(q: string) {
+    fetch("/api/search-log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: q }),
+    }).catch(() => {});
+  }
+
   const doSearch = useCallback(async (q: string) => {
     if (!q.trim()) {
       setResults([]);
@@ -61,6 +70,7 @@ export default function SearchPage() {
     if (e.key === "Enter") {
       clearTimeout(debounceRef.current);
       doSearch(query);
+      logSearch(query);
     }
   }
 
@@ -129,7 +139,7 @@ export default function SearchPage() {
                   {trendingSearches.slice(0, 15).map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => setQuery(item.title)}
+                      onClick={() => { setQuery(item.title); logSearch(item.title); }}
                       className="px-3 py-1.5 rounded-full bg-[#1a1a2e] hover:bg-[#2d2d4a] text-xs text-[#d1d5db] transition-colors border border-[#2d2d4a] hover:border-[#6366f1]"
                     >
                       {item.title}
