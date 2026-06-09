@@ -137,10 +137,6 @@ export default function HistoryClient() {
   ];
   const maxStarCount = Math.max(...starBuckets.map(b => b.count), 1);
 
-  // Media type mix
-  const mediaCounts: Record<string, number> = {};
-  for (const item of data.watchList) mediaCounts[item.mediaType] = (mediaCounts[item.mediaType] || 0) + 1;
-
   return (
     <div className="max-w-lg mx-auto pb-32">
       {/* ── Header nav ── */}
@@ -210,15 +206,6 @@ export default function HistoryClient() {
 
         {/* Top Genres */}
         <TopGenres genres={data.topGenres} />
-
-        {/* Media type mix */}
-        {Object.keys(mediaCounts).length > 0 && (
-          <div className="mt-4 flex gap-2 text-xs">
-            {mediaCounts.movie ? <span className="bg-[#1a1a2e] text-[#9ca3af] px-2.5 py-1 rounded-full font-medium">🎬 {mediaCounts.movie} Movies</span> : null}
-            {mediaCounts.tv ? <span className="bg-[#1a1a2e] text-[#9ca3af] px-2.5 py-1 rounded-full font-medium">📺 {mediaCounts.tv} TV</span> : null}
-            {mediaCounts.anime ? <span className="bg-[#1a1a2e] text-[#9ca3af] px-2.5 py-1 rounded-full font-medium">🎌 {mediaCounts.anime} Anime</span> : null}
-          </div>
-        )}
       </div>
 
       {/* ── Divider ── */}
