@@ -3,6 +3,41 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+/** Recursive comment tree — builds hierarchy from flat list via parent_id */
+function CommentTree({ comments, depth }: { comments: any[]; depth: number }) {
+  const roots = comments.filter((c: any) => c.parent_id == null);
+  const getChildren = (parentId: number) => comments.filter((c: any) => c.parent_id === parentId);
+
+  if (roots.length === 0) return null;
+
+  return (
+    <div className={depth === 0 ? "space-y-1 mb-3" : ""}>
+      {roots.map((c: any) => {
+        const children = getChildren(c.id);
+        return (
+          <div key={c.id}>
+            <div
+              className="flex gap-2"
+              style={{ marginLeft: depth * 16 }}
+            >
+              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5">
+                {c.username[0]?.toUpperCase()}
+              </div>
+              <div>
+                <span className="text-xs font-medium text-white mr-2">{c.username}</span>
+                <span className="text-xs text-[#d1d5db] whitespace-pre-wrap">{c.content}</span>
+              </div>
+            </div>
+            {children.length > 0 && (
+              <CommentTree comments={children} depth={depth + 1} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function formatDate(iso: string) {
   const d = new Date(iso);
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -388,19 +423,10 @@ export function ReviewSection({
                   {loadingComments.has(review.id) ? (
                     <p className="text-xs text-[#6b7280]">Loading comments...</p>
                   ) : (comments[review.id] || []).length > 0 ? (
-                    <div className="space-y-2 mb-3">
-                      {(comments[review.id] || []).map((c: any) => (
-                        <div key={c.id} className="flex gap-2">
-                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5">
-                            {c.username[0]?.toUpperCase()}
-                          </div>
-                          <div>
-                            <span className="text-xs font-medium text-white mr-2">{c.username}</span>
-                            <span className="text-xs text-[#d1d5db] whitespace-pre-wrap">{c.content}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <CommentTree
+                      comments={comments[review.id] || []}
+                      depth={0}
+                    />
                   ) : (
                     <p className="text-xs text-[#6b7280] mb-3">No comments yet</p>
                   )}
