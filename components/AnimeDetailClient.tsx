@@ -305,17 +305,25 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
     );
     if (relatedTV.length === 0) return [];
 
-    // Sort: prequels first, then current, then sequels
-    // AniList doesn't expose relation type in the public API, so we just list all TV relations
-    // Build tabs: current show + all TV relations
-    const tabs = [
-      { id: detail.id, title: `S1`, isActive: true },
-      ...relatedTV.map((r, i) => ({
-        id: r.id,
-        title: `S${i + 2}`,
-        isActive: false,
-      })),
-    ];
+    // Combine current + relations, sort by season number in title
+    const getSeasonNum = (title: string): number => {
+      const m = title.match(/season\s*(\d+)/i) || title.match(/(\d+)(?:st|nd|rd|th)\s*season/i);
+      if (m) return parseInt(m[1]);
+      // Fallback: try to find any number in title
+      const n = title.match(/\b(\d+)\b/);
+      return n ? parseInt(n[1]) : 999;
+    };
+
+    const allItems = [
+      { id: detail.id, title: detail.title },
+      ...relatedTV.map(r => ({ id: r.id, title: r.title })),
+    ].sort((a, b) => getSeasonNum(a.title) - getSeasonNum(b.title));
+
+    const tabs = allItems.map((item, i) => ({
+      id: item.id,
+      title: `S${i + 1}`,
+      isActive: item.id === detail.id,
+    }));
     return tabs;
   })();
 
