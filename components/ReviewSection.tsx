@@ -17,6 +17,8 @@ function CommentTree({
   reportingComments,
   replyInputs,
   replyingTo,
+  expandedChains,
+  onToggleCollapse,
   reviewId,
   reviewTmdbId,
   reviewAuthor,
@@ -35,6 +37,8 @@ function CommentTree({
   reportingComments: Set<string>;
   replyInputs: Record<string, string>;
   replyingTo: Record<string, string | null>;
+  expandedChains: Set<string>;
+  onToggleCollapse: (commentId: number) => void;
   reviewId: string;
   reviewTmdbId: number;
   reviewAuthor: string;
@@ -125,7 +129,7 @@ function CommentTree({
                 </button>
               </div>
             )}
-            {hasChildren && (
+            {hasChildren && (!isFlat || expandedChains.has(String(c.id))) && (
               <CommentTree
                 comments={comments}
                 depth={depth + 1}
@@ -139,12 +143,23 @@ function CommentTree({
                 reportingComments={reportingComments}
                 replyInputs={replyInputs}
                 replyingTo={replyingTo}
+                expandedChains={expandedChains}
+                onToggleCollapse={onToggleCollapse}
                 reviewId={reviewId}
                 reviewTmdbId={reviewTmdbId}
                 reviewAuthor={reviewAuthor}
                 titleName={titleName}
                 authUsername={authUsername}
               />
+            )}
+            {/* Collapse toggle for deep chains */}
+            {isFlat && hasChildren && (
+              <button
+                onClick={() => onToggleCollapse(c.id)}
+                className="text-[10px] text-[#6366f1] hover:text-[#818cf8] transition-colors mt-1 ml-8"
+              >
+                {expandedChains.has(String(c.id)) ? "📁 Hide replies" : "📂 Show replies"}
+              </button>
             )}
           </div>
         );
@@ -241,9 +256,11 @@ export function ReviewSection({
   const [reportCounts, setReportCounts] = useState<Record<string, number>>({});
   const [reportingReview, setReportingReview] = useState<Set<string>>(new Set());
   const [reportingComments, setReportingComments] = useState<Set<string>>(new Set());
-  // Reply state: { [commentId]: replyText }
+  // Reply state
   const [replyInputs, setReplyInputs] = useState<Record<string, string>>({});
   const [replyingTo, setReplyingTo] = useState<Record<string, string | null>>({});
+  // Expand deep chains (empty = all collapsed by default)
+  const [expandedChains, setExpandedChains] = useState<Set<string>>(new Set());
 
   const toggleComments = async (reviewId: string, reviewAuthor: string) => {
     const newExpanded = new Set(expandedComments);
@@ -407,6 +424,16 @@ export function ReviewSection({
 
   const submitReply = (reviewId: string, reviewAuthor: string, reviewTmdbId: number, titleName: string) => (commentId: number) => {
     submitComment(reviewId, reviewAuthor, reviewTmdbId, titleName, commentId);
+  };
+
+  // Expand deep chains (empty = all collapsed by default)
+  const toggleCollapse = (commentId: number) => {
+    setExpandedChains((prev) => {
+      const next = new Set(prev);
+      if (next.has(String(commentId))) next.delete(String(commentId));
+      else next.add(String(commentId));
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -687,6 +714,8 @@ export function ReviewSection({
                       reportingComments={reportingComments}
                       replyInputs={replyInputs}
                       replyingTo={replyingTo}
+                      expandedChains={expandedChains}
+                      onToggleCollapse={toggleCollapse}
                       reviewId={review.id}
                       reviewTmdbId={tmdbId}
                       reviewAuthor={review.username}
