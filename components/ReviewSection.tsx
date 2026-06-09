@@ -3,7 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-/** Recursive comment tree — each comment has its own reply count + expand */
+/** Reddit-style comment tree:
+ *  depth 0-1: inline with reply count toggle
+ *  depth 2+: collapsed into "Continue this thread" — expands ALL remaining
+ */
 function CommentTree({
   comments,
   depth,
@@ -51,6 +54,7 @@ function CommentTree({
 
   if (nodes.length === 0) return null;
 
+  const MAX_INLINE = 2; // depth 0,1 = inline; 2+ = "Continue thread"
   const indent = depth * 12;
 
   return (
@@ -59,12 +63,10 @@ function CommentTree({
         const replyCount = comments.filter((cc: any) => cc.parent_id === c.id).length;
         const hasChildren = replyCount > 0;
         const isExpanded = expandedThreads.has(String(c.id));
+        const showInline = depth < MAX_INLINE;
         return (
           <div key={c.id}>
-            <div
-              className="flex gap-2"
-              style={{ marginLeft: indent }}
-            >
+            <div className="flex gap-2" style={{ marginLeft: indent }}>
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5">
                 {c.username[0]?.toUpperCase()}
               </div>
@@ -75,43 +77,24 @@ function CommentTree({
                     <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded">🚨 hidden</span>
                   )}
                   {authUsername !== c.username && (
-                    <button
-                      onClick={() => authUsername ? onReport(c.id) : alert("Sign in to report")}
+                    <button onClick={() => authUsername ? onReport(c.id) : alert("Sign in to report")}
                       disabled={reportingComments.has(String(c.id)) && !!authUsername}
                       className="text-[10px] text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50 ml-auto"
-                      title="Report"
-                    >
-                      🚩
-                    </button>
+                      title="Report">🚩</button>
                   )}
                   {isAdmin && c.is_hidden && (
-                    <button
-                      onClick={() => onDelete(c.id)}
-                      className="text-[10px] text-red-400 hover:text-red-300 ml-1"
-                    >
-                      🗑️
-                    </button>
+                    <button onClick={() => onDelete(c.id)}
+                      className="text-[10px] text-red-400 hover:text-red-300 ml-1">🗑️</button>
                   )}
                 </div>
                 <span className="text-xs text-[#d1d5db] whitespace-pre-wrap">{c.content}</span>
                 <div className="flex items-center gap-2 mt-1">
-                  <button
-                    onClick={() => authUsername ? onToggleReply(c.id) : alert("Sign in to reply")}
-                    className="text-[10px] text-[#6b7280] hover:text-[#a855f7] transition-colors"
-                  >
-                    💬 Reply
-                  </button>
-                  {hasChildren && (
-                    <button
-                      onClick={() => onToggleThread(c.id)}
-                      className={`text-[10px] transition-colors ${
-                        isExpanded ? "text-[#a855f7]" : "text-[#6b7280] hover:text-[#a855f7]"
-                      }`}
-                    >
-                      {isExpanded ? "▾ " : "▸ "}
-                      {depth === 0
-                        ? `${replyCount} ${replyCount === 1 ? "reply" : "replies"}`
-                        : (isExpanded ? "Hide replies" : "Show replies")}
+                  <button onClick={() => authUsername ? onToggleReply(c.id) : alert("Sign in to reply")}
+                    className="text-[10px] text-[#6b7280] hover:text-[#a855f7] transition-colors">💬 Reply</button>
+                  {hasChildren && showInline && (
+                    <button onClick={() => onToggleThread(c.id)}
+                      className={`text-[10px] transition-colors ${isExpanded ? "text-[#a855f7]" : "text-[#6b7280] hover:text-[#a855f7]"}`}>
+                      {isExpanded ? "▾ " : "▸ "}{replyCount} {replyCount === 1 ? "reply" : "replies"}
                     </button>
                   )}
                 </div>
@@ -120,52 +103,43 @@ function CommentTree({
             {/* Reply input */}
             {replyingTo[String(c.id)] != null && (
               <div className="flex gap-2 mt-1" style={{ marginLeft: indent + 21 }}>
-                <input
-                  type="text"
-                  placeholder="Write a reply..."
+                <input type="text" placeholder="Write a reply..."
                   value={replyInputs[String(c.id)] || ""}
                   onChange={(e) => onReplyChange(c.id, e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      onReply(c.id);
-                    }
-                  }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onReply(c.id); }}}
                   maxLength={1000}
-                  className="flex-1 bg-[#25253a] text-white text-[10px] rounded-lg px-2 py-1.5 outline-none border border-transparent focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280]"
-                />
-                <button
-                  onClick={() => onReply(c.id)}
-                  disabled={!replyInputs[String(c.id)]?.trim()}
-                  className="px-2 py-1 bg-[#6366f1] hover:bg-[#5558e6] disabled:opacity-40 text-white text-[10px] font-medium rounded-lg transition-colors flex-shrink-0"
-                >
-                  Post
-                </button>
+                  className="flex-1 bg-[#25253a] text-white text-[10px] rounded-lg px-2 py-1.5 outline-none border border-transparent focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280]" />
+                <button onClick={() => onReply(c.id)} disabled={!replyInputs[String(c.id)]?.trim()}
+                  className="px-2 py-1 bg-[#6366f1] hover:bg-[#5558e6] disabled:opacity-40 text-white text-[10px] font-medium rounded-lg transition-colors flex-shrink-0">Post</button>
               </div>
             )}
-            {/* Children — visible only when expanded */}
-            {hasChildren && isExpanded && (
-              <CommentTree
-                comments={comments}
-                depth={depth + 1}
-                parentId={c.id}
-                isAdmin={isAdmin}
-                onReport={onReport}
-                onDelete={onDelete}
-                onReply={onReply}
-                onToggleReply={onToggleReply}
-                onReplyChange={onReplyChange}
-                reportingComments={reportingComments}
-                replyInputs={replyInputs}
-                replyingTo={replyingTo}
-                expandedThreads={expandedThreads}
-                onToggleThread={onToggleThread}
-                reviewId={reviewId}
-                reviewTmdbId={reviewTmdbId}
-                reviewAuthor={reviewAuthor}
-                titleName={titleName}
-                authUsername={authUsername}
-              />
+            {/* Inline children (depth 0-1) */}
+            {hasChildren && showInline && isExpanded && (
+              <CommentTree comments={comments} depth={depth + 1} parentId={c.id}
+                isAdmin={isAdmin} onReport={onReport} onDelete={onDelete}
+                onReply={onReply} onToggleReply={onToggleReply} onReplyChange={onReplyChange}
+                reportingComments={reportingComments} replyInputs={replyInputs} replyingTo={replyingTo}
+                expandedThreads={expandedThreads} onToggleThread={onToggleThread}
+                reviewId={reviewId} reviewTmdbId={reviewTmdbId} reviewAuthor={reviewAuthor}
+                titleName={titleName} authUsername={authUsername} />
+            )}
+            {/* "Continue this thread" — depth 2+ */}
+            {hasChildren && !showInline && (
+              <div style={{ marginLeft: indent + 21 }}>
+                <button onClick={() => onToggleThread(c.id)}
+                  className="text-[10px] text-[#6366f1] hover:text-[#818cf8] transition-colors mt-1">
+                  {isExpanded ? "▾ Hide thread" : "▸ Continue this thread →"}
+                </button>
+                {isExpanded && (
+                  <CommentTree comments={comments} depth={depth + 1} parentId={c.id}
+                    isAdmin={isAdmin} onReport={onReport} onDelete={onDelete}
+                    onReply={onReply} onToggleReply={onToggleReply} onReplyChange={onReplyChange}
+                    reportingComments={reportingComments} replyInputs={replyInputs} replyingTo={replyingTo}
+                    expandedThreads={expandedThreads} onToggleThread={onToggleThread}
+                    reviewId={reviewId} reviewTmdbId={reviewTmdbId} reviewAuthor={reviewAuthor}
+                    titleName={titleName} authUsername={authUsername} />
+                )}
+              </div>
             )}
           </div>
         );
