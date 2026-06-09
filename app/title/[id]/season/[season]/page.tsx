@@ -106,7 +106,7 @@ export default async function SeasonPage({ params }: Props) {
       });
     }
 
-    // Combine and deduplicate, prefer name matches
+    // Combine and deduplicate, prefer name matches (max 3)
     const seen = new Set<string>();
     const trailers: any[] = [];
     for (const v of [...seasonMatched, ...dateMatched]) {
@@ -264,7 +264,7 @@ export default async function SeasonPage({ params }: Props) {
       networks: (seriesData.networks || []).map((n: any) => n.name),
       lastAirDate: seriesData.last_air_date || "",
       cast,
-      trailers,
+      trailers: trailers.slice(0, 3),
       similar: similarItems,
       // Season info
       seasonNumber: seasonNum,

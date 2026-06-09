@@ -714,7 +714,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
           <section id="trailers" className="mt-6">
             <h2 className="text-lg font-semibold text-white mb-3">🎬 Trailers</h2>
             <div className="space-y-3">
-              {data.trailers.map((v) => (
+              {data.trailers.slice(0, 3).map((v) => (
                 <div key={v.key} className="aspect-video rounded-xl overflow-hidden bg-[#1a1a2e]">
                   <iframe
                     src={`https://www.youtube.com/embed/${v.key}`}
