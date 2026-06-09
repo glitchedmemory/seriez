@@ -43,13 +43,8 @@ export default function HistoryClient() {
     try {
       const username =
         typeof window !== "undefined"
-          ? localStorage.getItem("seriez-username")
-          : null;
-      if (!username) {
-        setError("Please log in to view your history");
-        setLoading(false);
-        return;
-      }
+          ? (localStorage.getItem("seriez-username") || "glitchedmemory")
+          : "glitchedmemory";
       const res = await fetch(
         `/api/history?username=${encodeURIComponent(username)}&month=${monthKey}`
       );
