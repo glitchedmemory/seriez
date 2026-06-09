@@ -74,6 +74,7 @@ export async function GET(req: NextRequest) {
     const { data: counts } = await supabase
       .from("review_comments")
       .select("review_id, id")
+      .is("parent_id", null)
       .in("review_id", reviewIds);
     if (counts) {
       for (const c of counts) {
