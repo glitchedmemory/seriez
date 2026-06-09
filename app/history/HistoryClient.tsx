@@ -54,7 +54,7 @@ export default function HistoryClient() {
   useEffect(() => { fetchData(true); }, [fetchData]);
 
   const goToPrevMonth = () => {
-    setData(prevDataRef.current); // keep old data visible
+    setData(prevDataRef.current);
     setFetching(true);
     if (month === 1) { setMonth(12); setYear(y => y - 1); }
     else setMonth(m => m - 1);
@@ -91,7 +91,7 @@ export default function HistoryClient() {
 
   if (!data) return null;
 
-  // Taste analysis
+  // ── Taste analysis ──
   const dayCounts: Record<number, number> = {};
   let bingeDays = 0;
   for (const [dk, entries] of Object.entries(data.calendar)) {
@@ -102,92 +102,141 @@ export default function HistoryClient() {
   const sortedDays = Object.entries(dayCounts).sort((a, b) => b[1] - a[1]);
   const activeDays = Object.keys(data.calendar).length;
 
+  // Personality label
+  const avgRating = data.stats.avgRating;
+  let personaLabel: string;
+  let personaDesc: string;
+  if (avgRating >= 4.5) {
+    personaLabel = "Generous Critic";
+    personaDesc = "You hand out high ratings freely — you find joy in almost everything you watch.";
+  } else if (avgRating >= 3.5) {
+    personaLabel = "Immersive Viewer";
+    personaDesc = "You dive deep into every title and don't hold back on high ratings. Quality picks with heart.";
+  } else if (avgRating >= 2.5) {
+    personaLabel = "Balanced Judge";
+    personaDesc = "You keep it fair — not too harsh, not too easy. A true cinephile's balance.";
+  } else {
+    personaLabel = "Sharp Critic";
+    personaDesc = "You watch with a critical eye and only the best earn your stars. Standards high, taste refined.";
+  }
+
+  // Rating distribution
+  const ratingDist: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 0.5 ~ 5.0
+  for (const item of data.watchList) {
+    if (item.rating > 0) {
+      const idx = Math.round(item.rating * 2) - 1;
+      if (idx >= 0 && idx < 11) ratingDist[idx]++;
+    }
+  }
+  const starBuckets = [
+    { label: "5★", count: ratingDist[9] + ratingDist[10] || 0 },
+    { label: "4★", count: ratingDist[7] + ratingDist[8] || 0 },
+    { label: "3★", count: ratingDist[5] + ratingDist[6] || 0 },
+    { label: "2★", count: ratingDist[3] + ratingDist[4] || 0 },
+    { label: "1★", count: ratingDist[1] + ratingDist[2] || 0 },
+  ];
+  const maxStarCount = Math.max(...starBuckets.map(b => b.count), 1);
+
+  // Media type mix
   const mediaCounts: Record<string, number> = {};
   for (const item of data.watchList) mediaCounts[item.mediaType] = (mediaCounts[item.mediaType] || 0) + 1;
 
-  const viewingStyle = bingeDays >= activeDays * 0.4
-    ? "Binge Watcher — you love marathons!"
-    : activeDays > 0 && data.stats.totalEpisodes / activeDays >= 2
-    ? "Steady Viewer — consistent daily watching"
-    : "Casual Viewer — watching at your own pace";
-
   return (
     <div className="max-w-lg mx-auto pb-32">
-      <div className="px-4 pt-6 mb-4 flex items-center justify-between">
+      {/* ── Header nav ── */}
+      <div className="pt-6 pb-2 px-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Watch History</h1>
-          <p className="text-[#6b7280] text-sm">Your viewing diary</p>
+          <h1 className="text-lg font-bold text-white tracking-tight">Monthly Recap</h1>
+          <p className="text-[#6b7280] text-xs">Your viewing journal</p>
         </div>
         {fetching && (
           <div className="w-5 h-5 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin" />
         )}
       </div>
 
-      <div className="px-4 space-y-5">
-        {/* Poster Calendar */}
+      {/* ── Calendar ── */}
+      <div className="px-4 mb-4">
         <PosterCalendar
           year={year} month={month} days={data.calendar}
           onDayClick={(d, e) => setPopup({ date: d, entries: e })}
           onPrevMonth={goToPrevMonth} onNextMonth={goToNextMonth}
           fetching={fetching}
         />
+      </div>
 
-        {/* Quick Stats — pill style */}
-        <div className="flex gap-3">
-          <MiniStat value={`${data.stats.totalHours}h`} label="Watched" />
-          <MiniStat value={`★ ${data.stats.avgRating}`} label="Rating" />
-          <MiniStat value={data.stats.totalTitles.toString()} label="Titles" />
-          <MiniStat value={data.stats.totalEpisodes.toString()} label="Episodes" />
+      {/* ── Divider ── */}
+      <div className="h-2 bg-[#0a0a14] mb-5" />
+
+      {/* ── Taste Profile ── */}
+      <div className="px-4 mb-5">
+        <h2 className="text-lg font-extrabold text-white tracking-tight mb-3">Taste Profile</h2>
+        <span className="inline-block bg-[#6366f1] text-white text-[11px] font-bold px-3 py-1 rounded-full mb-2 tracking-wide">
+          #RatingSpread
+        </span>
+        <p className="text-[15px] font-bold text-[#e5e7eb] tracking-tight mb-1">
+          You&apos;re a &apos;{personaLabel}&apos;
+        </p>
+        <p className="text-[13px] text-[#9ca3af] leading-relaxed mb-5">
+          {personaDesc}
+        </p>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <StatCard value={data.stats.totalTitles.toString()} label="Titles" />
+          <StatCard value={`${data.stats.totalHours}h`} label="Watch Time" />
+          <StatCard value={data.stats.avgRating.toString()} label="Avg Rating" />
         </div>
 
-        {/* Taste Analysis */}
-        <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl p-5">
-          <h2 className="text-white text-base font-bold mb-4">🧬 Taste Analysis</h2>
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <TasteCard label="Viewing Style" value={viewingStyle} full />
-            <TasteCard
-              label="Most Active"
-              value={sortedDays[0] ? DAYS[parseInt(sortedDays[0][0])] : "—"}
-            />
-            <TasteCard label="Episodes / Day" value={activeDays > 0 ? (data.stats.totalEpisodes / activeDays).toFixed(1) : "0"} />
-            <TasteCard label="Binge Days" value={`${bingeDays} of ${activeDays}`} />
+        {/* Rating Spread */}
+        {data.watchList.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-[15px] font-bold text-white tracking-tight mb-3">Rating Spread</h3>
+            <div className="space-y-1.5">
+              {starBuckets.map((b) => (
+                <div key={b.label} className="flex items-center gap-2">
+                  <span className="w-7 text-right text-xs font-semibold text-[#d1d5db]">{b.label}</span>
+                  <div className="flex-1 h-2.5 bg-[#25253a] rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${b.label === "5★" || b.label === "4★" ? "bg-[#6366f1]" : "bg-[#4338ca]"}`}
+                      style={{ width: `${(b.count / maxStarCount) * 100}%` }}
+                    />
+                  </div>
+                  <span className="w-4 text-right text-[11px] font-semibold text-[#9ca3af]">{b.count}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="flex gap-2 text-xs">
-            {mediaCounts.movie ? <span className="bg-[#0f0f1a] text-white px-2 py-1 rounded-full">🎬 {mediaCounts.movie} Movies</span> : null}
-            {mediaCounts.tv ? <span className="bg-[#0f0f1a] text-white px-2 py-1 rounded-full">📺 {mediaCounts.tv} TV</span> : null}
-            {mediaCounts.anime ? <span className="bg-[#0f0f1a] text-white px-2 py-1 rounded-full">🎌 {mediaCounts.anime} Anime</span> : null}
-          </div>
-        </div>
-
-        {/* Monthly Graph */}
-        <WatchGraph data={data.monthlyGraph} />
+        )}
 
         {/* Top Genres */}
         <TopGenres genres={data.topGenres} />
 
-        {/* Watch List */}
-        <WatchList items={data.watchList} />
+        {/* Media type mix */}
+        {Object.keys(mediaCounts).length > 0 && (
+          <div className="mt-4 flex gap-2 text-xs">
+            {mediaCounts.movie ? <span className="bg-[#1a1a2e] text-[#9ca3af] px-2.5 py-1 rounded-full font-medium">🎬 {mediaCounts.movie} Movies</span> : null}
+            {mediaCounts.tv ? <span className="bg-[#1a1a2e] text-[#9ca3af] px-2.5 py-1 rounded-full font-medium">📺 {mediaCounts.tv} TV</span> : null}
+            {mediaCounts.anime ? <span className="bg-[#1a1a2e] text-[#9ca3af] px-2.5 py-1 rounded-full font-medium">🎌 {mediaCounts.anime} Anime</span> : null}
+          </div>
+        )}
       </div>
+
+      {/* ── Divider ── */}
+      <div className="h-2 bg-[#0a0a14] mb-5" />
+
+      {/* ── This Month's Diary ── */}
+      <WatchList items={data.watchList} monthlyView />
 
       {popup && <DayPopup date={popup.date} entries={popup.entries} onClose={() => setPopup(null)} />}
     </div>
   );
 }
 
-function MiniStat({ value, label }: { value: string; label: string }) {
+function StatCard({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex-1 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-3 text-center">
-      <p className="text-white text-sm font-bold">{value}</p>
-      <p className="text-[#6b7280] text-[10px] uppercase tracking-wide mt-0.5">{label}</p>
-    </div>
-  );
-}
-
-function TasteCard({ label, value, full }: { label: string; value: string; full?: boolean }) {
-  return (
-    <div className={`bg-[#0f0f1a] rounded-xl p-3 ${full ? "col-span-2" : ""}`}>
-      <p className="text-[#6b7280] text-[10px] uppercase tracking-wide mb-1">{label}</p>
-      <p className={`text-white font-semibold ${full ? "text-sm" : "text-sm"}`}>{value}</p>
+    <div className="bg-[#1a1a2e] rounded-xl p-3.5 text-center">
+      <p className="text-[22px] font-extrabold text-white tracking-tight">{value}</p>
+      <p className="text-[11px] font-medium text-[#9ca3af] mt-0.5">{label}</p>
     </div>
   );
 }
