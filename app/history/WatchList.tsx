@@ -20,17 +20,16 @@ interface WatchListProps {
   monthlyView?: boolean;
 }
 
-function renderStars(rating: number) {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5;
-  let stars = "";
-  for (let i = 0; i < full; i++) stars += "★";
-  if (half) stars += "½";
-  return stars || "—";
-}
+const MEDIA_LABELS: Record<string, string> = {
+  movie: "Movie",
+  tv: "TV",
+  anime: "Anime",
+};
 
 export default function WatchList({ items, monthlyView }: WatchListProps) {
-  if (items.length === 0) {
+  const displayItems = items.slice(0, 10);
+
+  if (displayItems.length === 0) {
     return (
       <div className="px-4 flex flex-col items-center py-12 text-center">
         <span className="text-3xl mb-3">📋</span>
@@ -45,7 +44,7 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
         This Month&apos;s Diary
       </h2>
       <div className="divide-y divide-[#1a1a2e]">
-        {items.map((item) => (
+        {displayItems.map((item) => (
           <Link
             key={item.tmdbId}
             href={`/title/${item.tmdbId}`}
@@ -77,6 +76,8 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
                 {item.title}
               </p>
               <p className="text-xs text-[#9ca3af] font-medium mt-0.5">
+                {MEDIA_LABELS[item.mediaType] || item.mediaType}
+                {" · "}
                 {new Date(item.updatedAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -87,7 +88,7 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
             {/* Stars */}
             {item.rating > 0 && (
               <span className="text-sm font-bold text-[#f59e0b] flex-shrink-0">
-                {renderStars(item.rating)}
+                ★ {item.rating}
               </span>
             )}
           </Link>
