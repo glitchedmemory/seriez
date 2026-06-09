@@ -48,6 +48,7 @@ export type ReviewMinAggregateOutputType = {
   rating: number | null
   hasSpoiler: boolean | null
   likesCount: number | null
+  isHidden: boolean | null
   createdAt: Date | null
 }
 
@@ -61,6 +62,7 @@ export type ReviewMaxAggregateOutputType = {
   rating: number | null
   hasSpoiler: boolean | null
   likesCount: number | null
+  isHidden: boolean | null
   createdAt: Date | null
 }
 
@@ -74,6 +76,7 @@ export type ReviewCountAggregateOutputType = {
   rating: number
   hasSpoiler: number
   likesCount: number
+  isHidden: number
   createdAt: number
   _all: number
 }
@@ -101,6 +104,7 @@ export type ReviewMinAggregateInputType = {
   rating?: true
   hasSpoiler?: true
   likesCount?: true
+  isHidden?: true
   createdAt?: true
 }
 
@@ -114,6 +118,7 @@ export type ReviewMaxAggregateInputType = {
   rating?: true
   hasSpoiler?: true
   likesCount?: true
+  isHidden?: true
   createdAt?: true
 }
 
@@ -127,6 +132,7 @@ export type ReviewCountAggregateInputType = {
   rating?: true
   hasSpoiler?: true
   likesCount?: true
+  isHidden?: true
   createdAt?: true
   _all?: true
 }
@@ -227,6 +233,7 @@ export type ReviewGroupByOutputType = {
   rating: number
   hasSpoiler: boolean
   likesCount: number
+  isHidden: boolean
   createdAt: Date
   _count: ReviewCountAggregateOutputType | null
   _avg: ReviewAvgAggregateOutputType | null
@@ -263,6 +270,7 @@ export type ReviewWhereInput = {
   rating?: Prisma.IntFilter<"Review"> | number
   hasSpoiler?: Prisma.BoolFilter<"Review"> | boolean
   likesCount?: Prisma.IntFilter<"Review"> | number
+  isHidden?: Prisma.BoolFilter<"Review"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
@@ -277,6 +285,7 @@ export type ReviewOrderByWithRelationInput = {
   rating?: Prisma.SortOrder
   hasSpoiler?: Prisma.SortOrder
   likesCount?: Prisma.SortOrder
+  isHidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
 }
@@ -294,6 +303,7 @@ export type ReviewWhereUniqueInput = Prisma.AtLeast<{
   rating?: Prisma.IntFilter<"Review"> | number
   hasSpoiler?: Prisma.BoolFilter<"Review"> | boolean
   likesCount?: Prisma.IntFilter<"Review"> | number
+  isHidden?: Prisma.BoolFilter<"Review"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
@@ -308,6 +318,7 @@ export type ReviewOrderByWithAggregationInput = {
   rating?: Prisma.SortOrder
   hasSpoiler?: Prisma.SortOrder
   likesCount?: Prisma.SortOrder
+  isHidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.ReviewCountOrderByAggregateInput
   _avg?: Prisma.ReviewAvgOrderByAggregateInput
@@ -329,6 +340,7 @@ export type ReviewScalarWhereWithAggregatesInput = {
   rating?: Prisma.IntWithAggregatesFilter<"Review"> | number
   hasSpoiler?: Prisma.BoolWithAggregatesFilter<"Review"> | boolean
   likesCount?: Prisma.IntWithAggregatesFilter<"Review"> | number
+  isHidden?: Prisma.BoolWithAggregatesFilter<"Review"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Review"> | Date | string
 }
 
@@ -341,6 +353,7 @@ export type ReviewCreateInput = {
   rating?: number
   hasSpoiler?: boolean
   likesCount?: number
+  isHidden?: boolean
   createdAt?: Date | string
   user?: Prisma.UserCreateNestedOneWithoutReviewsInput
 }
@@ -355,6 +368,7 @@ export type ReviewUncheckedCreateInput = {
   rating?: number
   hasSpoiler?: boolean
   likesCount?: number
+  isHidden?: boolean
   createdAt?: Date | string
 }
 
@@ -367,6 +381,7 @@ export type ReviewUpdateInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   hasSpoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
   likesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  isHidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneWithoutReviewsNestedInput
 }
@@ -381,6 +396,7 @@ export type ReviewUncheckedUpdateInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   hasSpoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
   likesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  isHidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -394,6 +410,7 @@ export type ReviewCreateManyInput = {
   rating?: number
   hasSpoiler?: boolean
   likesCount?: number
+  isHidden?: boolean
   createdAt?: Date | string
 }
 
@@ -406,6 +423,7 @@ export type ReviewUpdateManyMutationInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   hasSpoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
   likesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  isHidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -419,6 +437,7 @@ export type ReviewUncheckedUpdateManyInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   hasSpoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
   likesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  isHidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -442,6 +461,7 @@ export type ReviewCountOrderByAggregateInput = {
   rating?: Prisma.SortOrder
   hasSpoiler?: Prisma.SortOrder
   likesCount?: Prisma.SortOrder
+  isHidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -461,6 +481,7 @@ export type ReviewMaxOrderByAggregateInput = {
   rating?: Prisma.SortOrder
   hasSpoiler?: Prisma.SortOrder
   likesCount?: Prisma.SortOrder
+  isHidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -474,6 +495,7 @@ export type ReviewMinOrderByAggregateInput = {
   rating?: Prisma.SortOrder
   hasSpoiler?: Prisma.SortOrder
   likesCount?: Prisma.SortOrder
+  isHidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -538,6 +560,7 @@ export type ReviewCreateWithoutUserInput = {
   rating?: number
   hasSpoiler?: boolean
   likesCount?: number
+  isHidden?: boolean
   createdAt?: Date | string
 }
 
@@ -550,6 +573,7 @@ export type ReviewUncheckedCreateWithoutUserInput = {
   rating?: number
   hasSpoiler?: boolean
   likesCount?: number
+  isHidden?: boolean
   createdAt?: Date | string
 }
 
@@ -592,6 +616,7 @@ export type ReviewScalarWhereInput = {
   rating?: Prisma.IntFilter<"Review"> | number
   hasSpoiler?: Prisma.BoolFilter<"Review"> | boolean
   likesCount?: Prisma.IntFilter<"Review"> | number
+  isHidden?: Prisma.BoolFilter<"Review"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Review"> | Date | string
 }
 
@@ -604,6 +629,7 @@ export type ReviewCreateManyUserInput = {
   rating?: number
   hasSpoiler?: boolean
   likesCount?: number
+  isHidden?: boolean
   createdAt?: Date | string
 }
 
@@ -616,6 +642,7 @@ export type ReviewUpdateWithoutUserInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   hasSpoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
   likesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  isHidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -628,6 +655,7 @@ export type ReviewUncheckedUpdateWithoutUserInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   hasSpoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
   likesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  isHidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -640,6 +668,7 @@ export type ReviewUncheckedUpdateManyWithoutUserInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   hasSpoiler?: Prisma.BoolFieldUpdateOperationsInput | boolean
   likesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  isHidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -655,6 +684,7 @@ export type ReviewSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   rating?: boolean
   hasSpoiler?: boolean
   likesCount?: boolean
+  isHidden?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.Review$userArgs<ExtArgs>
 }, ExtArgs["result"]["review"]>
@@ -669,6 +699,7 @@ export type ReviewSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   rating?: boolean
   hasSpoiler?: boolean
   likesCount?: boolean
+  isHidden?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.Review$userArgs<ExtArgs>
 }, ExtArgs["result"]["review"]>
@@ -683,6 +714,7 @@ export type ReviewSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   rating?: boolean
   hasSpoiler?: boolean
   likesCount?: boolean
+  isHidden?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.Review$userArgs<ExtArgs>
 }, ExtArgs["result"]["review"]>
@@ -697,10 +729,11 @@ export type ReviewSelectScalar = {
   rating?: boolean
   hasSpoiler?: boolean
   likesCount?: boolean
+  isHidden?: boolean
   createdAt?: boolean
 }
 
-export type ReviewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "username" | "tmdbId" | "mediaType" | "content" | "rating" | "hasSpoiler" | "likesCount" | "createdAt", ExtArgs["result"]["review"]>
+export type ReviewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "username" | "tmdbId" | "mediaType" | "content" | "rating" | "hasSpoiler" | "likesCount" | "isHidden" | "createdAt", ExtArgs["result"]["review"]>
 export type ReviewInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.Review$userArgs<ExtArgs>
 }
@@ -726,6 +759,7 @@ export type $ReviewPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     rating: number
     hasSpoiler: boolean
     likesCount: number
+    isHidden: boolean
     createdAt: Date
   }, ExtArgs["result"]["review"]>
   composites: {}
@@ -1160,6 +1194,7 @@ export interface ReviewFieldRefs {
   readonly rating: Prisma.FieldRef<"Review", 'Int'>
   readonly hasSpoiler: Prisma.FieldRef<"Review", 'Boolean'>
   readonly likesCount: Prisma.FieldRef<"Review", 'Int'>
+  readonly isHidden: Prisma.FieldRef<"Review", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Review", 'DateTime'>
 }
     

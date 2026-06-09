@@ -8,9 +8,12 @@
  *
  * 🟢 You can import this file directly.
  */
+export type * from './models/SearchLog'
 export type * from './models/User'
 export type * from './models/MediaTracking'
 export type * from './models/Review'
+export type * from './models/ReviewComment'
+export type * from './models/Report'
 export type * from './models/EpisodeWatch'
 export type * from './models/UserList'
 export type * from './models/ListItem'

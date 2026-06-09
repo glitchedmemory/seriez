@@ -18,6 +18,11 @@ export { Prisma }
 export * as $Enums from './enums'
 export * from './enums';
 /**
+ * Model SearchLog
+ * 
+ */
+export type SearchLog = Prisma.SearchLogModel
+/**
  * Model User
  * 
  */
@@ -32,6 +37,16 @@ export type MediaTracking = Prisma.MediaTrackingModel
  * 
  */
 export type Review = Prisma.ReviewModel
+/**
+ * Model ReviewComment
+ * 
+ */
+export type ReviewComment = Prisma.ReviewCommentModel
+/**
+ * Model Report
+ * 
+ */
+export type Report = Prisma.ReportModel
 /**
  * Model EpisodeWatch
  * 

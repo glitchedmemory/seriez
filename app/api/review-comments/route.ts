@@ -28,7 +28,21 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query;
     if (error) throw error;
 
-    return NextResponse.json(data || []);
+    // Check if current user is admin
+    const username = await resolveUsername(req);
+    let isAdmin = false;
+    if (username?.trim()) {
+      try {
+        const { data: userData } = await supabaseAdmin
+          .from("users").select("role").eq("username", username.trim()).maybeSingle();
+        isAdmin = userData?.role === "admin";
+      } catch {}
+    }
+
+    // Filter out hidden comments for non-admins
+    const visible = isAdmin ? (data || []) : (data || []).filter((c: any) => !c.is_hidden);
+
+    return NextResponse.json(visible);
   } catch (err: any) {
     // Table might not exist yet
     if (err?.message?.includes("does not exist")) {
@@ -47,7 +61,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { review_id, content, tmdb_id, title_name, review_author } = body;
+    const { review_id, content, parent_id, tmdb_id, title_name, review_author } = body;
 
     if (!review_id || !content?.trim()) {
       return NextResponse.json({ error: "review_id and content required" }, { status: 400 });
@@ -59,13 +73,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Insert comment
+    const insertData: any = {
+      review_id,
+      username: username.trim().slice(0, 20),
+      content: trimmed,
+    };
+    if (parent_id != null) insertData.parent_id = parent_id;
+
     const { data: comment, error } = await supabaseAdmin
       .from("review_comments")
-      .insert({
-        review_id,
-        username: username.trim().slice(0, 20),
-        content: trimmed,
-      })
+      .insert(insertData)
       .select("*")
       .single();
 

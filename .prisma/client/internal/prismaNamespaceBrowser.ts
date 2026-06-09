@@ -51,9 +51,12 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  SearchLog: 'SearchLog',
   User: 'User',
   MediaTracking: 'MediaTracking',
   Review: 'Review',
+  ReviewComment: 'ReviewComment',
+  Report: 'Report',
   EpisodeWatch: 'EpisodeWatch',
   UserList: 'UserList',
   ListItem: 'ListItem',
@@ -74,6 +77,15 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 } as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+
+
+export const SearchLogScalarFieldEnum = {
+  id: 'id',
+  query: 'query',
+  createdAt: 'createdAt'
+} as const
+
+export type SearchLogScalarFieldEnum = (typeof SearchLogScalarFieldEnum)[keyof typeof SearchLogScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -114,10 +126,35 @@ export const ReviewScalarFieldEnum = {
   rating: 'rating',
   hasSpoiler: 'hasSpoiler',
   likesCount: 'likesCount',
+  isHidden: 'isHidden',
   createdAt: 'createdAt'
 } as const
 
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
+
+
+export const ReviewCommentScalarFieldEnum = {
+  id: 'id',
+  reviewId: 'reviewId',
+  username: 'username',
+  content: 'content',
+  parentId: 'parentId',
+  isHidden: 'isHidden',
+  createdAt: 'createdAt'
+} as const
+
+export type ReviewCommentScalarFieldEnum = (typeof ReviewCommentScalarFieldEnum)[keyof typeof ReviewCommentScalarFieldEnum]
+
+
+export const ReportScalarFieldEnum = {
+  id: 'id',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  reporterUsername: 'reporterUsername',
+  createdAt: 'createdAt'
+} as const
+
+export type ReportScalarFieldEnum = (typeof ReportScalarFieldEnum)[keyof typeof ReportScalarFieldEnum]
 
 
 export const EpisodeWatchScalarFieldEnum = {

@@ -384,9 +384,12 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
+  SearchLog: 'SearchLog',
   User: 'User',
   MediaTracking: 'MediaTracking',
   Review: 'Review',
+  ReviewComment: 'ReviewComment',
+  Report: 'Report',
   EpisodeWatch: 'EpisodeWatch',
   UserList: 'UserList',
   ListItem: 'ListItem',
@@ -406,10 +409,84 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "mediaTracking" | "review" | "episodeWatch" | "userList" | "listItem" | "follow"
+    modelProps: "searchLog" | "user" | "mediaTracking" | "review" | "reviewComment" | "report" | "episodeWatch" | "userList" | "listItem" | "follow"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
+    SearchLog: {
+      payload: Prisma.$SearchLogPayload<ExtArgs>
+      fields: Prisma.SearchLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SearchLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SearchLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SearchLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SearchLogPayload>
+        }
+        findFirst: {
+          args: Prisma.SearchLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SearchLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SearchLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SearchLogPayload>
+        }
+        findMany: {
+          args: Prisma.SearchLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SearchLogPayload>[]
+        }
+        create: {
+          args: Prisma.SearchLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SearchLogPayload>
+        }
+        createMany: {
+          args: Prisma.SearchLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SearchLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SearchLogPayload>[]
+        }
+        delete: {
+          args: Prisma.SearchLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SearchLogPayload>
+        }
+        update: {
+          args: Prisma.SearchLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SearchLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.SearchLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SearchLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SearchLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SearchLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.SearchLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SearchLogPayload>
+        }
+        aggregate: {
+          args: Prisma.SearchLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSearchLog>
+        }
+        groupBy: {
+          args: Prisma.SearchLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SearchLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SearchLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SearchLogCountAggregateOutputType> | number
+        }
+      }
+    }
     User: {
       payload: Prisma.$UserPayload<ExtArgs>
       fields: Prisma.UserFieldRefs
@@ -629,6 +706,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ReviewCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ReviewCountAggregateOutputType> | number
+        }
+      }
+    }
+    ReviewComment: {
+      payload: Prisma.$ReviewCommentPayload<ExtArgs>
+      fields: Prisma.ReviewCommentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ReviewCommentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewCommentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ReviewCommentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewCommentPayload>
+        }
+        findFirst: {
+          args: Prisma.ReviewCommentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewCommentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ReviewCommentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewCommentPayload>
+        }
+        findMany: {
+          args: Prisma.ReviewCommentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewCommentPayload>[]
+        }
+        create: {
+          args: Prisma.ReviewCommentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewCommentPayload>
+        }
+        createMany: {
+          args: Prisma.ReviewCommentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ReviewCommentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewCommentPayload>[]
+        }
+        delete: {
+          args: Prisma.ReviewCommentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewCommentPayload>
+        }
+        update: {
+          args: Prisma.ReviewCommentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewCommentPayload>
+        }
+        deleteMany: {
+          args: Prisma.ReviewCommentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ReviewCommentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ReviewCommentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewCommentPayload>[]
+        }
+        upsert: {
+          args: Prisma.ReviewCommentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewCommentPayload>
+        }
+        aggregate: {
+          args: Prisma.ReviewCommentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateReviewComment>
+        }
+        groupBy: {
+          args: Prisma.ReviewCommentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReviewCommentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ReviewCommentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReviewCommentCountAggregateOutputType> | number
+        }
+      }
+    }
+    Report: {
+      payload: Prisma.$ReportPayload<ExtArgs>
+      fields: Prisma.ReportFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ReportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ReportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        findFirst: {
+          args: Prisma.ReportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ReportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        findMany: {
+          args: Prisma.ReportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>[]
+        }
+        create: {
+          args: Prisma.ReportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        createMany: {
+          args: Prisma.ReportCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ReportCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>[]
+        }
+        delete: {
+          args: Prisma.ReportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        update: {
+          args: Prisma.ReportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        deleteMany: {
+          args: Prisma.ReportDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ReportUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ReportUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>[]
+        }
+        upsert: {
+          args: Prisma.ReportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        aggregate: {
+          args: Prisma.ReportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateReport>
+        }
+        groupBy: {
+          args: Prisma.ReportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReportGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ReportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReportCountAggregateOutputType> | number
         }
       }
     }
@@ -967,6 +1192,15 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const SearchLogScalarFieldEnum = {
+  id: 'id',
+  query: 'query',
+  createdAt: 'createdAt'
+} as const
+
+export type SearchLogScalarFieldEnum = (typeof SearchLogScalarFieldEnum)[keyof typeof SearchLogScalarFieldEnum]
+
+
 export const UserScalarFieldEnum = {
   id: 'id',
   username: 'username',
@@ -1005,10 +1239,35 @@ export const ReviewScalarFieldEnum = {
   rating: 'rating',
   hasSpoiler: 'hasSpoiler',
   likesCount: 'likesCount',
+  isHidden: 'isHidden',
   createdAt: 'createdAt'
 } as const
 
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
+
+
+export const ReviewCommentScalarFieldEnum = {
+  id: 'id',
+  reviewId: 'reviewId',
+  username: 'username',
+  content: 'content',
+  parentId: 'parentId',
+  isHidden: 'isHidden',
+  createdAt: 'createdAt'
+} as const
+
+export type ReviewCommentScalarFieldEnum = (typeof ReviewCommentScalarFieldEnum)[keyof typeof ReviewCommentScalarFieldEnum]
+
+
+export const ReportScalarFieldEnum = {
+  id: 'id',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  reporterUsername: 'reporterUsername',
+  createdAt: 'createdAt'
+} as const
+
+export type ReportScalarFieldEnum = (typeof ReportScalarFieldEnum)[keyof typeof ReportScalarFieldEnum]
 
 
 export const EpisodeWatchScalarFieldEnum = {
@@ -1083,6 +1342,20 @@ export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 /**
  * Field references
  */
+
+
+/**
+ * Reference to a field of type 'BigInt'
+ */
+export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>
+    
+
+
+/**
+ * Reference to a field of type 'BigInt[]'
+ */
+export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt[]'>
+    
 
 
 /**
@@ -1257,9 +1530,12 @@ export type PrismaClientOptions = ({
   queryPlanCacheMaxSize?: number
 }
 export type GlobalOmitConfig = {
+  searchLog?: Prisma.SearchLogOmit
   user?: Prisma.UserOmit
   mediaTracking?: Prisma.MediaTrackingOmit
   review?: Prisma.ReviewOmit
+  reviewComment?: Prisma.ReviewCommentOmit
+  report?: Prisma.ReportOmit
   episodeWatch?: Prisma.EpisodeWatchOmit
   userList?: Prisma.UserListOmit
   listItem?: Prisma.ListItemOmit
