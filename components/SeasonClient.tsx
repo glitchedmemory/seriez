@@ -788,10 +788,8 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
           </section>
         )}
 
-        {/* Similar Titles */}
-        {data.similar.length > 0 && (
-          <SimilarSection items={data.similar} />
-        )}
+        {/* Recommended */}
+        <SimilarSection items={data.similar} />
 
         {/* Reviews for this series (shared across all seasons) */}
         <section className="mt-6">
