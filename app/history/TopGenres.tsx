@@ -21,7 +21,7 @@ export default function TopGenres({ genres }: { genres: GenreData[] }) {
     <div className="mb-6">
       <h3 className="text-[15px] font-bold text-white tracking-tight mb-3">Top Genres</h3>
       <div className="flex flex-wrap gap-2">
-        {genres.map((genre, i) => (
+        {genres.slice(0, 5).map((genre, i) => (
           <span
             key={genre.name}
             className={`text-[13px] font-semibold px-3.5 py-1.5 rounded-full tracking-tight ${
