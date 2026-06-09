@@ -480,53 +480,45 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
         {total >= 10000 ? `${(total / 10000).toFixed(1)}만` : total >= 1000 ? `${(total / 1000).toFixed(1)}k` : String(total)}
       </p>
 
-      {/* Vertical bar chart — absolute positioning, guaranteed unified baseline */}
-      <div style={{ position: "relative", height: BAR_HEIGHT, marginTop: 16 }}>
-        {/* Bars — each positioned directly at bottom: 14px, centered in column */}
-        {buckets.map((star, i) => {
+      {/* Bar chart — flexbox, tight packed */}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: BAR_HEIGHT, marginTop: 16 }}>
+        {buckets.map((star) => {
           const count = distribution[star] || 0;
-          const barMaxH = BAR_HEIGHT - 14; // bar area height
+          const barMaxH = BAR_HEIGHT - 14;
           const barH = count > 0 ? Math.max((count / maxCount) * barMaxH, 4) : 0;
-          const barColor = "#ff2f6e";
-          const colWidth = 100 / buckets.length;
           return (
             <div
               key={`bar-${star}`}
               style={{
-                position: "absolute",
-                bottom: 14,
-                left: `${i * colWidth + colWidth / 2}%`,
-                transform: "translateX(-50%)",
-                width: 20,
-                height: barH,
-                backgroundColor: barColor,
-                borderTopLeftRadius: 3,
-                borderTopRightRadius: 3,
-                transition: "height 0.5s",
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                height: "100%",
               }}
-            />
-          );
-        })}
-        {/* Labels — positioned at bottom: 0, centered in column */}
-        {buckets.map((star, i) => {
-          const colWidth = 100 / buckets.length;
-          return (
-            <span
-              key={`lbl-${star}`}
-              style={{
-                position: "absolute",
-                bottom: 0,
-                left: `${i * colWidth}%`,
-                width: `${colWidth}%`,
+            >
+              <div
+                style={{
+                  width: "100%",
+                  maxWidth: 28,
+                  height: barH,
+                  backgroundColor: "#ff2f6e",
+                  borderTopLeftRadius: 3,
+                  borderTopRightRadius: 3,
+                  transition: "height 0.5s",
+                }}
+              />
+              <span style={{
                 fontSize: 10,
                 fontWeight: 500,
                 color: "#6b7280",
                 lineHeight: "14px",
-                textAlign: "center",
-              }}
-            >
-              {star % 1 === 0 ? star : ""}
-            </span>
+                marginTop: 2,
+              }}>
+                {star % 1 === 0 ? star : ""}
+              </span>
+            </div>
           );
         })}
       </div>
