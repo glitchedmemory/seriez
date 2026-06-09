@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { AnimeDetail, AnimeRecItem, AnimeEpisode } from "@/lib/anilist";
 import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
@@ -63,6 +64,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
   const [watchedEpisodes, setWatchedEpisodes] = useState<Set<string>>(new Set());
   const [epToggleLoading, setEpToggleLoading] = useState<string | null>(null);
   const supabase = createClient();
+  const router = useRouter();
 
   // Collections
   const [collections, setCollections] = useState<{ id: string; name: string; itemCount: number }[]>([]);
@@ -295,6 +297,28 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
     ? `${detail.season} ${detail.year}`
     : detail.year ? String(detail.year) : "";
 
+  // ─── Season tabs from relations ───
+  const seasonTabs = (() => {
+    // Find TV sequels/prequels — filter to TV format only
+    const relatedTV = detail.relations.filter(r =>
+      r.type === "ANIME" && (!r.format || r.format === "TV")
+    );
+    if (relatedTV.length === 0) return [];
+
+    // Sort: prequels first, then current, then sequels
+    // AniList doesn't expose relation type in the public API, so we just list all TV relations
+    // Build tabs: current show + all TV relations
+    const tabs = [
+      { id: detail.id, title: `S1 · ${detail.title}`, isActive: true },
+      ...relatedTV.map((r, i) => ({
+        id: r.id,
+        title: `S${i + 2} · ${r.title}`,
+        isActive: false,
+      })),
+    ];
+    return tabs;
+  })();
+
   // Estimate hours watched (for episodes × duration)
   const totalMinutes = detail.episodes > 0 && detail.duration > 0
     ? detail.episodes * detail.duration
@@ -470,6 +494,32 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
             )}
           </div>
         </div>
+
+        {/* ─── Season Tabs ─── */}
+        {seasonTabs.length > 1 && (
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold text-white mb-3">Seasons</h2>
+            <div className="flex flex-wrap gap-2">
+              {seasonTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    if (!tab.isActive) {
+                      router.push(`/title/${tab.id}?type=anime`);
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    tab.isActive
+                      ? "bg-[#6366f1] text-white cursor-default"
+                      : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white hover:bg-[#2d2d4a] border border-[#2d2d4a] hover:border-[#6366f1]"
+                  }`}
+                >
+                  {tab.title}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Overview */}
         {detail.overview && (
