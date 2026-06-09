@@ -4,7 +4,41 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 /** Recursive comment tree — builds hierarchy from flat list via parent_id */
-function CommentTree({ comments, depth }: { comments: any[]; depth: number }) {
+function CommentTree({
+  comments,
+  depth,
+  isAdmin,
+  onReport,
+  onDelete,
+  onReply,
+  onToggleReply,
+  onReplyChange,
+  reportingComments,
+  replyInputs,
+  replyingTo,
+  reviewId,
+  reviewTmdbId,
+  reviewAuthor,
+  titleName,
+  authUsername,
+}: {
+  comments: any[];
+  depth: number;
+  isAdmin: boolean;
+  onReport: (commentId: number) => void;
+  onDelete: (commentId: number) => void;
+  onReply: (commentId: number) => void;
+  onToggleReply: (commentId: number) => void;
+  onReplyChange: (commentId: number, text: string) => void;
+  reportingComments: Set<string>;
+  replyInputs: Record<string, string>;
+  replyingTo: Record<string, string | null>;
+  reviewId: string;
+  reviewTmdbId: number;
+  reviewAuthor: string;
+  titleName: string;
+  authUsername?: string;
+}) {
   const roots = comments.filter((c: any) => c.parent_id == null);
   const getChildren = (parentId: number) => comments.filter((c: any) => c.parent_id === parentId);
 
@@ -23,13 +57,91 @@ function CommentTree({ comments, depth }: { comments: any[]; depth: number }) {
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5">
                 {c.username[0]?.toUpperCase()}
               </div>
-              <div>
-                <span className="text-xs font-medium text-white mr-2">{c.username}</span>
+              <div className="flex-1">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-medium text-white mr-2">{c.username}</span>
+                  {/* Hidden badge for admin */}
+                  {isAdmin && c.is_hidden && (
+                    <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded">🚨 hidden</span>
+                  )}
+                  {/* Report button on comment */}
+                  {authUsername && authUsername !== c.username && (
+                    <button
+                      onClick={() => onReport(c.id)}
+                      disabled={reportingComments.has(String(c.id))}
+                      className="text-[10px] text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50 ml-auto"
+                      title="Report"
+                    >
+                      🚩
+                    </button>
+                  )}
+                  {/* Admin delete comment */}
+                  {isAdmin && c.is_hidden && (
+                    <button
+                      onClick={() => onDelete(c.id)}
+                      className="text-[10px] text-red-400 hover:text-red-300 ml-1"
+                    >
+                      🗑️
+                    </button>
+                  )}
+                </div>
                 <span className="text-xs text-[#d1d5db] whitespace-pre-wrap">{c.content}</span>
+                {/* Reply button */}
+                {authUsername && (
+                  <button
+                    onClick={() => onToggleReply(c.id)}
+                    className="text-[10px] text-[#6b7280] hover:text-[#a855f7] transition-colors mt-1"
+                  >
+                    💬 Reply
+                  </button>
+                )}
               </div>
             </div>
+            {/* Reply input */}
+            {replyingTo[String(c.id)] != null && (
+              <div className="flex gap-2 mt-1" style={{ marginLeft: depth * 16 + 21 }}>
+                <input
+                  type="text"
+                  placeholder="Write a reply..."
+                  value={replyInputs[String(c.id)] || ""}
+                  onChange={(e) => onReplyChange(c.id, e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      onReply(c.id);
+                    }
+                  }}
+                  maxLength={1000}
+                  className="flex-1 bg-[#25253a] text-white text-[10px] rounded-lg px-2 py-1.5 outline-none border border-transparent focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280]"
+                />
+                <button
+                  onClick={() => onReply(c.id)}
+                  disabled={!replyInputs[String(c.id)]?.trim()}
+                  className="px-2 py-1 bg-[#6366f1] hover:bg-[#5558e6] disabled:opacity-40 text-white text-[10px] font-medium rounded-lg transition-colors flex-shrink-0"
+                >
+                  Post
+                </button>
+              </div>
+            )}
             {children.length > 0 && (
-              <CommentTree comments={children} depth={depth + 1} />
+              <CommentTree
+                comments={children}
+                depth={depth + 1}
+                isAdmin={isAdmin}
+                onReport={onReport}
+                onDelete={onDelete}
+                onReply={onReply}
+                onToggleReply={onToggleReply}
+                onReplyChange={onReplyChange}
+                reportingComments={reportingComments}
+                replyInputs={replyInputs}
+                replyingTo={replyingTo}
+                reviewId={reviewId}
+                reviewTmdbId={reviewTmdbId}
+                reviewAuthor={reviewAuthor}
+                titleName={titleName}
+                authUsername={authUsername}
+              />
             )}
           </div>
         );
@@ -85,6 +197,8 @@ interface Review {
   rating: number;
   likes: number;
   liked: boolean;
+  isHidden?: boolean;
+  commentCount?: number;
   createdAt: string;
 }
 
@@ -120,6 +234,13 @@ export function ReviewSection({
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   const [comments, setComments] = useState<Record<string, any[]>>({});
   const [loadingComments, setLoadingComments] = useState<Set<string>>(new Set());
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [reportCounts, setReportCounts] = useState<Record<string, number>>({});
+  const [reportingReview, setReportingReview] = useState<Set<string>>(new Set());
+  const [reportingComments, setReportingComments] = useState<Set<string>>(new Set());
+  // Reply state: { [commentId]: replyText }
+  const [replyInputs, setReplyInputs] = useState<Record<string, string>>({});
+  const [replyingTo, setReplyingTo] = useState<Record<string, string | null>>({});
 
   const toggleComments = async (reviewId: string, reviewAuthor: string) => {
     const newExpanded = new Set(expandedComments);
@@ -147,14 +268,15 @@ export function ReviewSection({
     setExpandedComments(newExpanded);
   };
 
-  const submitComment = async (reviewId: string, reviewAuthor: string, reviewTmdbId: number, titleName: string) => {
-    const text = commentInputs[reviewId]?.trim();
+  const submitComment = async (reviewId: string, reviewAuthor: string, reviewTmdbId: number, titleName: string, parentId?: number) => {
+    const text = (parentId != null ? replyInputs[String(parentId)] : commentInputs[reviewId])?.trim();
     if (!text || !authUser) return;
 
     const optimisticComment = {
       id: "optimistic-" + Date.now(),
       username: authUser.user_metadata?.username || authUser.email?.split("@")[0] || "User",
       content: text,
+      parent_id: parentId ?? null,
       created_at: new Date().toISOString(),
     };
 
@@ -162,19 +284,27 @@ export function ReviewSection({
       ...prev,
       [reviewId]: [...(prev[reviewId] || []), optimisticComment],
     }));
-    setCommentInputs((prev) => ({ ...prev, [reviewId]: "" }));
+    if (parentId != null) {
+      setReplyInputs((prev) => ({ ...prev, [String(parentId)]: "" }));
+      setReplyingTo((prev) => ({ ...prev, [String(parentId)]: null }));
+    } else {
+      setCommentInputs((prev) => ({ ...prev, [reviewId]: "" }));
+    }
 
     try {
+      const body: any = {
+        review_id: reviewId,
+        content: text,
+        tmdb_id: reviewTmdbId,
+        title_name: titleName,
+        review_author: reviewAuthor,
+      };
+      if (parentId != null) body.parent_id = parentId;
+
       const res = await fetch("/api/review-comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          review_id: reviewId,
-          content: text,
-          tmdb_id: reviewTmdbId,
-          title_name: titleName,
-          review_author: reviewAuthor,
-        }),
+        body: JSON.stringify(body),
       });
       if (res.ok) {
         // Refresh comments
@@ -182,6 +312,8 @@ export function ReviewSection({
         if (refresh.ok) {
           const data = await refresh.json();
           setComments((prev) => ({ ...prev, [reviewId]: data }));
+          // Update comment count on the review
+          setReviews((prev) => prev.map((r) => r.id === reviewId ? { ...r, commentCount: data.length } : r));
         }
       }
     } catch {
@@ -193,8 +325,98 @@ export function ReviewSection({
     }
   };
 
+  const handleReport = async (targetType: "review" | "comment", targetId: string) => {
+    if (!authUser) return;
+    setReportingReview((prev) => new Set(prev).add(targetId));
+    try {
+      const res = await fetch("/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_type: targetType, target_id: targetId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setReportCounts((prev) => ({ ...prev, [targetId]: data.report_count }));
+      }
+    } catch {}
+    setReportingReview((prev) => {
+      const next = new Set(prev);
+      next.delete(targetId);
+      return next;
+    });
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!isAdmin) return;
+    try {
+      await supabase.from("reviews").delete().eq("id", reviewId);
+      setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+    } catch {}
+  };
+
+  const handleDeleteComment = async (commentId: number, reviewId: string) => {
+    if (!isAdmin) return;
+    try {
+      await supabase.from("review_comments").delete().eq("id", commentId);
+      setComments((prev) => ({
+        ...prev,
+        [reviewId]: (prev[reviewId] || []).filter((c) => c.id !== commentId),
+      }));
+    } catch {}
+  };
+
+  const handleReportComment = (reviewId: string) => async (commentId: number) => {
+    if (!authUser) return;
+    setReportingComments((prev) => new Set(prev).add(String(commentId)));
+    try {
+      const res = await fetch("/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_type: "comment", target_id: String(commentId) }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setReportCounts((prev) => ({ ...prev, [String(commentId)]: data.report_count }));
+      }
+    } catch {}
+    setReportingComments((prev) => {
+      const next = new Set(prev);
+      next.delete(String(commentId));
+      return next;
+    });
+  };
+
+  const handleDeleteCommentWrapper = (reviewId: string) => (commentId: number) => {
+    handleDeleteComment(commentId, reviewId);
+  };
+
+  // Reply helpers
+  const toggleReply = (reviewId: string) => (commentId: number) => {
+    setReplyingTo((prev) => ({
+      ...prev,
+      [String(commentId)]: prev[String(commentId)] != null ? null : String(commentId),
+    }));
+  };
+
+  const handleReplyChange = (_reviewId: string) => (commentId: number, text: string) => {
+    setReplyInputs((prev) => ({ ...prev, [String(commentId)]: text }));
+  };
+
+  const submitReply = (reviewId: string, reviewAuthor: string, reviewTmdbId: number, titleName: string) => (commentId: number) => {
+    submitComment(reviewId, reviewAuthor, reviewTmdbId, titleName, commentId);
+  };
+
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setAuthUser(data.user ?? null)).catch(() => {});
+    supabase.auth.getUser().then(async ({ data }) => {
+      const user = data.user ?? null;
+      setAuthUser(user);
+      if (user?.user_metadata?.username) {
+        try {
+          const { data: rows } = await supabase.from("users").select("role").eq("username", user.user_metadata.username).maybeSingle();
+          setIsAdmin((rows as any)?.role === "admin");
+        } catch {}
+      }
+    }).catch(() => {});
   }, []);
 
   const fetchAll = useCallback(async () => {
@@ -413,9 +635,36 @@ export function ReviewSection({
                   }`}
                 >
                   <span>💬</span>
-                  <span>{(comments[review.id] || []).length || "Comment"}</span>
+                  <span>{review.commentCount || "Comment"}</span>
                 </button>
+                {/* Report button */}
+                {authUser && authUser.user_metadata?.username !== review.username && (
+                  <button
+                    onClick={() => handleReport("review", review.id)}
+                    disabled={reportingReview.has(review.id)}
+                    className="flex items-center gap-1 text-xs text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50"
+                    title="Report this review"
+                  >
+                    <span>🚩</span>
+                  </button>
+                )}
+                {/* Admin: delete hidden review */}
+                {isAdmin && review.isHidden && (
+                  <button
+                    onClick={() => handleDeleteReview(review.id)}
+                    className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    <span>🗑️</span>
+                    <span>Delete</span>
+                  </button>
+                )}
               </div>
+              {/* Hidden indicator for admin */}
+              {isAdmin && review.isHidden && (
+                <div className="mt-2 px-2 py-1 bg-red-900/30 border border-red-800/50 rounded text-[10px] text-red-300">
+                  🚨 Hidden
+                </div>
+              )}
 
               {/* ── Comments Section ── */}
               {expandedComments.has(review.id) && (
@@ -426,6 +675,20 @@ export function ReviewSection({
                     <CommentTree
                       comments={comments[review.id] || []}
                       depth={0}
+                      isAdmin={isAdmin}
+                      onReport={handleReportComment(review.id)}
+                      onDelete={handleDeleteCommentWrapper(review.id)}
+                      onReply={submitReply(review.id, review.username, tmdbId, "")}
+                      onToggleReply={toggleReply(review.id)}
+                      onReplyChange={handleReplyChange(review.id)}
+                      reportingComments={reportingComments}
+                      replyInputs={replyInputs}
+                      replyingTo={replyingTo}
+                      reviewId={review.id}
+                      reviewTmdbId={tmdbId}
+                      reviewAuthor={review.username}
+                      titleName=""
+                      authUsername={authUser?.user_metadata?.username}
                     />
                   ) : (
                     <p className="text-xs text-[#6b7280] mb-3">No comments yet</p>

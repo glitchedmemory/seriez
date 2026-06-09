@@ -43,11 +43,19 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabase
     .from("reviews")
-    .select("id, username, content, rating, likes_count, created_at")
+    .select("id, username, content, rating, likes_count, is_hidden, created_at")
     .eq("tmdb_id", tmdbIdNum).eq("media_type", mediaType)
     .order("created_at", { ascending: false }).limit(50);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Check if current user is admin
+  let isAdmin = false;
+  if (username?.trim()) {
+    const { data: userData } = await supabaseAdmin
+      .from("users").select("role").eq("username", username.trim()).maybeSingle();
+    isAdmin = userData?.role === "admin";
+  }
 
   let likedSet = new Set<string>();
   if (username?.trim()) {
@@ -56,9 +64,29 @@ export async function GET(req: NextRequest) {
     if (likes) likedSet = new Set(likes.map((l: any) => l.review_id));
   }
 
-  return NextResponse.json(data.map((r) => ({
+  // Filter out hidden reviews for non-admins
+  const visible = isAdmin ? data : (data || []).filter((r: any) => !r.is_hidden);
+
+  // Fetch comment counts for visible reviews
+  const reviewIds = visible.map((r: any) => r.id);
+  let commentCounts: Record<string, number> = {};
+  if (reviewIds.length > 0) {
+    const { data: counts } = await supabase
+      .from("review_comments")
+      .select("review_id, id")
+      .in("review_id", reviewIds);
+    if (counts) {
+      for (const c of counts) {
+        const rid = c.review_id as string;
+        commentCounts[rid] = (commentCounts[rid] || 0) + 1;
+      }
+    }
+  }
+
+  return NextResponse.json(visible.map((r) => ({
     id: r.id, username: r.username || "Anonymous", content: r.content,
-    rating: FROM_DB(r.rating || 0), likes: r.likes_count || 0, liked: likedSet.has(r.id), createdAt: r.created_at,
+    rating: FROM_DB(r.rating || 0), likes: r.likes_count || 0, liked: likedSet.has(r.id),
+    isHidden: r.is_hidden || false, commentCount: commentCounts[r.id] || 0, createdAt: r.created_at,
   })));
 }
 

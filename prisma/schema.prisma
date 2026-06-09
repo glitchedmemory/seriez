@@ -58,11 +58,39 @@ model Review {
   rating     Int      @default(0)
   hasSpoiler Boolean  @default(false) @map("has_spoiler")
   likesCount Int      @default(0) @map("likes_count")
+  isHidden   Boolean  @default(false) @map("is_hidden")
   createdAt  DateTime @default(now()) @map("created_at")
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("reviews")
+}
+
+model ReviewComment {
+  id        BigInt    @id @default(autoincrement())
+  reviewId  String    @map("review_id") @db.Uuid
+  username  String
+  content   String
+  parentId  BigInt?   @map("parent_id")
+  isHidden  Boolean   @default(false) @map("is_hidden")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([reviewId])
+  @@index([createdAt(sort: Desc)])
+  @@map("review_comments")
+}
+
+model Report {
+  id               BigInt    @id @default(autoincrement())
+  targetType       String    @map("target_type")
+  targetId         String    @map("target_id")
+  reporterUsername String    @map("reporter_username")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  @@unique([targetType, targetId, reporterUsername])
+  @@index([targetType, targetId])
+  @@index([reporterUsername])
+  @@map("reports")
 }
 
 model EpisodeWatch {
