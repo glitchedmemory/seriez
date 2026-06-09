@@ -439,11 +439,17 @@ export function ReviewSection({
       } else {
         // Revert
         const refresh = await fetch(`/api/review-comments?review_id=${reviewId}`);
-        if (refresh.ok) setComments((prev) => ({ ...prev, [reviewId]: await refresh.json() }));
+        if (refresh.ok) {
+          const refreshed = await refresh.json();
+          setComments((prev) => ({ ...prev, [reviewId]: refreshed }));
+        }
       }
     } catch {
       const refresh = await fetch(`/api/review-comments?review_id=${reviewId}`);
-      if (refresh.ok) setComments((prev) => ({ ...prev, [reviewId]: await refresh.json() }));
+      if (refresh.ok) {
+        const refreshed = await refresh.json();
+        setComments((prev) => ({ ...prev, [reviewId]: refreshed }));
+      }
     }
   };
 
