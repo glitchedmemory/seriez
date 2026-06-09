@@ -482,7 +482,7 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
         {total >= 10000 ? `${(total / 10000).toFixed(1)}만` : total >= 1000 ? `${(total / 1000).toFixed(1)}k` : String(total)}
       </p>
 
-      <div style={{ marginTop: 16 }}>
+      <div style={{ marginTop: 16, display: "flex", flexDirection: "column", alignItems: "center" }}>
       {/* Bars row */}
       <div style={{ display: "flex", alignItems: "flex-end", gap: BAR_GAP, height: BAR_HEIGHT }}>
         {buckets.map((star) => {
@@ -501,9 +501,6 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
                 height: "100%",
               }}
             >
-              <span style={{ fontSize: 10, color: "#9ca3af", marginBottom: 4, fontWeight: 500 }}>
-                {count > 0 ? count : ""}
-              </span>
               <div
                 style={{
                   width: "100%",
