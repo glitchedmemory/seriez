@@ -2,6 +2,27 @@ const ANILIST_API = "https://graphql.anilist.co";
 
 import { validateAndReplaceTrailers } from "./yt-validator";
 
+// ─── Retry wrapper ───
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts = 3,
+  baseDelay = 1000
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastError = e;
+      if (attempt < maxAttempts) {
+        await new Promise((r) => setTimeout(r, baseDelay * Math.pow(2, attempt - 1)));
+      }
+    }
+  }
+  throw lastError;
+}
+
 // ─── Types ───
 
 export type AnimeDetail = {
@@ -146,12 +167,14 @@ function formatSeason(season: string | null): string {
 
 export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
   try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({ query: DETAIL_QUERY, variables: { id } }),
-      next: { revalidate: 3600 },
-    });
+    const res = await withRetry(() =>
+      fetch(ANILIST_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ query: DETAIL_QUERY, variables: { id } }),
+        next: { revalidate: 3600 },
+      })
+    );
 
     if (!res.ok) return null;
     const json = await res.json();
@@ -250,7 +273,9 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
     const validated = await validateAndReplaceTrailers(
       trailer ? [{ key: trailer.id, name: "Trailer" }] : [],
       `${animeTitle} official trailer`,
-      1
+      1,
+      undefined,
+      m.id
     );
     if (validated.length > 0) {
       result.trailer = { id: validated[0].key, site: "YouTube" };
