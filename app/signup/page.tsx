@@ -12,7 +12,7 @@ export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "short">("idle");
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "reserved" | "short">("idle");
   const router = useRouter();
   const supabase = createClient();
 
@@ -26,8 +26,12 @@ export default function SignupPage() {
     setUsernameStatus("checking");
     try {
       const res = await fetch(`/api/users/check-username?username=${encodeURIComponent(trimmed)}`);
-      const { exists } = await res.json();
-      setUsernameStatus(exists ? "taken" : "available");
+      const data = await res.json();
+      if (data.reserved) {
+        setUsernameStatus("reserved");
+        return;
+      }
+      setUsernameStatus(data.exists ? "taken" : "available");
     } catch {
       setUsernameStatus("idle");
     }
@@ -61,8 +65,8 @@ export default function SignupPage() {
     }
 
     // Username duplicate check
-    if (usernameStatus === "taken") {
-      setError("This username is already taken");
+    if (usernameStatus === "taken" || usernameStatus === "reserved") {
+      setError(usernameStatus === "reserved" ? "This username is reserved" : "This username is already taken");
       setLoading(false);
       return;
     }
@@ -108,7 +112,7 @@ export default function SignupPage() {
           onBlur={(e) => checkUsername(e.target.value)}
           className={`w-full bg-[#1a1a2e] text-white rounded-xl px-4 py-3 outline-none border mb-1 ${
             usernameStatus === "available" ? "border-emerald-500" :
-            usernameStatus === "taken" || usernameStatus === "short" ? "border-red-500" :
+            usernameStatus === "taken" || usernameStatus === "reserved" || usernameStatus === "short" ? "border-red-500" :
             "border-[#2d2d4a] focus:border-[#6366f1]"
           }`}
           required
@@ -118,6 +122,7 @@ export default function SignupPage() {
           {usernameStatus === "checking" && <p className="text-[10px] text-[#6b7280]">Checking...</p>}
           {usernameStatus === "available" && <p className="text-[10px] text-emerald-400">✓ Available</p>}
           {usernameStatus === "taken" && <p className="text-[10px] text-red-400">✗ Already taken</p>}
+          {usernameStatus === "reserved" && <p className="text-[10px] text-red-400">✗ Reserved</p>}
           {usernameStatus === "short" && <p className="text-[10px] text-red-400">Min 2 characters</p>}
         </div>
         <input
