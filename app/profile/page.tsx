@@ -152,7 +152,7 @@ export default function ProfilePage() {
     const tabLabel = tab === "followers" ? "Followers" : "Following";
     return (
       <ErrorBoundary sectionName={`Profile ${tabLabel}`}>
-        <div className="max-w-lg mx-auto pb-32">
+        <div className="max-w-lg md:max-w-4xl mx-auto pb-32">
           {/* Header */}
           <div className="flex items-center gap-4 px-4 pt-4 pb-3">
             <button
@@ -248,7 +248,7 @@ export default function ProfilePage() {
 
   return (
     <ErrorBoundary sectionName="Profile">
-    <div className="max-w-lg mx-auto pb-32">
+    <div className="max-w-lg md:max-w-4xl mx-auto pb-32">
       {/* Cover area */}
       <div className="relative h-40 bg-gradient-to-br from-[#6366f1] via-[#7c3aed] to-[#a855f7]">
         <div className="absolute inset-0 overflow-hidden opacity-20">
