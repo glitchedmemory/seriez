@@ -398,8 +398,8 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       return true;
     });
 
-    // Only show tabs if there are at least 2 distinct entries
-    if (dedupedTabs.length < 2) return [];
+    // Only show tabs if there's at least 1 entry (single-season shows still get S1 tab)
+    if (dedupedTabs.length < 1) return [];
     return dedupedTabs;
   })();
 
