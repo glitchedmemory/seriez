@@ -58,6 +58,7 @@ function CommentTree({
   titleName: string;
   authUsername?: string;
 }) {
+  const router = useRouter();
   const nodes = parentId != null
     ? comments.filter((c: any) => c.parent_id === parentId)
     : comments.filter((c: any) => c.parent_id == null);
