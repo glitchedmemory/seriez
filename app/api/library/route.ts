@@ -44,32 +44,32 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ items: [] });
   }
 
-  // Enrich with TMDB data in parallel
-  const items = await Promise.all(
-    data.map(async (t) => {
-      try {
-        const res = await fetch(
-          `${TMDB_API}/${t.media_type}/${t.tmdb_id}?api_key=${TMDB_KEY}`
-        );
-        if (!res.ok) return null;
-        const detail = await res.json();
-        return {
-          tmdbId: t.tmdb_id,
-          mediaType: t.media_type,
-          status: t.status,
-          rating: t.rating,
-          progress: t.progress,
-          updatedAt: t.updated_at,
-          title: detail.title || detail.name || "Unknown",
-          poster: detail.poster_path ? `${TMDB_IMAGE}${detail.poster_path}` : null,
-          year: (detail.release_date || detail.first_air_date || "").slice(0, 4) || null,
-          tmdbRating: Math.round((detail.vote_average || 0) * 10) / 10,
-        };
-      } catch {
-        return null;
-      }
-    })
-  );
+  // Enrich with TMDB data sequentially (avoid rate limit)
+  const items = [];
+  for (const t of data) {
+    try {
+      const res = await fetch(
+        `${TMDB_API}/${t.media_type}/${t.tmdb_id}?api_key=${TMDB_KEY}`
+      );
+      if (!res.ok) { items.push(null); continue; }
+      const detail = await res.json();
+      items.push({
+        tmdbId: t.tmdb_id,
+        mediaType: t.media_type,
+        status: t.status,
+        rating: t.rating,
+        progress: t.progress,
+        updatedAt: t.updated_at,
+        title: detail.title || detail.name || "Unknown",
+        poster: detail.poster_path ? `${TMDB_IMAGE}${detail.poster_path}` : null,
+        year: (detail.release_date || detail.first_air_date || "").slice(0, 4) || null,
+        tmdbRating: Math.round((detail.vote_average || 0) * 10) / 10,
+      });
+    } catch {
+      items.push(null);
+    }
+    await new Promise(r => setTimeout(r, 50)); // avoid TMDB rate limit
+  }
 
   return NextResponse.json({
     items: items.filter(Boolean),
