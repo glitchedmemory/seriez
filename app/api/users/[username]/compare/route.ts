@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername } from "@/lib/auth-helper";
+import { resolveUserId } from "@/lib/user-utils";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -19,16 +20,21 @@ export async function GET(
   const me = searchParams.get("me") || await resolveUsername(req);
   if (!me) return NextResponse.json({ error: "Sign in" }, { status: 401 });
 
+  // Resolve usernames to UUIDs (media_trackings.username stores UUIDs)
+  const myUserId = await resolveUserId(me);
+  const targetUserId = await resolveUserId(target);
+  if (!myUserId || !targetUserId) return NextResponse.json({ matchRate: 0, bothEnjoyed: [], divergent: [] });
+
   // Get both users' rated titles with ratings
   const { data: myRatings } = await supabase
     .from("media_trackings")
     .select("tmdb_id, media_type, rating")
-    .eq("username", me)
+    .eq("username", myUserId)
     .not("rating", "is", null);
   const { data: theirRatings } = await supabase
     .from("media_trackings")
     .select("tmdb_id, media_type, rating")
-    .eq("username", target)
+    .eq("username", targetUserId)
     .not("rating", "is", null);
 
   if (!theirRatings?.length) return NextResponse.json({ matchRate: 0, bothEnjoyed: [], divergent: [] });
