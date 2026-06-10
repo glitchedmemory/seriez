@@ -367,6 +367,9 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       return sa - sb;
     });
 
+    // DEBUG
+    console.log("DEBUG allItems:", allItems.length, allItems.map(i => i.title + "(" + i.seasonYear + ")"));
+
     // Assign labels
     const explicitSeasons = new Set(
       allItems.map(item => extractSeasonNum(item.title)).filter((n): n is number => n !== null && n !== 99)
@@ -400,6 +403,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
     });
 
     // Only show tabs if there's at least 1 entry (single-season shows still get S1 tab)
+    console.log("DEBUG dedupedTabs:", dedupedTabs.length, dedupedTabs.map(t => t.title + (t.isActive ? "(active)" : "")));
     if (dedupedTabs.length < 1) return [];
     return dedupedTabs;
   })();
