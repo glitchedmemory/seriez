@@ -325,18 +325,21 @@ export default function ProfilePage() {
           {compareData.bothEnjoyed.length > 0 && (
             <div>
               <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-2 px-1">Both Enjoyed</h3>
-              <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+              <div className="space-y-2">
                 {compareData.bothEnjoyed.map((item, i) => (
                   <a key={i} href={`/title/${item.tmdbId}?type=${item.mediaType}`}
-                    className="flex-shrink-0 w-[100px] group">
-                    <div className="w-[100px] h-[148px] rounded-xl overflow-hidden bg-[#1a1a2e] border border-[#2d2d4a] group-hover:border-[#6366f1]/50 transition-colors">
+                    className="flex items-center gap-3 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-3 hover:border-[#6366f1]/40 transition-colors">
+                    <div className="w-14 h-[84px] rounded-lg overflow-hidden bg-[#0f0f1a] flex-shrink-0">
                       {item.poster ? (
                         <img src={item.poster} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/15 text-2xl">🎬</div>
+                        <div className="w-full h-full flex items-center justify-center text-white/15 text-lg">🎬</div>
                       )}
                     </div>
-                    <p className="text-[11px] text-white/80 mt-1.5 truncate px-0.5">{item.title}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white font-medium truncate">{item.title}</p>
+                      {item.year && <p className="text-[11px] text-[#6b7280] mt-0.5">{item.year}</p>}
+                    </div>
                   </a>
                 ))}
               </div>
@@ -375,9 +378,6 @@ export default function ProfilePage() {
                             <span className="text-sm font-semibold text-[#f59e0b]">{item.theirRating}</span>
                             <span className="text-[10px] text-[#f59e0b]/60">★</span>
                           </div>
-                        </div>
-                        <div className="ml-auto text-[10px] text-[#ef4444]/70 font-medium">
-                          Δ{Math.abs(item.myRating - item.theirRating).toFixed(1)}
                         </div>
                       </div>
                     </div>
