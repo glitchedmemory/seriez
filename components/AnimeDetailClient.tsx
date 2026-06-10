@@ -299,54 +299,80 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
 
   // ─── Season tabs from relations ───
   const seasonTabs = (() => {
-    // Helper: extract season number from title (e.g., "Season 2" → 2, "2nd Season" → 2)
+    // Helper: extract season number from title
+    // "Season 2" → 2, "2nd Season" → 2, "Final Season" → 99 (last)
     const extractSeasonNum = (t: string): number | null => {
-      const m = t.match(/season\s*(\d+)/i) || t.match(/(\d+)(?:st|nd|rd|th)\s*season/i);
-      return m ? parseInt(m[1]) : null;
+      const s = t.match(/season\s*(\d+)/i) || t.match(/(\d+)(?:st|nd|rd|th)\s*season/i);
+      if (s) return parseInt(s[1]);
+      if (/\bfinal\s*season\b/i.test(t)) return 99;
+      // "Part 2" without season → indeterminate, return null
+      return null;
     };
 
-    // Find TV sequels/prequels — filter to TV format only, skip "Cour" entries
-    const relatedTV = detail.relations.filter(r =>
-      r.type === "ANIME" && (!r.format || r.format === "TV") &&
-      !/\bcour\b/i.test(r.title) // skip "Cour N" entries (they're part of existing seasons)
-    );
-    if (relatedTV.length === 0 && !extractSeasonNum(detail.title)) return [];
+    // Check if two titles share significant words (to filter crossovers)
+    const hasSharedWords = (a: string, b: string): boolean => {
+      const wordsA = new Set(a.toLowerCase().split(/\s+/).filter(w => w.length > 2));
+      const wordsB = b.toLowerCase().split(/\s+/);
+      let match = 0;
+      for (const w of wordsB) {
+        if (w.length > 2 && wordsA.has(w)) match++;
+      }
+      return match >= 1; // at least one significant shared word
+    };
+
+    // Spin-off / non-season keywords to exclude
+    const isSpinOff = (t: string): boolean =>
+      /\b(?:junior high|high school|log:|movie|film|ova|special|recap|compilation)\b/i.test(t);
+
+    // Find TV sequels/prequels — strict filtering
+    const currentTitle = detail.title;
+    const relatedTV = detail.relations.filter(r => {
+      if (r.type !== "ANIME") return false;
+      if (r.format && r.format !== "TV") return false;
+      if (!hasSharedWords(currentTitle, r.title)) return false; // crossover check
+      if (isSpinOff(r.title)) return false;
+      if (/\bcour\b/i.test(r.title)) return false;
+      return true;
+    });
+
+    // Also filter out the current anime's own ID if it appears (shouldn't, but safety)
+    const deduped = relatedTV.filter(r => r.id !== detail.id);
+
+    if (deduped.length === 0 && !extractSeasonNum(detail.title)) return [];
 
     // Combine current + relations
     const allItems = [
       { id: detail.id, title: detail.title, seasonYear: detail.year || null as number | null },
-      ...relatedTV.map(r => ({ id: r.id, title: r.title, seasonYear: r.seasonYear })),
+      ...deduped.map(r => ({ id: r.id, title: r.title, seasonYear: r.seasonYear })),
     ].sort((a, b) => {
       const sa = extractSeasonNum(a.title);
       const sb = extractSeasonNum(b.title);
       // Null-season entries (original series) come first, sorted by year
       if (sa === null && sb === null) {
         if (a.seasonYear && b.seasonYear) return a.seasonYear - b.seasonYear;
+        if (a.seasonYear) return -1;
+        if (b.seasonYear) return 1;
         return 0;
       }
       if (sa === null) return -1;
       if (sb === null) return 1;
-      // Explicit season numbers with same value: sort by year
-      if (sa === sb) {
-        if (a.seasonYear && b.seasonYear) return a.seasonYear - b.seasonYear;
-        return 0;
-      }
       return sa - sb;
     });
 
-    // Assign labels: use extracted season number if available, otherwise fill gaps
+    // Assign labels
     const explicitSeasons = new Set(
-      allItems.map(item => extractSeasonNum(item.title)).filter((n): n is number => n !== null)
+      allItems.map(item => extractSeasonNum(item.title)).filter((n): n is number => n !== null && n !== 99)
     );
     let nextFallback = 1;
 
     const tabs = allItems.map((item) => {
       const num = extractSeasonNum(item.title);
       let label: string;
-      if (num !== null) {
+      if (num === 99) {
+        label = "Final"; // "Final Season" gets special label
+      } else if (num !== null) {
         label = `S${num}`;
       } else {
-        // Find next available number not used by an explicit season
         while (explicitSeasons.has(nextFallback)) nextFallback++;
         label = `S${nextFallback++}`;
       }
@@ -356,6 +382,9 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         isActive: item.id === detail.id,
       };
     });
+
+    // Only show tabs if there are at least 2 distinct entries
+    if (tabs.length < 2) return [];
     return tabs;
   })();
 
