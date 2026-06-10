@@ -59,9 +59,9 @@ export async function GET() {
       // Get items for each to build thumbnails
       const enriched = await Promise.all(
         shuffled.map(async (l) => {
-          const { data: items } = await supabase
+          const { data: items, count: realCount } = await supabase
             .from("list_items")
-            .select("tmdb_id, media_type")
+            .select("tmdb_id, media_type", { count: "exact", head: false })
             .eq("list_id", l.id)
             .limit(4);
           const thumbs = await getThumbnails(items || []);
@@ -70,7 +70,7 @@ export async function GET() {
             name: l.name,
             owner: userMap[l.user_id] || "unknown",
             likesCount: likeMap[l.id] || 0,
-            itemCount: items?.length || 0,
+            itemCount: realCount ?? 0,
             thumbnails: thumbs,
           };
         })
@@ -84,9 +84,9 @@ export async function GET() {
 
     const enriched = await Promise.all(
       shuffled.map(async (c: any) => {
-        const { data: items } = await supabase
+        const { data: items, count: realCount } = await supabase
           .from("list_items")
-          .select("tmdb_id, media_type")
+          .select("tmdb_id, media_type", { count: "exact", head: false })
           .eq("list_id", c.id)
           .limit(4);
         const thumbs = await getThumbnails(items || []);
@@ -95,7 +95,7 @@ export async function GET() {
           name: c.name,
           owner: c.owner_username || "unknown",
           likesCount: c.likes_count || 0,
-          itemCount: c.item_count || 0,
+          itemCount: realCount ?? 0,
           thumbnails: thumbs,
         };
       })
