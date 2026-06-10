@@ -1,16 +1,56 @@
 /**
  * YouTube trailer validation + YouTube fallback search.
  * Two-phase validation: oEmbed (existence check).
+ * Includes retry logic + in-memory cache for validated trailers.
  */
 
 type Video = { key: string; name: string };
 
+// ─── Retry wrapper ───
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts = 3,
+  baseDelay = 1000
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastError = e;
+      if (attempt < maxAttempts) {
+        await new Promise((r) => setTimeout(r, baseDelay * Math.pow(2, attempt - 1)));
+      }
+    }
+  }
+  throw lastError;
+}
+
+// ─── In-memory trailer cache (TTL: 7 days) ───
+
+const trailerCache = new Map<number, { key: string; at: number }>();
+const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+function getCachedTrailer(animeId: number): string | null {
+  const entry = trailerCache.get(animeId);
+  if (entry && Date.now() - entry.at < CACHE_TTL) return entry.key;
+  if (entry) trailerCache.delete(animeId); // expired
+  return null;
+}
+
+function setCachedTrailer(animeId: number, key: string): void {
+  trailerCache.set(animeId, { key, at: Date.now() });
+}
+
 /** Check if a YouTube video exists (not deleted/private) via oEmbed */
 async function videoExists(key: string): Promise<boolean> {
   try {
-    const res = await fetch(
-      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${key}`,
-      { next: { revalidate: 86400 } } as any
+    const res = await withRetry(() =>
+      fetch(
+        `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${key}`,
+        { next: { revalidate: 86400 } } as any
+      )
     );
     return res.ok;
   } catch {
@@ -19,8 +59,8 @@ async function videoExists(key: string): Promise<boolean> {
 }
 
 /** Check if a YouTube video has region restrictions — oEmbed already verifies playability, skip this check */
-async function hasRegionRestrictions(key: string): Promise<boolean> {
-  return false; // oEmbed already confirms the video is playable; region API is too aggressive
+async function hasRegionRestrictions(_key: string): Promise<boolean> {
+  return false;
 }
 
 /** Fully validate a video: exists + no region restrictions */
@@ -34,9 +74,11 @@ async function isVideoFullyPlayable(key: string): Promise<boolean> {
 async function searchFallback(query: string, count: number): Promise<Video[]> {
   try {
     const ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-    const res = await fetch(ytUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
-    } as any);
+    const res = await withRetry(() =>
+      fetch(ytUrl, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+      } as any)
+    );
     const html = await res.text();
     const matches = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/g) || [];
     const ids = Array.from(new Set(matches.map((m: string) => m.split('"')[3])));
@@ -50,17 +92,24 @@ async function searchFallback(query: string, count: number): Promise<Video[]> {
 }
 
 /**
- * Validate each video (existence + region) and replace broken ones with DuckDuckGo fallback.
+ * Validate each video (existence + region) and replace broken ones with YouTube fallback.
  * Returns at most `max` valid, unrestricted trailers.
+ * If animeId is provided, checks cache first and stores results.
  */
 export async function validateAndReplaceTrailers(
   videos: Video[],
   searchQuery: string,
   max = 3,
-  badKeys?: Set<string>
+  badKeys?: Set<string>,
+  animeId?: number
 ): Promise<Video[]> {
+  // Check cache first (only for single-trailer anime lookups)
+  if (animeId && max === 1 && videos.length <= 1) {
+    const cached = getCachedTrailer(animeId);
+    if (cached) return [{ key: cached, name: "Official Trailer" }];
+  }
+
   const result: Video[] = [];
-  const brokenCount: number = 0;
 
   // Phase 1: validate existing videos (exists + no region block)
   for (let i = 0; i < videos.length; i++) {
@@ -84,5 +133,12 @@ export async function validateAndReplaceTrailers(
     }
   }
 
-  return result.slice(0, max);
+  const final = result.slice(0, max);
+
+  // Cache result for anime lookups
+  if (animeId && final.length > 0) {
+    setCachedTrailer(animeId, final[0].key);
+  }
+
+  return final;
 }
