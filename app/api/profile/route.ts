@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   try {
     const { data, error } = await supabaseAdmin
       .from("users")
-      .select("avatarUrl, backgroundUrl, isPremium")
+      .select("avatar_url, background_url, is_premium")
       .eq("username", username.trim())
       .maybeSingle();
 

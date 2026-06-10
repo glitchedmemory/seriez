@@ -56,10 +56,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: modResult.reason || "Inappropriate image" }, { status: 422 });
     }
 
-    // Update user's avatarUrl
+    // Update user's avatar_url
     const { error: updateErr } = await supabaseAdmin
       .from("users")
-      .update({ avatarUrl: publicUrl })
+      .update({ avatar_url: publicUrl })
       .eq("username", username.trim());
 
     if (updateErr) {
@@ -83,13 +83,13 @@ export async function DELETE(req: NextRequest) {
     // Get current avatar URL to extract storage path
     const { data: user } = await supabaseAdmin
       .from("users")
-      .select("avatarUrl")
+      .select("avatar_url")
       .eq("username", username.trim())
       .maybeSingle();
 
-    if (user?.avatarUrl) {
+    if (user?.avatar_url) {
       // Extract file path from URL
-      const url = new URL(user.avatarUrl);
+      const url = new URL(user.avatar_url);
       const pathMatch = url.pathname.match(/\/avatars\/(.+)/);
       if (pathMatch) {
         await supabaseAdmin.storage.from("avatars").remove([pathMatch[1]]);
@@ -98,7 +98,7 @@ export async function DELETE(req: NextRequest) {
 
     await supabaseAdmin
       .from("users")
-      .update({ avatarUrl: null })
+      .update({ avatar_url: null })
       .eq("username", username.trim());
 
     return NextResponse.json({ success: true });
