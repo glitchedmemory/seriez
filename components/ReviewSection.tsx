@@ -674,9 +674,15 @@ export function ReviewSection({
         )
       ) : (
         <div className="bg-[#1a1a2e] rounded-xl p-4 mb-4 text-center border border-[#2d2d4a]">
-          <p className="text-sm text-[#6b7280] mb-2">
-            <a href="/signup" className="text-[#6366f1] hover:underline">Sign in</a> to write a review
-          </p>
+          {authUser ? (
+            <p className="text-sm text-[#6b7280]">
+              Mark as <span className="text-pink-400">Watched</span> to write a review
+            </p>
+          ) : (
+            <p className="text-sm text-[#6b7280]">
+              <a href="/signup" className="text-[#6366f1] hover:underline">Sign in</a> to write a review
+            </p>
+          )}
         </div>
       )}
 
