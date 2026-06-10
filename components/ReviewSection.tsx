@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 /** Reddit-style comment tree:
- *  Threaded with left border per nesting level, all levels shown inline.
- *  Consistent indent — no zigzag depth stacking.
+ *  Max 3 replies shown inline, rest behind "Show more replies" button.
+ *  Left border per nesting level for visual grouping.
  */
 const THREAD_COLORS = [
   "border-[#6366f1]",   // depth 1
@@ -14,6 +14,7 @@ const THREAD_COLORS = [
   "border-[#22c55e]",   // depth 3
   "border-[#f59e0b]",   // depth 4+
 ];
+const MAX_VISIBLE = 3;   // max replies shown inline per parent
 
 function CommentTree({
   comments,
@@ -65,12 +66,19 @@ function CommentTree({
 
   if (nodes.length === 0) return null;
 
+  // Sort: most recent first
+  const sorted = [...nodes].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+  const isExpanded = expandedThreads.has(String(parentId ?? "root"));
+  const visible = isExpanded ? sorted : sorted.slice(0, MAX_VISIBLE);
+  const hidden = sorted.length - visible.length;
+  const showMore = hidden > 0 && !isExpanded;
+
   return (
     <div className={depth === 0 ? "space-y-1 mb-3" : `border-l-2 ${THREAD_COLORS[Math.min(depth - 1, 3)]} ml-2 pl-3 space-y-1`}>
-      {nodes.map((c: any) => {
+      {visible.map((c: any) => {
         const replyCount = comments.filter((cc: any) => cc.parent_id === c.id).length;
         const hasChildren = replyCount > 0;
-        const isExpanded = expandedThreads.has(String(c.id));
+        const childExpanded = expandedThreads.has(String(c.id));
         return (
           <div key={c.id}>
             <div className="flex gap-2">
@@ -111,8 +119,8 @@ function CommentTree({
                     className="text-[10px] text-[#6b7280] hover:text-[#a855f7] transition-colors">💬 Reply</button>
                   {hasChildren && (
                     <button onClick={() => onToggleThread(c.id)}
-                      className={`text-[10px] transition-colors ${isExpanded ? "text-[#a855f7]" : "text-[#6b7280] hover:text-[#a855f7]"}`}>
-                      {isExpanded ? "▾ " : "▸ "}{replyCount} {replyCount === 1 ? "reply" : "replies"}
+                      className={`text-[10px] transition-colors ${childExpanded ? "text-[#a855f7]" : "text-[#6b7280] hover:text-[#a855f7]"}`}>
+                      {childExpanded ? "▾ Hide replies" : `▸ ${replyCount} ${replyCount === 1 ? "reply" : "replies"}`}
                     </button>
                   )}
                 </div>
@@ -131,8 +139,8 @@ function CommentTree({
                   className="px-2 py-1 bg-[#6366f1] hover:bg-[#5558e6] disabled:opacity-40 text-white text-[10px] font-medium rounded-lg transition-colors flex-shrink-0">Post</button>
               </div>
             )}
-            {/* Children — always shown inline with left border, collapsible */}
-            {hasChildren && isExpanded && (
+            {/* Children with max 3 visible */}
+            {hasChildren && childExpanded && (
               <CommentTree comments={comments} depth={depth + 1} parentId={c.id}
                 isAdmin={isAdmin} onReport={onReport} onDelete={onDelete}
                 onReply={onReply} onToggleReply={onToggleReply} onReplyChange={onReplyChange}
@@ -144,6 +152,15 @@ function CommentTree({
           </div>
         );
       })}
+      {/* Show more button for hidden siblings */}
+      {showMore && (
+        <button
+          onClick={() => onToggleThread(parentId ?? "root")}
+          className="text-[10px] text-[#6366f1] hover:text-[#818cf8] transition-colors ml-7"
+        >
+          ▸ Show more replies ({hidden})
+        </button>
+      )}
     </div>
   );
 }
@@ -459,7 +476,7 @@ export function ReviewSection({
   };
 
   // Expand deep chains (empty = all collapsed by default)
-  const toggleThread = (commentId: number) => {
+  const toggleThread = (commentId: number | string) => {
     setExpandedThreads((prev) => {
       const next = new Set(prev);
       if (next.has(String(commentId))) next.delete(String(commentId));
