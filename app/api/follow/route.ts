@@ -11,11 +11,40 @@ const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROL
 // ─── GET: list followers or following ───
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const username = searchParams.get("username") || (await resolveUsername(req));
   const type = searchParams.get("type"); // "followers" or "following"
   const detail = searchParams.get("detail") === "true";
   const me = await resolveUsername(req);
 
+  // Default: check if current user follows target, return relationship status
+  if (!type) {
+    const targetUsername = searchParams.get("target");
+    if (!targetUsername) {
+      return NextResponse.json({ error: "Specify type or target" }, { status: 400 });
+    }
+
+    const currentUser = searchParams.get("me") || await resolveUsername(req);
+    if (!currentUser) {
+      return NextResponse.json({ following: false });
+    }
+
+    const currentUserId = await resolveUserId(currentUser);
+    const targetUserId = await resolveUserId(targetUsername);
+    if (!currentUserId || !targetUserId) {
+      return NextResponse.json({ following: false });
+    }
+
+    const { data } = await supabaseAdmin
+      .from("follows")
+      .select("id")
+      .eq("follower_id", currentUserId)
+      .eq("following_id", targetUserId)
+      .maybeSingle();
+
+    return NextResponse.json({ following: !!data });
+  }
+
+  // GET followers or following list (requires username)
+  const username = searchParams.get("username") || (await resolveUsername(req));
   if (!username?.trim()) {
     return NextResponse.json({ error: "Username required" }, { status: 400 });
   }
@@ -102,34 +131,6 @@ export async function GET(req: NextRequest) {
     );
 
     return NextResponse.json({ users, count: count || 0 });
-  }
-
-  // Default: check if current user follows target, return relationship status
-  if (!type) {
-    const targetUsername = searchParams.get("target");
-    if (!targetUsername) {
-      return NextResponse.json({ error: "Specify type or target" }, { status: 400 });
-    }
-
-    const currentUser = searchParams.get("me") || await resolveUsername(req);
-    if (!currentUser) {
-      return NextResponse.json({ following: false });
-    }
-
-    const currentUserId = await resolveUserId(currentUser);
-    const targetUserId = await resolveUserId(targetUsername);
-    if (!currentUserId || !targetUserId) {
-      return NextResponse.json({ following: false });
-    }
-
-    const { data } = await supabaseAdmin
-      .from("follows")
-      .select("id")
-      .eq("follower_id", currentUserId)
-      .eq("following_id", targetUserId)
-      .maybeSingle();
-
-    return NextResponse.json({ following: !!data });
   }
 
   return NextResponse.json({ error: "Invalid type" }, { status: 400 });
