@@ -58,14 +58,17 @@ async function searchFallback(query: string, count: number): Promise<Video[]> {
     const res = await fetch(ytUrl, {
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
     } as any);
+    console.log(`[YT_SEARCH] HTTP ${res.status} for query: ${query.slice(0,50)}`);
     const html = await res.text();
     const matches = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/g) || [];
     const ids = Array.from(new Set(matches.map((m: string) => m.split('"')[3])));
+    console.log(`[YT_SEARCH] Found ${ids.length} video IDs: ${ids.slice(0,3).join(',')}`);
     return ids.slice(0, count).map((id) => ({
       key: id,
       name: "Official Trailer",
     }));
-  } catch {
+  } catch(e) {
+    console.log(`[YT_SEARCH] Error:`, e);
     return [];
   }
 }
