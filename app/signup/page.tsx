@@ -12,8 +12,26 @@ export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "short">("idle");
   const router = useRouter();
   const supabase = createClient();
+
+  // Username duplicate check (debounced on blur)
+  async function checkUsername(u: string) {
+    const trimmed = u.trim();
+    if (trimmed.length < 2) {
+      setUsernameStatus("short");
+      return;
+    }
+    setUsernameStatus("checking");
+    try {
+      const res = await fetch(`/api/users/check-username?username=${encodeURIComponent(trimmed)}`);
+      const { exists } = await res.json();
+      setUsernameStatus(exists ? "taken" : "available");
+    } catch {
+      setUsernameStatus("idle");
+    }
+  }
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
@@ -38,6 +56,13 @@ export default function SignupPage() {
     }
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) {
       setError("Password must include at least one special character (!@#$ etc.)");
+      setLoading(false);
+      return;
+    }
+
+    // Username duplicate check
+    if (usernameStatus === "taken") {
+      setError("This username is already taken");
       setLoading(false);
       return;
     }
@@ -79,11 +104,22 @@ export default function SignupPage() {
           type="text"
           placeholder="Username"
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="w-full bg-[#1a1a2e] text-white rounded-xl px-4 py-3 outline-none border border-[#2d2d4a] focus:border-[#6366f1] mb-3"
+          onChange={(e) => { setUsername(e.target.value); setUsernameStatus("idle"); }}
+          onBlur={(e) => checkUsername(e.target.value)}
+          className={`w-full bg-[#1a1a2e] text-white rounded-xl px-4 py-3 outline-none border mb-1 ${
+            usernameStatus === "available" ? "border-emerald-500" :
+            usernameStatus === "taken" || usernameStatus === "short" ? "border-red-500" :
+            "border-[#2d2d4a] focus:border-[#6366f1]"
+          }`}
           required
           maxLength={20}
         />
+        <div className="h-4 mb-2">
+          {usernameStatus === "checking" && <p className="text-[10px] text-[#6b7280]">Checking...</p>}
+          {usernameStatus === "available" && <p className="text-[10px] text-emerald-400">✓ Available</p>}
+          {usernameStatus === "taken" && <p className="text-[10px] text-red-400">✗ Already taken</p>}
+          {usernameStatus === "short" && <p className="text-[10px] text-red-400">Min 2 characters</p>}
+        </div>
         <input
           type="email"
           placeholder="Email"
