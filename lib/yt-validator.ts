@@ -46,8 +46,12 @@ async function hasRegionRestrictions(key: string): Promise<boolean> {
 
 /** Fully validate a video: exists + no region restrictions */
 async function isVideoFullyPlayable(key: string): Promise<boolean> {
-  if (!(await videoExists(key))) return false;
-  if (await hasRegionRestrictions(key)) return false;
+  const exists = await videoExists(key);
+  console.log(`[VIDEO_CHECK] ${key}: exists=${exists}`);
+  if (!exists) return false;
+  const restricted = await hasRegionRestrictions(key);
+  console.log(`[VIDEO_CHECK] ${key}: restricted=${restricted}`);
+  if (restricted) return false;
   return true;
 }
 
