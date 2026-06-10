@@ -299,9 +299,6 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
 
   // ─── Season tabs from relations ───
   const seasonTabs = (() => {
-    // DEBUG — remove after fix
-    console.log("DEBUG seasonTabs: format=", detail.format, "relations=", detail.relations?.length);
-    
     // Only TV series have season tabs — movies/OVAs/etc don't
     if (detail.format !== "TV") return [];
 
@@ -367,9 +364,6 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       return sa - sb;
     });
 
-    // DEBUG
-    console.log("DEBUG allItems:", allItems.length, allItems.map(i => i.title + "(" + i.seasonYear + ")"));
-
     // Assign labels
     const explicitSeasons = new Set(
       allItems.map(item => extractSeasonNum(item.title)).filter((n): n is number => n !== null && n !== 99)
@@ -403,7 +397,6 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
     });
 
     // Only show tabs if there's at least 1 entry (single-season shows still get S1 tab)
-    console.log("DEBUG dedupedTabs:", dedupedTabs.length, dedupedTabs.map(t => t.title + (t.isActive ? "(active)" : "")));
     if (dedupedTabs.length < 1) return [];
     return dedupedTabs;
   })();
@@ -566,7 +559,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         </div>
 
         {/* ─── Season Tabs ─── */}
-        {seasonTabs.length > 1 && (
+        {seasonTabs.length > 0 && (
           <div className="mt-6">
             <h2 className="text-lg font-semibold text-white mb-3">Seasons</h2>
             <div className="flex flex-wrap gap-2">
