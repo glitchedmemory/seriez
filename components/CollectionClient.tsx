@@ -131,8 +131,8 @@ export default function CollectionClient() {
   return (
     <div className="max-w-2xl mx-auto min-h-screen px-4 py-6 pb-24">
       {/* Header */}
-      <button onClick={() => router.back()} className="text-xs text-[#6b7280] hover:text-white mb-3 inline-block">
-        ← Back
+      <button onClick={() => router.push("/search")} className="text-xs text-[#6b7280] hover:text-white mb-3 inline-block">
+        ← Back to Search
       </button>
 
       <h1 className="text-xl font-bold text-white mb-1">{collection.name}</h1>
