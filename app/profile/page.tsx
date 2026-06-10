@@ -313,10 +313,10 @@ export default function ProfilePage() {
       <div
         className={`relative h-40 ${backgroundUrl ? "" : "bg-gradient-to-br from-[#6366f1] via-[#7c3aed] to-[#a855f7]"}`}
         style={backgroundUrl ? { backgroundImage: `url(${backgroundUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
-        onClick={() => isOwn && bgInputRef.current?.click()}
-        title={isOwn ? "Click to change background" : undefined}
+        onClick={() => (isOwn && user) && bgInputRef.current?.click()}
+        title={(isOwn && user) ? "Click to change background" : undefined}
       >
-        {isOwn && (
+        {(isOwn && user) && (
           <input
             ref={bgInputRef}
             type="file"
@@ -330,7 +330,7 @@ export default function ProfilePage() {
             <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           </div>
         )}
-        {isOwn && backgroundUrl && (
+        {(isOwn && user) && backgroundUrl && (
           <button
             onClick={(e) => { e.stopPropagation(); handleBackgroundDelete(); }}
             className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white/70 hover:text-white text-xs px-2 py-1 rounded-lg transition-colors"
@@ -348,10 +348,10 @@ export default function ProfilePage() {
       <div className="relative px-4 -mt-10">
         <div className="flex items-end gap-4 mb-4">
           <div
-            className={`w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 ring-4 ring-[#0f0f1a] shadow-xl overflow-hidden ${isOwn ? "cursor-pointer hover:ring-[#6366f1]/50 transition-all" : ""} ${!avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""}`}
-            onClick={() => isOwn && fileInputRef.current?.click()}
-            title={isOwn ? "Click to change avatar" : undefined}
-            onContextMenu={(e) => { if (isOwn && avatarUrl) { e.preventDefault(); handleAvatarDelete(); } }}
+            className={`w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 ring-4 ring-[#0f0f1a] shadow-xl overflow-hidden ${(isOwn && user) ? "cursor-pointer hover:ring-[#6366f1]/50 transition-all" : ""} ${!avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""}`}
+            onClick={() => (isOwn && user) && fileInputRef.current?.click()}
+            title={(isOwn && user) ? (avatarUrl ? "Click to change avatar · Right-click to delete" : "Click to add avatar") : undefined}
+            onContextMenu={(e) => { if ((isOwn && user) && avatarUrl) { e.preventDefault(); handleAvatarDelete(); } }}
           >
             {avatarUrl ? (
               <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
@@ -359,7 +359,14 @@ export default function ProfilePage() {
               <span className="text-3xl font-bold text-white">{initial}</span>
             )}
           </div>
-          {isOwn && (
+          {(isOwn && user) && avatarUrl && (
+            <button
+              onClick={handleAvatarDelete}
+              className="text-[10px] text-[#6b7280] hover:text-red-400 transition-colors self-end mb-1"
+              title="Delete avatar"
+            >🗑️</button>
+          )}
+          {(isOwn && user) && (
             <input
               ref={fileInputRef}
               type="file"
