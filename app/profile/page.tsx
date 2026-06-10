@@ -475,7 +475,16 @@ export default function ProfilePage() {
           ) : null}
         </div>
 
-        <h1 className="text-2xl font-bold text-white">@{displayName}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-white">@{displayName}</h1>
+          {(isOwn && user) && (
+            <button
+              onClick={() => router.push("/profile/settings")}
+              className="text-[#6b7280] hover:text-white transition-colors"
+              title="설정"
+            >⚙️</button>
+          )}
+        </div>
         <div className="flex gap-5 mt-1 text-sm text-[#9ca3af]">
           <button onClick={() => fetchFollowList("followers")} className="hover:text-white transition-colors">
             <strong className="text-white">{followersCount}</strong> followers
