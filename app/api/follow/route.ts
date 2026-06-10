@@ -111,7 +111,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Specify type or target" }, { status: 400 });
     }
 
-    const currentUser = await resolveUsername(req);
+    const currentUser = searchParams.get("me") || await resolveUsername(req);
     if (!currentUser) {
       return NextResponse.json({ following: false });
     }

@@ -66,7 +66,7 @@ export default function ProfilePage() {
   const fetchFollowStatus = useCallback(async () => {
     if (!ownUsername || !profileUsername || isOwn) return;
     try {
-      const res = await fetch(`/api/follow?target=${encodeURIComponent(profileUsername)}`).then(r => r.json());
+      const res = await fetch(`/api/follow?target=${encodeURIComponent(profileUsername)}&me=${encodeURIComponent(ownUsername)}`).then(r => r.json());
       setIsFollowing(res.following || false);
     } catch {}
   }, [ownUsername, profileUsername, isOwn]);
