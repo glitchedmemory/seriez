@@ -139,7 +139,7 @@ export default function SettingsPage() {
         <div className="px-4 space-y-4 mt-2">
           {/* ── Change Profile ── */}
           <button
-            onClick={() => router.push("/profile")}
+            onClick={() => router.push("/profile/settings/change-profile")}
             className="w-full flex items-center justify-between bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-4 hover:border-[#6366f1]/40 transition-colors"
           >
             <span className="text-sm text-white">Change Profile</span>
