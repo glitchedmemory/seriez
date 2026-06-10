@@ -287,6 +287,18 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               ))}
             </div>
 
+            {/* Star rating — only when Watched */}
+            {isWatched && (
+              <div className="flex justify-center md:justify-start mt-2">
+                <StarInput value={rating} onChange={handleRatingChange} />
+              </div>
+            )}
+            {isWatched && trackedAt && (
+              <p className="text-[10px] text-[#6b7280] mt-1 text-center md:text-left">
+                Watched {formatDate(trackedAt)}
+              </p>
+            )}
+
             {/* Tracking buttons */}
             {!mounted ? null : (
               <>
@@ -381,18 +393,6 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Star rating — only when Watched */}
-            {isWatched && (
-              <div className="flex justify-center md:justify-start mt-3">
-                <StarInput value={rating} onChange={handleRatingChange} />
-              </div>
-            )}
-            {isWatched && trackedAt && (
-              <p className="text-[10px] text-[#6b7280] mt-1 text-center md:text-left">
-                Watched {formatDate(trackedAt)}
-              </p>
             )}
 
             {/* Extra info */}

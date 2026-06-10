@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json([]);
   }
 
-  let query = supabase
+  let query = supabaseAdmin
     .from("media_trackings")
     .select("*")
     .eq("username", userId)

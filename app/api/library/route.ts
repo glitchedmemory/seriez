@@ -6,6 +6,7 @@ import { resolveUsername } from "@/lib/auth-helper";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w342";
 const TMDB_API = "https://api.themoviedb.org/3";
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ items: [] });
   }
 
-  let query = supabase
+  let query = supabaseAdmin
     .from("media_trackings")
     .select("*")
     .eq("username", userId)
