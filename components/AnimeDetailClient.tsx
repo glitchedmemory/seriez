@@ -424,7 +424,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                   </div>
                 ) : (
                   <div className="flex gap-1 mt-4 justify-center md:justify-start">
-                    <TrackButton icon={<HeartIcon active={isWanted} />} label="Want to Watch" active={isWanted} onClick={() => handleTrack("plan_to_watch")} disabled={trackLoading} />
+                    <TrackButton icon={<HeartIcon active={isWanted} />} label="To Watch" active={isWanted} onClick={() => handleTrack("plan_to_watch")} disabled={trackLoading} />
                     <TrackButton icon={<WatchingIcon active={isWatching} />} label="Watching" active={isWatching} onClick={() => handleTrack("watching")} disabled={trackLoading} />
                     <TrackButton icon={<WatchedIcon active={isWatched} />} label="Watched" active={isWatched} onClick={() => handleTrack("completed")} disabled={trackLoading} />
                   </div>

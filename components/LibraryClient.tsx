@@ -174,8 +174,7 @@ export default function LibraryClient() {
   const [statsLoaded, setStatsLoaded] = useState(false);
 
   useEffect(() => {
-    const username = typeof window !== "undefined" ? localStorage.getItem("seriez-username") || "" : "";
-    if (!username) { setStatsLoaded(true); return; }
+    const username = typeof window !== "undefined" ? localStorage.getItem("seriez-username") || "Anonymous" : "Anonymous";
     Promise.all([
       fetch(`/api/library?username=${encodeURIComponent(username)}`).then(r => r.json()),
       fetch(`/api/collections?username=${encodeURIComponent(username)}`).then(r => r.json()),

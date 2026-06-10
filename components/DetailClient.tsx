@@ -324,7 +324,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
                 }}
               >
                 <HeartIcon active={isWanted} />
-                Want to Watch
+                To Watch
               </button>
               <button
                 onClick={() => handleTrack("watching")}

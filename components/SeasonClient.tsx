@@ -447,7 +447,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 }}
               >
                 <HeartIcon active={isWanted} />
-                Want to Watch
+                To Watch
               </button>
               <button
                 onClick={() => handleTrack("watching")}
