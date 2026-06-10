@@ -88,7 +88,7 @@ function CommentTree({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-white mr-1">{c.username}</span>
+                  <span className="text-xs font-medium text-white">{c.username}</span>
                   {c.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block" />}
                   {isAdmin && c.is_hidden && (
                     <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded">🚨 hidden</span>
@@ -701,7 +701,7 @@ export function ReviewSection({
           {reviews.map((review) => (
             <div key={review.id} className="bg-[#1a1a2e] rounded-xl p-4">
               <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
                     {review.username[0].toUpperCase()}
                   </div>
