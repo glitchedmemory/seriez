@@ -38,13 +38,14 @@ export default function ProfilePage() {
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [compareData, setCompareData] = useState<CompareData | null>(null);
   const [compareLoading, setCompareLoading] = useState(false);
-  const [showFollowers, setShowFollowers] = useState<"followers" | "following" | null>(null);
   const [followList, setFollowList] = useState<any[]>([]);
+  const [followListLoading, setFollowListLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
 
   const profileUsername = searchParams.get("username");
+  const tab = searchParams.get("tab"); // "followers" | "following" | null
   const ownUsername = user?.user_metadata?.username;
   const localStorageUsername = typeof window !== "undefined" ? localStorage.getItem("seriez-username") : null;
   const effectiveUsername = profileUsername || ownUsername || localStorageUsername;
@@ -89,13 +90,21 @@ export default function ProfilePage() {
   }, [effectiveUsername, isOwn]);
 
   const fetchFollowList = useCallback(async (type: "followers" | "following") => {
-    if (!effectiveUsername) return;
-    try {
-      const res = await fetch(`/api/follow?username=${encodeURIComponent(effectiveUsername)}&type=${type}&detail=true`).then(r => r.json());
-      setFollowList(res.users || []);
-      setShowFollowers(type);
-    } catch {}
-  }, [effectiveUsername]);
+    // Navigate to dedicated tab page
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", type);
+    router.push(`/profile?${params.toString()}`);
+  }, [searchParams, router]);
+
+  // Fetch follow list data when on tab page
+  useEffect(() => {
+    if (!tab || !effectiveUsername) return;
+    setFollowListLoading(true);
+    fetch(`/api/follow?username=${encodeURIComponent(effectiveUsername)}&type=${tab}&detail=true`)
+      .then(r => r.json())
+      .then(data => { setFollowList(data.users || []); setFollowListLoading(false); })
+      .catch(() => setFollowListLoading(false));
+  }, [tab, effectiveUsername]);
 
   useEffect(() => {
     setMounted(true);
@@ -138,6 +147,102 @@ export default function ProfilePage() {
   if (!mounted) return null;
   if (loading) return <ProfileSkeleton />;
 
+  // ── Tab page: Followers / Following ──
+  if (tab === "followers" || tab === "following") {
+    const tabLabel = tab === "followers" ? "Followers" : "Following";
+    return (
+      <ErrorBoundary sectionName={`Profile ${tabLabel}`}>
+        <div className="max-w-lg mx-auto pb-32">
+          {/* Header */}
+          <div className="flex items-center gap-4 px-4 pt-4 pb-3">
+            <button
+              onClick={() => {
+                const params = new URLSearchParams(searchParams.toString());
+                params.delete("tab");
+                router.push(`/profile?${params.toString()}`);
+              }}
+              className="text-[#9ca3af] hover:text-white transition-colors"
+            >
+              ← Back
+            </button>
+            <h1 className="text-lg font-bold text-white">
+              {effectiveUsername ? `@${effectiveUsername}` : ""} · {tabLabel}
+            </h1>
+          </div>
+
+          {/* List */}
+          <div className="px-4">
+            {followListLoading ? (
+              <div className="space-y-3 mt-2">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-4 animate-pulse">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-[#2d2d4a]" />
+                      <div className="flex-1">
+                        <div className="h-4 w-24 bg-[#2d2d4a] rounded mb-2" />
+                        <div className="h-3 w-32 bg-[#2d2d4a] rounded" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : followList.length === 0 ? (
+              <p className="text-center text-[#6b7280] py-12">
+                {tab === "followers" ? "No followers yet" : "Not following anyone yet"}
+              </p>
+            ) : (
+              <div className="space-y-2 mt-2">
+                {followList.map((u: any) => (
+                  <a
+                    key={u.username}
+                    href={`/profile?username=${encodeURIComponent(u.username)}`}
+                    className="flex items-center gap-3 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-3 hover:border-[#6366f1]/50 transition-colors"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0">
+                      <span className="text-base font-bold text-white">
+                        {u.username[0]?.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white">@{u.username}</p>
+                      <p className="text-[10px] text-[#6b7280]">
+                        평가 {u.ratingsCount || 0} · 코멘트 {u.commentsCount || 0}
+                      </p>
+                    </div>
+                    {!u.isFollowing && u.username !== ownUsername && user && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fetch(`/api/follow`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ followingUsername: u.username }),
+                          }).then(() => {
+                            setFollowList(prev =>
+                              prev.map(f => f.username === u.username ? { ...f, isFollowing: true } : f)
+                            );
+                          });
+                        }}
+                        className="px-3 py-1.5 bg-[#6366f1] hover:bg-[#818cf8] text-white text-xs font-medium rounded-lg transition-colors"
+                      >
+                        팔로우
+                      </button>
+                    )}
+                    {u.isFollowing && u.username !== ownUsername && (
+                      <span className="text-[10px] text-[#6b7280] px-2">팔로잉</span>
+                    )}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  // ── Main profile page ──
   const displayName = profileUsername || ownUsername || localStorageUsername || "Guest";
   const initial = displayName.slice(0, 1).toUpperCase();
 
@@ -263,40 +368,6 @@ export default function ProfilePage() {
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Followers/Following List */}
-      {showFollowers && (
-        <div className="px-4 mt-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-white">
-              {showFollowers === "followers" ? "Followers" : "Following"}
-            </h3>
-            <button onClick={() => setShowFollowers(null)} className="text-xs text-[#6b7280] hover:text-white">✕ Close</button>
-          </div>
-          <div className="space-y-2">
-            {followList.map((u: any) => (
-              <a key={u.username} href={`/profile?username=${encodeURIComponent(u.username)}`}
-                className="flex items-center gap-3 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-3 hover:border-[#6366f1]/50 transition-colors">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-bold text-white">{u.username[0]?.toUpperCase()}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white">{u.username}</p>
-                  <p className="text-[10px] text-[#6b7280]">
-                    평가 {u.ratingsCount || 0} · 코멘트 {u.commentsCount || 0}
-                  </p>
-                </div>
-                {!u.isFollowing && u.username !== ownUsername && (
-                  <button onClick={(e) => { e.preventDefault(); fetch(`/api/follow`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ followingUsername: u.username }) }); }}
-                    className="px-3 py-1 bg-[#6366f1] hover:bg-[#818cf8] text-white text-xs rounded-lg transition-colors">
-                    팔로우
-                  </button>
-                )}
-              </a>
-            ))}
-          </div>
         </div>
       )}
 
