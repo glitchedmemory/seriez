@@ -167,16 +167,24 @@ function formatSeason(season: string | null): string {
 
 export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
   try {
-    const res = await withRetry(() =>
-      fetch(ANILIST_API, {
+    // Retry AniList fetch with backoff (handles 429 + network errors)
+    let res: Response | undefined;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      res = await fetch(ANILIST_API, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({ query: DETAIL_QUERY, variables: { id } }),
         next: { revalidate: 3600 },
-      })
-    );
+      });
+      if (res.ok) break; // success
+      if (res.status === 429 && attempt < 3) {
+        await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
+      } else if (!res.ok && attempt < 3) {
+        await new Promise((r) => setTimeout(r, 500));
+      }
+    }
 
-    if (!res.ok) return null;
+    if (!res!.ok) return null;
     const json = await res.json();
     const m = json.data?.Media;
     if (!m) return null;
