@@ -317,25 +317,45 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       { id: detail.id, title: detail.title, seasonYear: detail.year || null as number | null },
       ...relatedTV.map(r => ({ id: r.id, title: r.title, seasonYear: r.seasonYear })),
     ].sort((a, b) => {
-      // Primary: season number from title
       const sa = extractSeasonNum(a.title);
       const sb = extractSeasonNum(b.title);
-      if (sa !== null && sb !== null) return sa - sb;
-      if (sa !== null) return -1;
-      if (sb !== null) return 1;
-      // Secondary: seasonYear
-      if (a.seasonYear && b.seasonYear) return a.seasonYear - b.seasonYear;
-      if (a.seasonYear) return -1;
-      if (b.seasonYear) return 1;
-      return 0;
+      // Null-season entries (original series) come first, sorted by year
+      if (sa === null && sb === null) {
+        if (a.seasonYear && b.seasonYear) return a.seasonYear - b.seasonYear;
+        return 0;
+      }
+      if (sa === null) return -1;
+      if (sb === null) return 1;
+      // Explicit season numbers with same value: sort by year
+      if (sa === sb) {
+        if (a.seasonYear && b.seasonYear) return a.seasonYear - b.seasonYear;
+        return 0;
+      }
+      return sa - sb;
     });
 
-    // Assign sequence numbers for labeling (skipping gaps from "Cour" removal)
-    const tabs = allItems.map((item, i) => ({
-      id: item.id,
-      title: `S${extractSeasonNum(item.title) ?? i + 1}`,
-      isActive: item.id === detail.id,
-    }));
+    // Assign labels: use extracted season number if available, otherwise fill gaps
+    const explicitSeasons = new Set(
+      allItems.map(item => extractSeasonNum(item.title)).filter((n): n is number => n !== null)
+    );
+    let nextFallback = 1;
+
+    const tabs = allItems.map((item) => {
+      const num = extractSeasonNum(item.title);
+      let label: string;
+      if (num !== null) {
+        label = `S${num}`;
+      } else {
+        // Find next available number not used by an explicit season
+        while (explicitSeasons.has(nextFallback)) nextFallback++;
+        label = `S${nextFallback++}`;
+      }
+      return {
+        id: item.id,
+        title: label,
+        isActive: item.id === detail.id,
+      };
+    });
     return tabs;
   })();
 
