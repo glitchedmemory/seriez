@@ -299,6 +299,9 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
 
   // ─── Season tabs from relations ───
   const seasonTabs = (() => {
+    // DEBUG — remove after fix
+    console.log("DEBUG seasonTabs: format=", detail.format, "relations=", detail.relations?.length);
+    
     // Only TV series have season tabs — movies/OVAs/etc don't
     if (detail.format !== "TV") return [];
 
