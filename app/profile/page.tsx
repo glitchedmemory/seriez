@@ -80,14 +80,14 @@ export default function ProfilePage() {
   }, [effectiveUsername]);
 
   const fetchCompare = useCallback(async () => {
-    if (!effectiveUsername || isOwn) { setCompareData(null); return; }
+    if (!effectiveUsername || isOwn || !ownUsername) { setCompareData(null); return; }
     setCompareLoading(true);
     try {
-      const res = await fetch(`/api/users/${encodeURIComponent(effectiveUsername)}/compare?me=${encodeURIComponent(ownUsername!)}`).then(r => r.json());
+      const res = await fetch(`/api/users/${encodeURIComponent(effectiveUsername)}/compare?me=${encodeURIComponent(ownUsername)}`).then(r => r.json());
       if (!res.error) setCompareData(res);
     } catch {}
     setCompareLoading(false);
-  }, [effectiveUsername, isOwn]);
+  }, [effectiveUsername, isOwn, ownUsername]);
 
   const fetchFollowList = useCallback(async (type: "followers" | "following") => {
     // Navigate to dedicated tab page
