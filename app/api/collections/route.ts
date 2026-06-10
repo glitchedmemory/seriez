@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabase
     .from("user_lists")
-    .select("id, name, is_public, created_at")
+    .select("id, name, is_public, is_published, created_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
         .from("list_items")
         .select("id", { count: "exact", head: true })
         .eq("list_id", list.id);
-      return { id: list.id, name: list.name, isPublic: list.is_public, itemCount: count || 0, createdAt: list.created_at };
+      return { id: list.id, name: list.name, isPublic: list.is_public, isPublished: list.is_published || false, itemCount: count || 0, createdAt: list.created_at };
     })
   );
 
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await supabase
       .from("user_lists")
       .insert({ user_id: userId, name: name.trim().slice(0, 50), is_public: true })
-      .select("id, name, is_public, created_at")
+      .select("id, name, is_public, is_published, created_at")
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

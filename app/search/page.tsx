@@ -6,6 +6,7 @@ import { SearchSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PosterImage from "@/components/PosterImage";
 import EmptyState from "@/components/EmptyState";
+import PublishedCollections from "@/components/PublishedCollections";
 
 export const dynamic = "force-dynamic";
 
@@ -120,6 +121,11 @@ export default function SearchPage() {
           <span className="font-medium text-[#9ca3af]">AdSense Banner</span>
           <span>320×50 / 320×100 responsive</span>
         </div>
+      </div>
+
+      {/* ── Published Collections ── */}
+      <div className="px-4">
+        <PublishedCollections />
       </div>
 
       {/* Results */}
