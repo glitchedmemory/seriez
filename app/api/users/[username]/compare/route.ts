@@ -6,6 +6,7 @@ import { resolveUserId } from "@/lib/user-utils";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE = "https://api.themoviedb.org/3";
@@ -26,12 +27,12 @@ export async function GET(
   if (!myUserId || !targetUserId) return NextResponse.json({ matchRate: 0, bothEnjoyed: [], divergent: [] });
 
   // Get both users' rated titles with ratings
-  const { data: myRatings } = await supabase
+  const { data: myRatings } = await supabaseAdmin
     .from("media_trackings")
     .select("tmdb_id, media_type, rating")
     .eq("username", myUserId)
     .not("rating", "is", null);
-  const { data: theirRatings } = await supabase
+  const { data: theirRatings } = await supabaseAdmin
     .from("media_trackings")
     .select("tmdb_id, media_type, rating")
     .eq("username", targetUserId)
