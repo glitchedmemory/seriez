@@ -83,12 +83,12 @@ function CommentTree({
         return (
           <div key={c.id}>
             <div className="flex gap-2">
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5 ${c.isPremium ? "bg-gradient-to-br from-[#f59e0b] to-[#d97706] ring-2 ring-[#f59e0b]/50 shadow-[0_0_8px_rgba(245,158,11,0.4)]" : "bg-gradient-to-br from-[#6366f1] to-[#a855f7]"}`}>
+              <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
                 {c.username[0]?.toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-white mr-2">{c.username}</span>
+                  <span className="text-xs font-medium text-white mr-1">{c.username}</span>
                   {c.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block" />}
                   {isAdmin && c.is_hidden && (
                     <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded">🚨 hidden</span>
@@ -702,13 +702,13 @@ export function ReviewSection({
             <div key={review.id} className="bg-[#1a1a2e] rounded-xl p-4">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 ${review.isPremium ? "bg-gradient-to-br from-[#f59e0b] to-[#d97706] ring-2 ring-[#f59e0b]/50 shadow-[0_0_8px_rgba(245,158,11,0.4)]" : "bg-gradient-to-br from-[#6366f1] to-[#a855f7]"}`}>
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
                     {review.username[0].toUpperCase()}
                   </div>
                   <span className="text-sm font-medium text-white">
                     {review.username}
                   </span>
-                  {review.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block ml-1" />}
+                  {review.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block" />}
                   {renderStars(review.rating)}
                 </div>
                 <span className="text-[10px] text-[#6b7280]">
