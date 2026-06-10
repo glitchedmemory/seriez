@@ -341,7 +341,9 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
     // Also filter out the current anime's own ID if it appears (shouldn't, but safety)
     const deduped = relatedTV.filter(r => r.id !== detail.id);
 
-    // Combine current + relations (always include current for single-season shows)
+    if (deduped.length === 0 && !extractSeasonNum(detail.title)) return [];
+
+    // Combine current + relations
     const allItems = [
       { id: detail.id, title: detail.title, seasonYear: detail.year || null as number | null },
       ...deduped.map(r => ({ id: r.id, title: r.title, seasonYear: r.seasonYear })),
@@ -396,8 +398,8 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       return true;
     });
 
-    // Only show tabs if there's at least 1 entry (single-season shows still get S1 tab)
-    if (dedupedTabs.length < 1) return [];
+    // Only show tabs if there are at least 2 distinct entries
+    if (dedupedTabs.length < 2) return [];
     return dedupedTabs;
   })();
 
@@ -559,7 +561,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         </div>
 
         {/* ─── Season Tabs ─── */}
-        {seasonTabs.length > 0 && (
+        {seasonTabs.length > 1 && (
           <div className="mt-6">
             <h2 className="text-lg font-semibold text-white mb-3">Seasons</h2>
             <div className="flex flex-wrap gap-2">
