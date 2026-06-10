@@ -299,32 +299,41 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
 
   // ─── Season tabs from relations ───
   const seasonTabs = (() => {
-    // Find TV sequels/prequels — filter to TV format only
-    const relatedTV = detail.relations.filter(r =>
-      r.type === "ANIME" && (!r.format || r.format === "TV")
-    );
-    if (relatedTV.length === 0) return [];
+    // Helper: extract season number from title (e.g., "Season 2" → 2, "2nd Season" → 2)
+    const extractSeasonNum = (t: string): number | null => {
+      const m = t.match(/season\s*(\d+)/i) || t.match(/(\d+)(?:st|nd|rd|th)\s*season/i);
+      return m ? parseInt(m[1]) : null;
+    };
 
-    // Combine current + relations, sort by seasonYear then title
+    // Find TV sequels/prequels — filter to TV format only, skip "Cour" entries
+    const relatedTV = detail.relations.filter(r =>
+      r.type === "ANIME" && (!r.format || r.format === "TV") &&
+      !/\bcour\b/i.test(r.title) // skip "Cour N" entries (they're part of existing seasons)
+    );
+    if (relatedTV.length === 0 && !extractSeasonNum(detail.title)) return [];
+
+    // Combine current + relations
     const allItems = [
       { id: detail.id, title: detail.title, seasonYear: detail.year || null as number | null },
       ...relatedTV.map(r => ({ id: r.id, title: r.title, seasonYear: r.seasonYear })),
     ].sort((a, b) => {
-      // Sort by seasonYear (nulls last)
+      // Primary: season number from title
+      const sa = extractSeasonNum(a.title);
+      const sb = extractSeasonNum(b.title);
+      if (sa !== null && sb !== null) return sa - sb;
+      if (sa !== null) return -1;
+      if (sb !== null) return 1;
+      // Secondary: seasonYear
       if (a.seasonYear && b.seasonYear) return a.seasonYear - b.seasonYear;
       if (a.seasonYear) return -1;
       if (b.seasonYear) return 1;
-      // Fallback: season number in title
-      const getNum = (t: string) => {
-        const m = t.match(/season\s*(\d+)/i) || t.match(/(\d+)(?:st|nd|rd|th)\s*season/i);
-        return m ? parseInt(m[1]) : 999;
-      };
-      return getNum(a.title) - getNum(b.title);
+      return 0;
     });
 
+    // Assign sequence numbers for labeling (skipping gaps from "Cour" removal)
     const tabs = allItems.map((item, i) => ({
       id: item.id,
-      title: `S${i + 1}`,
+      title: `S${extractSeasonNum(item.title) ?? i + 1}`,
       isActive: item.id === detail.id,
     }));
     return tabs;
