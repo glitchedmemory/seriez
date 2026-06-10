@@ -5,6 +5,7 @@ import { resolveUserId } from "@/lib/user-utils";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 const VALID_STATUSES = ["watching", "completed", "plan_to_watch", "on_hold", "dropped"];
 
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to resolve user" }, { status: 500 });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("media_trackings")
       .upsert(
         {
@@ -147,7 +148,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("media_trackings")
       .delete()
       .eq("username", userId)
