@@ -89,6 +89,7 @@ function CommentTree({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1">
                   <span className="text-xs font-medium text-white mr-2">{c.username}</span>
+                  {c.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block" />}
                   {isAdmin && c.is_hidden && (
                     <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded">🚨 hidden</span>
                   )}
@@ -707,6 +708,7 @@ export function ReviewSection({
                   <span className="text-sm font-medium text-white">
                     {review.username}
                   </span>
+                  {review.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block ml-1" />}
                   {renderStars(review.rating)}
                 </div>
                 <span className="text-[10px] text-[#6b7280]">
