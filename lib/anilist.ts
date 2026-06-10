@@ -245,17 +245,15 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
       relations,
     };
 
-    // Validate trailer and replace if broken
-    if (trailer) {
-      const animeTitle = m.title?.english || m.title?.romaji || "";
-      const validated = await validateAndReplaceTrailers(
-        [{ key: trailer.id, name: "Trailer" }],
-        `${animeTitle} official trailer`,
-        1
-      );
-      if (validated.length > 0) {
-        result.trailer = { id: validated[0].key, site: "YouTube" };
-      }
+    // Validate trailer (if AnyList has one) or search YouTube (if not)
+    const animeTitle = m.title?.english || m.title?.romaji || "";
+    const validated = await validateAndReplaceTrailers(
+      trailer ? [{ key: trailer.id, name: "Trailer" }] : [],
+      `${animeTitle} official trailer`,
+      1
+    );
+    if (validated.length > 0) {
+      result.trailer = { id: validated[0].key, site: "YouTube" };
     }
 
     return result;
