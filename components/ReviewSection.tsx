@@ -508,8 +508,10 @@ export function ReviewSection({
   useEffect(() => {
     if (authUser?.user_metadata?.username) {
       supabase.from("users").select("role").eq("username", authUser.user_metadata.username).maybeSingle()
-        .then(({ data: rows }) => setIsAdmin((rows as any)?.role === "admin"))
-        .catch(() => {});
+        .then(
+          ({ data: rows }) => setIsAdmin((rows as any)?.role === "admin"),
+          () => {}
+        );
     }
   }, [authUser]);
 
