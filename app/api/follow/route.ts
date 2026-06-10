@@ -12,6 +12,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const username = searchParams.get("username") || (await resolveUsername(req));
   const type = searchParams.get("type"); // "followers" or "following"
+  const detail = searchParams.get("detail") === "true";
+  const me = await resolveUsername(req);
 
   if (!username?.trim()) {
     return NextResponse.json({ error: "Username required" }, { status: 400 });
@@ -34,7 +36,21 @@ export async function GET(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     // Resolve usernames from follower IDs
-    const users = await Promise.all(
+    const users = detail
+      ? await Promise.all(
+          (data || []).map(async (f) => {
+            const { data: u } = await supabase.from("users").select("username").eq("id", f.follower_id).maybeSingle();
+            const uname = u?.username;
+            if (!uname) return null;
+            const [{ count: rCount }, { count: cCount }, { data: isF }] = await Promise.all([
+              supabase.from("media_trackings").select("*", { count: "exact", head: true }).eq("username", uname).not("rating", "is", null),
+              supabase.from("review_comments").select("*", { count: "exact", head: true }).eq("username", uname),
+              me ? supabase.from("follows").select("id").eq("follower_id", (await resolveUserId(me!))).eq("following_id", f.follower_id).maybeSingle() : Promise.resolve({ data: null }),
+            ]);
+            return { username: uname, ratingsCount: rCount || 0, commentsCount: cCount || 0, isFollowing: !!isF?.id, since: f.created_at };
+          })
+        ).then(r => r.filter(Boolean))
+      : await Promise.all(
       (data || []).map(async (f) => {
         const { data: u } = await supabase
           .from("users")
@@ -59,7 +75,21 @@ export async function GET(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    const users = await Promise.all(
+    const users = detail
+      ? await Promise.all(
+          (data || []).map(async (f) => {
+            const { data: u } = await supabase.from("users").select("username").eq("id", f.following_id).maybeSingle();
+            const uname = u?.username;
+            if (!uname) return null;
+            const [{ count: rCount }, { count: cCount }, { data: isF }] = await Promise.all([
+              supabase.from("media_trackings").select("*", { count: "exact", head: true }).eq("username", uname).not("rating", "is", null),
+              supabase.from("review_comments").select("*", { count: "exact", head: true }).eq("username", uname),
+              me ? supabase.from("follows").select("id").eq("follower_id", (await resolveUserId(me!))).eq("following_id", f.following_id).maybeSingle() : Promise.resolve({ data: null }),
+            ]);
+            return { username: uname, ratingsCount: rCount || 0, commentsCount: cCount || 0, isFollowing: !!isF?.id, since: f.created_at };
+          })
+        ).then(r => r.filter(Boolean))
+      : await Promise.all(
       (data || []).map(async (f) => {
         const { data: u } = await supabase
           .from("users")
