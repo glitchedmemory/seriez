@@ -68,7 +68,7 @@ export default function HistoryClient() {
 
   if (loading && !data) {
     return (
-      <div className="max-w-lg mx-auto pb-32 px-4 pt-6">
+      <div className="max-w-lg md:max-w-4xl mx-auto pb-32 px-4 pt-6">
         <div className="space-y-4 animate-pulse">
           <div className="h-8 w-40 bg-[#1a1a2e] rounded-lg" />
           <div className="aspect-square bg-[#1a1a2e] rounded-2xl" />
@@ -81,7 +81,7 @@ export default function HistoryClient() {
 
   if (error && !data) {
     return (
-      <div className="max-w-lg mx-auto pb-32 px-4 pt-20 text-center">
+      <div className="max-w-lg md:max-w-4xl mx-auto pb-32 px-4 pt-20 text-center">
         <span className="text-4xl mb-4 block">📭</span>
         <h2 className="text-white text-lg font-bold mb-2">Error</h2>
         <p className="text-[#6b7280] text-sm">{error}</p>
@@ -138,7 +138,7 @@ export default function HistoryClient() {
   const maxStarCount = Math.max(...starBuckets.map(b => b.count), 1);
 
   return (
-    <div className="max-w-lg mx-auto pb-32">
+    <div className="max-w-lg md:max-w-4xl mx-auto pb-32">
       {/* ── Header nav ── */}
       <div className="pt-6 pb-2 px-4 flex items-center justify-between">
         <div>
