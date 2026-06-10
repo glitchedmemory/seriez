@@ -51,18 +51,17 @@ async function isVideoFullyPlayable(key: string): Promise<boolean> {
   return true;
 }
 
-/** Search DuckDuckGo for YouTube trailer IDs matching the query */
+/** Search YouTube directly for trailer IDs matching the query */
 async function searchFallback(query: string, count: number): Promise<Video[]> {
   try {
-    const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query + " site:youtube.com")}`;
-    const res = await fetch(ddgUrl, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-      next: { revalidate: 86400 },
+    const ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+    const res = await fetch(ytUrl, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
     } as any);
     const html = await res.text();
-    const ytMatches = html.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/g) || [];
-    const ytIds = Array.from(new Set(ytMatches.map((u: string) => u.split("v=")[1]?.slice(0, 11))));
-    return ytIds.slice(0, count).map((id) => ({
+    const matches = html.match(/videoId\\":\\"([a-zA-Z0-9_-]{11})\\"/g) || [];
+    const ids = Array.from(new Set(matches.map((m: string) => m.split('\\"')[3])));
+    return ids.slice(0, count).map((id) => ({
       key: id,
       name: "Official Trailer",
     }));
