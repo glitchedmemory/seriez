@@ -326,7 +326,7 @@ export default function ProfilePage() {
             <div>
               <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-2 px-1">Both Enjoyed</h3>
               <div className="space-y-2">
-                {compareData.bothEnjoyed.map((item, i) => (
+                {compareData.bothEnjoyed.slice(0, 3).map((item, i) => (
                   <a key={i} href={`/title/${item.tmdbId}?type=${item.mediaType}`}
                     className="flex items-center gap-3 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-3 hover:border-[#6366f1]/40 transition-colors">
                     <div className="w-14 h-[84px] rounded-lg overflow-hidden bg-[#0f0f1a] flex-shrink-0">
@@ -351,7 +351,7 @@ export default function ProfilePage() {
             <div>
               <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-2 px-1">Ratings Apart</h3>
               <div className="space-y-2">
-                {compareData.divergent.map((item, i) => (
+                {compareData.divergent.slice(0, 3).map((item, i) => (
                   <a key={i} href={`/title/${item.tmdbId}?type=${item.mediaType}`}
                     className="flex items-center gap-3 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-3 hover:border-[#6366f1]/40 transition-colors">
                     <div className="w-14 h-[84px] rounded-lg overflow-hidden bg-[#0f0f1a] flex-shrink-0">
