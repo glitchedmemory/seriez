@@ -320,7 +320,7 @@ export default function ProfilePage() {
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#818cf8] to-[#a78bfa] flex items-center justify-center flex-shrink-0">
               <span className="text-white text-xs">♡</span>
             </div>
-            <span className="text-sm text-[#9ca3af]">취향매칭률</span>
+            <span className="text-sm text-[#9ca3af]">Taste Match</span>
             <span className="text-2xl font-bold text-white ml-auto">{compareData.matchRate}%</span>
           </div>
 
