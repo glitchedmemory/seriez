@@ -299,6 +299,9 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
 
   // ─── Season tabs from relations ───
   const seasonTabs = (() => {
+    // Only TV series have season tabs — movies/OVAs/etc don't
+    if (detail.format !== "TV") return [];
+
     // Helper: extract season number from title
     // "Season 2" → 2, "2nd Season" → 2, "Final Season" → 99 (last)
     const extractSeasonNum = (t: string): number | null => {
