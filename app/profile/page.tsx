@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ProfileSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import HistoryClient from "@/app/history/HistoryClient";
-import { useState, useEffect, useCallback } from "react";
 
 export const dynamic = "force-dynamic";
 
