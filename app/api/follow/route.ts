@@ -6,6 +6,7 @@ import { resolveUsername } from "@/lib/auth-helper";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 // ─── GET: list followers or following ───
 export async function GET(req: NextRequest) {
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
 
   if (type === "followers") {
     // Users who follow this user
-    const { data, error, count } = await supabase
+    const { data, error, count } = await supabaseAdmin
       .from("follows")
       .select("follower_id, created_at", { count: "exact" })
       .eq("following_id", userId)
@@ -66,7 +67,7 @@ export async function GET(req: NextRequest) {
 
   if (type === "following") {
     // Users this user follows
-    const { data, error, count } = await supabase
+    const { data, error, count } = await supabaseAdmin
       .from("follows")
       .select("following_id, created_at", { count: "exact" })
       .eq("follower_id", userId)
