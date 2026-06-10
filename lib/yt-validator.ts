@@ -58,9 +58,23 @@ async function videoExists(key: string): Promise<boolean> {
   }
 }
 
-/** Check if a YouTube video has region restrictions — oEmbed already verifies playability, skip this check */
-async function hasRegionRestrictions(_key: string): Promise<boolean> {
-  return false;
+/** Check if a YouTube video is region-restricted by fetching the embed page */
+async function hasRegionRestrictions(key: string): Promise<boolean> {
+  try {
+    const res = await withRetry(() =>
+      fetch(`https://www.youtube.com/embed/${key}`, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+      } as any)
+    );
+    const html = await res.text();
+    // Detect region-restriction messages in the embed page
+    if (html.includes("not made this video available in your country")) return true;
+    if (html.includes("Video unavailable")) return true;
+    if (html.includes('"reason":"Video unavailable"')) return true;
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 /** Fully validate a video: exists + no region restrictions */
