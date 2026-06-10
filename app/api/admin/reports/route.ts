@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
     // Handle restore/delete actions
     if (action && targetType && targetId) {
-      const table = targetType === "review" ? "reviews" : "comments";
+      const table = targetType === "review" ? "reviews" : "review_comments";
       const idCol = "id";
 
       if (action === "restore") {
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
 
     // Fetch hidden comments
     const { data: hiddenComments, error: commentErr } = await supabaseAdmin
-      .from("comments")
+      .from("review_comments")
       .select("id, username, content, created_at, review_id")
       .eq("is_hidden", true)
       .order("created_at", { ascending: false })

@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
 
     // Auto-hide if 5+ reports
     if (reportCount >= 5) {
-      const table = target_type === "review" ? "reviews" : "comments";
+      const table = target_type === "review" ? "reviews" : "review_comments";
       const idCol = target_type === "review" ? "id" : "id";
       const { error: hideErr } = await supabaseAdmin
         .from(table)
