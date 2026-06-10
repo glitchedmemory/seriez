@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProfileSkeleton } from "@/components/Skeletons";
@@ -40,6 +40,12 @@ export default function ProfilePage() {
   const [compareLoading, setCompareLoading] = useState(false);
   const [followList, setFollowList] = useState<any[]>([]);
   const [followListLoading, setFollowListLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [bgUploading, setBgUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const bgInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -78,6 +84,59 @@ export default function ProfilePage() {
       setLibrary(res.items || []);
     } catch {}
   }, [effectiveUsername]);
+
+  const fetchProfileData = useCallback(async () => {
+    if (!effectiveUsername) return;
+    try {
+      const res = await fetch(`/api/profile?username=${encodeURIComponent(effectiveUsername)}`).then(r => r.json());
+      setAvatarUrl(res.avatarUrl || null);
+      setBackgroundUrl(res.backgroundUrl || null);
+    } catch {}
+  }, [effectiveUsername]);
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!file || !isOwn) return;
+    setAvatarUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/profile/avatar", { method: "POST", body: formData }).then(r => r.json());
+      if (res.error) { alert(res.error); return; }
+      setAvatarUrl(res.avatarUrl);
+    } catch { alert("Upload failed"); }
+    finally { setAvatarUploading(false); }
+  };
+
+  const handleAvatarDelete = async () => {
+    if (!isOwn) return;
+    try {
+      const res = await fetch("/api/profile/avatar", { method: "DELETE" }).then(r => r.json());
+      if (res.error) return;
+      setAvatarUrl(null);
+    } catch {}
+  };
+
+  const handleBackgroundUpload = async (file: File) => {
+    if (!file || !isOwn) return;
+    setBgUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", "background");
+      const res = await fetch("/api/profile/background", { method: "POST", body: formData }).then(r => r.json());
+      if (res.error) { alert(res.error); return; }
+      setBackgroundUrl(res.backgroundUrl);
+    } catch { alert("Upload failed"); }
+    finally { setBgUploading(false); }
+  };
+
+  const handleBackgroundDelete = async () => {
+    if (!isOwn) return;
+    try {
+      await fetch("/api/profile/background", { method: "DELETE" });
+      setBackgroundUrl(null);
+    } catch {}
+  };
 
   const fetchCompare = useCallback(async () => {
     if (!effectiveUsername || isOwn || !ownUsername) { setCompareData(null); return; }
@@ -119,8 +178,9 @@ export default function ProfilePage() {
       fetchFollowData();
       fetchFollowStatus();
       fetchLibrary();
+      fetchProfileData();
     }
-  }, [mounted, fetchFollowData, fetchFollowStatus, fetchLibrary]);
+  }, [mounted, fetchFollowData, fetchFollowStatus, fetchLibrary, fetchProfileData]);
 
   useEffect(() => {
     if (mounted && effectiveUsername) fetchCompare();
@@ -250,19 +310,64 @@ export default function ProfilePage() {
     <ErrorBoundary sectionName="Profile">
     <div className="max-w-lg md:max-w-4xl mx-auto pb-32">
       {/* Cover area */}
-      <div className="relative h-40 bg-gradient-to-br from-[#6366f1] via-[#7c3aed] to-[#a855f7]">
-        <div className="absolute inset-0 overflow-hidden opacity-20">
-          <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white" />
-          <div className="absolute -bottom-16 -left-8 w-56 h-56 rounded-full bg-white" />
-        </div>
+      <div
+        className={`relative h-40 ${backgroundUrl ? "" : "bg-gradient-to-br from-[#6366f1] via-[#7c3aed] to-[#a855f7]"}`}
+        style={backgroundUrl ? { backgroundImage: `url(${backgroundUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+        onClick={() => isOwn && bgInputRef.current?.click()}
+        title={isOwn ? "Click to change background" : undefined}
+      >
+        {isOwn && (
+          <input
+            ref={bgInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleBackgroundUpload(f); }}
+          />
+        )}
+        {bgUploading && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          </div>
+        )}
+        {isOwn && backgroundUrl && (
+          <button
+            onClick={(e) => { e.stopPropagation(); handleBackgroundDelete(); }}
+            className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white/70 hover:text-white text-xs px-2 py-1 rounded-lg transition-colors"
+          >✕ Remove</button>
+        )}
+        {!backgroundUrl && (
+          <div className="absolute inset-0 overflow-hidden opacity-20">
+            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white" />
+            <div className="absolute -bottom-16 -left-8 w-56 h-56 rounded-full bg-white" />
+          </div>
+        )}
       </div>
 
       {/* Avatar + Info */}
       <div className="relative px-4 -mt-10">
         <div className="flex items-end gap-4 mb-4">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0 ring-4 ring-[#0f0f1a] shadow-xl">
-            <span className="text-3xl font-bold text-white">{initial}</span>
+          <div
+            className={`w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 ring-4 ring-[#0f0f1a] shadow-xl overflow-hidden ${isOwn ? "cursor-pointer hover:ring-[#6366f1]/50 transition-all" : ""} ${!avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""}`}
+            onClick={() => isOwn && fileInputRef.current?.click()}
+            title={isOwn ? "Click to change avatar" : undefined}
+            onContextMenu={(e) => { if (isOwn && avatarUrl) { e.preventDefault(); handleAvatarDelete(); } }}
+          >
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-3xl font-bold text-white">{initial}</span>
+            )}
           </div>
+          {isOwn && (
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); }}
+            />
+          )}
           <div className="flex-1" />
           {!isOwn && user ? (
             <button onClick={handleFollow}
