@@ -1,66 +1,82 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-// ─── GET: list all hidden reviews and comments ───
+// GET — fetch hidden items with report counts
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const action = searchParams.get("action");
+    const targetType = searchParams.get("target_type");
+    const targetId = searchParams.get("target_id");
 
-    if (action === "restore") {
-      const targetType = searchParams.get("target_type");
-      const targetId = searchParams.get("target_id");
-      if (!targetType || !targetId) {
-        return NextResponse.json({ error: "target_type and target_id required" }, { status: 400 });
+    // Handle restore/delete actions
+    if (action && targetType && targetId) {
+      const table = targetType === "review" ? "reviews" : "comments";
+      const idCol = "id";
+
+      if (action === "restore") {
+        await supabaseAdmin.from(table).update({ is_hidden: false }).eq(idCol, targetId);
+      } else if (action === "delete") {
+        await supabaseAdmin.from(table).delete().eq(idCol, targetId);
       }
-      const table = targetType === "review" ? "reviews" : "review_comments";
-      const idCol = targetType === "review" ? "id" : "id";
-      const { error } = await supabaseAdmin
-        .from(table)
-        .update({ is_hidden: false, ai_verdict: "restored_by_admin" })
-        .eq(idCol, targetType === "comment" ? parseInt(targetId) : targetId);
-      if (error) throw error;
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ ok: true });
     }
 
-    if (action === "delete") {
-      const targetType = searchParams.get("target_type");
-      const targetId = searchParams.get("target_id");
-      if (!targetType || !targetId) {
-        return NextResponse.json({ error: "target_type and target_id required" }, { status: 400 });
+    // Fetch hidden reviews
+    const { data: hiddenReviews, error: reviewErr } = await supabaseAdmin
+      .from("reviews")
+      .select("id, username, content, created_at, tmdb_id, media_type")
+      .eq("is_hidden", true)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (reviewErr) return NextResponse.json({ error: reviewErr.message }, { status: 500 });
+
+    // Fetch hidden comments
+    const { data: hiddenComments, error: commentErr } = await supabaseAdmin
+      .from("comments")
+      .select("id, username, content, created_at, review_id")
+      .eq("is_hidden", true)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (commentErr) return NextResponse.json({ error: commentErr.message }, { status: 500 });
+
+    // Get report counts
+    const reportCounts: Record<string, number> = {};
+
+    if (hiddenReviews?.length || hiddenComments?.length) {
+      const targets = [
+        ...(hiddenReviews || []).map((r: any) => ({ type: "review", id: String(r.id) })),
+        ...(hiddenComments || []).map((c: any) => ({ type: "comment", id: String(c.id) })),
+      ];
+
+      for (const t of targets) {
+        const { count } = await supabaseAdmin
+          .from("reports")
+          .select("*", { count: "exact", head: true })
+          .eq("target_type", t.type)
+          .eq("target_id", t.id);
+        reportCounts[`${t.type}-${t.id}`] = count || 0;
       }
-      const table = targetType === "review" ? "reviews" : "review_comments";
-      const idCol = targetType === "review" ? "id" : "id";
-      const { error } = await supabaseAdmin
-        .from(table)
-        .delete()
-        .eq(idCol, targetType === "comment" ? parseInt(targetId) : targetId);
-      if (error) throw error;
-      // Also clean up reports
-      await supabaseAdmin.from("reports").delete().eq("target_type", targetType).eq("target_id", targetId);
-      return NextResponse.json({ success: true });
     }
 
-    // Default: list hidden content
-    const [hiddenReviews, hiddenComments] = await Promise.all([
-      supabaseAdmin.from("reviews").select("id, username, content, tmdb_id, media_type, ai_verdict, created_at").eq("is_hidden", true).order("created_at", { ascending: false }).limit(50),
-      supabaseAdmin.from("review_comments").select("id, review_id, username, content, ai_verdict, created_at").eq("is_hidden", true).order("created_at", { ascending: false }).limit(50),
-    ]);
+    const reviews = (hiddenReviews || []).map((r: any) => ({
+      ...r,
+      report_count: reportCounts[`review-${String(r.id)}`] || 0,
+    }));
+    const comments = (hiddenComments || []).map((c: any) => ({
+      ...c,
+      report_count: reportCounts[`comment-${String(c.id)}`] || 0,
+    }));
 
-    // Get report counts for all
-    const allIds = [
-      ...(hiddenReviews.data || []).map((r: any) => ({ type: "review", id: r.id })),
-      ...(hiddenComments.data || []).map((c: any) => ({ type: "comment", id: String(c.id) })),
-    ];
-
-    return NextResponse.json({
-      reviews: hiddenReviews.data || [],
-      comments: hiddenComments.data || [],
-    });
+    return NextResponse.json({ reviews, comments });
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "Failed" }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

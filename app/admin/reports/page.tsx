@@ -95,6 +95,11 @@ export default function AdminReportsPage() {
                     </span>
                     <span className="text-xs text-[#6b7280]">{item.username}</span>
                     <span className="text-xs text-[#6b7280]">{formatDate(item.created_at)}</span>
+                    {(item as any).report_count >= 5 && (
+                      <span className="text-xs bg-red-900/60 text-red-300 px-2 py-0.5 rounded-full font-bold">
+                        🚩 {(item as any).report_count}
+                      </span>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <button
