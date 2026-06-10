@@ -24,10 +24,10 @@ async function resolveUserIdByUsername(username: string): Promise<string | null>
   return userId;
 }
 
-// ─── TMDB with Next.js cache ───
+// ─── TMDB fetch (no cache — rate limit handled by 50ms delay) ───
 const getTmdbCached = (endpoint: string) =>
   fetch(`https://api.themoviedb.org/3${endpoint}?api_key=${TMDB_API_KEY}&language=en-US`, {
-    next: { revalidate: 86400 },
+    cache: "no-store",
   }).then(r => r.ok ? r.json() : null).catch(() => null);
 
 interface TmdbCache {
