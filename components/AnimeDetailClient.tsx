@@ -341,9 +341,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
     // Also filter out the current anime's own ID if it appears (shouldn't, but safety)
     const deduped = relatedTV.filter(r => r.id !== detail.id);
 
-    if (deduped.length === 0 && !extractSeasonNum(detail.title)) return [];
-
-    // Combine current + relations
+    // Combine current + relations (always include current for single-season shows)
     const allItems = [
       { id: detail.id, title: detail.title, seasonYear: detail.year || null as number | null },
       ...deduped.map(r => ({ id: r.id, title: r.title, seasonYear: r.seasonYear })),
