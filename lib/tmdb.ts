@@ -475,6 +475,15 @@ export async function getMovieDetail(id: number): Promise<TmdbDetail> {
   const movieTitle = `${detail.title || ""} ${detail.release_date ? parseInt(detail.release_date.slice(0, 4)) : ""}`.trim();
   const rawVideos = (videos.results || [])
     .filter((v: { site: string; type: string }) => v.site === "YouTube" && ["Trailer", "Teaser"].includes(v.type))
+    .sort((a: any, b: any) => {
+      // Trailers before Teasers
+      if (a.type === "Trailer" && b.type !== "Trailer") return -1;
+      if (a.type !== "Trailer" && b.type === "Trailer") return 1;
+      // Official before non-official within same type
+      if (a.official && !b.official) return -1;
+      if (!a.official && b.official) return 1;
+      return 0;
+    })
     .map((v: { key: string; name: string }) => ({ key: v.key, name: v.name }))
     .slice(0, 3);
   result.videos = (await validateAndReplaceTrailers(rawVideos, `${movieTitle} official trailer`))
@@ -526,6 +535,13 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
   const tvTitle = `${detail.name || ""} ${detail.first_air_date ? parseInt(detail.first_air_date.slice(0, 4)) : ""}`.trim();
   const rawVideos = (videos.results || [])
     .filter((v: { site: string; type: string }) => v.site === "YouTube" && ["Trailer", "Teaser"].includes(v.type))
+    .sort((a: any, b: any) => {
+      if (a.type === "Trailer" && b.type !== "Trailer") return -1;
+      if (a.type !== "Trailer" && b.type === "Trailer") return 1;
+      if (a.official && !b.official) return -1;
+      if (!a.official && b.official) return 1;
+      return 0;
+    })
     .map((v: { key: string; name: string }) => ({ key: v.key, name: v.name }))
     .slice(0, 3);
   resultTV.videos = (await validateAndReplaceTrailers(rawVideos, `${tvTitle} official trailer`))
