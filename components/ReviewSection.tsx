@@ -5,16 +5,16 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 /** Reddit-style comment tree:
- *  Max 3 replies shown inline, rest behind "Show more replies" button.
- *  Left border per nesting level for visual grouping.
+ *  Max 2 depth inline, deeper levels collapsed into "Continue this thread →".
+ *  Max 3 siblings shown, rest behind "Show more replies" button.
  */
 const THREAD_COLORS = [
   "border-[#6366f1]",   // depth 1
   "border-[#a855f7]",   // depth 2
-  "border-[#22c55e]",   // depth 3
-  "border-[#f59e0b]",   // depth 4+
+  "border-[#22c55e]",   // depth 3+
 ];
-const MAX_VISIBLE = 3;   // max replies shown inline per parent
+const MAX_SIBLINGS = 3;  // max siblings shown inline per parent
+const MAX_DEPTH = 2;      // depth 0,1,2 inline; 3+ collapsed
 
 function CommentTree({
   comments,
@@ -69,12 +69,13 @@ function CommentTree({
   // Sort: most recent first
   const sorted = [...nodes].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
   const isExpanded = expandedThreads.has(String(parentId ?? "root"));
-  const visible = isExpanded ? sorted : sorted.slice(0, MAX_VISIBLE);
+  const visible = isExpanded ? sorted : sorted.slice(0, MAX_SIBLINGS);
   const hidden = sorted.length - visible.length;
   const showMore = hidden > 0 && !isExpanded;
+  const beyondDepth = depth >= MAX_DEPTH;
 
   return (
-    <div className={depth === 0 ? "space-y-1 mb-3" : `border-l-2 ${THREAD_COLORS[Math.min(depth - 1, 3)]} ml-2 pl-3 space-y-1`}>
+    <div className={depth === 0 ? "space-y-1 mb-3" : `border-l-2 ${THREAD_COLORS[Math.min(depth - 1, 2)]} ml-2 pl-3 space-y-1`}>
       {visible.map((c: any) => {
         const replyCount = comments.filter((cc: any) => cc.parent_id === c.id).length;
         const hasChildren = replyCount > 0;
@@ -139,8 +140,8 @@ function CommentTree({
                   className="px-2 py-1 bg-[#6366f1] hover:bg-[#5558e6] disabled:opacity-40 text-white text-[10px] font-medium rounded-lg transition-colors flex-shrink-0">Post</button>
               </div>
             )}
-            {/* Children with max 3 visible */}
-            {hasChildren && childExpanded && (
+            {/* Children: inline up to MAX_DEPTH, collapsed beyond */}
+            {hasChildren && childExpanded && !beyondDepth && (
               <CommentTree comments={comments} depth={depth + 1} parentId={c.id}
                 isAdmin={isAdmin} onReport={onReport} onDelete={onDelete}
                 onReply={onReply} onToggleReply={onToggleReply} onReplyChange={onReplyChange}
@@ -148,6 +149,24 @@ function CommentTree({
                 expandedThreads={expandedThreads} onToggleThread={onToggleThread} onLike={onLike}
                 reviewId={reviewId} reviewTmdbId={reviewTmdbId} reviewAuthor={reviewAuthor}
                 titleName={titleName} authUsername={authUsername} />
+            )}
+            {/* Deep thread: "Continue this thread" */}
+            {hasChildren && beyondDepth && (
+              <div className="ml-7 mt-1">
+                <button onClick={() => onToggleThread(c.id)}
+                  className={`text-[10px] transition-colors ${childExpanded ? "text-[#a855f7]" : "text-[#6366f1] hover:text-[#818cf8]"}`}>
+                  {childExpanded ? "▾ Hide thread" : `▸ Continue this thread → (${replyCount} ${replyCount === 1 ? "reply" : "replies"})`}
+                </button>
+                {childExpanded && (
+                  <CommentTree comments={comments} depth={depth + 1} parentId={c.id}
+                    isAdmin={isAdmin} onReport={onReport} onDelete={onDelete}
+                    onReply={onReply} onToggleReply={onToggleReply} onReplyChange={onReplyChange}
+                    reportingComments={reportingComments} replyInputs={replyInputs} replyingTo={replyingTo}
+                    expandedThreads={expandedThreads} onToggleThread={onToggleThread} onLike={onLike}
+                    reviewId={reviewId} reviewTmdbId={reviewTmdbId} reviewAuthor={reviewAuthor}
+                    titleName={titleName} authUsername={authUsername} />
+                )}
+              </div>
             )}
           </div>
         );
