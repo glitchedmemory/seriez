@@ -78,7 +78,7 @@ function CollectionsView() {
       .then(r => r.json()).then(d => { setCollections(d.collections || []); setLoading(false); }).catch(() => setLoading(false));
   };
 
-  useEffect(() => { fetchCollections(); supabase.auth.getUser().then(({ data }) => setAuthUser(data.user ?? null)).catch(() => {}); }, []);
+  useEffect(() => { fetchCollections(); supabase.auth.getSession().then(({ data: { session } }) => setAuthUser(session?.user ?? null)).catch(() => {}); }, []);
 
   const fetchItems = (listId: string) => {
     setItemsLoading(true);
@@ -172,6 +172,33 @@ function CollectionsView() {
 // ─── Main Library ───
 export default function LibraryClient() {
   const [activeTab, setActiveTab] = useState("");
+  const [stats, setStats] = useState({ plan_to_watch: 0, watching: 0, completed: 0, total: 0 });
+  const [statsLoaded, setStatsLoaded] = useState(false);
+
+  useEffect(() => {
+    const username = typeof window !== "undefined" ? localStorage.getItem("seriez-username") || "" : "";
+    if (!username) { setStatsLoaded(true); return; }
+    fetch(`/api/library?username=${encodeURIComponent(username)}`)
+      .then(r => r.json())
+      .then(data => {
+        const items = data.items || [];
+        setStats({
+          total: items.length,
+          plan_to_watch: items.filter((i: LibraryItem) => i.status === "plan_to_watch").length,
+          watching: items.filter((i: LibraryItem) => i.status === "watching").length,
+          completed: items.filter((i: LibraryItem) => i.status === "completed").length,
+        });
+        setStatsLoaded(true);
+      })
+      .catch(() => setStatsLoaded(true));
+  }, []);
+
+  const tabCounts: Record<string, number> = {
+    "": stats.total,
+    plan_to_watch: stats.plan_to_watch,
+    watching: stats.watching,
+    completed: stats.completed,
+  };
 
   return (
     <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
@@ -181,11 +208,27 @@ export default function LibraryClient() {
           {TABS.map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${activeTab === tab.key ? "bg-[#6366f1] text-white" : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white"}`}>
-              {tab.label}
+              {tab.label}{tab.key !== "collections" && statsLoaded ? ` ${tabCounts[tab.key]}` : ""}
             </button>
           ))}
         </div>
       </header>
+
+      {/* Stats bar */}
+      {statsLoaded && stats.total > 0 && (
+        <div className="flex gap-3 px-4 py-3 border-b border-[#1a1a2e]">
+          <button onClick={() => setActiveTab("plan_to_watch")} className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${activeTab === "plan_to_watch" ? "bg-amber-500/10 text-amber-400 border border-amber-500/30" : "bg-[#1a1a2e] text-[#9ca3af]"}`}>
+            <span className="block text-lg font-bold">{stats.plan_to_watch}</span>Plan to Watch
+          </button>
+          <button onClick={() => setActiveTab("watching")} className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${activeTab === "watching" ? "bg-sky-500/10 text-sky-400 border border-sky-500/30" : "bg-[#1a1a2e] text-[#9ca3af]"}`}>
+            <span className="block text-lg font-bold">{stats.watching}</span>Watching
+          </button>
+          <button onClick={() => setActiveTab("completed")} className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${activeTab === "completed" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30" : "bg-[#1a1a2e] text-[#9ca3af]"}`}>
+            <span className="block text-lg font-bold">{stats.completed}</span>Watched
+          </button>
+        </div>
+      )}
+
       {activeTab === "collections" ? <CollectionsView /> : <TrackingGrid activeTab={activeTab} />}
     </div>
   );
