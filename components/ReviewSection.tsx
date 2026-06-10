@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 /** Reddit-style comment tree:
@@ -82,7 +83,7 @@ function CommentTree({
                     <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded">🚨 hidden</span>
                   )}
                   {authUsername !== c.username && (
-                    <button onClick={() => authUsername ? onReport(c.id) : alert("Sign in to report")}
+                    <button onClick={() => authUsername ? onReport(c.id) : router.push("/login")}
                       disabled={reportingComments.has(String(c.id)) && !!authUsername}
                       className="text-[10px] text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50 ml-auto"
                       title="Report">🚩</button>
@@ -105,7 +106,7 @@ function CommentTree({
                     </svg>
                     <span>{c.likes || 0}</span>
                   </button>
-                  <button onClick={() => authUsername ? onToggleReply(c.id) : alert("Sign in to reply")}
+                  <button onClick={() => authUsername ? onToggleReply(c.id) : router.push("/login")}
                     className="text-[10px] text-[#6b7280] hover:text-[#a855f7] transition-colors">💬 Reply</button>
                   {hasChildren && (
                     <button onClick={() => onToggleThread(c.id)}
@@ -225,6 +226,7 @@ export function ReviewSection({
   const [content, setContent] = useState("");
   const [authUser, setAuthUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
   const supabase = createClient();
+  const router = useRouter();
 
   // ── Comment state ──
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
@@ -699,7 +701,7 @@ export function ReviewSection({
                 {/* Report button — always visible */}
                 {authUser?.user_metadata?.username !== review.username && (
                   <button
-                    onClick={() => authUser ? handleReport("review", review.id) : alert("Sign in to report")}
+                    onClick={() => authUser ? handleReport("review", review.id) : router.push("/login")}
                     disabled={reportingReview.has(review.id)}
                     className="flex items-center gap-1 text-xs text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50"
                     title="Report this review"
