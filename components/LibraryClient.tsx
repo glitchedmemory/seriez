@@ -13,7 +13,7 @@ interface LibraryItem {
   progress: number | null; updatedAt: string; title: string; poster: string | null;
   year: number | null; tmdbRating: number;
 }
-interface Collection { id: string; name: string; isPublic: boolean; itemCount: number; createdAt: string; }
+interface Collection { id: string; name: string; isPublic: boolean; isPublished: boolean; itemCount: number; createdAt: string; }
 interface CollectionItem { tmdbId: number; mediaType: string; title: string; poster: string | null; year: number | null; rating: number; addedAt: string; }
 
 const TABS = [
@@ -105,6 +105,11 @@ function CollectionsView() {
     fetchItems(listId); fetchCollections();
   };
 
+  const togglePublish = async (listId: string) => {
+    await fetch(`/api/collections/${listId}/publish`, { method: "POST" });
+    fetchCollections();
+  };
+
   if (selectedId) {
     const collection = collections.find(c => c.id === selectedId);
     return (
@@ -153,6 +158,7 @@ function CollectionsView() {
         {collections.map(c => (
           <div key={c.id} className="flex items-center gap-3 bg-[#1a1a2e] rounded-xl p-3 hover:bg-[#25253a] transition-colors cursor-pointer group" onClick={() => { setSelectedId(c.id); fetchItems(c.id); }}>
             <div className="flex-1 min-w-0"><p className="text-sm font-medium text-white truncate">{c.name}</p><p className="text-xs text-[#6b7280]">{c.itemCount} item{c.itemCount !== 1 ? "s" : ""}</p></div>
+            <button onClick={e => { e.stopPropagation(); togglePublish(c.id); }} className={`text-[10px] font-medium px-2 py-1 rounded-lg transition-colors ${c.isPublished ? "bg-[#374151]/50 text-[#9ca3af] hover:bg-[#374151]" : "bg-[#6366f1]/10 text-[#818cf8] hover:bg-[#6366f1]/20"}`}>{c.isPublished ? "혼자보기" : "발행하기"}</button>
             <button onClick={e => { e.stopPropagation(); deleteCollection(c.id); }} className="text-[#6b7280] hover:text-red-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity">🗑</button>
           </div>
         ))}

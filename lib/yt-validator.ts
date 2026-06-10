@@ -84,8 +84,8 @@ export async function validateAndReplaceTrailers(
   const result: Video[] = [];
   const brokenCount: number = 0;
 
-  // Phase 1: validate existing videos (exists + no region block), cap at max
-  for (let i = 0; i < videos.length && result.length < max; i++) {
+  // Phase 1: validate existing videos (exists + no region block)
+  for (let i = 0; i < videos.length; i++) {
     if (badKeys?.has(videos[i].key)) continue;
     const playable = await isVideoFullyPlayable(videos[i].key);
     if (playable) {
