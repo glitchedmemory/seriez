@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
       }
       dbRating = TO_DB(rating);
     }
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("reviews").insert({ tmdb_id: tmdbId, media_type: mediaType, username: username.trim().slice(0, 20), content: content.trim().slice(0, 2000), rating: dbRating })
       .select("id, username, content, rating, likes_count, created_at").single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
