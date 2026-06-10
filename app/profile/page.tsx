@@ -286,7 +286,7 @@ export default function ProfilePage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white">@{u.username}</p>
                       <p className="text-[10px] text-[#6b7280]">
-                        평가 {u.ratingsCount || 0} · 코멘트 {u.commentsCount || 0}
+                        {u.ratingsCount || 0} ratings · {u.commentsCount || 0} comments
                       </p>
                     </div>
                     {!u.isFollowing && u.username !== ownUsername && user && (
@@ -306,11 +306,11 @@ export default function ProfilePage() {
                         }}
                         className="px-3 py-1.5 bg-[#6366f1] hover:bg-[#818cf8] text-white text-xs font-medium rounded-lg transition-colors"
                       >
-                        팔로우
+                        Follow
                       </button>
                     )}
                     {u.isFollowing && u.username !== ownUsername && (
-                      <span className="text-[10px] text-[#6b7280] px-2">팔로잉</span>
+                      <span className="text-[10px] text-[#6b7280] px-2">Following</span>
                     )}
                   </a>
                 ))}
@@ -374,13 +374,13 @@ export default function ProfilePage() {
       {(isOwn && user) && backgroundUrl && showBgSettings && (
         <div className="mx-4 mt-2 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-4 space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-white">배경 설정</span>
+            <span className="text-sm font-medium text-white">Background Settings</span>
             <button onClick={() => setShowBgSettings(false)} className="text-[#6b7280] hover:text-white text-lg leading-none">✕</button>
           </div>
           {/* Scale */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-[#9ca3af]">확대/축소</span>
+              <span className="text-xs text-[#9ca3af]">Zoom</span>
               <span className="text-xs text-[#6366f1] font-medium">{bgScale}%</span>
             </div>
             <input
@@ -398,7 +398,7 @@ export default function ProfilePage() {
           </div>
           {/* Position */}
           <div>
-            <span className="text-xs text-[#9ca3af] block mb-2">위치</span>
+            <span className="text-xs text-[#9ca3af] block mb-2">Position</span>
             <div className="grid grid-cols-3 gap-1.5 w-28 mx-auto">
               {[
                 { x: 0, y: 0, label: "↖" }, { x: 50, y: 0, label: "↑" }, { x: 100, y: 0, label: "↗" },
@@ -420,7 +420,7 @@ export default function ProfilePage() {
           <button
             onClick={handleSaveBgSettings}
             className="w-full py-2 bg-[#6366f1] hover:bg-[#818cf8] text-white text-sm font-medium rounded-lg transition-colors"
-          >저장</button>
+          >Save</button>
         </div>
       )}
 
@@ -481,7 +481,7 @@ export default function ProfilePage() {
             <button
               onClick={() => router.push("/profile/settings")}
               className="text-[#6b7280] hover:text-white transition-colors"
-              title="설정"
+              title="Settings"
             >⚙️</button>
           )}
         </div>

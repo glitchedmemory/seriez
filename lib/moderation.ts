@@ -51,11 +51,11 @@ export async function checkImage(imageUrl: string): Promise<ImageCheckResult> {
     };
 
     // Thresholds — conservative but fair
-    if (scores.nudity > 0.3) return { safe: false, reason: "이미지에 부적절한 노출이 포함되어 있습니다", scores };
-    if (scores.weapon > 0.5) return { safe: false, reason: "무기 관련 이미지는 허용되지 않습니다", scores };
-    if (scores.drugs > 0.5) return { safe: false, reason: "약물 관련 이미지는 허용되지 않습니다", scores };
-    if (scores.offensive > 0.5) return { safe: false, reason: "공격적인 이미지는 허용되지 않습니다", scores };
-    if (scores.gore > 0.3) return { safe: false, reason: "잔인한 이미지는 허용되지 않습니다", scores };
+    if (scores.nudity > 0.3) return { safe: false, reason: "This image contains inappropriate nudity", scores };
+    if (scores.weapon > 0.5) return { safe: false, reason: "Images containing weapons are not allowed", scores };
+    if (scores.drugs > 0.5) return { safe: false, reason: "Drug-related images are not allowed", scores };
+    if (scores.offensive > 0.5) return { safe: false, reason: "Offensive images are not allowed", scores };
+    if (scores.gore > 0.3) return { safe: false, reason: "Graphic or violent images are not allowed", scores };
 
     return { safe: true, scores };
   } catch {
@@ -92,7 +92,7 @@ export async function checkText(text: string): Promise<TextCheckResult> {
     if (highSeverity.length > 0) {
       return {
         safe: false,
-        reason: "부적절한 언어가 포함되어 있습니다",
+        reason: "This content contains inappropriate language",
         matches: highSeverity,
       };
     }
@@ -101,7 +101,7 @@ export async function checkText(text: string): Promise<TextCheckResult> {
     if ((data.personal?.matches || []).length > 0) {
       return {
         safe: false,
-        reason: "개인정보가 포함되어 있습니다",
+        reason: "This content contains personal information",
         matches: [],
       };
     }
