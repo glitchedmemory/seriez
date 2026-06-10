@@ -247,11 +247,13 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
 
     // Validate trailer (if AnyList has one) or search YouTube (if not)
     const animeTitle = m.title?.english || m.title?.romaji || "";
+    console.log(`[TRAILER_DEBUG] Anime: ${animeTitle}, hasTrailer: ${!!trailer}`);
     const validated = await validateAndReplaceTrailers(
       trailer ? [{ key: trailer.id, name: "Trailer" }] : [],
       `${animeTitle} official trailer`,
       1
     );
+    console.log(`[TRAILER_DEBUG] Validated: ${validated.length}, keys: ${validated.map(v => v.key).join(',')}`);
     if (validated.length > 0) {
       result.trailer = { id: validated[0].key, site: "YouTube" };
     }
