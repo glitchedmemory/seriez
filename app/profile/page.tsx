@@ -246,15 +246,6 @@ export default function ProfilePage() {
   const displayName = profileUsername || ownUsername || localStorageUsername || "Guest";
   const initial = displayName.slice(0, 1).toUpperCase();
 
-  const watched = library.filter(i => i.status === "completed");
-  const watching = library.filter(i => i.status === "watching");
-  const planned = library.filter(i => i.status === "plan_to_watch");
-  const rated = library.filter(i => (i.rating ?? 0) > 0);
-  const avgRating = rated.length > 0
-    ? (rated.reduce((sum, i) => sum + (i.rating ?? 0), 0) / rated.length).toFixed(1)
-    : null;
-  const totalItems = library.length;
-
   return (
     <ErrorBoundary sectionName="Profile">
     <div className="max-w-lg mx-auto pb-32">
@@ -301,15 +292,6 @@ export default function ProfilePage() {
             <strong className="text-white">{followingCount}</strong> following
           </button>
         </div>
-
-        {totalItems > 0 && (
-          <div className="flex gap-4 mt-4 p-3 bg-[#1a1a2e]/80 border border-[#2d2d4a] rounded-xl">
-            <StatBadge value={watched.length} label="Watched" color="text-emerald-400" />
-            <StatBadge value={watching.length} label="Watching" color="text-sky-400" />
-            <StatBadge value={planned.length} label="Plan to Watch" color="text-amber-400" />
-            {avgRating && <StatBadge value={avgRating} label="Avg Rating" color="text-yellow-400" prefix="★ " />}
-          </div>
-        )}
       </div>
 
       {/* Taste Comparison — only on other users' profiles */}
