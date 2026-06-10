@@ -349,10 +349,14 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       const sb = extractSeasonNum(b.title);
       // Null-season entries (original series) come first, sorted by year
       if (sa === null && sb === null) {
-        if (a.seasonYear && b.seasonYear) return a.seasonYear - b.seasonYear;
+        if (a.seasonYear && b.seasonYear) {
+          const ydiff = a.seasonYear - b.seasonYear;
+          if (ydiff !== 0) return ydiff;
+          return a.id - b.id; // tiebreaker: lower AniList ID = earlier season
+        }
         if (a.seasonYear) return -1;
         if (b.seasonYear) return 1;
-        return 0;
+        return a.id - b.id; // tiebreaker: lower AniList ID = earlier season
       }
       if (sa === null) return -1;
       if (sb === null) return 1;
