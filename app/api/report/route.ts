@@ -12,6 +12,9 @@ export async function POST(req: NextRequest) {
     if (!target_type || !target_id) {
       return NextResponse.json({ error: "target_type and target_id required" }, { status: 400 });
     }
+    if (!["review", "comment"].includes(target_type)) {
+      return NextResponse.json({ error: "target_type must be review or comment" }, { status: 400 });
+    }
 
     // Get auth user from cookie
     const supabase = createClient(
@@ -26,28 +29,50 @@ export async function POST(req: NextRequest) {
 
     const reporter = user.user_metadata?.username || user.email || "unknown";
 
-    // Insert report
-    const { error } = await supabaseAdmin.from("reports").insert({
+    // Insert report (UNIQUE constraint prevents duplicates)
+    const { error: insertErr } = await supabaseAdmin.from("reports").insert({
       reporter_username: reporter,
       target_type,
       target_id,
     });
 
-    // Ignore duplicate (already reported)
-    if (error && error.code !== "23505") {
-      console.error("Report insert error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    // 23505 = unique violation (already reported) — not an error
+    if (insertErr && insertErr.code !== "23505") {
+      console.error("Report insert error:", insertErr);
+      return NextResponse.json({ error: insertErr.message }, { status: 500 });
     }
 
     // Count total reports for this target
-    const { count } = await supabaseAdmin
+    const { count, error: countErr } = await supabaseAdmin
       .from("reports")
       .select("*", { count: "exact", head: true })
       .eq("target_type", target_type)
       .eq("target_id", target_id);
 
-    return NextResponse.json({ report_count: count || 1 });
+    if (countErr) {
+      console.error("Report count error:", countErr);
+      return NextResponse.json({ error: countErr.message }, { status: 500 });
+    }
+
+    const reportCount = count || 1;
+
+    // Auto-hide if 5+ reports
+    if (reportCount >= 5) {
+      const table = target_type === "review" ? "reviews" : "comments";
+      const idCol = target_type === "review" ? "id" : "id";
+      const { error: hideErr } = await supabaseAdmin
+        .from(table)
+        .update({ is_hidden: true })
+        .eq(idCol, target_id);
+
+      if (hideErr) {
+        console.error(`Auto-hide ${target_type} error:`, hideErr);
+      }
+    }
+
+    return NextResponse.json({ report_count: reportCount });
   } catch (err: any) {
+    console.error("Report API error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
