@@ -845,7 +845,7 @@ export async function enrichAnimeRelations(
   const result: { id: number; title: string; type: string; format: string; seasonYear: number | null }[] = [];
 
   // Start with existing TV relations
-  const queue = existingRelations.filter(r => r.format === "TV" || !r.format);
+  const queue = existingRelations.filter(r => r.format === "TV");
   for (const r of queue) {
     if (!seen.has(r.id)) {
       seen.add(r.id);
@@ -868,7 +868,7 @@ export async function enrichAnimeRelations(
         const json = await res.json();
         const edges = json.data?.Media?.relations?.edges || [];
         return edges
-          .filter((e: any) => e.node?.type === "ANIME" && (e.node?.format === "TV" || !e.node?.format) && (e.relationType === "SEQUEL" || e.relationType === "PREQUEL"))
+          .filter((e: any) => e.node?.type === "ANIME" && e.node?.format === "TV" && (e.relationType === "SEQUEL" || e.relationType === "PREQUEL"))
           .map((e: any) => ({
             id: e.node.id,
             title: e.node.title?.english || e.node.title?.romaji || "Unknown",
