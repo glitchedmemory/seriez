@@ -185,7 +185,7 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
     }
 
     if (!res!.ok) return null;
-    const json = await res.json();
+    const json = await res!.json();
     const m = json.data?.Media;
     if (!m) return null;
 
