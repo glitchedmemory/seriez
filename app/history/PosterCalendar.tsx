@@ -93,7 +93,7 @@ export default function PosterCalendar({
           return (
             <div
               key={dateKey}
-              className={`relative flex flex-col items-center pt-0.5 ${entries.length > 0 ? "min-h-[88px]" : "min-h-[52px]"}`}
+              className={`relative flex flex-col items-center pt-0.5 ${entries.length > 0 ? "min-h-[120px]" : "min-h-[52px]"}`}
             >
               {/* Day number */}
               <button
@@ -135,9 +135,9 @@ export default function PosterCalendar({
                   )}
                   {/* Title overlay */}
                   <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5">
-                    <p className="text-[7px] font-bold text-white truncate leading-tight text-center">
-                      {firstEntry.title.length > 10
-                        ? firstEntry.title.slice(0, 10) + "…"
+                    <p className="text-[9px] font-bold text-white truncate leading-tight text-center">
+                      {firstEntry.title.length > 12
+                        ? firstEntry.title.slice(0, 12) + "…"
                         : firstEntry.title}
                     </p>
                   </div>
