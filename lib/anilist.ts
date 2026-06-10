@@ -128,6 +128,7 @@ query($id: Int) {
         type
         format
         seasonYear
+        relationType
       }
     }
     streamingEpisodes {
@@ -224,9 +225,9 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
       })
       .filter(Boolean);
 
-    // Relations (sequels, prequels, side stories)
+    // Relations (sequels, prequels only — exclude side stories, spin-offs, crossovers)
     const relations = (m.relations?.nodes || [])
-      .filter((r: any) => r.type === "ANIME")
+      .filter((r: any) => r.type === "ANIME" && (r.relationType === "SEQUEL" || r.relationType === "PREQUEL"))
       .map((r: any) => ({
         id: r.id,
         title: r.title?.english || r.title?.romaji || "Unknown",
@@ -822,6 +823,7 @@ query($id: Int) {
         type
         format
         seasonYear
+        relationType
       }
     }
   }
@@ -862,7 +864,7 @@ export async function enrichAnimeRelations(
         const json = await res.json();
         const nodes = json.data?.Media?.relations?.nodes || [];
         return nodes
-          .filter((n: any) => n.type === "ANIME" && (n.format === "TV" || !n.format))
+          .filter((n: any) => n.type === "ANIME" && (n.format === "TV" || !n.format) && (n.relationType === "SEQUEL" || n.relationType === "PREQUEL"))
           .map((n: any) => ({
             id: n.id,
             title: n.title?.english || n.title?.romaji || "Unknown",
