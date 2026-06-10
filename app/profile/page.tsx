@@ -34,7 +34,7 @@ export default function ProfilePage() {
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
-  const [followLoading, setFollowLoading] = useState(false);
+  const [bounce, setBounce] = useState(false);
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [compareData, setCompareData] = useState<CompareData | null>(null);
   const [compareLoading, setCompareLoading] = useState(false);
@@ -128,7 +128,7 @@ export default function ProfilePage() {
 
   async function handleFollow() {
     if (!ownUsername || !profileUsername) return;
-    setFollowLoading(true);
+    setBounce(true);
     try {
       const method = isFollowing ? "DELETE" : "POST";
       const res = await fetch("/api/follow", {
@@ -141,7 +141,7 @@ export default function ProfilePage() {
         setFollowersCount((prev) => isFollowing ? prev - 1 : prev + 1);
       }
     } catch {}
-    setFollowLoading(false);
+    setTimeout(() => setBounce(false), 400);
   }
 
   if (!mounted) return null;
@@ -274,8 +274,10 @@ export default function ProfilePage() {
           </div>
           <div className="flex-1" />
           {!isOwn && user ? (
-            <button onClick={handleFollow} disabled={followLoading}
-              className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all mb-1 ${
+            <button onClick={handleFollow}
+              className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 mb-1 ${
+                bounce ? "scale-110" : "scale-100"
+              } ${
                 isFollowing
                   ? "bg-[#1a1a2e] border border-[#2d2d4a] text-[#9ca3af] hover:text-red-400 hover:border-red-500"
                   : "bg-[#6366f1] text-white hover:bg-[#818cf8] shadow-lg shadow-[#6366f1]/25"
@@ -315,14 +317,14 @@ export default function ProfilePage() {
         <div className="px-4 mt-6 space-y-4">
           {/* Match Rate */}
           <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl p-5 text-center">
-            <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-2">취향매칭률</h3>
+            <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-2">Taste Match</h3>
             <p className="text-4xl font-bold text-[#818cf8]">{compareData.matchRate}%</p>
           </div>
 
           {/* Both Enjoyed */}
           {compareData.bothEnjoyed.length > 0 && (
             <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl p-5">
-              <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-3">둘 다 재밌게 본 작품</h3>
+              <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-3">Both Enjoyed</h3>
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {compareData.bothEnjoyed.map((item, i) => (
                   <a key={i} href={`/title/${item.tmdbId}?type=${item.mediaType}`}
@@ -344,7 +346,7 @@ export default function ProfilePage() {
           {/* Divergent Ratings */}
           {compareData.divergent.length > 0 && (
             <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl p-5">
-              <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-3">서로 평가가 엇갈린 작품</h3>
+              <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-3">Ratings Apart</h3>
               <div className="space-y-3">
                 {compareData.divergent.map((item, i) => (
                   <a key={i} href={`/title/${item.tmdbId}?type=${item.mediaType}`}
@@ -359,8 +361,8 @@ export default function ProfilePage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-white truncate">{item.title}</p>
                       <div className="flex gap-3 mt-0.5">
-                        <span className="text-[10px] text-[#818cf8]">내 평가 ★{item.myRating}</span>
-                        <span className="text-[10px] text-[#f59e0b]">상대 평가 ★{item.theirRating}</span>
+                        <span className="text-[10px] text-[#818cf8]">You ★{item.myRating}</span>
+                        <span className="text-[10px] text-[#f59e0b]">Them ★{item.theirRating}</span>
                       </div>
                     </div>
                   </a>
