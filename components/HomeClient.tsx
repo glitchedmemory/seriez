@@ -103,10 +103,10 @@ interface Props {
 type TrendingMode = "movie" | "tv" | "anime";
 
 function getStoredMode(): TrendingMode {
-  if (typeof window === "undefined") return "tv";
+  if (typeof window === "undefined") return "anime";
   const stored = localStorage.getItem("seriez-trending-mode");
   if (stored === "movie" || stored === "tv" || stored === "anime") return stored;
-  return "tv";
+  return "anime";
 }
 
 export default function HomeClient({ trending, upcoming, boxOffice, region, randomSeed }: Props) {
