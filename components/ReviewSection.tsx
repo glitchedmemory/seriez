@@ -97,7 +97,7 @@ function CommentTree({
                     <button onClick={() => authUsername ? onReport(c.id) : router.push("/login")}
                       disabled={reportingComments.has(String(c.id)) && !!authUsername}
                       className="text-[10px] text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50 ml-auto"
-                      title="Report"><img src="/icons/report-shield.svg" alt="Report" className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" /></button>
+                      title="Report"><img src="/report-button.png" alt="Report" className="h-4 w-auto opacity-70 group-hover:opacity-100" /></button>
                   )}
                   {isAdmin && c.is_hidden && (
                     <button onClick={() => onDelete(c.id)}
@@ -749,7 +749,7 @@ export function ReviewSection({
                     className="flex items-center gap-1 text-xs text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50"
                     title="Report this review"
                   >
-                    <img src="/icons/report-shield.svg" alt="Report" className="w-4 h-4" />
+                    <img src="/report-button.png" alt="Report" className="h-5 w-auto" />
                   </button>
                 )}
                 {/* Admin: delete hidden review */}
