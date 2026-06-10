@@ -125,7 +125,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
   // Fetch current tracking status + watched episodes on mount
   useEffect(() => {
     setMounted(true);
-    supabase.auth.getUser().then(({ data }) => setAuthUser(data.user ?? null)).catch(() => {});
+    supabase.auth.getSession().then(({ data: { session } }) => setAuthUser(session?.user ?? null)).catch(() => {});
     const username = localStorage.getItem("seriez-username") || "";
     // Fetch tracking
     fetch(`/api/track?username=${encodeURIComponent(username)}`)
@@ -410,6 +410,18 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
               ))}
             </div>
 
+            {/* Star rating — only when Watched */}
+            {isWatched && (
+              <div className="flex justify-center md:justify-start mt-3">
+                <StarInput value={rating} onChange={handleRatingChange} />
+              </div>
+            )}
+            {isWatched && trackedAt && (
+              <p className="text-[10px] text-[#6b7280] mt-1 text-center md:text-left">
+                Watched {formatDate(trackedAt)}
+              </p>
+            )}
+
             {/* Tracking buttons */}
             {!mounted ? null : (
               <>
@@ -504,18 +516,6 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Star rating — only when Watched */}
-            {isWatched && (
-              <div className="flex justify-center md:justify-start mt-3">
-                <StarInput value={rating} onChange={handleRatingChange} />
-              </div>
-            )}
-            {isWatched && trackedAt && (
-              <p className="text-[10px] text-[#6b7280] mt-1 text-center md:text-left">
-                Watched {formatDate(trackedAt)}
-              </p>
             )}
 
             {/* Studios */}
@@ -769,7 +769,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
 
         {/* Reviews for this series (shared across all seasons) */}
         <section className="mt-6">
-          <ReviewSection tmdbId={data.id} mediaType="tv" trackStatus={trackStatus} trackVersion={trackVersion} />
+          <ReviewSection tmdbId={data.id} mediaType="tv" trackStatus={trackStatus} trackVersion={trackVersion} authUser={authUser} />
         </section>
       </div>
     </div>
