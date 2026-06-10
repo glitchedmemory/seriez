@@ -16,14 +16,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { searchParams } = new URL(req.url);
   const username = await resolveUsername(req);
   const { id: listId } = await params;
-  if (!username) return NextResponse.json({ error: "Missing username" }, { status: 400 });
 
-  const userId = await resolveUserId(username);
-  if (!userId) return NextResponse.json({ error: "User not found" }, { status: 404 });
-
-  // Get list info
-  const { data: list } = await supabase.from("user_lists").select("id, name, is_public, created_at, user_id").eq("id", listId).single();
+  // Get list info — public, no auth needed
+  const { data: list } = await supabase.from("user_lists").select("id, name, is_public, is_published, created_at, user_id").eq("id", listId).single();
   if (!list) return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+
+  // Get owner username
+  const { data: owner } = await supabase.from("users").select("username").eq("id", list.user_id).single();
+  const ownerName = owner?.username || "unknown";
+
+  // Check if current user is owner (null if not logged in)
+  let isOwner = false;
+  if (username) {
+    const userId = await resolveUserId(username);
+    isOwner = userId === list.user_id;
+  }
 
   // Get items
   const { data: items } = await supabase.from("list_items").select("tmdb_id, media_type, added_at").eq("list_id", listId).order("added_at", { ascending: false });
@@ -48,9 +55,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     })
   );
 
+  // Get like count
+  const { count: likesCount } = await supabase
+    .from("collection_likes").select("*", { count: "exact", head: true }).eq("list_id", listId);
+
   return NextResponse.json({
-    id: list.id, name: list.name, isPublic: list.is_public,
-    isOwner: list.user_id === userId, createdAt: list.created_at,
+    id: list.id, name: list.name, owner: ownerName,
+    isPublic: list.is_public, isPublished: list.is_published,
+    isOwner, createdAt: list.created_at,
+    likesCount: likesCount || 0, itemCount: (items || []).length,
     items: enriched.filter(Boolean),
   });
 }
