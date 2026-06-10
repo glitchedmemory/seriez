@@ -6,6 +6,11 @@
 
 type Video = { key: string; name: string };
 
+// Known geo-restricted or broken video keys — globally blocked
+const GLOBAL_BAD_KEYS = new Set<string>([
+  "XTt4vxZr2a8", // Michael — geo-restricted in some regions
+]);
+
 // ─── Retry wrapper ───
 
 async function withRetry<T>(
@@ -117,17 +122,18 @@ export async function validateAndReplaceTrailers(
   badKeys?: Set<string>,
   animeId?: number
 ): Promise<Video[]> {
+  const blocked = new Set([...GLOBAL_BAD_KEYS, ...(badKeys || [])]);
   // Check cache first (only for single-trailer anime lookups)
   if (animeId && max === 1 && videos.length <= 1) {
     const cached = getCachedTrailer(animeId);
-    if (cached) return [{ key: cached, name: "Official Trailer" }];
+    if (cached && !blocked.has(cached)) return [{ key: cached, name: "Official Trailer" }];
   }
 
   const result: Video[] = [];
 
   // Phase 1: validate existing videos (exists + no region block)
   for (let i = 0; i < videos.length; i++) {
-    if (badKeys?.has(videos[i].key)) continue;
+    if (blocked.has(videos[i].key)) continue;
     const playable = await isVideoFullyPlayable(videos[i].key);
     if (playable) {
       result.push(videos[i]);
@@ -141,7 +147,7 @@ export async function validateAndReplaceTrailers(
     for (const fb of fallbacks) {
       if (result.length >= max) break;
       if (result.some((v) => v.key === fb.key)) continue;
-      if (badKeys?.has(fb.key)) continue;
+      if (blocked.has(fb.key)) continue;
       const playable = await isVideoFullyPlayable(fb.key);
       if (playable) result.push(fb);
     }
