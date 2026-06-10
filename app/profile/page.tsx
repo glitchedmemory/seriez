@@ -42,6 +42,10 @@ export default function ProfilePage() {
   const [followListLoading, setFollowListLoading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
+  const [bgScale, setBgScale] = useState(100);
+  const [bgPositionX, setBgPositionX] = useState(50);
+  const [bgPositionY, setBgPositionY] = useState(50);
+  const [showBgSettings, setShowBgSettings] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [bgUploading, setBgUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -91,8 +95,13 @@ export default function ProfilePage() {
       const res = await fetch(`/api/profile?username=${encodeURIComponent(effectiveUsername)}`).then(r => r.json());
       setAvatarUrl(res.avatar_url || null);
       setBackgroundUrl(res.background_url || null);
+      if (isOwn) {
+        setBgScale(res.background_scale ?? 100);
+        setBgPositionX(res.background_position_x ?? 50);
+        setBgPositionY(res.background_position_y ?? 50);
+      }
     } catch {}
-  }, [effectiveUsername]);
+  }, [effectiveUsername, isOwn]);
 
   const handleAvatarUpload = async (file: File) => {
     if (!file || !isOwn) return;
@@ -135,6 +144,17 @@ export default function ProfilePage() {
     try {
       await fetch("/api/profile/background", { method: "DELETE" });
       setBackgroundUrl(null);
+    } catch {}
+  };
+
+  const handleSaveBgSettings = async () => {
+    try {
+      await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ background_scale: bgScale, background_position_x: bgPositionX, background_position_y: bgPositionY }),
+      });
+      setShowBgSettings(false);
     } catch {}
   };
 
@@ -312,8 +332,8 @@ export default function ProfilePage() {
       {/* Cover area */}
       <div
         className={`relative h-40 ${backgroundUrl ? "" : "bg-gradient-to-br from-[#6366f1] via-[#7c3aed] to-[#a855f7]"}`}
-        style={backgroundUrl ? { backgroundImage: `url(${backgroundUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
-        onClick={() => (isOwn && user) && bgInputRef.current?.click()}
+        style={backgroundUrl ? { backgroundImage: `url(${backgroundUrl})`, backgroundSize: `${bgScale}%`, backgroundPosition: `${bgPositionX}% ${bgPositionY}%`, backgroundRepeat: "no-repeat" } : undefined}
+        onClick={() => (isOwn && user) && !showBgSettings && bgInputRef.current?.click()}
         title={(isOwn && user) ? "Click to change background" : undefined}
       >
         {(isOwn && user) && (
@@ -331,10 +351,16 @@ export default function ProfilePage() {
           </div>
         )}
         {(isOwn && user) && backgroundUrl && (
-          <button
-            onClick={(e) => { e.stopPropagation(); handleBackgroundDelete(); }}
-            className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white/70 hover:text-white text-xs px-2 py-1 rounded-lg transition-colors"
-          >✕ Remove</button>
+          <div className="absolute top-2 right-2 flex gap-1">
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowBgSettings(!showBgSettings); }}
+              className="bg-black/50 hover:bg-black/70 text-white/70 hover:text-white text-xs px-2 py-1 rounded-lg transition-colors"
+            >⚙️</button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleBackgroundDelete(); }}
+              className="bg-black/50 hover:bg-black/70 text-white/70 hover:text-white text-xs px-2 py-1 rounded-lg transition-colors"
+            >✕ Remove</button>
+          </div>
         )}
         {!backgroundUrl && (
           <div className="absolute inset-0 overflow-hidden opacity-20">
@@ -343,6 +369,60 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* Background Settings Panel */}
+      {(isOwn && user) && backgroundUrl && showBgSettings && (
+        <div className="mx-4 mt-2 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-white">배경 설정</span>
+            <button onClick={() => setShowBgSettings(false)} className="text-[#6b7280] hover:text-white text-lg leading-none">✕</button>
+          </div>
+          {/* Scale */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-[#9ca3af]">확대/축소</span>
+              <span className="text-xs text-[#6366f1] font-medium">{bgScale}%</span>
+            </div>
+            <input
+              type="range" min="50" max="200" value={bgScale}
+              onChange={(e) => setBgScale(Number(e.target.value))}
+              className="w-full h-1.5 bg-[#2d2d4a] rounded-full appearance-none cursor-pointer accent-[#6366f1]"
+            />
+            <div className="flex justify-between mt-1">
+              {[50, 100, 150, 200].map(v => (
+                <button key={v} onClick={() => setBgScale(v)}
+                  className={`text-[10px] px-1.5 py-0.5 rounded ${bgScale === v ? "bg-[#6366f1]/20 text-[#818cf8]" : "text-[#6b7280] hover:text-white"}`}
+                >{v}%</button>
+              ))}
+            </div>
+          </div>
+          {/* Position */}
+          <div>
+            <span className="text-xs text-[#9ca3af] block mb-2">위치</span>
+            <div className="grid grid-cols-3 gap-1.5 w-28 mx-auto">
+              {[
+                { x: 0, y: 0, label: "↖" }, { x: 50, y: 0, label: "↑" }, { x: 100, y: 0, label: "↗" },
+                { x: 0, y: 50, label: "←" }, { x: 50, y: 50, label: "⊙" }, { x: 100, y: 50, label: "→" },
+                { x: 0, y: 100, label: "↙" }, { x: 50, y: 100, label: "↓" }, { x: 100, y: 100, label: "↘" },
+              ].map(p => (
+                <button key={`${p.x}-${p.y}`}
+                  onClick={() => { setBgPositionX(p.x); setBgPositionY(p.y); }}
+                  className={`w-8 h-8 rounded-lg text-xs flex items-center justify-center transition-all ${
+                    bgPositionX === p.x && bgPositionY === p.y
+                      ? "bg-[#6366f1] text-white shadow-sm"
+                      : "bg-[#2d2d4a] text-[#9ca3af] hover:bg-[#3d3d5a] hover:text-white"
+                  }`}
+                >{p.label}</button>
+              ))}
+            </div>
+          </div>
+          {/* Save */}
+          <button
+            onClick={handleSaveBgSettings}
+            className="w-full py-2 bg-[#6366f1] hover:bg-[#818cf8] text-white text-sm font-medium rounded-lg transition-colors"
+          >저장</button>
+        </div>
+      )}
 
       {/* Avatar + Info */}
       <div className="relative px-4 -mt-10">
