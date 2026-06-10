@@ -51,7 +51,7 @@ function CommentTree({
   replyInputs: Record<string, string>;
   replyingTo: Record<string, string | null>;
   expandedThreads: Set<string>;
-  onToggleThread: (commentId: number) => void;
+  onToggleThread: (commentId: number | string) => void;
   onLike: (commentId: number) => void;
   reviewId: string;
   reviewTmdbId: number;
