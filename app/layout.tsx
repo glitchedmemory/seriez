@@ -21,6 +21,20 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: "Seriez — Movies & TV Shows, Anime Tracker",
   description: "Track movies, TV shows, and anime. Save what you watch.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icons/icon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/icons/icon-16.png", type: "image/png", sizes: "16x16" },
+    ],
+    apple: [
+      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+    ],
+    other: [
+      { url: "/icons/icon-192.png", sizes: "192x192" },
+      { url: "/icons/icon-512.png", sizes: "512x512" },
+    ],
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
