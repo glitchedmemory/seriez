@@ -14,7 +14,7 @@ VALUES
   ('b0146988-894c-46c7-8d71-e1b4ecf2250c', 129, 'movie'),      -- Spirited Away
   ('b0146988-894c-46c7-8d71-e1b4ecf2250c', 269149, 'movie'),   -- Zootopia
   ('b0146988-894c-46c7-8d71-e1b4ecf2250c', 38757, 'movie')     -- Tangled
-ON CONFLICT (list_id, tmdb_id, media_type) DO NOTHING;
+
 
 -- Horror Nights (charlie_flicks)
 INSERT INTO list_items (list_id, tmdb_id, media_type)
@@ -29,7 +29,7 @@ VALUES
   ('61f33a2e-916b-4f0e-9f86-f244ae8cfdac', 1008042, 'movie'),  -- Talk to Me
   ('61f33a2e-916b-4f0e-9f86-f244ae8cfdac', 882598, 'movie'),   -- Smile
   ('61f33a2e-916b-4f0e-9f86-f244ae8cfdac', 310131, 'movie')    -- The Witch
-ON CONFLICT (list_id, tmdb_id, media_type) DO NOTHING;
+
 
 -- Mind-Bending Thrillers (charlie_flicks)
 INSERT INTO list_items (list_id, tmdb_id, media_type)
@@ -44,7 +44,7 @@ VALUES
   ('8fcfeda6-5005-4d51-86df-e7b4e908c585', 807, 'movie'),      -- Se7en
   ('8fcfeda6-5005-4d51-86df-e7b4e908c585', 210577, 'movie'),   -- Gone Girl
   ('8fcfeda6-5005-4d51-86df-e7b4e908c585', 496243, 'movie')    -- Parasite
-ON CONFLICT (list_id, tmdb_id, media_type) DO NOTHING;
+
 
 -- Sci-Fi Essentials (bob_movies)
 INSERT INTO list_items (list_id, tmdb_id, media_type)
@@ -59,7 +59,7 @@ VALUES
   ('fab38037-6d99-4bb0-a0bd-cb5602e23a89', 545611, 'movie'),   -- Everything Everywhere All at Once
   ('fab38037-6d99-4bb0-a0bd-cb5602e23a89', 286217, 'movie'),   -- The Martian
   ('fab38037-6d99-4bb0-a0bd-cb5602e23a89', 62, 'movie')        -- 2001: A Space Odyssey
-ON CONFLICT (list_id, tmdb_id, media_type) DO NOTHING;
+
 
 -- Best of 2026 So Far (diana_reels)
 INSERT INTO list_items (list_id, tmdb_id, media_type)
@@ -74,7 +74,7 @@ VALUES
   ('f5d10382-4723-461b-94b1-a325a65d8180', 917496, 'movie'),   -- Alien: Romulus
   ('f5d10382-4723-461b-94b1-a325a65d8180', 558449, 'movie'),   -- Gladiator II
   ('f5d10382-4723-461b-94b1-a325a65d8180', 872585, 'movie')    -- Oppenheimer
-ON CONFLICT (list_id, tmdb_id, media_type) DO NOTHING;
+
 
 -- Cozy Sunday Films (alice_wonder)
 INSERT INTO list_items (list_id, tmdb_id, media_type)
@@ -89,4 +89,4 @@ VALUES
   ('ac4eed5d-1d97-4931-b6ce-c3030cc00686', 122906, 'movie'),   -- About Time
   ('ac4eed5d-1d97-4931-b6ce-c3030cc00686', 82693, 'movie'),    -- Silver Linings Playbook
   ('ac4eed5d-1d97-4931-b6ce-c3030cc00686', 24803, 'movie')     -- Julie & Julia
-ON CONFLICT (list_id, tmdb_id, media_type) DO NOTHING;
+
