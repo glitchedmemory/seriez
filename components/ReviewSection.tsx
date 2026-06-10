@@ -505,8 +505,8 @@ export function ReviewSection({
   };
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      const user = data.user ?? null;
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const user = session?.user ?? null;
       setAuthUser(user);
       if (user?.user_metadata?.username) {
         try {

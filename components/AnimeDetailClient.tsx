@@ -80,7 +80,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
   // Fetch current tracking status + collections on mount
   useEffect(() => {
     setMounted(true);
-    supabase.auth.getUser().then(({ data }) => setAuthUser(data.user ?? null)).catch(() => {});
+    supabase.auth.getSession().then(({ data: { session } }) => setAuthUser(session?.user ?? null)).catch(() => {});
     const username = localStorage.getItem("seriez-username") || "";
 
     fetch(`/api/track?username=${encodeURIComponent(username)}`)
