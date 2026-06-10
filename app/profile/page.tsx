@@ -164,7 +164,7 @@ export default function ProfilePage() {
     setTimeout(() => setBounce(false), 400);
   }
 
-  if (!mounted) return null;
+  if (!mounted) return <ProfileSkeleton />;
   if (loading) return <ProfileSkeleton />;
 
   // ── Tab page: Followers / Following ──
