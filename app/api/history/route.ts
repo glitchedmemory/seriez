@@ -100,16 +100,17 @@ export async function GET(req: NextRequest) {
     dayGroups[dateKey].push({ tmdbId: w.tmdb_id, episodes: 1 });
   }
 
-  // ─── Parallel TMDB fetch ───
+  // ─── Sequential TMDB fetch with rate-limit delay ───
   const uniqueTmdbIds = new Set<number>();
   for (const entries of Object.values(dayGroups)) for (const e of entries) uniqueTmdbIds.add(e.tmdbId);
-  const tmdbPromises = Array.from(uniqueTmdbIds).map(async (tmdbId) => {
+  const tmdbResults = [];
+  for (const tmdbId of uniqueTmdbIds) {
     const info = ratingMap.get(tmdbId);
     const mediaType = info?.mediaType || "movie";
     const tmdbInfo = await getTmdbInfo(tmdbId, mediaType);
-    return { tmdbId, tmdbInfo, mediaType, rating: info?.rating || 0 };
-  });
-  const tmdbResults = await Promise.all(tmdbPromises);
+    tmdbResults.push({ tmdbId, tmdbInfo, mediaType, rating: info?.rating || 0 });
+    await new Promise(r => setTimeout(r, 50)); // avoid TMDB rate limit
+  }
 
   const tmdbMap = new Map<number, { tmdbInfo: TmdbCache | null; mediaType: string; rating: number }>();
   for (const r of tmdbResults) tmdbMap.set(r.tmdbId, { tmdbInfo: r.tmdbInfo, mediaType: r.mediaType, rating: r.rating });
