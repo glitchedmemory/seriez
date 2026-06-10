@@ -344,6 +344,15 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* ─── AdSense placeholder ─── */}
+          {/* Replace the div below with your AdSense code when ready */}
+          <div className="rounded-xl bg-[#1a1a2e] border border-dashed border-[#2d2d4a] p-3 text-center">
+            <p className="text-[10px] text-[#6b7280] uppercase tracking-wider">Advertisement</p>
+            <div className="h-[100px] flex items-center justify-center text-[#2d2d4a] text-xs mt-1">
+              Ad Banner 320×100
+            </div>
+          </div>
+
           {/* Both Enjoyed */}
           {compareData.bothEnjoyed.length > 0 && (
             <div>
