@@ -103,6 +103,8 @@ export async function GET(req: NextRequest) {
   // ─── Sequential TMDB fetch with rate-limit delay ───
   const uniqueTmdbIds = new Set<number>();
   for (const entries of Object.values(dayGroups)) for (const e of entries) uniqueTmdbIds.add(e.tmdbId);
+  // Also include watchlist tmdb_ids
+  if (tracking) for (const t of tracking) uniqueTmdbIds.add(t.tmdb_id);
   const tmdbResults = [];
   for (const tmdbId of uniqueTmdbIds) {
     const info = ratingMap.get(tmdbId);
