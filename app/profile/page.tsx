@@ -323,46 +323,62 @@ export default function ProfilePage() {
 
           {/* Both Enjoyed */}
           {compareData.bothEnjoyed.length > 0 && (
-            <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl p-5">
-              <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-3">Both Enjoyed</h3>
-              <div className="flex gap-2 overflow-x-auto pb-2">
+            <div>
+              <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-2 px-1">Both Enjoyed</h3>
+              <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
                 {compareData.bothEnjoyed.map((item, i) => (
                   <a key={i} href={`/title/${item.tmdbId}?type=${item.mediaType}`}
-                    className="flex-shrink-0 w-24 text-center">
-                    <div className="w-24 h-36 rounded-lg overflow-hidden bg-[#0f0f1a] mb-1">
+                    className="flex-shrink-0 w-[100px] group">
+                    <div className="w-[100px] h-[148px] rounded-xl overflow-hidden bg-[#1a1a2e] border border-[#2d2d4a] group-hover:border-[#6366f1]/50 transition-colors">
                       {item.poster ? (
                         <img src={item.poster} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/20">🎬</div>
+                        <div className="w-full h-full flex items-center justify-center text-white/15 text-2xl">🎬</div>
                       )}
                     </div>
-                    <p className="text-[10px] text-white truncate">{item.title}</p>
+                    <p className="text-[11px] text-white/80 mt-1.5 truncate px-0.5">{item.title}</p>
                   </a>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Divergent Ratings */}
+          {/* Ratings Apart */}
           {compareData.divergent.length > 0 && (
-            <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl p-5">
-              <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-3">Ratings Apart</h3>
-              <div className="space-y-3">
+            <div>
+              <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-2 px-1">Ratings Apart</h3>
+              <div className="space-y-2">
                 {compareData.divergent.map((item, i) => (
                   <a key={i} href={`/title/${item.tmdbId}?type=${item.mediaType}`}
-                    className="flex gap-3 items-center hover:bg-[#25253a] rounded-lg p-1 -m-1 transition-colors">
-                    <div className="w-12 h-16 rounded-lg overflow-hidden bg-[#0f0f1a] flex-shrink-0">
+                    className="flex items-center gap-3 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-3 hover:border-[#6366f1]/40 transition-colors">
+                    <div className="w-14 h-[84px] rounded-lg overflow-hidden bg-[#0f0f1a] flex-shrink-0">
                       {item.poster ? (
                         <img src={item.poster} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">🎬</div>
+                        <div className="w-full h-full flex items-center justify-center text-white/15 text-lg">🎬</div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-white truncate">{item.title}</p>
-                      <div className="flex gap-3 mt-0.5">
-                        <span className="text-[10px] text-[#818cf8]">You ★{item.myRating}</span>
-                        <span className="text-[10px] text-[#f59e0b]">Them ★{item.theirRating}</span>
+                      <p className="text-sm text-white font-medium truncate">{item.title}</p>
+                      <div className="flex items-center gap-4 mt-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-[#6b7280] w-8">You</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm font-semibold text-[#818cf8]">{item.myRating}</span>
+                            <span className="text-[10px] text-[#818cf8]/60">★</span>
+                          </div>
+                        </div>
+                        <div className="w-px h-4 bg-[#2d2d4a]" />
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-[#6b7280] w-8">Them</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm font-semibold text-[#f59e0b]">{item.theirRating}</span>
+                            <span className="text-[10px] text-[#f59e0b]/60">★</span>
+                          </div>
+                        </div>
+                        <div className="ml-auto text-[10px] text-[#ef4444]/70 font-medium">
+                          Δ{Math.abs(item.myRating - item.theirRating).toFixed(1)}
+                        </div>
                       </div>
                     </div>
                   </a>
