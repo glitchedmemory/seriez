@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ following: false });
     }
 
-    const { data } = await supabase
+    const { data } = await supabaseAdmin
       .from("follows")
       .select("id")
       .eq("follower_id", currentUserId)
