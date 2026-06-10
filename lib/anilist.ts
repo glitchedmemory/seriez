@@ -122,13 +122,15 @@ query($id: Int) {
     }
     trailer { id site thumbnail }
     relations {
-      nodes {
-        id
-        title { romaji english }
-        type
-        format
-        seasonYear
+      edges {
         relationType
+        node {
+          id
+          title { romaji english }
+          type
+          format
+          seasonYear
+        }
       }
     }
     streamingEpisodes {
@@ -226,14 +228,14 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
       .filter(Boolean);
 
     // Relations (sequels, prequels only — exclude side stories, spin-offs, crossovers)
-    const relations = (m.relations?.nodes || [])
-      .filter((r: any) => r.type === "ANIME" && (r.relationType === "SEQUEL" || r.relationType === "PREQUEL"))
-      .map((r: any) => ({
-        id: r.id,
-        title: r.title?.english || r.title?.romaji || "Unknown",
-        type: r.type || "ANIME",
-        format: r.format || "",
-        seasonYear: r.seasonYear || null,
+    const relations = (m.relations?.edges || [])
+      .filter((e: any) => e.node?.type === "ANIME" && (e.relationType === "SEQUEL" || e.relationType === "PREQUEL"))
+      .map((e: any) => ({
+        id: e.node.id,
+        title: e.node.title?.english || e.node.title?.romaji || "Unknown",
+        type: e.node.type || "ANIME",
+        format: e.node.format || "",
+        seasonYear: e.node.seasonYear || null,
       }));
 
     // Trailer
@@ -817,13 +819,15 @@ query($id: Int) {
     id
     title { romaji english }
     relations {
-      nodes {
-        id
-        title { romaji english }
-        type
-        format
-        seasonYear
+      edges {
         relationType
+        node {
+          id
+          title { romaji english }
+          type
+          format
+          seasonYear
+        }
       }
     }
   }
@@ -862,15 +866,15 @@ export async function enrichAnimeRelations(
         });
         if (!res.ok) return [];
         const json = await res.json();
-        const nodes = json.data?.Media?.relations?.nodes || [];
-        return nodes
-          .filter((n: any) => n.type === "ANIME" && (n.format === "TV" || !n.format) && (n.relationType === "SEQUEL" || n.relationType === "PREQUEL"))
-          .map((n: any) => ({
-            id: n.id,
-            title: n.title?.english || n.title?.romaji || "Unknown",
+        const edges = json.data?.Media?.relations?.edges || [];
+        return edges
+          .filter((e: any) => e.node?.type === "ANIME" && (e.node?.format === "TV" || !e.node?.format) && (e.relationType === "SEQUEL" || e.relationType === "PREQUEL"))
+          .map((e: any) => ({
+            id: e.node.id,
+            title: e.node.title?.english || e.node.title?.romaji || "Unknown",
             type: "ANIME" as const,
-            format: n.format || "",
-            seasonYear: n.seasonYear || null,
+            format: e.node.format || "",
+            seasonYear: e.node.seasonYear || null,
           }));
       } catch {
         return [];
