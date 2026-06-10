@@ -123,19 +123,8 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* ── Published Collections ── */}
+      {/* ── Trending Searches & Published Collections ── */}
       <div className="px-4">
-        <PublishedCollections />
-      </div>
-
-      {/* Results */}
-      <div className="px-4">
-        {loading && <SearchSkeleton />}
-
-        {!loading && query && results.length === 0 && (
-          <EmptyState icon="🔍" title="No results found" description={`We couldn't find anything for "${query}". Try a different search term.`} />
-        )}
-
         {!query && (
           <>
             {trendingSearches.length > 0 ? (
@@ -156,7 +145,21 @@ export default function SearchPage() {
             ) : (
               <EmptyState icon="🎥" title="Search movies, TV & anime" description="Find your next favorite title. Try searching for a genre, actor, or director." />
             )}
+
+            {/* Published Collections — below Trending Searches */}
+            {trendingSearches.length > 0 && (
+              <div className="mt-5">
+                <PublishedCollections />
+              </div>
+            )}
           </>
+        )}
+
+        {/* Search Results */}
+        {loading && <SearchSkeleton />}
+
+        {!loading && query && results.length === 0 && (
+          <EmptyState icon="🔍" title="No results found" description={`We couldn't find anything for "${query}". Try a different search term.`} />
         )}
 
         {query && results.length > 0 && (
