@@ -17,11 +17,9 @@ interface Collection { id: string; name: string; isPublic: boolean; isPublished:
 interface CollectionItem { tmdbId: number; mediaType: string; title: string; poster: string | null; year: number | null; rating: number; addedAt: string; }
 
 const TABS = [
-  { key: "", label: "All" },
-  { key: "plan_to_watch", label: "Plan to Watch" },
+  { key: "plan_to_watch", label: "To Watch" },
   { key: "watching", label: "Watching" },
   { key: "completed", label: "Watched" },
-  { key: "collections", label: "Collections" },
 ];
 
 // ─── Tracking grid ───
@@ -47,7 +45,7 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
         <a key={`${item.mediaType}-${item.tmdbId}`} href={`/title/${item.tmdbId}${item.mediaType === "tv" ? "/season/1" : `?type=${item.mediaType}`}`} className="block group">
           <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-[#1a1a2e]">
             {item.poster ? <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-white/20 text-2xl font-bold">{item.title.slice(0,2)}</div>}
-            <div className="absolute top-2 left-2"><span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${item.status==="completed"?"bg-green-500/20 text-green-400":item.status==="watching"?"bg-blue-500/20 text-blue-400":"bg-amber-500/20 text-amber-400"}`}>{item.status==="completed"?"Watched":item.status==="watching"?"Watching":"Plan"}</span></div>
+            <div className="absolute top-2 left-2"><span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${item.status==="completed"?"bg-green-500/20 text-green-400":item.status==="watching"?"bg-blue-500/20 text-blue-400":"bg-amber-500/20 text-amber-400"}`}>{item.status==="completed"?"Watched":item.status==="watching"?"Watching":"To Watch"}</span></div>
             {item.tmdbRating > 0 && <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-[#f59e0b]">★ {item.tmdbRating}</div>}
             {item.rating && <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-pink-400">★ {item.rating}</div>}
           </div>
@@ -171,65 +169,84 @@ function CollectionsView() {
 
 // ─── Main Library ───
 export default function LibraryClient() {
-  const [activeTab, setActiveTab] = useState("");
-  const [stats, setStats] = useState({ plan_to_watch: 0, watching: 0, completed: 0, total: 0 });
+  const [activeFilter, setActiveFilter] = useState<"completed" | "watching" | "plan_to_watch" | "collections" | null>(null);
+  const [stats, setStats] = useState({ plan_to_watch: 0, watching: 0, completed: 0, collections: 0 });
   const [statsLoaded, setStatsLoaded] = useState(false);
 
   useEffect(() => {
     const username = typeof window !== "undefined" ? localStorage.getItem("seriez-username") || "" : "";
     if (!username) { setStatsLoaded(true); return; }
-    fetch(`/api/library?username=${encodeURIComponent(username)}`)
-      .then(r => r.json())
-      .then(data => {
-        const items = data.items || [];
+    Promise.all([
+      fetch(`/api/library?username=${encodeURIComponent(username)}`).then(r => r.json()),
+      fetch(`/api/collections?username=${encodeURIComponent(username)}`).then(r => r.json()),
+    ])
+      .then(([libData, collData]) => {
+        const items = libData.items || [];
         setStats({
-          total: items.length,
-          plan_to_watch: items.filter((i: LibraryItem) => i.status === "plan_to_watch").length,
-          watching: items.filter((i: LibraryItem) => i.status === "watching").length,
           completed: items.filter((i: LibraryItem) => i.status === "completed").length,
+          watching: items.filter((i: LibraryItem) => i.status === "watching").length,
+          plan_to_watch: items.filter((i: LibraryItem) => i.status === "plan_to_watch").length,
+          collections: (collData.collections || []).length,
         });
         setStatsLoaded(true);
       })
       .catch(() => setStatsLoaded(true));
   }, []);
 
-  const tabCounts: Record<string, number> = {
-    "": stats.total,
-    plan_to_watch: stats.plan_to_watch,
-    watching: stats.watching,
-    completed: stats.completed,
-  };
-
   return (
     <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
       <header className="sticky top-0 z-40 bg-[#0f0f1a]/95 backdrop-blur-md px-4 py-3 border-b border-[#1a1a2e]">
         <h1 className="text-xl font-bold bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">My List</h1>
-        <div className="flex gap-1 mt-2 overflow-x-auto hide-scrollbar">
-          {TABS.map(tab => (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${activeTab === tab.key ? "bg-[#6366f1] text-white" : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white"}`}>
-              {tab.label}{tab.key !== "collections" && statsLoaded ? ` ${tabCounts[tab.key]}` : ""}
-            </button>
-          ))}
-        </div>
       </header>
 
       {/* Stats bar */}
-      {statsLoaded && stats.total > 0 && (
+      {statsLoaded && (
         <div className="flex gap-3 px-4 py-3 border-b border-[#1a1a2e]">
-          <button onClick={() => setActiveTab("plan_to_watch")} className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${activeTab === "plan_to_watch" ? "bg-amber-500/10 text-amber-400 border border-amber-500/30" : "bg-[#1a1a2e] text-[#9ca3af]"}`}>
-            <span className="block text-lg font-bold">{stats.plan_to_watch}</span>Plan to Watch
+          <button onClick={() => setActiveFilter(activeFilter === "completed" ? null : "completed")}
+            className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${
+              activeFilter === "completed"
+                ? "bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/30"
+                : "bg-[#1a1a2e] text-[#9ca3af] hover:text-[#10b981]"
+            }`}>
+            <span className="block text-lg font-bold">{stats.completed}</span>WATCHED
           </button>
-          <button onClick={() => setActiveTab("watching")} className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${activeTab === "watching" ? "bg-sky-500/10 text-sky-400 border border-sky-500/30" : "bg-[#1a1a2e] text-[#9ca3af]"}`}>
-            <span className="block text-lg font-bold">{stats.watching}</span>Watching
+          <button onClick={() => setActiveFilter(activeFilter === "watching" ? null : "watching")}
+            className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${
+              activeFilter === "watching"
+                ? "bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/30"
+                : "bg-[#1a1a2e] text-[#9ca3af] hover:text-[#3b82f6]"
+            }`}>
+            <span className="block text-lg font-bold">{stats.watching}</span>WATCHING
           </button>
-          <button onClick={() => setActiveTab("completed")} className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${activeTab === "completed" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30" : "bg-[#1a1a2e] text-[#9ca3af]"}`}>
-            <span className="block text-lg font-bold">{stats.completed}</span>Watched
+          <button onClick={() => setActiveFilter(activeFilter === "plan_to_watch" ? null : "plan_to_watch")}
+            className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${
+              activeFilter === "plan_to_watch"
+                ? "bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/30"
+                : "bg-[#1a1a2e] text-[#9ca3af] hover:text-[#f59e0b]"
+            }`}>
+            <span className="block text-lg font-bold">{stats.plan_to_watch}</span>TO WATCH
+          </button>
+          <button onClick={() => setActiveFilter(activeFilter === "collections" ? null : "collections")}
+            className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${
+              activeFilter === "collections"
+                ? "bg-[#a855f7]/10 text-[#a855f7] border border-[#a855f7]/30"
+                : "bg-[#1a1a2e] text-[#9ca3af] hover:text-[#a855f7]"
+            }`}>
+            <span className="block text-lg font-bold">{stats.collections}</span>COLLECTIONS
           </button>
         </div>
       )}
 
-      {activeTab === "collections" ? <CollectionsView /> : <TrackingGrid activeTab={activeTab} />}
+      {/* Content */}
+      {!activeFilter ? (
+        <div className="px-4 mt-4">
+          <EmptyState icon="📚" title="Your library is empty" description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />
+        </div>
+      ) : activeFilter === "collections" ? (
+        <CollectionsView />
+      ) : (
+        <TrackingGrid activeTab={activeFilter} />
+      )}
     </div>
   );
 }
