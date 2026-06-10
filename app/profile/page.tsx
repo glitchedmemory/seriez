@@ -89,8 +89,8 @@ export default function ProfilePage() {
     if (!effectiveUsername) return;
     try {
       const res = await fetch(`/api/profile?username=${encodeURIComponent(effectiveUsername)}`).then(r => r.json());
-      setAvatarUrl(res.avatarUrl || null);
-      setBackgroundUrl(res.backgroundUrl || null);
+      setAvatarUrl(res.avatar_url || null);
+      setBackgroundUrl(res.background_url || null);
     } catch {}
   }, [effectiveUsername]);
 

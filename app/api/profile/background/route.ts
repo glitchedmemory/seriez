@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     await supabaseAdmin
       .from("users")
-      .update({ backgroundUrl: publicUrl })
+      .update({ background_url: publicUrl })
       .eq("username", username.trim());
 
     return NextResponse.json({ backgroundUrl: publicUrl });
@@ -74,12 +74,12 @@ export async function DELETE(req: NextRequest) {
 
     const { data: user } = await supabaseAdmin
       .from("users")
-      .select("backgroundUrl")
+      .select("background_url")
       .eq("username", username.trim())
       .maybeSingle();
 
-    if (user?.backgroundUrl) {
-      const url = new URL(user.backgroundUrl);
+    if (user?.background_url) {
+      const url = new URL(user.background_url);
       const pathMatch = url.pathname.match(/\/backgrounds\/(.+)/);
       if (pathMatch) {
         await supabaseAdmin.storage.from("backgrounds").remove([pathMatch[1]]);
@@ -88,7 +88,7 @@ export async function DELETE(req: NextRequest) {
 
     await supabaseAdmin
       .from("users")
-      .update({ backgroundUrl: null })
+      .update({ background_url: null })
       .eq("username", username.trim());
 
     return NextResponse.json({ success: true });
