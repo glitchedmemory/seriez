@@ -516,7 +516,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
 
         {/* Reviews */}
         <section className="mt-6">
-          <ReviewSection tmdbId={detail.id} mediaType={detail.type} trackStatus={trackStatus} trackVersion={trackVersion} />
+          <ReviewSection tmdbId={detail.id} mediaType={detail.type} trackStatus={trackStatus} trackVersion={trackVersion} authUser={authUser} />
         </section>
       </div>
     </div>

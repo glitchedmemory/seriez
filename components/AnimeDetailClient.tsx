@@ -713,7 +713,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
 
         {/* Reviews */}
         <section className="mt-6">
-          <ReviewSection tmdbId={detail.id} mediaType="anime" trackStatus={trackStatus} trackVersion={trackVersion} />
+          <ReviewSection tmdbId={detail.id} mediaType="anime" trackStatus={trackStatus} trackVersion={trackVersion} authUser={authUser} />
         </section>
       </div>
     </div>

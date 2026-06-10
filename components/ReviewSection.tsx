@@ -248,11 +248,13 @@ export function ReviewSection({
   mediaType,
   trackStatus,
   trackVersion = 0,
+  authUser = null,
 }: {
   tmdbId: number;
   mediaType: string;
   trackStatus?: string | null;
   trackVersion?: number;
+  authUser?: { email?: string; user_metadata?: { username?: string } } | null;
 }) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<RatingStatsData | null>(null);
@@ -261,7 +263,6 @@ export function ReviewSection({
   const [error, setError] = useState("");
 
   const [content, setContent] = useState("");
-  const [authUser, setAuthUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
   const supabase = createClient();
   const router = useRouter();
 
@@ -505,17 +506,12 @@ export function ReviewSection({
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      const user = session?.user ?? null;
-      setAuthUser(user);
-      if (user?.user_metadata?.username) {
-        try {
-          const { data: rows } = await supabase.from("users").select("role").eq("username", user.user_metadata.username).maybeSingle();
-          setIsAdmin((rows as any)?.role === "admin");
-        } catch {}
-      }
-    }).catch(() => {});
-  }, []);
+    if (authUser?.user_metadata?.username) {
+      supabase.from("users").select("role").eq("username", authUser.user_metadata.username).maybeSingle()
+        .then(({ data: rows }) => setIsAdmin((rows as any)?.role === "admin"))
+        .catch(() => {});
+    }
+  }, [authUser]);
 
   const fetchAll = useCallback(async () => {
     try {
