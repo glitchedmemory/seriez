@@ -383,9 +383,17 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       };
     });
 
+    // Deduplicate by label — keep only first occurrence of each season/part label
+    const seenLabels = new Set<string>();
+    const dedupedTabs = tabs.filter(t => {
+      if (seenLabels.has(t.title)) return false;
+      seenLabels.add(t.title);
+      return true;
+    });
+
     // Only show tabs if there are at least 2 distinct entries
-    if (tabs.length < 2) return [];
-    return tabs;
+    if (dedupedTabs.length < 2) return [];
+    return dedupedTabs;
   })();
 
   // Estimate hours watched (for episodes × duration)
