@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername } from "@/lib/auth-helper";
+import { checkText } from "@/lib/moderation";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -94,6 +95,12 @@ export async function POST(req: NextRequest) {
     const trimmed = content.trim();
     if (trimmed.length > 1000) {
       return NextResponse.json({ error: "Comment too long (max 1000 chars)" }, { status: 400 });
+    }
+
+    // Content moderation
+    const modResult = await checkText(trimmed);
+    if (!modResult.safe) {
+      return NextResponse.json({ error: modResult.reason || "Content rejected" }, { status: 422 });
     }
 
     // Insert comment

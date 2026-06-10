@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername } from "@/lib/auth-helper";
+import { checkText } from "@/lib/moderation";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -120,6 +121,13 @@ export async function POST(req: NextRequest) {
       }
       dbRating = TO_DB(rating);
     }
+
+    // Content moderation
+    const modResult = await checkText(content.trim());
+    if (!modResult.safe) {
+      return NextResponse.json({ error: modResult.reason || "Content rejected" }, { status: 422 });
+    }
+
     const { data, error } = await supabaseAdmin
       .from("reviews").insert({ tmdb_id: tmdbId, media_type: mediaType, username: username.trim().slice(0, 20), content: content.trim().slice(0, 2000), rating: dbRating })
       .select("id, username, content, rating, likes_count, created_at").single();
