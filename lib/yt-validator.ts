@@ -9,6 +9,7 @@ type Video = { key: string; name: string };
 // Known geo-restricted or broken video keys — globally blocked
 const GLOBAL_BAD_KEYS = new Set<string>([
   "XTt4vxZr2a8", // Michael — geo-restricted in some regions
+  "3zOLzsbOleM", // Michael — duplicate of official trailer
 ]);
 
 // ─── Retry wrapper ───
