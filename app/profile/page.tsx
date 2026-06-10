@@ -83,7 +83,7 @@ export default function ProfilePage() {
     if (!effectiveUsername || isOwn) { setCompareData(null); return; }
     setCompareLoading(true);
     try {
-      const res = await fetch(`/api/users/${encodeURIComponent(effectiveUsername)}/compare`).then(r => r.json());
+      const res = await fetch(`/api/users/${encodeURIComponent(effectiveUsername)}/compare?me=${encodeURIComponent(ownUsername!)}`).then(r => r.json());
       if (!res.error) setCompareData(res);
     } catch {}
     setCompareLoading(false);

@@ -15,7 +15,8 @@ export async function GET(
   { params }: { params: Promise<{ username: string }> }
 ) {
   const { username: target } = await params;
-  const me = await resolveUsername(req);
+  const { searchParams } = new URL(req.url);
+  const me = searchParams.get("me") || await resolveUsername(req);
   if (!me) return NextResponse.json({ error: "Sign in" }, { status: 401 });
 
   // Get both users' rated titles with ratings
