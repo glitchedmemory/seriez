@@ -169,7 +169,7 @@ function CollectionsView() {
 
 // ─── Main Library ───
 export default function LibraryClient() {
-  const [activeFilter, setActiveFilter] = useState<"completed" | "watching" | "plan_to_watch" | "collections" | null>(null);
+  const [activeFilter, setActiveFilter] = useState<"completed" | "watching" | "plan_to_watch" | "collections" | null>("completed");
   const [stats, setStats] = useState({ plan_to_watch: 0, watching: 0, completed: 0, collections: 0 });
   const [statsLoaded, setStatsLoaded] = useState(false);
 
@@ -239,7 +239,7 @@ export default function LibraryClient() {
       {/* Content */}
       {!activeFilter ? (
         <div className="px-4 mt-4">
-          <EmptyState icon="📚" title="Your library is empty" description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />
+          <EmptyState icon="📚" title="Your list is empty" description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />
         </div>
       ) : activeFilter === "collections" ? (
         <CollectionsView />
