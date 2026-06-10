@@ -315,10 +315,33 @@ export default function ProfilePage() {
       {/* Taste Comparison — only on other users' profiles */}
       {!isOwn && user && compareData && !compareLoading && (
         <div className="px-4 mt-6 space-y-4">
-          {/* Match Rate */}
-          <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl p-5 text-center">
-            <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-2">Taste Match</h3>
-            <p className="text-4xl font-bold text-[#818cf8]">{compareData.matchRate}%</p>
+          {/* Match Rate — compact banner style */}
+          <div className="flex items-center gap-3 px-1">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#818cf8] to-[#a78bfa] flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-xs">♡</span>
+            </div>
+            <span className="text-sm text-[#9ca3af]">취향매칭률</span>
+            <span className="text-2xl font-bold text-white ml-auto">{compareData.matchRate}%</span>
+          </div>
+
+          {/* Promo Banner */}
+          <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-[#4c1d95] via-[#7c3aed] to-[#a78bfa] relative">
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-2 right-4 w-16 h-16 rounded-full bg-white/20" />
+              <div className="absolute bottom-1 left-8 w-10 h-10 rounded-full bg-white/10" />
+              <div className="absolute top-8 left-12 w-3 h-3 rounded-full bg-white/30" />
+            </div>
+            <div className="relative px-4 py-4 flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] text-white/60 font-medium uppercase tracking-wider">Seriez Premium</p>
+                <p className="text-sm font-bold text-white mt-0.5">취향이 통하는 친구와</p>
+                <p className="text-sm font-bold text-amber-300">함께 감상해보세요</p>
+              </div>
+              <div className="flex-shrink-0 text-right">
+                <span className="text-white/80 text-[10px] line-through block">$3.99</span>
+                <span className="text-amber-300 font-bold text-sm">무료체험</span>
+              </div>
+            </div>
           </div>
 
           {/* Both Enjoyed */}
