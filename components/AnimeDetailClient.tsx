@@ -316,8 +316,10 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
 
     // Check if two titles share significant words (to filter crossovers)
     const hasSharedWords = (a: string, b: string): boolean => {
-      const wordsA = new Set(a.toLowerCase().split(/\s+/).filter(w => w.length > 2));
-      const wordsB = b.toLowerCase().split(/\s+/);
+      // Strip brackets, special characters, and normalize for word matching
+      const clean = (s: string) => s.toLowerCase().replace(/[【】\[\]「」『』()（）]/g, " ").replace(/[^a-z0-9\s]/g, "");
+      const wordsA = new Set(clean(a).split(/\s+/).filter(w => w.length > 2));
+      const wordsB = clean(b).split(/\s+/);
       let match = 0;
       for (const w of wordsB) {
         if (w.length > 2 && wordsA.has(w)) match++;
