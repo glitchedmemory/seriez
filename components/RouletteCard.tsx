@@ -51,19 +51,24 @@ export default function RouletteCard({ username }: Props) {
   };
 
   return (
-    <div className="bg-gradient-to-br from-[#1e1e3a] to-[#151530] rounded-2xl overflow-hidden border border-white/5">
+    <div className="bg-gradient-to-br from-[#1e1e3a] to-[#151530] rounded-2xl overflow-hidden border border-white/5 text-center">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">🎲</span>
-          <span className="text-sm font-semibold text-white">Feeling Lucky?</span>
-        </div>
+      <div className="px-4 pt-5 pb-3">
+        <span className="text-2xl">🎲</span>
+        <h3 className="text-sm font-semibold text-white mt-1">Feeling Lucky?</h3>
+        <p className="text-[11px] text-[#6b7280] mt-1">
+          Spin to discover a random pick from your Watchlist
+        </p>
+      </div>
+
+      {/* Center SPIN Button */}
+      <div className="flex justify-center pb-5">
         <button
           onClick={spin}
           disabled={spinning}
-          className="px-4 py-1.5 rounded-full bg-[#6366f1] hover:bg-[#5558e6] text-white text-xs font-semibold transition-all active:scale-95 disabled:opacity-50"
+          className="px-8 py-2.5 rounded-full bg-[#6366f1] hover:bg-[#5558e6] text-white text-sm font-bold transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-[#6366f1]/20"
         >
-          {spinning ? "SPINNING..." : "SPIN"}
+          {spinning ? "SPINNING..." : "🎰 SPIN"}
         </button>
       </div>
 
@@ -129,15 +134,10 @@ export default function RouletteCard({ username }: Props) {
 
       {/* Empty/Error message */}
       {message && !result && (
-        <p className="text-xs text-[#6b7280] px-4 pb-4">{message}</p>
+        <p className="text-xs text-[#6b7280] px-4 pb-4 text-center">{message}</p>
       )}
 
-      {/* Idle state */}
-      {!result && !message && (
-        <p className="text-xs text-[#6b7280] px-4 pb-4">
-          Spin to discover a random pick from your Watchlist
-        </p>
-      )}
+      {/* Idle state — message shown in header already */}
     </div>
   );
 }
