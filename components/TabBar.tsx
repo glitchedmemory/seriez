@@ -57,6 +57,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const [user, setUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -64,9 +65,25 @@ export function Sidebar() {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user ?? null);
     }).catch(() => {
-      setMounted(true); // still show Guest state
+      setMounted(true);
     });
   }, []);
+
+  // Fetch avatar URL when user is known
+  useEffect(() => {
+    const u = user?.user_metadata?.username;
+    if (!u) return;
+    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?select=avatar_url&username=eq.${encodeURIComponent(u)}`;
+    fetch(url, {
+      headers: {
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+      },
+    })
+      .then((r) => r.json())
+      .then((rows) => setAvatarUrl(rows[0]?.avatar_url || null))
+      .catch(() => {});
+  }, [user]);
 
   if (pathname === "/onboarding") return null;
 
@@ -114,9 +131,13 @@ export function Sidebar() {
           </div>
         ) : user ? (
           <a href="/profile" className="flex items-center gap-3 px-1.5 py-2 min-w-max">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-bold text-white">{initial}</span>
-            </div>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-bold text-white">{initial}</span>
+              </div>
+            )}
             <div className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <p className="text-sm font-medium text-white">{displayName}</p>
               <p className="text-xs text-[#9ca3af]">Profile →</p>
