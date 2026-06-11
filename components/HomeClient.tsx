@@ -220,7 +220,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
             onClick={closeSearch}
             className="flex items-center gap-3 p-3 hover:bg-[#1a1a2e] transition-colors border-b border-[#1a1a2e] last:border-0"
           >
-            <div className="w-10 h-[60px] rounded-lg overflow-hidden bg-[#1a1a2e] flex-shrink-0">
+            <div className="w-10 h-[60px] rounded-lg overflow-hidden bg-[#1a1a2e] flex-shrink-0 relative">
               <PosterImage src={item.poster} alt="" fill className="rounded-lg" sizes="40px" />
             </div>
             <div className="min-w-0 flex-1">
