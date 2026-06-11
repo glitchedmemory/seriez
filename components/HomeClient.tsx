@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { PosterCard, HorizontalScroll } from "@/components/PosterCard";
 import { HeroCard } from "@/components/HeroCard";
 import { GenreChips } from "@/components/GenreChips";
+import RouletteCard from "@/components/RouletteCard";
 import PosterImage from "@/components/PosterImage";
 import type { TmdbResult } from "@/lib/tmdb";
 
@@ -164,9 +165,11 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
   const [forYouGenres, setForYouGenres] = useState<string[]>([]);
   const [forYouReason, setForYouReason] = useState("");
   const [forYouReasons, setForYouReasons] = useState<Record<number, string>>({});
+  const [seriezUsername, setSeriezUsername] = useState<string>("");
 
   useEffect(() => {
     const username = localStorage.getItem("seriez-username");
+    setSeriezUsername(username || "");
     if (!username) {
       setForYouItems([]);
       return;
@@ -297,6 +300,12 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
           </section>
 
           <GenreChips selected={activeGenre} onSelect={setActiveGenre} />
+
+          {seriezUsername && (
+            <div className="px-4 md:px-0 mt-6 mb-2">
+              <RouletteCard username={seriezUsername} />
+            </div>
+          )}
 
           <section>
             <div className="px-4 md:px-0 mb-3">

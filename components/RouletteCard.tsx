@@ -1,0 +1,143 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import PosterImage from "@/components/PosterImage";
+
+interface RouletteResult {
+  empty?: boolean;
+  message?: string;
+  id: number;
+  mediaType: string;
+  title: string;
+  poster: string | null;
+  backdrop: string | null;
+  year: string;
+  rating: number;
+  genres: string[];
+  overview: string;
+  director: string;
+  runtime: string | null;
+  tagline: string;
+}
+
+interface Props {
+  username?: string;
+}
+
+export default function RouletteCard({ username }: Props) {
+  const router = useRouter();
+  const [result, setResult] = useState<RouletteResult | null>(null);
+  const [spinning, setSpinning] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const spin = async () => {
+    setSpinning(true);
+    setMessage("");
+    try {
+      const params = username ? `?username=${encodeURIComponent(username)}` : "";
+      const res = await fetch(`/api/roulette${params}`);
+      const data = await res.json();
+      if (data.empty) {
+        setMessage(data.message);
+        setResult(null);
+      } else {
+        setResult(data);
+      }
+    } catch {
+      setMessage("Something went wrong. Try again!");
+    }
+    setSpinning(false);
+  };
+
+  return (
+    <div className="bg-gradient-to-br from-[#1e1e3a] to-[#151530] rounded-2xl overflow-hidden border border-white/5">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">🎲</span>
+          <span className="text-sm font-semibold text-white">Feeling Lucky?</span>
+        </div>
+        <button
+          onClick={spin}
+          disabled={spinning}
+          className="px-4 py-1.5 rounded-full bg-[#6366f1] hover:bg-[#5558e6] text-white text-xs font-semibold transition-all active:scale-95 disabled:opacity-50"
+        >
+          {spinning ? "SPINNING..." : "SPIN"}
+        </button>
+      </div>
+
+      {/* Result */}
+      {result && (
+        <button
+          onClick={() => router.push(`/title/${result.id}?type=${result.mediaType}`)}
+          className="w-full text-left flex gap-4 px-4 pb-4 group"
+        >
+          <div className="w-24 h-36 flex-shrink-0 rounded-lg overflow-hidden bg-[#25253a]">
+            {result.poster ? (
+              <PosterImage
+                src={result.poster}
+                alt={result.title}
+                width={96}
+                height={144}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white/20 text-3xl">
+                🎬
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-bold text-white group-hover:text-[#a5b4fc] transition-colors">
+              {result.title}
+            </h3>
+            <div className="flex items-center gap-2 mt-0.5">
+              {result.year && <span className="text-[10px] text-[#6b7280]">{result.year}</span>}
+              {result.runtime && (
+                <>
+                  <span className="text-[10px] text-[#4b5563]">·</span>
+                  <span className="text-[10px] text-[#6b7280]">{result.runtime}</span>
+                </>
+              )}
+              {result.rating > 0 && (
+                <>
+                  <span className="text-[10px] text-[#4b5563]">·</span>
+                  <span className="text-[10px] text-[#f59e0b]">★ {result.rating}</span>
+                </>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {result.genres.map((g) => (
+                <span
+                  key={g}
+                  className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-[#9ca3af]"
+                >
+                  {g}
+                </span>
+              ))}
+            </div>
+            <p className="text-[11px] text-[#9ca3af] mt-1.5 line-clamp-2">
+              {result.tagline && (
+                <span className="italic text-[#6366f1]">“{result.tagline}” — </span>
+              )}
+              {result.overview}
+            </p>
+          </div>
+        </button>
+      )}
+
+      {/* Empty/Error message */}
+      {message && !result && (
+        <p className="text-xs text-[#6b7280] px-4 pb-4">{message}</p>
+      )}
+
+      {/* Idle state */}
+      {!result && !message && (
+        <p className="text-xs text-[#6b7280] px-4 pb-4">
+          Spin to discover a random pick from your Watchlist
+        </p>
+      )}
+    </div>
+  );
+}
