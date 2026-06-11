@@ -36,6 +36,7 @@ export default function CollectionClient() {
   const [authUser, setAuthUser] = useState<string | null>(null);
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
+  const [avatarUrls, setAvatarUrls] = useState<Record<string, string | null>>({});
 
   // Detect auth
   useEffect(() => {
@@ -59,7 +60,7 @@ export default function CollectionClient() {
     } finally {
       setLoading(false);
     }
-    // Load comments
+  // Load comments
     fetch(`/api/collections/${id}/comments`)
       .then((r) => r.json())
       .then((d) => setComments(d.comments || []))
@@ -72,6 +73,27 @@ export default function CollectionClient() {
   }, [id, authUser]);
 
   useEffect(() => { loadCollection(); }, [loadCollection]);
+
+  // Fetch avatar URLs when comments change
+  useEffect(() => {
+    const usernames = [...new Set(comments.map((c) => c.username))];
+    if (usernames.length === 0) return;
+    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?select=username,avatar_url&username=in.(${usernames.map((u) => encodeURIComponent(u)).join(",")})`;
+    fetch(url, {
+      headers: {
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+      },
+    })
+      .then((r) => r.json())
+      .then((rows: { username: string; avatar_url: string | null }[]) => {
+        const map: Record<string, string | null> = {};
+        rows.forEach(({ username, avatar_url }) => { map[username] = avatar_url; });
+        usernames.forEach((u) => { if (!(u in map)) map[u] = null; });
+        setAvatarUrls(map);
+      })
+      .catch(() => {});
+  }, [comments]);
 
   // Like
   const handleLike = async () => {
@@ -227,9 +249,13 @@ export default function CollectionClient() {
           <div className="space-y-3">
             {comments.map((c) => (
               <div key={c.id} className="flex gap-2">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5">
-                  {c.username[0]?.toUpperCase()}
-                </div>
+                {avatarUrls[c.username] ? (
+                  <img src={avatarUrls[c.username]!} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0 mt-0.5" />
+                ) : (
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5">
+                    {c.username[0]?.toUpperCase()}
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium text-white">{c.username}</span>
