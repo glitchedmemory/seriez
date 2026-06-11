@@ -106,7 +106,7 @@ export default function ChangeProfilePage() {
 
   return (
     <ErrorBoundary sectionName="Change Profile">
-      <div className="max-w-lg md:max-w-4xl mx-auto pb-32">
+      <div className="max-w-lg md:max-w-4xl mx-auto pb-32" onClick={() => setActiveOverlay(null)}>
         {/* Header */}
         <div className="flex items-center gap-4 px-4 pt-4 pb-3">
           <button
@@ -121,7 +121,7 @@ export default function ChangeProfilePage() {
         {/* ── Cover area ── */}
         <div className="relative">
           <button
-            onClick={() => setActiveOverlay(activeOverlay === "bg" ? null : "bg")}
+            onClick={(e) => { e.stopPropagation(); setActiveOverlay(activeOverlay === "bg" ? null : "bg"); }}
             className={`relative w-full h-40 block cursor-pointer ${
               !backgroundUrl ? "bg-gradient-to-br from-[#6366f1] via-[#7c3aed] to-[#a855f7]" : ""
             }`}
@@ -142,7 +142,7 @@ export default function ChangeProfilePage() {
 
           {/* Background overlay */}
           {activeOverlay === "bg" && (
-            <div className="absolute inset-x-0 top-0 h-40 bg-black/60 backdrop-blur-sm flex items-center justify-center gap-3 z-10 animate-in fade-in duration-150">
+            <div className="absolute inset-x-0 top-0 h-40 bg-black/60 backdrop-blur-sm flex items-center justify-center gap-3 z-10" onClick={(e) => e.stopPropagation()}>
               <button onClick={() => bgInputRef.current?.click()} disabled={bgUploading}
                 className="px-5 py-2 bg-[#6366f1] hover:bg-[#818cf8] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
                 {bgUploading ? "Uploading..." : backgroundUrl ? "Change Image" : "Add Image"}
@@ -161,7 +161,7 @@ export default function ChangeProfilePage() {
             <div className="flex items-end gap-4 mb-2">
               <div className="relative">
                 <button
-                  onClick={() => setActiveOverlay(activeOverlay === "avatar" ? null : "avatar")}
+                  onClick={(e) => { e.stopPropagation(); setActiveOverlay(activeOverlay === "avatar" ? null : "avatar"); }}
                   className={`w-20 h-20 rounded-full flex items-center justify-center overflow-hidden ring-4 ring-[#0f0f1a] shadow-xl flex-shrink-0 ${
                     !avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""
                   }`}
@@ -175,7 +175,7 @@ export default function ChangeProfilePage() {
 
                 {/* Avatar overlay */}
                 {activeOverlay === "avatar" && (
-                  <div className="absolute inset-0 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center gap-2 z-10 animate-in fade-in duration-150">
+                  <div className="absolute inset-0 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center gap-2 z-10" onClick={(e) => e.stopPropagation()}>
                     <button onClick={() => fileInputRef.current?.click()} disabled={avatarUploading}
                       className="px-3 py-1.5 bg-[#6366f1] hover:bg-[#818cf8] disabled:opacity-50 text-white text-[11px] font-medium rounded-lg transition-colors whitespace-nowrap">
                       {avatarUploading ? "..." : avatarUrl ? "Change Photo" : "Add"}
