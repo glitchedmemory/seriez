@@ -162,18 +162,18 @@ export default function ChangeProfilePage() {
               <div className="relative">
                 <button
                   onClick={(e) => { e.stopPropagation(); setActiveOverlay(activeOverlay === "avatar" ? null : "avatar"); }}
-                  className={`w-20 h-20 rounded-full flex items-center justify-center overflow-hidden ring-4 ring-[#0f0f1a] shadow-xl flex-shrink-0 ${
+                  className={`w-20 h-20 rounded-full flex items-center justify-center ring-4 ring-[#0f0f1a] shadow-xl flex-shrink-0 ${
                     !avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""
                   }`}
                 >
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
                   ) : (
                     <span className="text-3xl font-bold text-white">{initial}</span>
                   )}
                 </button>
 
-                {/* Avatar overlay */}
+                {/* Avatar overlay — outside button to avoid overflow-hidden clipping */}
                 {activeOverlay === "avatar" && (
                   <div className="absolute inset-0 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center gap-2 z-10" onClick={(e) => e.stopPropagation()}>
                     <button onClick={() => fileInputRef.current?.click()} disabled={avatarUploading}
