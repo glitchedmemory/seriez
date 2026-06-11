@@ -37,6 +37,7 @@ function CommentTree({
   reviewAuthor,
   titleName,
   authUsername,
+  avatarUrls,
 }: {
   comments: any[];
   depth: number;
@@ -58,6 +59,7 @@ function CommentTree({
   reviewAuthor: string;
   titleName: string;
   authUsername?: string;
+  avatarUrls?: Record<string, string | null>;
 }) {
   const router = useRouter();
   const nodes = parentId != null
@@ -83,9 +85,13 @@ function CommentTree({
         return (
           <div key={c.id}>
             <div className="flex gap-2">
-              <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
-                {c.username[0]?.toUpperCase()}
-              </div>
+              {avatarUrls?.[c.username] ? (
+                <img src={avatarUrls[c.username]!} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0 mt-0.5" />
+              ) : (
+                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
+                  {c.username[0]?.toUpperCase()}
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1">
                   <span className="text-xs font-medium text-white">{c.username}</span>
@@ -149,7 +155,7 @@ function CommentTree({
                 reportingComments={reportingComments} replyInputs={replyInputs} replyingTo={replyingTo}
                 expandedThreads={expandedThreads} onToggleThread={onToggleThread} onLike={onLike}
                 reviewId={reviewId} reviewTmdbId={reviewTmdbId} reviewAuthor={reviewAuthor}
-                titleName={titleName} authUsername={authUsername} />
+                titleName={titleName} authUsername={authUsername} avatarUrls={avatarUrls} />
             )}
             {/* Deep thread: "Continue this thread" */}
             {hasChildren && beyondDepth && (
@@ -165,7 +171,7 @@ function CommentTree({
                     reportingComments={reportingComments} replyInputs={replyInputs} replyingTo={replyingTo}
                     expandedThreads={expandedThreads} onToggleThread={onToggleThread} onLike={onLike}
                     reviewId={reviewId} reviewTmdbId={reviewTmdbId} reviewAuthor={reviewAuthor}
-                    titleName={titleName} authUsername={authUsername} />
+                    titleName={titleName} authUsername={authUsername} avatarUrls={avatarUrls} />
                 )}
               </div>
             )}
@@ -287,9 +293,11 @@ export function ReviewSection({
   // Avatar URLs for reviewers
   const [avatarUrls, setAvatarUrls] = useState<Record<string, string | null>>({});
 
-  // Fetch avatar URLs for all unique reviewers
+  // Fetch avatar URLs for all unique reviewers + commenters
   useEffect(() => {
-    const usernames = [...new Set(reviews.map(r => r.username))];
+    const reviewUsers = reviews.map(r => r.username);
+    const commentUsers = Object.values(comments).flat().map((c: any) => c.username);
+    const usernames = [...new Set([...reviewUsers, ...commentUsers])];
     if (usernames.length === 0) return;
     // Batch fetch from users table
     Promise.all(
@@ -304,7 +312,7 @@ export function ReviewSection({
       results.forEach(({ username, url }) => { map[username] = url; });
       setAvatarUrls(map);
     });
-  }, [reviews]);
+  }, [reviews, comments]);
 
   const toggleComments = async (reviewId: string, reviewAuthor: string) => {
     const newExpanded = new Set(expandedComments);
@@ -826,6 +834,7 @@ export function ReviewSection({
                       reviewAuthor={review.username}
                       titleName=""
                       authUsername={authUser?.user_metadata?.username}
+                      avatarUrls={avatarUrls}
                     />
                   ) : (
                     <p className="text-xs text-[#6b7280] mb-3">No comments yet</p>
