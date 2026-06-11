@@ -24,6 +24,20 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     } else {
+      // Store username in localStorage so RouletteCard + sidebar avatar work
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        try {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?select=username&id=eq.${user.id}`,
+            { headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! } }
+          );
+          const rows = await res.json();
+          if (rows?.[0]?.username) {
+            localStorage.setItem("seriez-username", rows[0].username);
+          }
+        } catch {}
+      }
       router.push("/");
       router.refresh();
     }

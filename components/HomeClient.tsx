@@ -168,7 +168,15 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
   const [seriezUsername, setSeriezUsername] = useState<string>("");
 
   useEffect(() => {
-    const username = localStorage.getItem("seriez-username");
+    let username = localStorage.getItem("seriez-username");
+    // Fallback: read cookie from magic-link login
+    if (!username) {
+      const match = document.cookie.match(/(?:^| )seriez-username=([^;]+)/);
+      if (match) {
+        username = decodeURIComponent(match[1]);
+        localStorage.setItem("seriez-username", username);
+      }
+    }
     setSeriezUsername(username || "");
     if (!username) {
       setForYouItems([]);

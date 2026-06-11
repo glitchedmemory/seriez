@@ -71,7 +71,18 @@ export function Sidebar() {
 
   // Fetch avatar URL when user is known
   useEffect(() => {
-    const u = user?.user_metadata?.username;
+    let u: string | null | undefined = user?.user_metadata?.username;
+    // Fallback: check localStorage + cookie (login doesn't populate metadata)
+    if (!u) {
+      u = localStorage.getItem("seriez-username");
+      if (!u) {
+        const match = document.cookie.match(/(?:^| )seriez-username=([^;]+)/);
+        if (match) {
+          u = decodeURIComponent(match[1]);
+          localStorage.setItem("seriez-username", u);
+        }
+      }
+    }
     if (!u) return;
     const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?select=avatar_url&username=eq.${encodeURIComponent(u)}`;
     fetch(url, {
