@@ -299,19 +299,23 @@ export function ReviewSection({
     const commentUsers = Object.values(comments).flat().map((c: any) => c.username);
     const usernames = [...new Set([...reviewUsers, ...commentUsers])];
     if (usernames.length === 0) return;
-    // Batch fetch from users table
-    Promise.all(
-      usernames.map(async (u) => {
-        try {
-          const { data } = await supabase.from("users").select("avatar_url").eq("username", u).maybeSingle();
-          return { username: u, url: data?.avatar_url || null };
-        } catch { return { username: u, url: null }; }
+    // Use REST API directly — Supabase SDK silently fails for users table in browser
+    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?select=username,avatar_url&username=in.(${usernames.map(u => encodeURIComponent(u)).join(",")})`;
+    fetch(url, {
+      headers: {
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+      },
+    })
+      .then(r => r.json())
+      .then((rows: { username: string; avatar_url: string | null }[]) => {
+        const map: Record<string, string | null> = {};
+        rows.forEach(({ username, avatar_url }) => { map[username] = avatar_url; });
+        // Fill null for users not found in DB
+        usernames.forEach(u => { if (!(u in map)) map[u] = null; });
+        setAvatarUrls(map);
       })
-    ).then(results => {
-      const map: Record<string, string | null> = {};
-      results.forEach(({ username, url }) => { map[username] = url; });
-      setAvatarUrls(map);
-    });
+      .catch(() => {});
   }, [reviews, comments]);
 
   const toggleComments = async (reviewId: string, reviewAuthor: string) => {
