@@ -434,6 +434,11 @@ export default function ProfilePage() {
       <div className={!isOwn && compareData ? "mt-6" : "mt-6"}>
         <HistoryClient />
       </div>
+
+      {/* 🎰 Roulette */}
+      <div className="px-4 mt-6">
+        <RouletteCard />
+      </div>
     </div>
     </ErrorBoundary>
   );
