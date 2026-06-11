@@ -66,7 +66,6 @@ export default function ChangeProfilePage() {
       const res = await fetch("/api/profile/avatar", { method: "POST", body: formData }).then(r => r.json());
       if (res.error) { alert(res.error); return; }
       setAvatarUrl(res.avatarUrl);
-      setActiveOverlay(null);
     } catch { alert("Upload failed"); }
     finally { setAvatarUploading(false); }
   }
@@ -76,7 +75,6 @@ export default function ChangeProfilePage() {
       const res = await fetch("/api/profile/avatar", { method: "DELETE" }).then(r => r.json());
       if (res.error) return;
       setAvatarUrl(null);
-      setActiveOverlay(null);
     } catch {}
   }
 
@@ -90,7 +88,6 @@ export default function ChangeProfilePage() {
       const res = await fetch("/api/profile/background", { method: "POST", body: formData }).then(r => r.json());
       if (res.error) { alert(res.error); return; }
       setBackgroundUrl(res.backgroundUrl);
-      setActiveOverlay(null);
     } catch { alert("Upload failed"); }
     finally { setBgUploading(false); }
   }
@@ -99,7 +96,6 @@ export default function ChangeProfilePage() {
     try {
       await fetch("/api/profile/background", { method: "DELETE" });
       setBackgroundUrl(null);
-      setActiveOverlay(null);
     } catch {}
   }
 
