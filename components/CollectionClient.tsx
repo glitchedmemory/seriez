@@ -160,7 +160,7 @@ export default function CollectionClient() {
 
       <div className="relative">
         <h1 className="text-xl font-bold text-white pr-14 mb-1">{collection.name}</h1>
-        <button onClick={handleLike} className={`absolute top-0 right-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${liked ? "bg-[#f87171]/20 text-[#f87171] shadow-[0_0_8px_rgba(248,113,113,0.25)]" : "bg-white/5 text-[#9ca3af] hover:bg-white/10 hover:text-[#f87171] active:scale-95"}`}>
+        <button onClick={handleLike} className={`absolute top-0 right-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${liked ? "bg-[#f87171]/20 text-[#f87171] shadow-[0_0_8px_rgba(248,113,113,0.25)]" : "bg-white/5 text-[#9ca3af] hover:bg-white/10 hover:text-[#f87171] active:scale-95"}`}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           {likesCount}
         </button>
