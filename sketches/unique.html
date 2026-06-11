@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seriez — Unique Tracking Patterns</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #0a0a14; color: #e0e0e0;
+    padding: 2rem;
+  }
+  h1 { text-align: center; font-size: 1.2rem; margin-bottom: .25rem; }
+  .sub { text-align: center; font-size: .75rem; color: #6b7280; margin-bottom: 2rem; }
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .variant {
+    background: #141428;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid #1e1e3a;
+    display: flex; flex-direction: column;
+  }
+  .variant h2 {
+    font-size: .7rem; text-transform: uppercase; letter-spacing: .06em;
+    color: #6366f1; margin-bottom: .6rem;
+  }
+  .variant .ref { font-size: .58rem; color: #3d3d5a; margin-bottom: 1rem; }
+  .poster {
+    width: 100%; aspect-ratio: 16/9;
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a1a3e 100%);
+    border-radius: 10px; margin-bottom: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    color: #2d2d5a; font-size: 2rem;
+    border: 1px solid #1e1e3a;
+    position: relative; overflow: hidden;
+    user-select: none;
+    touch-action: pan-y;
+    cursor: grab;
+  }
+  .title { font-size: 1rem; font-weight: 700; margin-bottom: .15rem; }
+  .meta { font-size: .68rem; color: #6b7280; margin-bottom: 1rem; }
+  .label { font-size: .62rem; text-transform: uppercase; letter-spacing: .06em; color: #6b7280; margin-bottom: .4rem; }
+  .when { margin-top: .5rem; font-size: .62rem; color: #0d9488; }
+
+  /* ── VAR A: Swipe Gesture (Sofa/Queue style) ── */
+  .swipe-poster {
+    transition: transform .4s cubic-bezier(.2,.8,.2,1.2), opacity .3s;
+    position: relative;
+  }
+  .swipe-hint {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    display: flex; gap: 20px;
+    opacity: 0; transition: opacity .3s;
+    pointer-events: none;
+  }
+  .swipe-poster:hover .swipe-hint, .swipe-poster:active .swipe-hint { opacity: 1; }
+  .swipe-hint span {
+    padding: 6px 14px; border-radius: 20px;
+    font-size: .68rem; font-weight: 700;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .swipe-left { background: rgba(239,68,68,.2); color: #ef4444; border: 1px solid rgba(239,68,68,.3); }
+  .swipe-right { background: rgba(13,148,136,.2); color: #0d9488; border: 1px solid rgba(13,148,136,.3); }
+  .swipe-status {
+    margin-top: .4rem; display: flex; gap: 6px; align-items: center;
+    font-size: .72rem; font-weight: 700;
+  }
+  .swipe-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .swipe-dot.want { background: #f59e0b; }
+  .swipe-dot.watching { background: #3b82f6; }
+  .swipe-dot.done { background: #0d9488; }
+
+  /* ── VAR B: Letterboxd-style Eye Icon Cycle ── */
+  .eye-track {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .eye-btn {
+    all: unset;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: #1a1a2e; border: 2px solid #2d2d4a;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    position: relative;
+  }
+  .eye-btn svg { width: 24px; height: 24px; transition: all .3s; }
+  .eye-btn.watching-state { border-color: #3b82f6; background: rgba(59,130,246,.1); }
+  .eye-btn.watching-state svg { color: #3b82f6; }
+  .eye-btn.watched-state { border-color: #0d9488; background: rgba(13,148,136,.15); }
+  .eye-btn.watched-state svg { color: #0d9488; }
+  .eye-label {
+    font-size: .72rem; font-weight: 600;
+    transition: color .3s;
+    color: #6b7280;
+  }
+  .rating-overlay {
+    display: none;
+    background: #1a1a2e; border: 1px solid #2d2d4a;
+    border-radius: 12px; padding: 10px 14px;
+    position: absolute; margin-top: 60px;
+    z-index: 10;
+  }
+  .rating-overlay.show { display: flex; gap: 6px; align-items: center; }
+  .rating-overlay .star-row { display: flex; gap: 2px; }
+  .rating-overlay .star-row button {
+    all: unset; font-size: 1.4rem; cursor: pointer;
+    color: #2d2d4a; transition: color .2s;
+  }
+  .rating-overlay .star-row button.on { color: #f59e0b; }
+
+  /* ── VAR C: Emoji Reaction (TV Time style) ── */
+  .emoji-track { display: flex; flex-direction: column; gap: 10px; }
+  .emoji-watch-btn {
+    all: unset;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 14px;
+    background: #0d9488; color: #fff;
+    font-size: .8rem; font-weight: 700;
+    cursor: pointer;
+    transition: all .25s;
+    box-shadow: 0 4px 16px rgba(13,148,136,.25);
+    align-self: flex-start;
+  }
+  .emoji-watch-btn:hover { transform: scale(1.03); }
+  .emoji-picker {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    opacity: 0; height: 0; overflow: hidden;
+    transition: all .35s cubic-bezier(.4,0,.2,1);
+  }
+  .emoji-picker.open { opacity: 1; height: auto; }
+  .emoji-chip {
+    all: unset;
+    width: 44px; height: 44px; border-radius: 14px;
+    font-size: 1.3rem; cursor: pointer;
+    background: #1a1a2e; border: 1px solid #2d2d4a;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .emoji-chip:hover { background: #2d2d4a; transform: scale(1.1); }
+  .emoji-chip.picked { border-color: #0d9488; background: rgba(13,148,136,.15); }
+  .emoji-result {
+    display: none; font-size: .7rem; color: #0d9488; align-items: center; gap: 6px;
+  }
+  .emoji-result.show { display: flex; }
+  .emoji-result .big { font-size: 1.5rem; }
+</style>
+</head>
+<body>
+<h1>Seriez · Radically Different Tracking</h1>
+<div class="sub">No pills. No segments. No chips.</div>
+
+<div class="compare">
+
+<!-- VAR A: Swipe Gesture -->
+<div class="variant">
+  <h2>A · Swipe to Track</h2>
+  <div class="ref">Inspired by Sofa / Queue</div>
+  <div class="poster swipe-poster" id="swipePoster">
+    🎬
+    <div class="swipe-hint">
+      <span class="swipe-left">Skip</span>
+      <span class="swipe-right">Watched →</span>
+    </div>
+  </div>
+  <div class="title">The Dark Knight</div>
+  <div class="meta">2008 · Action, Crime, Drama · 2h 32m</div>
+  <div class="label">Swipe poster to track</div>
+  <div class="swipe-status" id="swipeStatus">
+    <span class="swipe-dot done"></span> Watched
+  </div>
+  <div class="when" style="font-size:.58rem;color:#3d3d5a;margin-top:.3rem">← Skip &nbsp;|&nbsp; Watched →</div>
+</div>
+
+<!-- VAR B: Eye Icon Cycle -->
+<div class="variant">
+  <h2>B · One-Eye Cycle</h2>
+  <div class="ref">Inspired by Letterboxd</div>
+  <div class="poster">🎬</div>
+  <div class="title">The Dark Knight</div>
+  <div class="meta">2008 · Action, Crime, Drama · 2h 32m</div>
+  <div class="label">Tap to cycle</div>
+  <div style="position:relative">
+    <div class="eye-track">
+      <button class="eye-btn watched-state" id="eyeBtn" onclick="cycleEye()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+      </button>
+      <span class="eye-label" id="eyeLabel" style="color:#0d9488">Watched</span>
+    </div>
+    <div class="rating-overlay show" id="ratingOverlay">
+      <span style="font-size:.65rem;color:#6b7280">Rate:</span>
+      <div class="star-row" id="starRow"></div>
+    </div>
+  </div>
+  <div class="when">✓ Watched Jun 10, 2026 · ★★★★☆</div>
+</div>
+
+<!-- VAR C: Emoji Reaction -->
+<div class="variant">
+  <h2>C · Emoji Reaction</h2>
+  <div class="ref">Inspired by TV Time</div>
+  <div class="poster">🎬</div>
+  <div class="title">The Dark Knight</div>
+  <div class="meta">2008 · Action, Crime, Drama · 2h 32m</div>
+  <div class="emoji-track">
+    <button class="emoji-watch-btn" id="emojiWatchBtn" onclick="toggleEmoji()">
+      <span>✓</span> Mark as Watched
+    </button>
+    <div class="emoji-picker" id="emojiPicker">
+      <button class="emoji-chip" onclick="pickEmoji(this,'🤯')">🤯</button>
+      <button class="emoji-chip" onclick="pickEmoji(this,'😭')">😭</button>
+      <button class="emoji-chip picked" onclick="pickEmoji(this,'🔥')">🔥</button>
+      <button class="emoji-chip" onclick="pickEmoji(this,'😍')">😍</button>
+      <button class="emoji-chip" onclick="pickEmoji(this,'😴')">😴</button>
+    </div>
+    <div class="emoji-result show" id="emojiResult">
+      <span class="big">🔥</span> You felt: <strong>Mind-blowing</strong>
+    </div>
+  </div>
+  <div class="when">✓ Watched Jun 10, 2026</div>
+</div>
+
+</div>
+
+<script>
+/* A — Swipe */
+(function(){
+  let startX = 0, swiped = false;
+  const el = document.getElementById('swipePoster');
+  const status = document.getElementById('swipeStatus');
+  el.addEventListener('mousedown', e => { startX = e.clientX; swiped = false; });
+  el.addEventListener('mouseup', e => {
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 40) {
+      swiped = true;
+      if (dx > 0) {
+        status.innerHTML = '<span class="swipe-dot done"></span> Watched';
+      } else {
+        status.innerHTML = '<span class="swipe-dot want"></span> Skipped';
+      }
+    }
+  });
+  el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; swiped = false; });
+  el.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 40) {
+      swiped = true;
+      if (dx > 0) {
+        status.innerHTML = '<span class="swipe-dot done"></span> Watched';
+      } else {
+        status.innerHTML = '<span class="swipe-dot want"></span> Skipped';
+      }
+    }
+  });
+})();
+
+/* B — Eye Cycle */
+let eyeState = 2; // 0=want, 1=watching, 2=watched
+const eyeStates = ['#6b7280','#3b82f6','#0d9488'];
+const eyeLabels = ['To Watch','Watching','Watched'];
+const eyeClasses = ['','watching-state','watched-state'];
+function cycleEye() {
+  eyeState = (eyeState + 1) % 3;
+  const btn = document.getElementById('eyeBtn');
+  btn.className = 'eye-btn ' + eyeClasses[eyeState];
+  document.getElementById('eyeLabel').textContent = eyeLabels[eyeState];
+  document.getElementById('eyeLabel').style.color = eyeStates[eyeState];
+  document.getElementById('ratingOverlay').className = 'rating-overlay' + (eyeState===2 ? ' show' : '');
+}
+
+/* Stars */
+(function(){
+  const row = document.getElementById('starRow');
+  for(let i=1;i<=5;i++) {
+    const b = document.createElement('button');
+    b.textContent = i<=4 ? '★' : '☆';
+    if(i<=4) b.className='on';
+    row.appendChild(b);
+  }
+})();
+
+/* C — Emoji */
+function toggleEmoji() {
+  document.getElementById('emojiPicker').classList.toggle('open');
+}
+function pickEmoji(el, emoji) {
+  document.querySelectorAll('#emojiPicker .emoji-chip').forEach(c=>c.classList.remove('picked'));
+  el.classList.add('picked');
+  document.getElementById('emojiResult').innerHTML = '<span class="big">'+emoji+'</span> You felt: <strong>Awesome!</strong>';
+  document.getElementById('emojiResult').classList.add('show');
+  document.getElementById('emojiPicker').classList.remove('open');
+}
+</script>
+</body>
+</html>

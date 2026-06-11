@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seriez · Ticket Stubs — Icons Remastered</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #0a0a14; color: #e0e0e0;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  .page {
+    background: #141428;
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    border: 1px solid #1e1e3a;
+    max-width: 560px; width: 100%;
+  }
+
+  .poster {
+    width: 100%; aspect-ratio: 16/9;
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a1a3e 100%);
+    border-radius: 14px; margin-bottom: 1.5rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem;
+    border: 2px solid #1e1e3a;
+  }
+
+  .title-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: .2rem; }
+  .title { font-size: 1.3rem; font-weight: 700; color: #f0f0f0; }
+  .year { font-size: .85rem; color: #6b7280; }
+  .meta { font-size: .72rem; color: #5b6270; margin-bottom: 1.8rem; letter-spacing: .02em; }
+
+  /* ── TICKETS ── */
+  .tickets { display: flex; gap: 12px; justify-content: center; }
+
+  .ticket-wrap {
+    flex: 1; max-width: 155px;
+    cursor: pointer;
+    transition: all .35s cubic-bezier(.4,0,.2,1);
+    position: relative;
+  }
+  .ticket-wrap.done-state {
+    transform: rotate(-1.5deg) translateY(-4px);
+    z-index: 2;
+  }
+
+  .ticket-inner {
+    background: #1f1f38;
+    position: relative;
+    border-radius: 0 0 8px 8px;
+    transition: all .35s;
+    overflow: visible;
+  }
+  .ticket-wrap.done-state .ticket-inner {
+    background: #1a2a32;
+    box-shadow: 0 0 40px rgba(13,148,136,.25);
+  }
+
+  .perf-top {
+    height: 12px;
+    background:
+      radial-gradient(circle at 6px 6px, #141428 5px, transparent 5px),
+      radial-gradient(circle at 22px 6px, #141428 5px, transparent 5px),
+      radial-gradient(circle at 38px 6px, #141428 5px, transparent 5px),
+      radial-gradient(circle at 54px 6px, #141428 5px, transparent 5px),
+      radial-gradient(circle at 70px 6px, #141428 5px, transparent 5px),
+      radial-gradient(circle at 86px 6px, #141428 5px, transparent 5px),
+      radial-gradient(circle at 102px 6px, #141428 5px, transparent 5px),
+      radial-gradient(circle at 118px 6px, #141428 5px, transparent 5px),
+      radial-gradient(circle at 134px 6px, #141428 5px, transparent 5px);
+    background-size: 150px 12px;
+    background-repeat: no-repeat;
+    margin-bottom: -2px;
+  }
+
+  .perf-bottom {
+    margin-top: -2px; height: 12px;
+    background:
+      radial-gradient(circle at 6px 6px, #0a0a14 5px, transparent 5px),
+      radial-gradient(circle at 22px 6px, #0a0a14 5px, transparent 5px),
+      radial-gradient(circle at 38px 6px, #0a0a14 5px, transparent 5px),
+      radial-gradient(circle at 54px 6px, #0a0a14 5px, transparent 5px),
+      radial-gradient(circle at 70px 6px, #0a0a14 5px, transparent 5px),
+      radial-gradient(circle at 86px 6px, #0a0a14 5px, transparent 5px),
+      radial-gradient(circle at 102px 6px, #0a0a14 5px, transparent 5px),
+      radial-gradient(circle at 118px 6px, #0a0a14 5px, transparent 5px),
+      radial-gradient(circle at 134px 6px, #0a0a14 5px, transparent 5px);
+    background-size: 150px 12px;
+    position: relative;
+  }
+  .ticket-wrap.done-state .perf-bottom::before {
+    content: '';
+    display: block; height: 12px;
+    background:
+      radial-gradient(circle at 6px 6px, rgba(13,148,136,.4) 5px, transparent 5px),
+      radial-gradient(circle at 22px 6px, rgba(13,148,136,.4) 5px, transparent 5px),
+      radial-gradient(circle at 38px 6px, rgba(13,148,136,.4) 5px, transparent 5px),
+      radial-gradient(circle at 54px 6px, rgba(13,148,136,.4) 5px, transparent 5px),
+      radial-gradient(circle at 70px 6px, rgba(13,148,136,.4) 5px, transparent 5px),
+      radial-gradient(circle at 86px 6px, rgba(13,148,136,.4) 5px, transparent 5px),
+      radial-gradient(circle at 102px 6px, rgba(13,148,136,.4) 5px, transparent 5px),
+      radial-gradient(circle at 118px 6px, rgba(13,148,136,.4) 5px, transparent 5px),
+      radial-gradient(circle at 134px 6px, rgba(13,148,136,.4) 5px, transparent 5px);
+    background-size: 150px 12px;
+    position: absolute; top: 0; left: 0; right: 0;
+  }
+
+  .ticket-content {
+    padding: 10px 12px 8px;
+    display: flex; flex-direction: column;
+    align-items: center;
+    border-left: 1px solid #2d2d4a;
+    border-right: 1px solid #2d2d4a;
+    transition: all .35s;
+  }
+  .ticket-wrap.done-state .ticket-content { border-color: rgba(13,148,136,.4); }
+
+  .ticket-no {
+    font-family: 'Courier Prime', monospace;
+    font-size: .38rem; color: #3a3a50;
+    letter-spacing: .04em; margin-bottom: 6px;
+    transition: color .35s;
+  }
+  .ticket-wrap.done-state .ticket-no { color: #0d9488; }
+
+  .ticket-action {
+    font-family: 'Courier Prime', monospace;
+    font-size: .56rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em;
+    color: #4a4a6a; transition: color .35s;
+    margin-bottom: 2px;
+  }
+
+  /* ── TICKET ICON — SVG circle ── */
+  .ticket-icon {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: #1a1a30;
+    border: 2px solid #2a2a42;
+    transition: all .4s cubic-bezier(.4,0,.2,1.2);
+    margin: 4px 0;
+    position: relative;
+  }
+  .ticket-icon svg {
+    width: 26px; height: 26px;
+    transition: all .4s;
+  }
+  .ticket-wrap.done-state .ticket-icon {
+    background: linear-gradient(135deg, #0d9488, #0f766e);
+    border-color: #0d9488;
+    box-shadow: 0 0 20px rgba(13,148,136,.35);
+  }
+  .ticket-wrap.done-state .ticket-icon svg { /* handled inline */ }
+
+  .ticket-meta {
+    display: flex; gap: 12px;
+    font-family: 'Courier Prime', monospace;
+    font-size: .42rem; color: #3a3a50;
+    letter-spacing: .03em; transition: color .35s;
+    margin-top: 4px;
+  }
+  .ticket-wrap.done-state .ticket-meta { color: #0d9488; }
+
+  .barcode {
+    display: flex; gap: 1px; justify-content: center;
+    margin-top: 6px; padding: 4px 0;
+    opacity: .15; transition: opacity .35s;
+  }
+  .ticket-wrap.done-state .barcode { opacity: .4; }
+  .barcode span { display: block; width: 1.5px; background: currentColor; }
+
+  .info { margin-top: 1.5rem; text-align: center; font-size: .62rem; color: #5b6270; font-style: italic; }
+  .info em { color: #0d9488; font-style: normal; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="poster">🎬</div>
+  <div class="title-row">
+    <span class="title">The Dark Knight</span>
+    <span class="year">2008</span>
+  </div>
+  <div class="meta">Action · Crime · Drama · 2h 32m</div>
+
+  <div class="tickets" id="tickets">
+    <!-- To Watch — Ticket with fold -->
+    <div class="ticket-wrap" onclick="stamp(this,'want')">
+      <div class="ticket-inner">
+        <div class="perf-top"></div>
+        <div class="ticket-content">
+          <div class="ticket-no">No 00421</div>
+          <div class="ticket-action">To Watch</div>
+          <div class="ticket-icon">
+            <!-- Stub icon: ticket outline with fold -->
+            <svg viewBox="0 0 32 32" fill="none" stroke="#4a4a6a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="5" width="24" height="22" rx="1"/>
+              <path d="M26 5v22"/>
+              <circle cx="26" cy="11" r="1.5"/>
+              <circle cx="26" cy="16" r="1.5"/>
+              <circle cx="26" cy="21" r="1.5"/>
+              <path d="M10 8l16 1" opacity=".3"/>
+            </svg>
+          </div>
+          <div class="ticket-meta"><span>Row G</span><span>Seat 12</span></div>
+          <div class="barcode" id="bc0"></div>
+        </div>
+        <div class="perf-bottom"></div>
+      </div>
+    </div>
+
+    <!-- Watching — Eye inside ticket -->
+    <div class="ticket-wrap" onclick="stamp(this,'watching')">
+      <div class="ticket-inner" style="background:#241f3a">
+        <div class="perf-top"></div>
+        <div class="ticket-content" style="border-color:rgba(99,102,241,.3)">
+          <div class="ticket-no" style="color:#6366f1">No 00421</div>
+          <div class="ticket-action" style="color:#a5b4fc">Watching</div>
+          <div class="ticket-icon" style="background:linear-gradient(135deg,#4c3a7a,#3a2a5a);border-color:#6366f1">
+            <!-- Ticket being torn halfway = watching -->
+            <svg viewBox="0 0 32 32" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round">
+              <!-- half ticket: left side intact, right side fading -->
+              <path d="M3 7h14v8" opacity=".7"/>
+              <path d="M17 7h12v8" opacity=".3" stroke-dasharray="2 1"/>
+              <!-- perforation tear line -->
+              <line x1="17" y1="7" x2="17" y2="15" stroke-dasharray="1.5 1.5" opacity=".5"/>
+              <!-- bottom intact -->
+              <path d="M3 17h14v8" opacity=".7"/>
+              <path d="M17 17h12v8" opacity=".3" stroke-dasharray="2 1"/>
+              <line x1="17" y1="15" x2="17" y2="17" stroke-width="1" opacity=".3"/>
+              <!-- notch cutout -->
+              <circle cx="29" cy="20" r="2" fill="none" opacity=".4"/>
+            </svg>
+          </div>
+          <div class="ticket-meta" style="color:#818cf8">
+            <span>Row G</span><span>Seat 12</span>
+          </div>
+          <div class="barcode" id="bc1" style="opacity:.25;color:#6366f1"></div>
+        </div>
+        <div class="perf-bottom"></div>
+      </div>
+    </div>
+
+    <!-- Watched — Torn ticket halves -->
+    <div class="ticket-wrap done-state" onclick="stamp(this,'done')">
+      <div class="ticket-inner">
+        <div class="perf-top"></div>
+        <div class="ticket-content">
+          <div class="ticket-no">No 00421</div>
+          <div class="ticket-action">Watched</div>
+          <div class="ticket-icon">
+            <!-- Torn ticket: two halves slightly separated -->
+            <svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <!-- left half -->
+              <path d="M2 6h12v8l-1 2 1 2v8H2z" opacity=".4"/>
+              <!-- right half -->
+              <path d="M18 6h12v8l1 2-1 2v8H18z" opacity=".8"/>
+              <!-- tear line -->
+              <circle cx="14" cy="10" r=".8"/>
+              <circle cx="14" cy="14" r=".8"/>
+              <circle cx="14" cy="18" r=".8"/>
+              <circle cx="14" cy="22" r=".8"/>
+            </svg>
+          </div>
+          <div class="ticket-meta">
+            <span>Row G</span><span>Seat 12</span>
+          </div>
+          <div class="barcode" id="bc2"></div>
+        </div>
+        <div class="perf-bottom"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info">Admitted on <em>June 10, 2026</em></div>
+</div>
+
+<script>
+// barcodes
+document.querySelectorAll('.barcode').forEach(bc => {
+  [10,14,18,8,20,12,16,8,22,10,18,12,6,20,14,16,8,22,12,18,10,14,20,8,16,12,22,10,18,14,6,20,12,16,8,22,14,18,10].forEach(h => {
+    const s = document.createElement('span'); s.style.height = h+'px'; bc.appendChild(s);
+  });
+});
+
+function stamp(el, type) {
+  document.querySelectorAll('#tickets .ticket-wrap').forEach(t => {
+    t.classList.remove('done-state');
+    t.querySelector('.ticket-inner').style.background = '#1f1f38';
+    t.querySelector('.ticket-content').style.borderColor = '#2d2d4a';
+    t.querySelector('.ticket-no').style.color = '#3a3a50';
+    t.querySelector('.ticket-action').style.color = '#4a4a6a';
+    t.querySelector('.ticket-meta').style.color = '#3a3a50';
+    const icon = t.querySelector('.ticket-icon');
+    icon.style.background = '#1a1a30';
+    icon.style.borderColor = '#2a2a42';
+    icon.style.boxShadow = 'none';
+    const svg = icon.querySelector('svg');
+    if (svg) { svg.querySelectorAll('path,circle,rect').forEach(p => p.setAttribute('stroke','#4a4a6a')); }
+    t.querySelector('.barcode').style.opacity = '.15';
+    t.querySelector('.barcode').style.color = '';
+  });
+  if (type === 'done') {
+    el.classList.add('done-state');
+    el.querySelector('.ticket-inner').style.background = '#1a2a32';
+    el.querySelector('.ticket-content').style.borderColor = 'rgba(13,148,136,.4)';
+    el.querySelector('.ticket-no').style.color = '#0d9488';
+    el.querySelector('.ticket-action').style.color = '#0d9488';
+    el.querySelector('.ticket-meta').style.color = '#0d9488';
+    el.querySelector('.barcode').style.opacity = '.4';
+    el.querySelector('.barcode').style.color = '#0d9488';
+    const svg = el.querySelector('svg');
+    if (svg) { svg.querySelectorAll('path,circle').forEach(p => p.setAttribute('stroke','#fff')); }
+  }
+  if (type === 'watching') {
+    el.querySelector('.ticket-inner').style.background = '#241f3a';
+    el.querySelector('.ticket-content').style.borderColor = 'rgba(99,102,241,.3)';
+    el.querySelector('.ticket-no').style.color = '#6366f1';
+    el.querySelector('.ticket-action').style.color = '#a5b4fc';
+    el.querySelector('.ticket-meta').style.color = '#818cf8';
+    el.querySelector('.barcode').style.opacity = '.25';
+    el.querySelector('.barcode').style.color = '#6366f1';
+    const svg = el.querySelector('svg');
+    if (svg) { svg.querySelectorAll('path,circle').forEach(p => p.setAttribute('stroke','#a5b4fc')); }
+  }
+}
+</script>
+</body>
+</html>

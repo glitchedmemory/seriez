@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seriez Tracking — More Variants</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #0a0a14; color: #e0e0e0;
+    padding: 2rem;
+  }
+  h1 { text-align: center; font-size: 1.2rem; margin-bottom: .25rem; }
+  .sub { text-align: center; font-size: .75rem; color: #6b7280; margin-bottom: 2rem; }
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .variant {
+    background: #141428;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid #1e1e3a;
+    display: flex; flex-direction: column;
+  }
+  .variant h2 {
+    font-size: .72rem; text-transform: uppercase; letter-spacing: .06em;
+    color: #6366f1; margin-bottom: 1rem;
+  }
+  .poster {
+    width: 100%; aspect-ratio: 16/9;
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a1a3e 100%);
+    border-radius: 10px; margin-bottom: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    color: #2d2d5a; font-size: 2rem;
+    border: 1px solid #1e1e3a;
+  }
+  .title { font-size: 1rem; font-weight: 700; margin-bottom: .15rem; }
+  .meta { font-size: .68rem; color: #6b7280; margin-bottom: 1rem; }
+  .label { font-size: .62rem; text-transform: uppercase; letter-spacing: .06em; color: #6b7280; margin-bottom: .4rem; }
+
+  /* ── VAR 4: Animated Status Chip ── */
+  .status-chip-wrap { display: flex; align-items: center; gap: 8px; }
+  .status-chip {
+    all: unset;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 16px; border-radius: 24px;
+    font-size: .8rem; font-weight: 700;
+    cursor: pointer;
+    transition: all .35s cubic-bezier(.4,0,.2,1);
+    background: #0d9488; color: #fff;
+    box-shadow: 0 4px 20px rgba(13,148,136,.25);
+  }
+  .status-chip svg { width: 18px; height: 18px; }
+  .status-chip .arrow { opacity: .6; width: 12px; height: 12px; margin-left: -2px; }
+  .chip-menu {
+    display: flex; flex-direction: column; gap: 2px;
+    background: #1a1a2e; border: 1px solid #2d2d4a;
+    border-radius: 14px; padding: 4px; min-width: 140px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+    position: absolute; margin-top: 50px;
+  }
+  .chip-menu.open { opacity: 1; pointer-events: auto; }
+  .chip-menu button {
+    all: unset;
+    padding: 7px 12px; border-radius: 10px;
+    font-size: .75rem; font-weight: 600;
+    cursor: pointer; color: #6b7280;
+    display: flex; align-items: center; gap: 8px;
+    transition: all .2s;
+  }
+  .chip-menu button:hover { background: #2d2d4a; color: #e0e0e0; }
+  .chip-menu button.cur { color: #0d9488; }
+  .chip-menu button svg { width: 16px; height: 16px; }
+
+  /* ── VAR 5: Sliding Toggle Bar ── */
+  .slider-bar {
+    position: relative;
+    display: flex;
+    background: #1a1a2e;
+    border-radius: 12px;
+    border: 1px solid #2d2d4a;
+    height: 42px;
+  }
+  .slider-indicator {
+    position: absolute; top: 2px;
+    height: calc(100% - 4px);
+    background: #0d9488;
+    border-radius: 10px;
+    transition: all .35s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 2px 8px rgba(13,148,136,.35);
+  }
+  .slider-bar button {
+    all: unset;
+    flex: 1; text-align: center;
+    font-size: .72rem; font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    position: relative; z-index: 1;
+    transition: color .25s;
+    color: #6b7280;
+  }
+  .slider-bar button.on { color: #fff; }
+  .slider-bar button svg { width: 14px; height: 14px; }
+
+  /* ── VAR 6: Journal Stamp ── */
+  .stamps {
+    display: flex; gap: 10px; align-items: stretch;
+  }
+  .stamp {
+    all: unset;
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 14px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    border: 1px dashed #2d2d4a;
+    background: transparent;
+    color: #6b7280;
+    position: relative;
+  }
+  .stamp .stamp-icon {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: #1e1e36;
+    transition: all .3s;
+    font-size: .75rem; font-weight: 900;
+    text-transform: uppercase; letter-spacing: .03em;
+  }
+  .stamp .stamp-label {
+    font-size: .62rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  .stamp.active {
+    border-color: #0d9488; border-style: solid;
+    background: rgba(13,148,136,.08);
+    color: #0d9488;
+    transform: rotate(-1deg);
+  }
+  .stamp.active .stamp-icon {
+    background: #0d9488; color: #fff;
+    box-shadow: 0 4px 16px rgba(13,148,136,.35);
+  }
+  .stamp:not(.active):hover {
+    border-color: #3d3d5a;
+    background: rgba(255,255,255,.02);
+  }
+  .stamp .swoosh {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%) rotate(-12deg);
+    font-size: 1.5rem; opacity: 0;
+    pointer-events: none;
+    color: #0d9488;
+    font-weight: 900;
+    letter-spacing: .1em;
+  }
+  .stamp.active .swoosh { opacity: .15; }
+
+  .when { margin-top: .5rem; font-size: .62rem; color: #0d9488; }
+</style>
+</head>
+<body>
+<h1>Seriez · Tracking — More Directions</h1>
+<div class="sub">Distinct from the first 3 — focused on &ldquo;tracking journal&rdquo; identity</div>
+
+<div class="compare">
+
+<!-- VAR 4 -->
+<div class="variant">
+  <h2>④ Status Chip + Dropdown</h2>
+  <div class="poster">🎬</div>
+  <div class="title">The Dark Knight</div>
+  <div class="meta">2008 · Action, Crime, Drama · 2h 32m</div>
+  <div class="label">Status</div>
+  <div class="status-chip-wrap" style="position:relative">
+    <button class="status-chip" id="chip-btn" onclick="document.getElementById('chip-menu').classList.toggle('open')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Watched
+      <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="chip-menu" id="chip-menu">
+      <button class="cur" onclick="setChip(this,'Watched','<polyline points=\'20 6 9 17 4 12\'/>')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Watched
+      </button>
+      <button onclick="setChip(this,'Watching','<path d=\'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z\'/><circle cx=\'12\' cy=\'12\' r=\'3\'/>')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Watching
+      </button>
+      <button onclick="setChip(this,'To Watch','<path d=\'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\'/>')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> To Watch
+      </button>
+    </div>
+  </div>
+  <div class="when">✓ Watched Jun 10, 2026</div>
+</div>
+
+<!-- VAR 5 -->
+<div class="variant">
+  <h2>⑤ Sliding Toggle Bar</h2>
+  <div class="poster">🎬</div>
+  <div class="title">The Dark Knight</div>
+  <div class="meta">2008 · Action, Crime, Drama · 2h 32m</div>
+  <div class="label">Track</div>
+  <div class="slider-bar" id="slider">
+    <div class="slider-indicator" id="slider-ind" style="width:33%;left:66%"></div>
+    <button data-idx="0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      To Watch
+    </button>
+    <button data-idx="1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Watching
+    </button>
+    <button data-idx="2" class="on">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Watched
+    </button>
+  </div>
+  <div class="when">✓ Watched Jun 10, 2026</div>
+</div>
+
+<!-- VAR 6 -->
+<div class="variant">
+  <h2>⑥ Journal Stamps</h2>
+  <div class="poster">🎬</div>
+  <div class="title">The Dark Knight</div>
+  <div class="meta">2008 · Action, Crime, Drama · 2h 32m</div>
+  <div class="label">Mark as</div>
+  <div class="stamps" id="stamps">
+    <button class="stamp" data-status="plan_to_watch">
+      <span class="stamp-icon">W</span>
+      <span class="stamp-label">To Watch</span>
+      <span class="swoosh">ADD</span>
+    </button>
+    <button class="stamp" data-status="watching">
+      <span class="stamp-icon">▶</span>
+      <span class="stamp-label">Watching</span>
+      <span class="swoosh">ON</span>
+    </button>
+    <button class="stamp active" data-status="completed">
+      <span class="stamp-icon">✓</span>
+      <span class="stamp-label">Watched</span>
+      <span class="swoosh">DONE</span>
+    </button>
+  </div>
+  <div class="when">✓ Watched Jun 10, 2026</div>
+</div>
+
+</div>
+
+<script>
+function setChip(el,label,iconSvg) {
+  document.querySelectorAll('#chip-menu button').forEach(b=>b.classList.remove('cur'));
+  el.classList.add('cur');
+  const btn = document.getElementById('chip-btn');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">'+iconSvg+'</svg> '+label+' <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
+  document.getElementById('chip-menu').classList.remove('open');
+}
+
+const sb = document.querySelectorAll('#slider button');
+const si = document.getElementById('slider-ind');
+sb.forEach(b => {
+  b.addEventListener('click', () => {
+    const idx = parseInt(b.dataset.idx);
+    sb.forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    si.style.left = (idx * 33.33) + '%';
+    si.style.width = '33%';
+  });
+});
+
+document.querySelectorAll('#stamps .stamp').forEach(s => {
+  s.addEventListener('click', () => {
+    document.querySelectorAll('#stamps .stamp').forEach(x => x.classList.remove('active'));
+    s.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

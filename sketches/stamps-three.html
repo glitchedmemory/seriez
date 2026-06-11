@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seriez — Three Stamp Styles</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=IM+Fell+English:ital@0;1&family=Noto+Serif+JP:wght@700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #0a0a14; color: #e0e0e0;
+    padding: 2rem;
+  }
+  h1 { text-align: center; font-size: 1.2rem; margin-bottom: 2rem; }
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1050px;
+    margin: 0 auto;
+  }
+  .card {
+    background: #141428;
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    border: 1px solid #1e1e3a;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .card h2 { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: #6366f1; margin-bottom: 1.5rem; }
+
+  /* ── A: WAX SEAL ── */
+  .wax-seals { display: flex; gap: 16px; margin-bottom: 1rem; }
+  .wax-seal {
+    all: unset;
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    transition: all .4s cubic-bezier(.4,0,.2,1);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .wax-seal::before {
+    content: '';
+    position: absolute; inset: -4px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent, rgba(255,215,0,.3), transparent, rgba(255,215,0,.2), transparent);
+    filter: blur(3px);
+    opacity: 0; transition: opacity .4s;
+  }
+  .wax-seal .ribbon-left, .wax-seal .ribbon-right {
+    position: absolute; top: 50%;
+    width: 28px; height: 8px;
+    background: linear-gradient(90deg, rgba(180,130,80,.6), rgba(180,130,80,.2));
+    border-radius: 2px;
+    opacity: 0; transition: all .4s;
+    transform: translateY(-50%);
+  }
+  .wax-seal .ribbon-left { right: 100%; margin-right: 4px; }
+  .wax-seal .ribbon-right { left: 100%; margin-left: 4px; }
+
+  .wax-seal .inner {
+    width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: .9rem; font-weight: 700;
+    transition: all .4s;
+    position: relative; z-index: 1;
+  }
+  .wax-seal .stamp-label-wax {
+    position: absolute; bottom: -22px;
+    font-size: .58rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .06em;
+    transition: color .4s;
+    white-space: nowrap;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  /* inactive wax */
+  .wax-seal.wax-inactive .inner {
+    background: linear-gradient(135deg, #2a2a3a, #1e1e30);
+    border: 2px solid #353550;
+    color: #5a5a70;
+    box-shadow: none;
+  }
+  .wax-seal.wax-inactive .stamp-label-wax { color: #5a5a70; }
+  /* watching wax */
+  .wax-seal.wax-watching .inner {
+    background: linear-gradient(135deg, #5b3a6e, #3a1f4a);
+    border: 2px solid #8b5ea8;
+    color: #d4a8f0;
+    box-shadow: 0 0 20px rgba(139,94,168,.3), inset 0 2px 0 rgba(255,255,255,.1);
+  }
+  .wax-seal.wax-watching .stamp-label-wax { color: #b080d0; }
+  /* done wax */
+  .wax-seal.wax-done .inner {
+    background: linear-gradient(135deg, #8b1a2b, #5a0a15);
+    border: 2px solid #c0392b;
+    color: #f0c0c0;
+    box-shadow: 0 0 24px rgba(192,57,43,.35), inset 0 2px 0 rgba(255,255,255,.15);
+    transform: scale(1.05);
+  }
+  .wax-seal.wax-done .stamp-label-wax { color: #d08070; }
+  .wax-seal.wax-done::before { opacity: .5; }
+  .wax-seal.wax-done .ribbon-left, .wax-seal.wax-done .ribbon-right { opacity: 1; }
+
+  /* ── B: LIBRARY DATE STAMP ── */
+  .library-stamps { display: flex; gap: 12px; margin-bottom: 1rem; }
+  .lib-stamp {
+    all: unset;
+    padding: 10px 16px;
+    cursor: pointer;
+    position: relative;
+    transition: all .35s cubic-bezier(.4,0,.2,1);
+    border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .lib-stamp::after {
+    content: '';
+    position: absolute; inset: -3px;
+    border-radius: 8px;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, transparent 3px, transparent 6px),
+                repeating-linear-gradient(90deg, transparent, transparent 3px, transparent 3px, transparent 6px);
+    opacity: 0; transition: opacity .3s;
+    pointer-events: none;
+  }
+  .lib-stamp .lib-icon {
+    font-family: 'IM Fell English', serif;
+    font-size: 1rem; font-weight: 700;
+    transition: all .35s;
+  }
+  .lib-stamp .lib-label {
+    font-family: 'IM Fell English', serif;
+    font-size: .58rem;
+    text-transform: uppercase; letter-spacing: .1em;
+    transition: color .35s;
+  }
+  /* inactive library */
+  .lib-inactive { background: #1a1a2e; border: 2px solid #2a2a3a; }
+  .lib-inactive .lib-icon { color: #4a4a60; }
+  .lib-inactive .lib-label { color: #4a4a60; }
+  /* watching library */
+  .lib-watching { background: rgba(59,130,246,.08); border: 2px solid rgba(59,130,246,.3); }
+  .lib-watching .lib-icon { color: #60a5fa; }
+  .lib-watching .lib-label { color: #60a5fa; }
+  /* done library */
+  .lib-done {
+    background: rgba(13,148,136,.06);
+    border: 2px solid #0d9488;
+    transform: rotate(-1deg);
+  }
+  .lib-done .lib-icon { color: #0d9488; }
+  .lib-done .lib-label { color: #0d9488; }
+  .lib-done::after { opacity: .1; }
+  .lib-date {
+    position: absolute; top: -12px; right: -8px;
+    font-family: 'IM Fell English', serif;
+    font-size: .45rem; color: #0d9488;
+    background: #141428; padding: 2px 6px;
+    border-radius: 3px;
+    transform: rotate(3deg);
+    opacity: 0; transition: opacity .3s;
+  }
+  .lib-done .lib-date { opacity: 1; }
+  /* ink bleed dots */
+  .ink-bleed {
+    position: absolute; pointer-events: none;
+    width: 2px; height: 2px;
+    border-radius: 50%;
+    background: #0d9488;
+    opacity: 0; transition: opacity .3s;
+  }
+  .lib-done .ink-bleed { opacity: .4; }
+  .ink-bleed:nth-child(1) { top: -4px; left: 8px; }
+  .ink-bleed:nth-child(2) { bottom: -4px; right: 10px; }
+  .ink-bleed:nth-child(3) { top: 50%; left: -3px; }
+
+  /* ── C: EX LIBRIS ── */
+  .exlibris-stamps { display: flex; gap: 10px; margin-bottom: 1rem; }
+  .exl {
+    all: unset;
+    padding: 14px 10px;
+    cursor: pointer;
+    transition: all .4s cubic-bezier(.4,0,.2,1);
+    display: flex; flex-direction: column; align-items: center;
+    position: relative;
+    border-radius: 4px;
+    min-width: 80px;
+    background: #1a1a2e;
+    border: 2px solid #2a2a3a;
+  }
+  .exl::before {
+    content: '';
+    position: absolute; inset: 4px;
+    border: 1px solid transparent;
+    transition: border-color .4s;
+    pointer-events: none;
+  }
+  .exl .exl-icon {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem; font-weight: 700;
+    transition: all .4s;
+    line-height: 1;
+  }
+  .exl .exl-label {
+    font-family: 'Playfair Display', serif;
+    font-size: .5rem;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    margin-top: 4px;
+    transition: color .4s;
+  }
+  .exl .exl-ornament {
+    font-size: .5rem;
+    margin-top: 2px;
+    transition: opacity .4s;
+    opacity: 0;
+  }
+  /* inactive exl */
+  .exl.exl-inactive .exl-icon { color: #3a3a50; }
+  .exl.exl-inactive .exl-label { color: #3a3a50; }
+  /* watching exl */
+  .exl.exl-watching { border-color: rgba(139,92,200,.3); background: rgba(139,92,200,.06); }
+  .exl.exl-watching .exl-icon { color: #a78bfa; }
+  .exl.exl-watching .exl-label { color: #a78bfa; }
+  /* done exl */
+  .exl.exl-done {
+    border-color: rgba(180,130,60,.5);
+    background: rgba(180,130,60,.06);
+    box-shadow: 0 4px 16px rgba(180,130,40,.12);
+  }
+  .exl.exl-done::before { border-color: rgba(180,130,60,.2); }
+  .exl.exl-done .exl-icon { color: #c9a84c; }
+  .exl.exl-done .exl-label { color: #c9a84c; }
+  .exl.exl-done .exl-ornament { opacity: 1; color: rgba(180,130,60,.4); }
+
+  :root { --done-stamp-x: 0px; --done-stamp-y: 0px; --done-stamp-rot: 0deg; }
+</style>
+</head>
+<body>
+<h1>Three Different Stamp Styles</h1>
+
+<div class="compare">
+
+<!-- A: Wax Seal -->
+<div class="card">
+  <h2>Wax Seal · 봉인 도장</h2>
+  <div class="wax-seals" id="waxGroup">
+    <button class="wax-seal wax-inactive" onclick="setWax(this,'inactive')">
+      <div class="ribbon-left"></div><div class="ribbon-right"></div>
+      <div class="inner">w</div>
+      <span class="stamp-label-wax">To Watch</span>
+    </button>
+    <button class="wax-seal wax-watching" onclick="setWax(this,'watching')">
+      <div class="ribbon-left"></div><div class="ribbon-right"></div>
+      <div class="inner">▶</div>
+      <span class="stamp-label-wax">Watching</span>
+    </button>
+    <button class="wax-seal wax-done" onclick="setWax(this,'done')">
+      <div class="ribbon-left"></div><div class="ribbon-right"></div>
+      <div class="inner">✔</div>
+      <span class="stamp-label-wax">Watched</span>
+    </button>
+  </div>
+  <p style="font-size:.58rem;color:#5b6270;text-align:center">3D 양각 · 금속 광택 · 리본 · 밀랍 질감</p>
+</div>
+
+<!-- B: Library Date Stamp -->
+<div class="card">
+  <h2>Library Stamp · 대출 도장</h2>
+  <div class="library-stamps" id="libGroup">
+    <button class="lib-stamp lib-inactive" onclick="setLib(this,'inactive')" style="position:relative">
+      <span class="ink-bleed"></span><span class="ink-bleed"></span><span class="ink-bleed"></span>
+      <div class="lib-icon">w</div>
+      <div class="lib-label">To Watch</div>
+      <div class="lib-date">JUN 2026</div>
+    </button>
+    <button class="lib-stamp lib-watching" onclick="setLib(this,'watching')" style="position:relative">
+      <span class="ink-bleed"></span><span class="ink-bleed"></span><span class="ink-bleed"></span>
+      <div class="lib-icon">▶</div>
+      <div class="lib-label">Watching</div>
+      <div class="lib-date">JUN 2026</div>
+    </button>
+    <button class="lib-stamp lib-done" onclick="setLib(this,'done')" style="position:relative">
+      <span class="ink-bleed"></span><span class="ink-bleed"></span><span class="ink-bleed"></span>
+      <div class="lib-icon">✔</div>
+      <div class="lib-label">Watched</div>
+      <div class="lib-date">JUN 10</div>
+    </button>
+  </div>
+  <p style="font-size:.58rem;color:#5b6270;text-align:center">고무 도장 · 잉크 번짐 · 날짜 표시 · 빈티지 관공서</p>
+</div>
+
+<!-- C: Ex Libris -->
+<div class="card">
+  <h2>Ex Libris · 장서인</h2>
+  <div class="exlibris-stamps" id="exlGroup">
+    <button class="exl exl-inactive" onclick="setExl(this,'inactive')">
+      <div class="exl-icon">w</div>
+      <div class="exl-label">To Watch</div>
+      <div class="exl-ornament">✦ ✦ ✦</div>
+    </button>
+    <button class="exl exl-watching" onclick="setExl(this,'watching')">
+      <div class="exl-icon">▶</div>
+      <div class="exl-label">Watching</div>
+      <div class="exl-ornament">◇ ◇ ◇</div>
+    </button>
+    <button class="exl exl-done" onclick="setExl(this,'done')">
+      <div class="exl-icon">✔</div>
+      <div class="exl-label">Watched</div>
+      <div class="exl-ornament">✦ ◈ ✦</div>
+    </button>
+  </div>
+  <p style="font-size:.58rem;color:#5b6270;text-align:center">골드 포일 · 장식 테두리 · 서체 중심 · 우아한 인상</p>
+</div>
+
+</div>
+
+<script>
+function setWax(el,type) {
+  document.querySelectorAll('#waxGroup .wax-seal').forEach(s => {
+    s.classList.remove('wax-inactive','wax-watching','wax-done');
+    s.classList.add('wax-'+type === el.classList.contains('wax-done') ? 'wax-inactive' : 'wax-'+type);
+  });
+  el.className = 'wax-seal wax-'+type;
+}
+function setLib(el,type) {
+  document.querySelectorAll('#libGroup .lib-stamp').forEach(s => {
+    s.className = 'lib-stamp lib-inactive';
+    s.style.position = 'relative';
+  });
+  el.className = 'lib-stamp lib-'+type;
+  el.style.position = 'relative';
+}
+function setExl(el,type) {
+  document.querySelectorAll('#exlGroup .exl').forEach(s => {
+    s.className = 'exl exl-inactive';
+  });
+  el.className = 'exl exl-'+type;
+}
+</script>
+</body>
+</html>

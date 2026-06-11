@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Var 1 — Segmented Pill · Seriez Tracking</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #0f0f1a;
+    color: #e0e0e0;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+  .card {
+    max-width: 480px; width: 100%;
+    background: #141428;
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid #1e1e3a;
+  }
+  .poster {
+    width: 100%; aspect-ratio: 16/9;
+    background: linear-gradient(135deg, #1a1a3e 0%, #0d1b2a 100%);
+    border-radius: 12px; margin-bottom: 1.5rem;
+    display: flex; align-items: center; justify-content: center;
+    color: #2d2d5a; font-size: 3rem;
+    border: 1px solid #1e1e3a;
+  }
+  .title { font-size: 1.3rem; font-weight: 700; margin-bottom: .25rem; }
+  .meta { font-size: .8rem; color: #6b7280; margin-bottom: 1.5rem; }
+
+  /* ── SEGMENTED PILL ── */
+  .segmented {
+    display: inline-flex;
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 3px;
+    border: 1px solid #2d2d4a;
+    gap: 2px;
+    position: relative;
+  }
+  .segmented button {
+    all: unset;
+    padding: 8px 20px;
+    font-size: .82rem;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all .25s cubic-bezier(.4,0,.2,1);
+    position: relative; z-index: 1;
+    display: flex; align-items: center; gap: 6px;
+    white-space: nowrap;
+  }
+  .segmented button.active {
+    color: #fff;
+    background: #0d9488;
+    box-shadow: 0 2px 8px rgba(13,148,136,.35);
+  }
+  .segmented button:not(.active):hover {
+    color: #a0a0b8;
+  }
+  .segmented button svg {
+    width: 16px; height: 16px;
+    flex-shrink: 0;
+  }
+
+  .watched-at {
+    margin-top: .6rem;
+    font-size: .72rem;
+    color: #0d9488;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .label { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; margin-bottom: .5rem; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="poster">🎬</div>
+  <div class="title">The Dark Knight</div>
+  <div class="meta">2008 · Action, Crime, Drama · 2h 32m</div>
+
+  <div class="label">Track</div>
+  <div class="segmented" id="seg1">
+    <button data-status="plan_to_watch">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      To Watch
+    </button>
+    <button data-status="watching">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Watching
+    </button>
+    <button data-status="completed" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Watched
+    </button>
+  </div>
+  <div class="watched-at">✓ Watched Jun 10, 2026</div>
+</div>
+
+<script>
+document.querySelectorAll('#seg1 button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#seg1 button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
