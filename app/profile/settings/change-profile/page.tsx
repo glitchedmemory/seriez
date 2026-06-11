@@ -140,20 +140,17 @@ export default function ChangeProfilePage() {
             )}
           </button>
 
-          {/* Background dropdown */}
+          {/* Background overlay */}
           {activeOverlay === "bg" && (
-            <div className="absolute left-4 right-4 top-[calc(100%-16px)] bg-[#1e1e36]/95 backdrop-blur-md border border-[#2d2d4a]/60 rounded-2xl shadow-2xl shadow-black/40 py-2 px-1 z-20 animate-in slide-in-from-top-2 fade-in duration-200"
-              onClick={(e) => e.stopPropagation()}>
+            <div className="absolute inset-x-0 top-0 h-40 bg-black/60 backdrop-blur-sm flex items-center justify-center gap-3 z-10" onClick={(e) => e.stopPropagation()}>
               <button onClick={() => bgInputRef.current?.click()} disabled={bgUploading}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left text-white text-sm font-medium hover:bg-white/5 rounded-xl transition-colors disabled:opacity-40">
-                <span className="text-lg">🖼️</span>
+                className="px-5 py-2 bg-[#6366f1] hover:bg-[#818cf8] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
                 {bgUploading ? "Uploading..." : backgroundUrl ? "Change Image" : "Add Image"}
               </button>
               {backgroundUrl && (
                 <button onClick={handleBackgroundDelete}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-400 text-sm font-medium hover:bg-red-500/10 rounded-xl transition-colors">
-                  <span className="text-lg">🗑️</span>
-                  Delete Image
+                  className="px-5 py-2 bg-white/10 backdrop-blur border border-white/20 hover:bg-red-500/20 hover:border-red-500/50 hover:text-red-400 text-white text-sm font-medium rounded-lg transition-colors">
+                  Delete
                 </button>
               )}
             </div>
