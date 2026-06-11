@@ -228,7 +228,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
               <p className="text-xs text-[#6b7280]">
                 {item.year} · {item.type === "movie" ? "Movie" : item.type === "tv" ? "TV" : "Anime"} · ★ {item.rating}
               </p>
-              {item.genres.length > 0 && (
+              {item.genres?.length > 0 && (
                 <p className="text-[10px] text-[#6366f1]/70 mt-0.5">{item.genres.join(", ")}</p>
               )}
             </div>
