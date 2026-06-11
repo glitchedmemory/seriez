@@ -105,11 +105,6 @@ export default function RouletteCard() {
                 {result.title}
               </h3>
             </div>
-            {result.periodLabel && (
-              <p className="text-[10px] text-[#6366f1] mt-0.5">
-                Popular in {result.periodLabel}
-              </p>
-            )}
             <div className="flex items-center gap-2 mt-1">
               {result.year && <span className="text-[10px] text-[#6b7280]">{result.year}</span>}
               {result.runtime && (

@@ -15,6 +15,15 @@ const TMDB_IMAGE = "https://image.tmdb.org/t/p/w500";
 
 export async function GET(_req: NextRequest) {
   try {
+    // Auth check — login required
+    const { createClient: createServerClient } = await import("@/lib/supabase/server");
+    const supabase = await createServerClient();
+    const { data: authData } = await supabase.auth.getUser();
+    const currentUser = authData.user?.user_metadata?.username;
+    if (!currentUser) {
+      return NextResponse.json({ empty: true, message: "Sign in to spin!" }, { status: 200 });
+    }
+
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1; // 1–12
