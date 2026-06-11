@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ProfileSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import HistoryClient from "@/app/history/HistoryClient";
+import RouletteCard from "@/components/RouletteCard";
 
 export const dynamic = "force-dynamic";
 
