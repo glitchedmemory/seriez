@@ -161,8 +161,8 @@ export default function ChangeProfilePage() {
             <div className="flex items-end gap-4 mb-2">
               <div className="relative">
                 <button
-                  onClick={(e) => { e.stopPropagation(); setActiveOverlay(activeOverlay === "avatar" ? null : "avatar"); }}
-                  className={`w-20 h-20 rounded-full flex items-center justify-center ring-4 ring-[#0f0f1a] shadow-xl flex-shrink-0 ${
+                  onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                  className={`w-20 h-20 rounded-full flex items-center justify-center ring-4 ring-[#0f0f1a] shadow-xl flex-shrink-0 transition-transform active:scale-95 ${
                     !avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""
                   }`}
                 >
@@ -172,24 +172,13 @@ export default function ChangeProfilePage() {
                     <span className="text-3xl font-bold text-white">{initial}</span>
                   )}
                 </button>
-
-                {/* Avatar dropdown */}
-                {activeOverlay === "avatar" && (
-                  <div className="absolute left-0 top-full mt-2 bg-[#1e1e36]/95 backdrop-blur-md border border-[#2d2d4a]/60 rounded-2xl shadow-2xl shadow-black/40 py-2 px-1 z-20 animate-in slide-in-from-top-2 fade-in duration-200 min-w-[180px]"
-                    onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => fileInputRef.current?.click()} disabled={avatarUploading}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left text-white text-sm font-medium hover:bg-white/5 rounded-xl transition-colors disabled:opacity-40">
-                      <span className="text-lg">📷</span>
-                      {avatarUploading ? "Uploading..." : avatarUrl ? "Change Photo" : "Add Photo"}
-                    </button>
-                    {avatarUrl && (
-                      <button onClick={handleAvatarDelete}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-400 text-sm font-medium hover:bg-red-500/10 rounded-xl transition-colors">
-                        <span className="text-lg">🗑️</span>
-                        Delete Photo
-                      </button>
-                    )}
-                  </div>
+                {avatarUrl && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleAvatarDelete(); }}
+                    className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg transition-colors z-10"
+                  >
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
                 )}
               </div>
               <div className="flex-1" />
