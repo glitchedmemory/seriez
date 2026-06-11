@@ -161,6 +161,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
   }, []);
 
   // "For You" personalized recommendations
+  const [forYouLoading, setForYouLoading] = useState(false);
   const [forYouItems, setForYouItems] = useState<TmdbResult[] | null>(null);
   const [forYouGenres, setForYouGenres] = useState<string[]>([]);
   const [forYouReason, setForYouReason] = useState("");
@@ -182,6 +183,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
       setForYouItems([]);
       return;
     }
+    setForYouLoading(true);
     fetch(`/api/for-you?username=${encodeURIComponent(username)}`)
       .then((res) => res.json())
       .then((data) => {
@@ -197,7 +199,8 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
       .catch(() => {
         setForYouItems([]);
         setForYouReason("Recommendations unavailable right now");
-      });
+      })
+      .finally(() => setForYouLoading(false));
   }, []);
 
   // Fetch anime trending on toggle
@@ -318,7 +321,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
           <section>
             <div className="px-4 md:px-0 mb-3">
               <SectionHeader emoji="🎯" title="For You" subtitle={
-                forYouItems === null
+                forYouLoading
                   ? "Loading..."
                   : forYouGenres.length > 0
                   ? `Because you like ${forYouGenres.join(", ")}`
@@ -326,12 +329,20 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
               } />
             </div>
             <PosterGrid>
-              {(forYouItems && forYouItems.length > 0
-                ? forYouItems.slice(0, 14)
-                : trending.slice(0, 14)
-              ).map((item) => (
-                <CardWrapper key={item.id} item={item} reasonText={forYouReasons[item.id]} />
-              ))}
+              {forYouLoading ? (
+                Array.from({ length: 7 }).map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="aspect-[2/3] bg-[#1e1e3a] rounded-lg" />
+                  </div>
+                ))
+              ) : (
+                (forYouItems && forYouItems.length > 0
+                  ? forYouItems.slice(0, 14)
+                  : trending.slice(0, 14)
+                ).map((item) => (
+                  <CardWrapper key={item.id} item={item} reasonText={forYouReasons[item.id]} />
+                ))
+              )}
             </PosterGrid>
           </section>
 
