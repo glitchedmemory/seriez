@@ -12,6 +12,7 @@ interface CollectionItem {
   poster: string | null;
   year: string | null;
   rating: number;
+  note: string | null;
   addedAt: string;
 }
 
@@ -201,6 +202,9 @@ export default function CollectionClient() {
                     <span className="text-[10px] text-[#f59e0b]">★ {item.rating}</span>
                   )}
                 </div>
+                {item.note && (
+                  <p className="text-[10px] text-[#9ca3af] italic mt-1 line-clamp-1">“{item.note}”</p>
+                )}
               </div>
             </button>
           ))}
