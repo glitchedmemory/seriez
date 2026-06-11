@@ -211,6 +211,37 @@ export default function HistoryClient() {
       {/* ── Divider ── */}
       <div className="h-2 bg-[#0a0a14] mb-5" />
 
+      {/* ── Discover by Mood ── */}
+      <div className="px-4 mb-5">
+        <h2 className="text-lg font-extrabold text-white tracking-tight mb-3">Discover by Mood</h2>
+        <p className="text-[11px] text-[#6b7280] mb-3">Find your next watch based on how you want to feel</p>
+        <div className="flex gap-2 overflow-x-auto hide-scrollbar">
+          <button className="mood-chip flex flex-col items-center gap-1 bg-[#1a1a2e] border border-[#6366f1] rounded-2xl px-4 py-3 min-w-[68px] transition-all active:scale-95">
+            <span className="text-2xl">⚡</span>
+            <span className="text-[10px] font-medium text-white">Intense</span>
+          </button>
+          <button className="mood-chip flex flex-col items-center gap-1 bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl px-4 py-3 min-w-[68px] transition-all active:scale-95">
+            <span className="text-2xl">😌</span>
+            <span className="text-[10px] font-medium text-[#9ca3af]">Easy</span>
+          </button>
+          <button className="mood-chip flex flex-col items-center gap-1 bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl px-4 py-3 min-w-[68px] transition-all active:scale-95 relative">
+            <span className="text-2xl opacity-40">🧠</span>
+            <span className="text-[10px] font-medium text-[#6b7280]">Mind-bend</span>
+          </button>
+          <button className="mood-chip flex flex-col items-center gap-1 bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl px-4 py-3 min-w-[68px] transition-all active:scale-95 relative">
+            <span className="text-2xl opacity-40">🍿</span>
+            <span className="text-[10px] font-medium text-[#6b7280]">Light</span>
+          </button>
+          <button className="mood-chip flex flex-col items-center gap-1 bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl px-4 py-3 min-w-[68px] transition-all active:scale-95 relative">
+            <span className="text-2xl opacity-40">🎭</span>
+            <span className="text-[10px] font-medium text-[#6b7280]">Emotional</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Divider ── */}
+      <div className="h-2 bg-[#0a0a14] mb-5" />
+
       {/* ── This Month's Diary ── */}
       <WatchList items={data.watchList} monthlyView />
 
