@@ -86,9 +86,9 @@ function CommentTree({
           <div key={c.id}>
             <div className="flex gap-2">
               {avatarUrls?.[c.username] ? (
-                <img src={avatarUrls[c.username]!} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-0.5" />
+                <img src={avatarUrls[c.username]!} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-0.5" />
               ) : (
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 mt-0.5 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0 mt-0.5 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
                   {c.username[0]?.toUpperCase()}
                 </div>
               )}
@@ -741,9 +741,9 @@ export function ReviewSection({
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1">
                   {avatarUrls[review.username] ? (
-                    <img src={avatarUrls[review.username]!} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                    <img src={avatarUrls[review.username]!} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                   ) : (
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
                       {review.username[0].toUpperCase()}
                     </div>
                   )}

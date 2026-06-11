@@ -256,9 +256,9 @@ export default function CollectionClient() {
             {comments.map((c) => (
               <div key={c.id} className="flex gap-2">
                 {avatarUrls[c.username] ? (
-                  <img src={avatarUrls[c.username]!} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0 mt-0.5" />
+                  <img src={avatarUrls[c.username]!} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-0.5" />
                 ) : (
-                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-sm font-bold text-white flex-shrink-0 mt-0.5">
                     {c.username[0]?.toUpperCase()}
                   </div>
                 )}
