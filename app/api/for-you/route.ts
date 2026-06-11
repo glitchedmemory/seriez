@@ -165,7 +165,7 @@ function scoreAndRank(
   });
 
   scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, 10).map((s) => s.item);
+  return scored.slice(0, 14).map((s) => s.item);
 }
 
 // ─── Main ───
