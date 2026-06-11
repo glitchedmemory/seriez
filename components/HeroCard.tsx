@@ -38,6 +38,8 @@ export function HeroCard({ item, nextItem, region }: { item: TmdbResult; nextIte
   }, [showCollDropdown]);
 
   async function addToCollection(listId: string, listName: string) {
+    const note = prompt("One-line note (required):");
+    if (!note || !note.trim()) return;
     const username = localStorage.getItem("seriez-username") || "Anonymous";
     setAddingCollId(listId);
     setCollFeedback(null);
@@ -45,7 +47,7 @@ export function HeroCard({ item, nextItem, region }: { item: TmdbResult; nextIte
       const res = await fetch(`/api/collections/${listId}/items`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, tmdbId: item.id, mediaType: item.type }),
+        body: JSON.stringify({ username, tmdbId: item.id, mediaType: item.type, note: note.trim() }),
       });
       const json = await res.json();
       if (res.ok) {
