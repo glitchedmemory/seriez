@@ -421,7 +421,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
 
           <section>
             <div className="px-4 md:px-0 mb-3">
-              <SectionHeader emoji="🎬" title={`Box Office · ${region}`} subtitle="Now playing in theaters" />
+              <SectionHeader emoji="🎬" title={`Box Office · ${region}`} subtitle="Weekend Top 10" />
             </div>
             <div className="flex gap-3 overflow-x-auto px-4 pb-2 hide-scrollbar snap-x snap-mandatory">
               {boxOffice.map((movie, i) => (
