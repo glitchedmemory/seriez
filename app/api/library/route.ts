@@ -45,10 +45,35 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ items: [] });
   }
 
-  // Enrich with TMDB data sequentially (avoid rate limit)
+  // Enrich with TMDB/AniList data sequentially
   const items = [];
   for (const t of data) {
     try {
+      if (t.media_type === "anime") {
+        // AniList IDs — use AniList GraphQL
+        const gql = { query: `query($id:Int){Media(id:$id){title{romaji english}coverImage{medium}startDate{year}}}` , variables: { id: t.tmdb_id } };
+        const alRes = await fetch("https://graphql.anilist.co", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(gql),
+        });
+        if (!alRes.ok) { items.push(null); continue; }
+        const alJson = await alRes.json();
+        const m = alJson.data?.Media;
+        if (!m) { items.push(null); continue; }
+        items.push({
+          tmdbId: t.tmdb_id,
+          mediaType: "anime",
+          status: t.status,
+          rating: t.rating,
+          progress: t.progress,
+          updatedAt: t.updated_at,
+          title: m.title?.english || m.title?.romaji || "Unknown",
+          poster: m.coverImage?.medium || null,
+          year: m.startDate?.year?.toString() || null,
+          tmdbRating: null,
+        });
+        continue;
+      }
       const res = await fetch(
         `${TMDB_API}/${t.media_type}/${t.tmdb_id}?api_key=${TMDB_KEY}`
       );
