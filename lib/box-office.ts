@@ -407,6 +407,6 @@ export async function getBoxOffice(country: string): Promise<TmdbResult[]> {
   if (!scraper) return scrapeUS();
   const results = await scraper();
   // Fallback to US if no results from country-specific scraper
-  if (results.length === 0 && country !== "US") return scrapeUS();
-  return results;
+  if (results.length === 0 && country !== "US") return (await scrapeUS()).slice(0, 7);
+  return results.slice(0, 7);
 }
