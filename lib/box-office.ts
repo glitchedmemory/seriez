@@ -327,12 +327,47 @@ async function scrapeKR(): Promise<TmdbResult[]> {
   }
 }
 
-// ─── JP/FR/DE/ES: requires Playwright (JS-rendered pages) — fallback to US ───
+async function scrapeES(): Promise<TmdbResult[]> { return scrapeBOMArea("ES"); }
+async function scrapeJP(): Promise<TmdbResult[]> { return scrapeBOMArea("JP"); }
+async function scrapeDE(): Promise<TmdbResult[]> { return scrapeBOMArea("DE"); }
+async function scrapeFR(): Promise<TmdbResult[]> {
+  try {
+    const res = await fetch("https://www.boxofficemojo.com/intl/france/", {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+    });
+    if (!res.ok) return [];
+    const html = await res.text();
 
-async function scrapeJP(): Promise<TmdbResult[]> { return []; }
-async function scrapeFR(): Promise<TmdbResult[]> { return []; }
-async function scrapeDE(): Promise<TmdbResult[]> { return []; }
-async function scrapeES(): Promise<TmdbResult[]> { return []; }
+    // FR intl page: different structure — extract unique titles + first gross
+    const items: RawBoxOfficeItem[] = [];
+    const seen = new Set<string>();
+    const titleRegex = /class="a-link-normal" href="\/release\/rl\d+\/[^"]*">([^<]+)<\/a>/g;
+    const grossRegex = />(\$[\d,]+)</g;
+
+    const titles: string[] = [];
+    const grosses: string[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = titleRegex.exec(html)) !== null) titles.push(m[1].trim());
+    while ((m = grossRegex.exec(html)) !== null) grosses.push(m[1]);
+
+    for (let i = 0; i < Math.min(titles.length, grosses.length, 10); i++) {
+      if (!seen.has(titles[i])) {
+        seen.add(titles[i]);
+        items.push({ title: titles[i], gross: grosses[i] });
+      }
+    }
+
+    const results: TmdbResult[] = [];
+    for (const item of items) {
+      const match = await resolvePoster(item.title);
+      results.push({
+        ...match, backdrop: null, overview: "", genres: [], daysUntil: null,
+        boxOffice: { gross: item.gross },
+      } as unknown as TmdbResult);
+    }
+    return results;
+  } catch { return []; }
+}
 
 // ─── Main export ───
 
