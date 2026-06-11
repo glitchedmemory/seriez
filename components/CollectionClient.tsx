@@ -264,7 +264,7 @@ export default function CollectionClient() {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-white">{c.username}</span>
+                    <span className="text-xs font-medium text-white hover:text-[#6366f1] cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
                     <span className="text-[10px] text-[#6b7280]">
                       {new Date(c.created_at).toLocaleDateString()}
                     </span>
