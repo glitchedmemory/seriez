@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ProfileSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import HistoryClient from "@/app/history/HistoryClient";
+import RouletteCard from "@/components/RouletteCard";
 
 export const dynamic = "force-dynamic";
 
@@ -346,21 +347,8 @@ export default function ProfilePage() {
             <span className="text-2xl font-bold text-white ml-auto">{compareData.matchRate}%</span>
           </div>
 
-          {/* ─── Ad Banner ─── */}
-          {/* Replace with AdSense/AdMob code when ready */}
-          <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-[#4c1d95] via-[#7c3aed] to-[#a78bfa] relative">
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-2 right-4 w-14 h-14 rounded-full bg-white/20" />
-              <div className="absolute bottom-1 left-8 w-8 h-8 rounded-full bg-white/10" />
-              <div className="absolute top-6 left-10 w-3 h-3 rounded-full bg-white/25" />
-            </div>
-            <div className="relative p-4 flex items-center justify-center text-center min-h-[150px]">
-              <div>
-                <p className="text-[10px] text-white/50 font-medium uppercase tracking-[0.15em]">Advertisement</p>
-                <p className="text-sm font-bold text-white/70 mt-2">AD 300×150</p>
-              </div>
-            </div>
-          </div>
+          {/* 🎰 Roulette — random discovery */}
+          <RouletteCard />
 
           {/* Both Enjoyed */}
           {compareData.bothEnjoyed.length > 0 && (
