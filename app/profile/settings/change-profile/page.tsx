@@ -173,20 +173,24 @@ export default function ChangeProfilePage() {
                   )}
                 </button>
 
-                {/* Avatar overlay — outside button to avoid overflow-hidden clipping */}
+                {/* Avatar dim + floating action card */}
                 {activeOverlay === "avatar" && (
-                  <div className="absolute inset-0 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center gap-2 z-10" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => fileInputRef.current?.click()} disabled={avatarUploading}
-                      className="px-3 py-1.5 bg-[#6366f1] hover:bg-[#818cf8] disabled:opacity-50 text-white text-[11px] font-medium rounded-lg transition-colors whitespace-nowrap">
-                      {avatarUploading ? "..." : avatarUrl ? "Change Photo" : "Add"}
-                    </button>
-                    {avatarUrl && (
-                      <button onClick={handleAvatarDelete}
-                        className="px-3 py-1.5 bg-white/10 backdrop-blur border border-white/20 hover:bg-red-500/20 hover:border-red-500/50 hover:text-red-400 text-white text-[11px] font-medium rounded-lg transition-colors whitespace-nowrap">
-                        Delete
+                  <>
+                    <div className="absolute inset-0 rounded-full bg-black/50" />
+                    <div className="absolute left-0 bottom-[calc(100%+8px)] bg-[#1e1e36] border border-[#2d2d4a] rounded-xl shadow-2xl p-2 flex gap-2 whitespace-nowrap z-20"
+                      onClick={(e) => e.stopPropagation()}>
+                      <button onClick={() => fileInputRef.current?.click()} disabled={avatarUploading}
+                        className="px-4 py-2 bg-[#6366f1] hover:bg-[#818cf8] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
+                        {avatarUploading ? "Uploading..." : avatarUrl ? "Change Photo" : "Add Photo"}
                       </button>
-                    )}
-                  </div>
+                      {avatarUrl && (
+                        <button onClick={handleAvatarDelete}
+                          className="px-4 py-2 bg-[#1a1a2e] border border-[#2d2d4a] hover:border-red-500/50 hover:text-red-400 text-[#9ca3af] text-sm font-medium rounded-lg transition-colors">
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
               <div className="flex-1" />
