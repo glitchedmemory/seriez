@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resolveUserId } from "@/lib/auth-helper";
 
 const TMDB_KEY = process.env.TMDB_API_KEY!;
 const TMDB_API = "https://api.themoviedb.org/3";
@@ -15,9 +16,13 @@ export async function GET(req: NextRequest) {
     let mediaType: string;
 
     if (username) {
+      const userId = await resolveUserId(username);
+      if (!userId) {
+        return NextResponse.json({ empty: true, message: "User not found" }, { status: 200 });
+      }
       // Pick a random item from user's watchlist
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/media_trackings?select=tmdb_id,media_type&status=eq.plan_to_watch&user_id=eq.${encodeURIComponent(username)}`,
+        `${SUPABASE_URL}/rest/v1/media_trackings?select=tmdb_id,media_type&status=eq.plan_to_watch&username=eq.${encodeURIComponent(userId)}`,
         {
           headers: {
             apikey: SUPABASE_KEY,
