@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import PosterImage from "@/components/PosterImage";
 
 interface RouletteResult {
   empty?: boolean;
@@ -19,7 +18,6 @@ interface RouletteResult {
   director: string;
   runtime: string | null;
   tagline: string;
-  periodLabel?: string;
   spunType?: string;
 }
 
@@ -53,97 +51,164 @@ export default function RouletteCard() {
     setSpinning(false);
   };
 
-  return (
-    <div className="bg-gradient-to-br from-[#1e1e3a] to-[#151530] rounded-2xl overflow-hidden border border-white/5 text-center">
-      {/* Header */}
-      <div className="px-4 pt-5 pb-3">
-        <span className="text-2xl">🎲</span>
-        <h3 className="text-sm font-semibold text-white mt-1">Feeling Lucky?</h3>
-        <p className="text-[11px] text-[#6b7280] mt-1">
-          Discover a random hit you might have missed
-        </p>
-      </div>
+  // IDLE — no result yet
+  if (!result && !message) {
+    return (
+      <div className="relative bg-gradient-to-br from-[#1a1a3e] via-[#191938] to-[#13132e] rounded-2xl overflow-hidden border border-[#6366f1]/10">
+        {/* Subtle top glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-1 bg-gradient-to-r from-transparent via-[#6366f1]/40 to-transparent rounded-full" />
 
-      {/* Center SPIN Button */}
-      <div className="flex justify-center pb-5">
-        <button
-          onClick={spin}
-          disabled={spinning}
-          className="px-8 py-2.5 rounded-full bg-[#6366f1] hover:bg-[#5558e6] text-white text-sm font-bold transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-[#6366f1]/20"
-        >
-          {spinning ? "SPINNING..." : "🎰 SPIN"}
-        </button>
-      </div>
-
-      {/* Result */}
-      {result && (
-        <button
-          onClick={() => router.push(`/title/${result.id}?type=${result.mediaType}`)}
-          className="w-full text-left flex gap-4 px-4 pb-4 group"
-        >
-          <div className="w-24 h-36 flex-shrink-0 rounded-lg overflow-hidden bg-[#25253a]">
-            {result.poster ? (
-              <PosterImage
-                src={result.poster}
-                alt={result.title}
-                width={96}
-                height={144}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white/20 text-3xl">
-                🎬
-              </div>
-            )}
+        <div className="flex flex-col items-center px-6 py-10 text-center">
+          {/* Hero emoji */}
+          <div className="relative mb-5">
+            <span className="text-6xl">🎰</span>
+            <span className="absolute -top-1 -right-2 text-xl">✨</span>
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
-              {result.spunType && (
-                <span className="text-xs">{TYPE_EMOJI[result.spunType] || "🎬"}</span>
+
+          {/* Title */}
+          <h3 className="text-lg font-bold text-white mb-1.5">
+            Feeling Lucky?
+          </h3>
+
+          {/* Description */}
+          <p className="text-xs text-[#8b8fa3] max-w-[240px] mb-8">
+            Spin the wheel and discover a random hit from the recent past
+          </p>
+
+          {/* SPIN Button */}
+          <button
+            onClick={spin}
+            disabled={spinning}
+            className="group relative px-10 py-3 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#818cf8] text-white text-sm font-bold transition-all duration-200 hover:from-[#5558e6] hover:to-[#6366f1] hover:shadow-xl hover:shadow-[#6366f1]/30 active:scale-[0.97] disabled:opacity-50 overflow-hidden"
+          >
+            <span className="relative z-10 flex items-center gap-2">
+              <span className="text-base">🎰</span>
+              SPIN
+            </span>
+            {/* Shine effect */}
+            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // MESSAGE — error / sign-in prompt
+  if (message && !result) {
+    return (
+      <div className="bg-gradient-to-br from-[#1a1a3e] via-[#191938] to-[#13132e] rounded-2xl overflow-hidden border border-[#6366f1]/10">
+        <div className="flex flex-col items-center px-6 py-10 text-center">
+          <span className="text-4xl mb-3">🎰</span>
+          <p className="text-sm text-[#8b8fa3] mb-6">{message}</p>
+          <button
+            onClick={spin}
+            disabled={spinning}
+            className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#818cf8] text-white text-sm font-bold transition-all hover:shadow-lg hover:shadow-[#6366f1]/30 active:scale-[0.97]"
+          >
+            {spinning ? "SPINNING..." : "Try Again"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // RESULT — got a pick
+  return (
+    <div className="bg-gradient-to-br from-[#1a1a3e] via-[#191938] to-[#13132e] rounded-2xl overflow-hidden border border-[#6366f1]/10">
+      <button
+        onClick={() => router.push(`/title/${result!.id}?type=${result!.mediaType}`)}
+        className="w-full text-left group"
+      >
+        {/* Poster section */}
+        <div className="relative aspect-[16/9] bg-[#0f0f23] overflow-hidden">
+          {result!.backdrop ? (
+            <img
+              src={result!.backdrop}
+              alt=""
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60"
+            />
+          ) : result!.poster ? (
+            <img
+              src={result!.poster}
+              alt=""
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60"
+            />
+          ) : null}
+
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#13132e] via-[#13132e]/60 to-transparent" />
+
+          {/* Content overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-5">
+            <div className="flex items-center gap-2 mb-2">
+              {result!.spunType && (
+                <span className="text-sm bg-white/10 backdrop-blur rounded-lg px-2 py-1">
+                  {TYPE_EMOJI[result!.spunType]}
+                </span>
               )}
-              <h3 className="text-sm font-bold text-white group-hover:text-[#a5b4fc] transition-colors">
-                {result.title}
+              <h3 className="text-lg font-bold text-white leading-tight">
+                {result!.title}
               </h3>
             </div>
-            <div className="flex items-center gap-2 mt-1">
-              {result.year && <span className="text-[10px] text-[#6b7280]">{result.year}</span>}
-              {result.runtime && (
-                <>
-                  <span className="text-[10px] text-[#4b5563]">·</span>
-                  <span className="text-[10px] text-[#6b7280]">{result.runtime}</span>
-                </>
+
+            {/* Meta row */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {result!.year && (
+                <span className="text-xs text-[#a5b4fc]">{result!.year}</span>
               )}
-              {result.rating > 0 && (
-                <>
-                  <span className="text-[10px] text-[#4b5563]">·</span>
-                  <span className="text-[10px] text-[#f59e0b]">★ {result.rating}</span>
-                </>
+              {result!.runtime && (
+                <span className="text-xs text-[#6b7280]">{result!.runtime}</span>
+              )}
+              {result!.rating > 0 && (
+                <span className="text-xs text-[#f59e0b] font-medium">
+                  ★ {result!.rating}
+                </span>
               )}
             </div>
-            <div className="flex flex-wrap gap-1 mt-1.5">
-              {result.genres.map((g) => (
+          </div>
+        </div>
+
+        {/* Details section */}
+        <div className="p-4">
+          {/* Genres */}
+          {result!.genres.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {result!.genres.map((g) => (
                 <span
                   key={g}
-                  className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-[#9ca3af]"
+                  className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#9ca3af] border border-white/5"
                 >
                   {g}
                 </span>
               ))}
             </div>
-            <p className="text-[11px] text-[#9ca3af] mt-1.5 line-clamp-2">
-              {result.tagline && (
-                <span className="italic text-[#6366f1]">"{result.tagline}" — </span>
-              )}
-              {result.overview}
-            </p>
-          </div>
-        </button>
-      )}
+          )}
 
-      {/* Empty/Error message */}
-      {message && !result && (
-        <p className="text-xs text-[#6b7280] px-4 pb-4 text-center">{message}</p>
-      )}
+          {/* Overview */}
+          <p className="text-xs text-[#8b8fa3] leading-relaxed line-clamp-2 mb-3">
+            {result!.tagline && (
+              <span className="italic text-[#a5b4fc]">"{result!.tagline}"{" "}</span>
+            )}
+            {result!.overview}
+          </p>
+
+          {/* Spin again button */}
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-[#4b5563]">Tap for details →</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setResult(null);
+                spin();
+              }}
+              disabled={spinning}
+              className="px-4 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-[#a5b4fc] transition-colors disabled:opacity-50"
+            >
+              {spinning ? "..." : "🔄 Spin Again"}
+            </button>
+          </div>
+        </div>
+      </button>
     </div>
   );
 }
