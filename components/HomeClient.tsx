@@ -312,11 +312,9 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
 
           <GenreChips selected={activeGenre} onSelect={setActiveGenre} />
 
-          {seriezUsername && (
-            <div className="px-4 md:px-0 mt-6 mb-2">
-              <RouletteCard username={seriezUsername} />
-            </div>
-          )}
+          <div className="px-4 md:px-0 mt-6 mb-2">
+            <RouletteCard />
+          </div>
 
           <section>
             <div className="px-4 md:px-0 mb-3">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PosterImage from "@/components/PosterImage";
 
@@ -19,13 +19,17 @@ interface RouletteResult {
   director: string;
   runtime: string | null;
   tagline: string;
+  periodLabel?: string;
+  spunType?: string;
 }
 
-interface Props {
-  username?: string;
-}
+const TYPE_EMOJI: Record<string, string> = {
+  movie: "🎬",
+  tv: "📺",
+  anime: "🐾",
+};
 
-export default function RouletteCard({ username }: Props) {
+export default function RouletteCard() {
   const router = useRouter();
   const [result, setResult] = useState<RouletteResult | null>(null);
   const [spinning, setSpinning] = useState(false);
@@ -35,8 +39,7 @@ export default function RouletteCard({ username }: Props) {
     setSpinning(true);
     setMessage("");
     try {
-      const params = username ? `?username=${encodeURIComponent(username)}` : "";
-      const res = await fetch(`/api/roulette${params}`);
+      const res = await fetch("/api/roulette");
       const data = await res.json();
       if (data.empty) {
         setMessage(data.message);
@@ -57,7 +60,7 @@ export default function RouletteCard({ username }: Props) {
         <span className="text-2xl">🎲</span>
         <h3 className="text-sm font-semibold text-white mt-1">Feeling Lucky?</h3>
         <p className="text-[11px] text-[#6b7280] mt-1">
-          Spin to discover a random pick from your Watchlist
+          Discover a random hit you might have missed
         </p>
       </div>
 
@@ -94,10 +97,20 @@ export default function RouletteCard({ username }: Props) {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-bold text-white group-hover:text-[#a5b4fc] transition-colors">
-              {result.title}
-            </h3>
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex items-center gap-1.5">
+              {result.spunType && (
+                <span className="text-xs">{TYPE_EMOJI[result.spunType] || "🎬"}</span>
+              )}
+              <h3 className="text-sm font-bold text-white group-hover:text-[#a5b4fc] transition-colors">
+                {result.title}
+              </h3>
+            </div>
+            {result.periodLabel && (
+              <p className="text-[10px] text-[#6366f1] mt-0.5">
+                Popular in {result.periodLabel}
+              </p>
+            )}
+            <div className="flex items-center gap-2 mt-1">
               {result.year && <span className="text-[10px] text-[#6b7280]">{result.year}</span>}
               {result.runtime && (
                 <>
@@ -124,7 +137,7 @@ export default function RouletteCard({ username }: Props) {
             </div>
             <p className="text-[11px] text-[#9ca3af] mt-1.5 line-clamp-2">
               {result.tagline && (
-                <span className="italic text-[#6366f1]">“{result.tagline}” — </span>
+                <span className="italic text-[#6366f1]">"{result.tagline}" — </span>
               )}
               {result.overview}
             </p>
@@ -136,8 +149,6 @@ export default function RouletteCard({ username }: Props) {
       {message && !result && (
         <p className="text-xs text-[#6b7280] px-4 pb-4 text-center">{message}</p>
       )}
-
-      {/* Idle state — message shown in header already */}
     </div>
   );
 }
