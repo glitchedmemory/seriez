@@ -157,16 +157,18 @@ export default function CollectionClient() {
         ← Back to Search
       </button>
 
-      <h1 className="text-xl font-bold text-white mb-1">{collection.name}</h1>
-      <div className="flex items-center gap-3 text-xs text-[#6b7280] mb-3">
+      <div className="flex items-start justify-between mb-1">
+        <h1 className="text-xl font-bold text-white">{collection.name}</h1>
+        <button onClick={handleLike} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0 ml-3 ${liked ? "bg-[#f87171]/20 text-[#f87171] shadow-[0_0_8px_rgba(248,113,113,0.25)]" : "bg-white/5 text-[#9ca3af] hover:bg-white/10 hover:text-[#f87171] active:scale-95"}`}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          {likesCount}
+        </button>
+      </div>
+      <div className="flex items-center gap-3 text-xs text-[#6b7280] mb-5">
         <span>by <span className="text-[#d1d5db]">{collection.owner}</span></span>
         <span>·</span>
         <span>{collection.itemCount} items</span>
       </div>
-      <button onClick={handleLike} className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all mb-5 ${liked ? "bg-[#f87171]/20 text-[#f87171] shadow-[0_0_12px_rgba(248,113,113,0.3)]" : "bg-white/5 text-[#9ca3af] hover:bg-white/10 hover:text-[#f87171] active:scale-95"}`}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        {likesCount} {likesCount === 1 ? "like" : "likes"}
-      </button>
 
       {/* Items Grid */}
       {items.length > 0 && (
