@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { PosterCard, HorizontalScroll } from "@/components/PosterCard";
 import { HeroCard } from "@/components/HeroCard";
 import { GenreChips } from "@/components/GenreChips";
@@ -76,7 +76,6 @@ function BoxOfficeCard({ movie, rank }: { movie: TmdbResult; rank: number }) {
     <a href={`/title/${movie.id}?type=${movie.type}`} className="flex-shrink-0 w-36 md:w-40 block snap-start group">
       <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-[#1a1a2e] md:group-hover:scale-105 transition-transform">
         <PosterImage src={movie.poster} alt={movie.title} fill className="rounded-xl" sizes="(max-width: 768px) 144px, 160px" />
-        {/* Rank badge */}
         <div className={`absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-black text-white shadow-lg ${
           rank === 1 ? "bg-[#f59e0b]" : rank === 2 ? "bg-[#9ca3af]" : rank === 3 ? "bg-amber-700" : "bg-[#2d2d4a] text-[#6b7280]"
         }`}>
@@ -114,6 +113,45 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
   const [trendingMode, setTrendingMode] = useState<TrendingMode>(getStoredMode);
   const [animeTrending, setAnimeTrending] = useState<TmdbResult[]>([]);
   const [animeLoading, setAnimeLoading] = useState(false);
+
+  // Inline search state
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<TmdbResult[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleSearchChange(query: string) {
+    setSearchQuery(query);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!query.trim()) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return;
+    }
+    setSearchLoading(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        if (!res.ok) { setSearchResults([]); setSearchLoading(false); return; }
+        const data = await res.json();
+        setSearchResults(data.results || []);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 100);
+  }
+
+  function closeSearch() {
+    setSearchOpen(false);
+    setSearchQuery("");
+    setSearchResults([]);
+    setSearchLoading(false);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+  }
 
   // Persist trending mode to localStorage
   const switchTrendingMode = useCallback((mode: TrendingMode) => {
@@ -169,21 +207,80 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
   const hero = trending[heroPick];
   const nextHero = trending.filter((_, i) => i !== heroPick).slice(0, 1)[0];
 
-  function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") {
-      window.location.href = `/search?q=${encodeURIComponent((e.target as HTMLInputElement).value)}`;
-    }
-  }
+  // Shared search results dropdown
+  const searchDropdown = searchOpen && searchQuery.trim() ? (
+    <div className="absolute top-full left-0 right-0 mt-1 bg-[#0f0f1a] border border-[#2d2d4a] rounded-xl overflow-hidden z-50 max-h-80 overflow-y-auto shadow-2xl">
+      {searchLoading ? (
+        <div className="p-4 text-center text-sm text-[#6b7280]">Searching...</div>
+      ) : searchResults.length > 0 ? (
+        searchResults.map((item) => (
+          <a
+            key={`${item.type}-${item.id}`}
+            href={`/title/${item.id}?type=${item.type}`}
+            onClick={closeSearch}
+            className="flex items-center gap-3 p-3 hover:bg-[#1a1a2e] transition-colors border-b border-[#1a1a2e] last:border-0"
+          >
+            <div className="w-10 h-[60px] rounded-lg overflow-hidden bg-[#1a1a2e] flex-shrink-0">
+              <PosterImage src={item.poster} alt="" fill className="rounded-lg" sizes="40px" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm text-white truncate">{item.title}</p>
+              <p className="text-xs text-[#6b7280]">
+                {item.year} · {item.type === "movie" ? "Movie" : item.type === "tv" ? "TV" : "Anime"} · ★ {item.rating}
+              </p>
+              {item.genres.length > 0 && (
+                <p className="text-[10px] text-[#6366f1]/70 mt-0.5">{item.genres.join(", ")}</p>
+              )}
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-[#6b7280] flex-shrink-0">
+              <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 010-1.06z" clipRule="evenodd" />
+            </svg>
+          </a>
+        ))
+      ) : (
+        <div className="p-4 text-center text-sm text-[#6b7280]">No results found</div>
+      )}
+    </div>
+  ) : null;
 
   return (
     <div className="max-w-lg md:max-w-none mx-auto min-h-screen">
+      {/* ── Mobile header ── */}
       <header className="md:hidden sticky top-0 z-40 bg-[#0f0f1a]/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-[#1a1a2e]">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">Seriez</h1>
-        <a href="/search" className="text-[#9ca3af] hover:text-white transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-            <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
-          </svg>
-        </a>
+        {searchOpen ? (
+          <div className="flex-1 flex items-center gap-2 relative">
+            <button
+              onClick={closeSearch}
+              className="text-[#9ca3af] hover:text-white transition-colors flex-shrink-0"
+              aria-label="Close search"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path fillRule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clipRule="evenodd" />
+              </svg>
+            </button>
+            <div className="flex-1 relative">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Search movies, TV, anime..."
+                className="w-full bg-[#1a1a2e] text-white text-sm rounded-lg px-3 py-2 outline-none border border-[#2d2d4a] focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280]"
+                autoFocus
+              />
+              {searchDropdown}
+            </div>
+          </div>
+        ) : (
+          <>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">Seriez</h1>
+            <button onClick={() => setSearchOpen(true)} className="text-[#9ca3af] hover:text-white transition-colors" aria-label="Search">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </>
+        )}
       </header>
 
       <div className="md:flex md:gap-6 md:px-4 md:pt-6">
@@ -242,11 +339,9 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
                 </div>
                 {/* 3-way Toggle Switch */}
                 <div className="ml-auto relative flex-shrink-0 w-[168px] h-8 rounded-full bg-[#1a1a2e] border border-[#2d2d4a] overflow-hidden">
-                  {/* Sliding indicator */}
                   <div className={`absolute top-[3px] h-[26px] w-[52px] rounded-full bg-[#6366f1] transition-transform duration-300 ease-out pointer-events-none ${
                     trendingMode === "movie" ? "translate-x-[3px]" : trendingMode === "tv" ? "translate-x-[58px]" : "translate-x-[113px]"
                   }`} />
-                  {/* Clickable sections */}
                   <button
                     onClick={() => switchTrendingMode("movie")}
                     className={`absolute left-0 top-0 w-[56px] h-full flex items-center justify-center text-[10px] font-semibold transition-colors duration-300 hover:bg-white/5 ${
@@ -312,19 +407,21 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
 
         {/* Desktop Sidebar */}
         <aside className="hidden md:block w-72 lg:w-80 flex-shrink-0 space-y-5">
-          {/* Search */}
-          <a href="/search" className="block relative group">
+          {/* Inline Search */}
+          <div className="relative">
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => { handleSearchChange(e.target.value); if (!searchOpen) setSearchOpen(true); }}
+              onFocus={() => setSearchOpen(true)}
               placeholder="Search movies, TV, anime..."
-              readOnly
-              onFocus={(e) => { e.target.blur(); window.location.href = "/search"; }}
-              className="w-full bg-[#1a1a2e] text-white text-sm rounded-xl px-4 py-2.5 pl-10 outline-none border border-[#2d2d4a] group-hover:border-[#6366f1] transition-colors placeholder:text-[#6b7280] cursor-pointer"
+              className="w-full bg-[#1a1a2e] text-white text-sm rounded-xl px-4 py-2.5 pl-10 outline-none border border-[#2d2d4a] focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280]"
             />
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-[#6b7280] absolute left-3.5 top-3 group-hover:text-[#6366f1] transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-[#6b7280] absolute left-3.5 top-3">
               <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
             </svg>
-          </a>
+            {searchDropdown}
+          </div>
 
           {/* Streaming Top 10 */}
           <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-4">

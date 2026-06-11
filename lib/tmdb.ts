@@ -115,6 +115,14 @@ export async function getNowPlaying(region: string = "US"): Promise<TmdbResult[]
   return (data.results as TmdbItem[]).slice(0, 7).map(format);
 }
 
+export async function searchMulti(query: string): Promise<TmdbResult[]> {
+  const data = await get("/search/multi", { query, include_adult: "false" });
+  return (data.results as TmdbItem[])
+    .filter((item) => item.media_type === "movie" || item.media_type === "tv")
+    .map(format)
+    .slice(0, 10);
+}
+
 export async function getPopularMovies(): Promise<TmdbResult[]> {
   const data = await get("/movie/popular");
   return (data.results as TmdbItem[]).slice(0, 10).map(format);
