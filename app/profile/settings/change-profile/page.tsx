@@ -17,6 +17,8 @@ export default function ChangeProfilePage() {
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [bgUploading, setBgUploading] = useState(false);
   const [bgSaving, setBgSaving] = useState(false);
+  const [showAvatarActions, setShowAvatarActions] = useState(false);
+  const [showBgActions, setShowBgActions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
 
@@ -112,56 +114,58 @@ export default function ChangeProfilePage() {
 
         <div className="px-4 space-y-8 mt-4">
           {/* ── Avatar ── */}
-          <div>
-            <h2 className="text-sm font-medium text-[#9ca3af] mb-4">Avatar</h2>
-            <div className="flex flex-col items-center gap-4">
-              <div className={`w-32 h-32 rounded-full flex items-center justify-center overflow-hidden ring-4 ring-[#1a1a2e] shadow-xl ${
+          <div className="text-center">
+            <button
+              onClick={() => setShowAvatarActions(!showAvatarActions)}
+              className={`mx-auto block w-28 h-28 rounded-full flex items-center justify-center overflow-hidden ring-4 ring-[#1a1a2e] shadow-xl transition-all active:scale-95 ${
                 !avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""
-              }`}>
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-5xl font-bold text-white">
-                    {username?.slice(0, 1).toUpperCase() || "?"}
-                  </span>
-                )}
-              </div>
-              <div className="flex gap-3">
+              }`}
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-4xl font-bold text-white">
+                  {username?.slice(0, 1).toUpperCase() || "?"}
+                </span>
+              )}
+            </button>
+            <p className="text-[11px] text-[#6b7280] mt-2 mb-1">Tap to change</p>
+            <div className={`flex justify-center gap-3 transition-all duration-200 ${
+              showAvatarActions ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none absolute"
+            }`}>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={avatarUploading}
+                className="px-5 py-2 bg-[#6366f1] hover:bg-[#818cf8] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                {avatarUploading ? "Uploading..." : avatarUrl ? "Change Photo" : "Add Photo"}
+              </button>
+              {avatarUrl && (
                 <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={avatarUploading}
-                  className="px-5 py-2 bg-[#6366f1] hover:bg-[#818cf8] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                  onClick={handleAvatarDelete}
+                  className="px-5 py-2 bg-[#1a1a2e] border border-[#2d2d4a] hover:border-red-500/50 hover:text-red-400 text-[#9ca3af] text-sm font-medium rounded-lg transition-colors"
                 >
-                  {avatarUploading ? "Uploading..." : avatarUrl ? "Change Photo" : "Add Photo"}
+                  Delete
                 </button>
-                {avatarUrl && (
-                  <button
-                    onClick={handleAvatarDelete}
-                    className="px-5 py-2 bg-[#1a1a2e] border border-[#2d2d4a] hover:border-red-500 text-[#9ca3af] hover:text-red-400 text-sm font-medium rounded-lg transition-colors"
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="hidden"
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); }}
-              />
+              )}
             </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); }}
+            />
           </div>
 
           <hr className="border-[#1a1a2e]" />
 
           {/* ── Background ── */}
-          <div>
-            <h2 className="text-sm font-medium text-[#9ca3af] mb-4">Background</h2>
-
-            {/* Background preview */}
-            <div
-              className="relative h-32 rounded-xl overflow-hidden mb-4"
+          <div className="text-center">
+            {/* Background preview — clickable */}
+            <button
+              onClick={() => setShowBgActions(!showBgActions)}
+              className="relative w-full h-32 rounded-xl overflow-hidden block transition-all active:scale-[0.98] cursor-pointer"
               style={backgroundUrl
                 ? { backgroundImage: `url(${backgroundUrl})`, backgroundSize: `${bgScale}%`, backgroundPosition: `${bgPositionX}% ${bgPositionY}%`, backgroundRepeat: "no-repeat", backgroundColor: "#0f0f1a" }
                 : { background: "linear-gradient(135deg, #6366f1, #7c3aed, #a855f7)" }
@@ -172,10 +176,13 @@ export default function ChangeProfilePage() {
                   <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 </div>
               )}
-            </div>
+            </button>
+            <p className="text-[11px] text-[#6b7280] mt-2 mb-1">Tap to change</p>
 
-            {/* Upload / Delete buttons */}
-            <div className="flex gap-3 mb-5">
+            {/* Upload / Delete buttons — toggle */}
+            <div className={`flex justify-center gap-3 mb-5 transition-all duration-200 ${
+              showBgActions ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none absolute"
+            }`}>
               <button
                 onClick={() => bgInputRef.current?.click()}
                 disabled={bgUploading}
@@ -186,19 +193,19 @@ export default function ChangeProfilePage() {
               {backgroundUrl && (
                 <button
                   onClick={handleBackgroundDelete}
-                  className="px-5 py-2 bg-[#1a1a2e] border border-[#2d2d4a] hover:border-red-500 text-[#9ca3af] hover:text-red-400 text-sm font-medium rounded-lg transition-colors"
+                  className="px-5 py-2 bg-[#1a1a2e] border border-[#2d2d4a] hover:border-red-500/50 hover:text-red-400 text-[#9ca3af] text-sm font-medium rounded-lg transition-colors"
                 >
                   Delete
                 </button>
               )}
-              <input
-                ref={bgInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="hidden"
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleBackgroundUpload(f); }}
-              />
             </div>
+            <input
+              ref={bgInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleBackgroundUpload(f); }}
+            />
 
             {/* Scale + Position controls — only when background is set */}
             {backgroundUrl && (
