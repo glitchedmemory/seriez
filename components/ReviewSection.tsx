@@ -86,9 +86,9 @@ function CommentTree({
           <div key={c.id}>
             <div className="flex gap-2">
               {avatarUrls?.[c.username] ? (
-                <img src={avatarUrls[c.username]!} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0 mt-0.5" />
+                <img src={avatarUrls[c.username]!} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-0.5" />
               ) : (
-                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 mt-0.5 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
                   {c.username[0]?.toUpperCase()}
                 </div>
               )}

@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seriez — Cross-Industry Inspiration</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #0a0a14; color: #e0e0e0;
+    padding: 2rem;
+  }
+  h1 { text-align: center; font-size: 1.2rem; margin-bottom: .25rem; }
+  .sub { text-align: center; font-size: .75rem; color: #6b7280; margin-bottom: 2rem; }
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .variant {
+    background: #141428;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid #1e1e3a;
+    display: flex; flex-direction: column;
+  }
+  .variant h2 { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: #6366f1; margin-bottom: .3rem; }
+  .variant .ref { font-size: .58rem; color: #3d3d5a; margin-bottom: 1rem; }
+  .poster {
+    width: 100%; aspect-ratio: 16/9;
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a1a3e 100%);
+    border-radius: 10px; margin-bottom: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    color: #2d2d5a; font-size: 2rem;
+    border: 1px solid #1e1e3a;
+    position: relative; overflow: hidden;
+  }
+  .title { font-size: 1rem; font-weight: 700; margin-bottom: .15rem; }
+  .meta { font-size: .68rem; color: #6b7280; margin-bottom: 1rem; }
+  .label { font-size: .62rem; text-transform: uppercase; letter-spacing: .06em; color: #6b7280; margin-bottom: .4rem; }
+  .when { margin-top: .5rem; font-size: .62rem; color: #0d9488; }
+
+  /* ── A: Linear-style Status Morph ── */
+  .morph-btn {
+    all: unset;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 20px;
+    font-size: .78rem; font-weight: 600;
+    cursor: pointer;
+    transition: all .4s cubic-bezier(.4,0,.2,1);
+    background: #1e1e36; color: #6b7280;
+    border: 1px solid #2d2d4a;
+  }
+  .morph-btn.state-want { background: rgba(245,158,11,.12); color: #f59e0b; border-color: rgba(245,158,11,.3); }
+  .morph-btn.state-watching { background: rgba(59,130,246,.12); color: #3b82f6; border-color: rgba(59,130,246,.3); }
+  .morph-btn.state-done { background: rgba(13,148,136,.15); color: #0d9488; border-color: rgba(13,148,136,.3); }
+  .morph-btn .dot { width: 7px; height: 7px; border-radius: 50%; transition: background .4s; background: #6b7280; }
+  .morph-btn.state-want .dot { background: #f59e0b; }
+  .morph-btn.state-watching .dot { background: #3b82f6; }
+  .morph-btn.state-done .dot { background: #0d9488; }
+  .morph-dropdown {
+    position: absolute;
+    background: #1a1a2e; border: 1px solid #2d2d4a;
+    border-radius: 12px; padding: 4px;
+    min-width: 150px; margin-top: 4px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+  }
+  .morph-dropdown.open { opacity: 1; pointer-events: auto; }
+  .morph-dropdown button {
+    all: unset; display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 9px;
+    font-size: .75rem; font-weight: 600;
+    cursor: pointer; color: #6b7280;
+    width: 100%;
+    transition: background .2s;
+  }
+  .morph-dropdown button:hover { background: #2d2d4a; color: #e0e0e0; }
+  .morph-dropdown button .d { width: 7px; height: 7px; border-radius: 50%; }
+  .morph-dropdown button .d.want-c { background: #f59e0b; }
+  .morph-dropdown button .d.watching-c { background: #3b82f6; }
+  .morph-dropdown button .d.done-c { background: #0d9488; }
+
+  /* ── B: Spotify-style Heart Burst ── */
+  .heart-area { position: relative; display: inline-flex; align-items: center; gap: 10px; }
+  .heart-btn {
+    all: unset;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #1a1a2e; border: 2px solid #2d2d4a;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    position: relative; z-index: 2;
+  }
+  .heart-btn svg { width: 22px; height: 22px; color: #6b7280; transition: all .3s; }
+  .heart-btn.liked { border-color: #ec4899; background: rgba(236,72,153,.12); }
+  .heart-btn.liked svg { color: #ec4899; fill: #ec4899; }
+  .particle {
+    position: absolute; z-index: 1;
+    pointer-events: none;
+    font-size: .7rem; font-weight: 900;
+    opacity: 0;
+  }
+  @keyframes burst1 { 0% { opacity:1; transform:translate(0,0) scale(1); } 100% { opacity:0; transform:translate(-25px,-20px) scale(.3); } }
+  @keyframes burst2 { 0% { opacity:1; transform:translate(0,0) scale(1); } 100% { opacity:0; transform:translate(20px,-22px) scale(.3); } }
+  @keyframes burst3 { 0% { opacity:1; transform:translate(0,0) scale(1); } 100% { opacity:0; transform:translate(-22px,18px) scale(.3); } }
+  @keyframes burst4 { 0% { opacity:1; transform:translate(0,0) scale(1); } 100% { opacity:0; transform:translate(24px,16px) scale(.3); } }
+  @keyframes burst5 { 0% { opacity:1; transform:translate(0,0) scale(1); } 100% { opacity:0; transform:translate(-28px,0) scale(.2); } }
+  @keyframes burst6 { 0% { opacity:1; transform:translate(0,0) scale(1); } 100% { opacity:0; transform:translate(26px,0) scale(.2); } }
+  @keyframes burst7 { 0% { opacity:1; transform:translate(0,0) scale(1); } 100% { opacity:0; transform:translate(0,-28px) scale(.2); } }
+  @keyframes burst8 { 0% { opacity:1; transform:translate(0,0) scale(1); } 100% { opacity:0; transform:translate(0,26px) scale(.2); } }
+  .bursting .p1 { animation: burst1 .5s ease-out forwards; }
+  .bursting .p2 { animation: burst2 .55s ease-out forwards; }
+  .bursting .p3 { animation: burst3 .5s ease-out forwards; }
+  .bursting .p4 { animation: burst4 .52s ease-out forwards; }
+  .bursting .p5 { animation: burst5 .45s ease-out forwards; }
+  .bursting .p6 { animation: burst6 .48s ease-out forwards; }
+  .bursting .p7 { animation: burst7 .5s ease-out forwards; }
+  .bursting .p8 { animation: burst8 .47s ease-out forwards; }
+
+  .heart-text { font-size: .72rem; font-weight: 600; transition: color .3s; color: #6b7280; }
+
+  /* ── C: Things 3-style Check Circle ── */
+  .check-row { display: flex; align-items: center; gap: 10px; }
+  .check-circle {
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 2.5px solid #2d2d4a;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    transition: all .5s cubic-bezier(.4,0,.2,1.4);
+    flex-shrink: 0;
+  }
+  .check-circle.done {
+    border-color: #0d9488;
+    background: #0d9488;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(13,148,136,.3);
+  }
+  .check-circle svg { width: 24px; height: 24px; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); transition: transform .4s cubic-bezier(.4,0,.2,1.4) .1s; color: #fff; }
+  .check-circle.done svg { transform: translate(-50%,-50%) scale(1); }
+  .check-label { font-size: .75rem; font-weight: 600; color: #6b7280; transition: color .4s; }
+  .check-label.struck { text-decoration: line-through; color: #0d9488; opacity: .7; }
+</style>
+</head>
+<body>
+<h1>Seriez · Cross-Industry Inspiration</h1>
+<div class="sub">Linear &middot; Spotify &middot; Things 3</div>
+
+<div class="compare">
+
+<!-- A: Linear Morph -->
+<div class="variant">
+  <h2>A · Linear Status Morph</h2>
+  <div class="ref">Productivity / Linear</div>
+  <div class="poster">🎬</div>
+  <div class="title">The Dark Knight</div>
+  <div class="meta">2008 · Action, Crime, Drama · 2h 32m</div>
+  <div class="label">Status</div>
+  <div style="position:relative">
+    <button class="morph-btn state-done" id="morphBtn" onclick="toggleMorph()">
+      <span class="dot"></span>
+      <span id="morphLabel">Watched</span>
+    </button>
+    <div class="morph-dropdown" id="morphDD">
+      <button onclick="setMorph('plan_to_watch','To Watch','state-want')"><span class="d want-c"></span> To Watch</button>
+      <button onclick="setMorph('watching','Watching','state-watching')"><span class="d watching-c"></span> Watching</button>
+      <button onclick="setMorph('done','Watched','state-done')"><span class="d done-c"></span> Watched</button>
+    </div>
+  </div>
+  <div class="when">✓ Watched Jun 10, 2026</div>
+</div>
+
+<!-- B: Spotify Heart Burst -->
+<div class="variant">
+  <h2>B · Heart Burst</h2>
+  <div class="ref">Music / Spotify</div>
+  <div class="poster">🎬</div>
+  <div class="title">The Dark Knight</div>
+  <div class="meta">2008 · Action, Crime, Drama · 2h 32m</div>
+  <div class="label">Track</div>
+  <div class="heart-area" id="heartArea">
+    <button class="heart-btn liked" id="heartBtn" onclick="toggleHeart()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    </button>
+    <!-- Particles -->
+    <span class="particle p1" style="color:#ec4899">✦</span>
+    <span class="particle p2" style="color:#f59e0b">✦</span>
+    <span class="particle p3" style="color:#ec4899">✧</span>
+    <span class="particle p4" style="color:#f59e0b">✧</span>
+    <span class="particle p5" style="color:#ec4899">·</span>
+    <span class="particle p6" style="color:#f59e0b">·</span>
+    <span class="particle p7" style="color:#ec4899">·</span>
+    <span class="particle p8" style="color:#f59e0b">·</span>
+    <span class="heart-text" id="heartLabel" style="color:#ec4899">Saved</span>
+  </div>
+  <div class="when">✓ Watched Jun 10, 2026</div>
+</div>
+
+<!-- C: Things 3 Check Circle -->
+<div class="variant">
+  <h2>C · Check Circle</h2>
+  <div class="ref">Productivity / Things 3</div>
+  <div class="poster">🎬</div>
+  <div class="title">The Dark Knight</div>
+  <div class="meta">2008 · Action, Crime, Drama · 2h 32m</div>
+  <div class="label">Mark as watched</div>
+  <div class="check-row">
+    <button class="check-circle done" id="checkCircle" onclick="toggleCheck()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+    </button>
+    <span class="check-label struck" id="checkLabel">I've watched this</span>
+  </div>
+  <div class="when">✓ Watched Jun 10, 2026</div>
+</div>
+
+</div>
+
+<script>
+// A — Morph
+function toggleMorph() { document.getElementById('morphDD').classList.toggle('open'); }
+function setMorph(state, label, cls) {
+  const btn = document.getElementById('morphBtn');
+  btn.className = 'morph-btn ' + cls;
+  document.getElementById('morphLabel').textContent = label;
+  document.getElementById('morphDD').classList.remove('open');
+}
+
+// B — Heart Burst
+let liked = true;
+function toggleHeart() {
+  liked = !liked;
+  const btn = document.getElementById('heartBtn');
+  const area = document.getElementById('heartArea');
+  const label = document.getElementById('heartLabel');
+  if (liked) {
+    btn.classList.add('liked');
+    label.textContent = 'Saved'; label.style.color = '#ec4899';
+    area.classList.remove('bursting');
+    void area.offsetWidth;
+    area.classList.add('bursting');
+    setTimeout(() => area.classList.remove('bursting'), 600);
+  } else {
+    btn.classList.remove('liked');
+    label.textContent = 'Save'; label.style.color = '#6b7280';
+    area.classList.remove('bursting');
+  }
+}
+
+// C — Check Circle
+let checked = true;
+function toggleCheck() {
+  checked = !checked;
+  const c = document.getElementById('checkCircle');
+  const l = document.getElementById('checkLabel');
+  if (checked) { c.classList.add('done'); l.classList.add('struck'); }
+  else { c.classList.remove('done'); l.classList.remove('struck'); }
+}
+</script>
+</body>
+</html>

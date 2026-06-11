@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seriez · Viewing Certificate Stamps</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=IM+Fell+English:ital@0;1&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #0a0a14; color: #e0e0e0;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  .page {
+    background: #141428;
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    border: 1px solid #1e1e3a;
+    max-width: 520px; width: 100%;
+    position: relative;
+    background-image:
+      radial-gradient(ellipse at 30% 20%, rgba(13,148,136,.04) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,.002) 2px, rgba(255,255,255,.002) 4px);
+  }
+
+  .poster {
+    width: 100%; aspect-ratio: 16/9;
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a1a3e 100%);
+    border-radius: 14px; margin-bottom: 1.5rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem;
+    border: 2px solid #1e1e3a;
+  }
+
+  .title-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: .2rem; }
+  .title { font-size: 1.3rem; font-weight: 700; color: #f0f0f0; }
+  .year { font-size: .85rem; color: #6b7280; }
+  .meta { font-size: .72rem; color: #5b6270; margin-bottom: 2rem; letter-spacing: .02em; }
+
+  .section-label {
+    font-family: 'IM Fell English', serif;
+    font-size: .62rem; color: #5b6270;
+    text-transform: uppercase; letter-spacing: .14em;
+    margin-bottom: 1rem;
+    font-style: italic;
+    text-align: center;
+  }
+
+  /* ── TICKET STUBS ROW ── */
+  .tickets {
+    display: flex; gap: 12px; justify-content: center;
+  }
+
+  .ticket {
+    all: unset;
+    flex: 1; max-width: 140px;
+    cursor: pointer;
+    position: relative;
+    padding: 16px 12px 12px;
+    transition: all .4s cubic-bezier(.4,0,.2,1);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+
+    /* ticket stub shape */
+    background: rgba(255,255,255,.01);
+    border: 2px dashed #2a2a42;
+    border-radius: 10px;
+  }
+  /* perforation dots */
+  .ticket::before {
+    content: '';
+    position: absolute; left: -6px; top: 25%;
+    width: 10px; height: 50%;
+    background:
+      radial-gradient(circle, #141428 3px, transparent 3px) 0 0,
+      radial-gradient(circle, #141428 3px, transparent 3px) 0 10px,
+      radial-gradient(circle, #141428 3px, transparent 3px) 0 20px,
+      radial-gradient(circle, #141428 3px, transparent 3px) 0 30px,
+      radial-gradient(circle, #141428 3px, transparent 3px) 0 40px;
+    background-size: 10px 10px;
+    background-repeat: repeat-y;
+    opacity: 0; transition: opacity .4s;
+  }
+
+  /* ticket icon — circle stamp */
+  .ticket-icon {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .4s cubic-bezier(.4,0,.2,1.2);
+    background: #1a1a30;
+    border: 2px solid #2a2a42;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 700;
+    color: #4a4a6a;
+    position: relative;
+  }
+  /* decorative film sprocket ring */
+  .ticket-icon::after {
+    content: '';
+    position: absolute; inset: -8px;
+    border-radius: 50%;
+    border: 1px dashed transparent;
+    transition: all .5s;
+  }
+
+  .ticket-label {
+    font-family: 'IM Fell English', serif;
+    font-size: .6rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: #4a4a6a;
+    transition: color .4s;
+  }
+
+  /* status badge — small pill under label */
+  .ticket-badge {
+    font-family: 'IM Fell English', serif;
+    font-size: .48rem;
+    font-style: italic;
+    color: transparent;
+    transition: all .4s;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+  }
+
+  /* watching state */
+  .ticket.watching {
+    border-color: rgba(99,102,241,.3);
+    background: rgba(99,102,241,.04);
+  }
+  .ticket.watching .ticket-icon {
+    background: linear-gradient(135deg, #4c3a7a, #3a2a5a);
+    border-color: #6366f1;
+    color: #a5b4fc;
+    box-shadow: 0 0 20px rgba(99,102,241,.2);
+  }
+  .ticket.watching .ticket-icon::after {
+    border-color: rgba(99,102,241,.2);
+    animation: sprocket 3s linear infinite;
+  }
+  @keyframes sprocket {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .ticket.watching .ticket-label { color: #a5b4fc; }
+  .ticket.watching .ticket-badge { color: #818cf8; border-bottom-color: rgba(129,140,248,.3); }
+
+  /* done state */
+  .ticket.done {
+    border-color: #0d9488;
+    border-style: solid;
+    background: rgba(13,148,136,.05);
+    transform: rotate(-1.2deg) scale(1.03);
+    box-shadow: 0 8px 30px rgba(13,148,136,.12);
+  }
+  .ticket.done::before { opacity: 1; }
+  .ticket.done .ticket-icon {
+    background: linear-gradient(135deg, #0d9488, #0f766e);
+    border-color: #0d9488;
+    color: #fff;
+    box-shadow: 0 0 24px rgba(13,148,136,.35), inset 0 2px 0 rgba(255,255,255,.2);
+  }
+  .ticket.done .ticket-icon::after {
+    border-color: rgba(13,148,136,.25);
+  }
+  .ticket.done .ticket-label { color: #0d9488; }
+
+  /* "certified" stamp overlay */
+  .cert-overlay {
+    position: absolute; top: 8px; right: 8px;
+    font-family: 'IM Fell English', serif;
+    font-size: .42rem;
+    color: #0d9488;
+    border: 1px solid rgba(13,148,136,.3);
+    border-radius: 3px;
+    padding: 1px 6px;
+    transform: rotate(5deg);
+    opacity: 0;
+    transition: opacity .5s;
+    pointer-events: none;
+  }
+  .ticket.done .cert-overlay { opacity: 1; }
+
+  /* ripple on click */
+  .ticket .ripple {
+    position: absolute; inset: 0;
+    border-radius: 10px;
+    background: rgba(13,148,136,.1);
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+    transition: all .6s ease-out;
+  }
+  .ticket .ripple.pulse {
+    transform: scale(1.05);
+    opacity: 0;
+    animation: rippleOut .6s ease-out;
+  }
+  @keyframes rippleOut {
+    0% { transform: scale(.95); opacity: .5; }
+    100% { transform: scale(1.08); opacity: 0; }
+  }
+
+  /* date */
+  .cert-date {
+    margin-top: 1.2rem;
+    text-align: center;
+    font-family: 'IM Fell English', serif;
+    font-size: .62rem;
+    font-style: italic;
+    color: #5b6270;
+  }
+  .cert-date em { color: #0d9488; font-style: normal; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="poster">🎬</div>
+  <div class="title-row">
+    <span class="title">The Dark Knight</span>
+    <span class="year">2008</span>
+  </div>
+  <div class="meta">Action · Crime · Drama · 2h 32m</div>
+
+  <div class="section-label">Admit One · Viewing Record</div>
+
+  <div class="tickets" id="tickets">
+    <!-- To Watch — reservation stub -->
+    <button class="ticket" onclick="stamp(this,'want')">
+      <div class="ticket-icon">w</div>
+      <div class="ticket-label">To Watch</div>
+      <div class="ticket-badge">reserved</div>
+      <div class="cert-overlay">SAVED</div>
+      <div class="ripple"></div>
+    </button>
+
+    <!-- Watching — now showing -->
+    <button class="ticket watching" onclick="stamp(this,'watching')">
+      <div class="ticket-icon">▶</div>
+      <div class="ticket-label">Watching</div>
+      <div class="ticket-badge">now showing</div>
+      <div class="cert-overlay">ON AIR</div>
+      <div class="ripple"></div>
+    </button>
+
+    <!-- Watched — certified -->
+    <button class="ticket done" onclick="stamp(this,'done')">
+      <div class="ticket-icon">✔</div>
+      <div class="ticket-label">Watched</div>
+      <div class="ticket-badge" style="color:#0d9488;border-bottom-color:rgba(13,148,136,.3)">certified</div>
+      <div class="cert-overlay">CERT</div>
+      <div class="ripple"></div>
+    </button>
+  </div>
+
+  <div class="cert-date">Admitted on <em>June 10, 2026</em></div>
+</div>
+
+<script>
+function stamp(el, type) {
+  // ripple
+  const ripple = el.querySelector('.ripple');
+  ripple.classList.remove('pulse');
+  void ripple.offsetWidth;
+  ripple.classList.add('pulse');
+
+  // deactivate all
+  document.querySelectorAll('#tickets .ticket').forEach(t => {
+    t.classList.remove('watching', 'done');
+    t.querySelector('.ticket-badge').style.color = '';
+    t.querySelector('.ticket-badge').style.borderBottomColor = '';
+  });
+
+  if (type === 'done') el.classList.add('done');
+  if (type === 'watching') el.classList.add('watching');
+}
+</script>
+</body>
+</html>
