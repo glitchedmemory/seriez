@@ -311,7 +311,26 @@ async function scrapeKR(): Promise<TmdbResult[]> {
     const results: TmdbResult[] = [];
     for (const item of list.slice(0, 10)) {
       const title = item.movieNm;
-      const match = await resolvePoster(title);
+      const movieCd = item.movieCd;
+
+      // Fetch English title from KOFIC movie detail for TMDB matching
+      let engTitle = "";
+      try {
+        const detailRes = await fetch(
+          `http://kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json?key=${KOFIC_KEY}&movieCd=${movieCd}`
+        );
+        if (detailRes.ok) {
+          const detail = await detailRes.json();
+          engTitle = detail?.movieInfoResult?.movieInfo?.movieNmEn || "";
+        }
+      } catch {}
+
+      // Try Korean title first, then English for poster matching
+      const match = (engTitle && await resolvePoster(engTitle))
+        || await resolvePoster(title)
+        || (engTitle ? textFallback(engTitle) : textFallback(title));
+      if (engTitle && match.title === title) match.title = engTitle; // prefer English
+
       results.push({
         ...match,
         backdrop: null,
