@@ -33,7 +33,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   // Get items
-  const { data: items } = await supabase.from("list_items").select("tmdb_id, media_type, added_at").eq("list_id", listId).order("added_at", { ascending: false });
+  const { data: items } = await supabase.from("list_items").select("tmdb_id, media_type, note, added_at").eq("list_id", listId).order("added_at", { ascending: false });
 
   // Enrich with TMDB
   const enriched = await Promise.all(
@@ -49,6 +49,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
           poster: d.poster_path ? `${TMDB_IMAGE}${d.poster_path}` : null,
           year: (d.release_date || d.first_air_date || "").slice(0, 4) || null,
           rating: Math.round((d.vote_average || 0) * 10) / 10,
+          note: item.note || null,
           addedAt: item.added_at,
         };
       } catch { return null; }
