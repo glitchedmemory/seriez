@@ -250,12 +250,14 @@ export function ReviewSection({
   trackStatus,
   trackVersion = 0,
   authUser = null,
+  trackRating = 0,
 }: {
   tmdbId: number;
   mediaType: string;
   trackStatus?: string | null;
   trackVersion?: number;
   authUser?: { email?: string; user_metadata?: { username?: string } } | null;
+  trackRating?: number;
 }) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<RatingStatsData | null>(null);
@@ -281,6 +283,28 @@ export function ReviewSection({
   const [replyingTo, setReplyingTo] = useState<Record<string, string | null>>({});
   // Expand deep chains (empty = all collapsed by default)
   const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
+
+  // Avatar URLs for reviewers
+  const [avatarUrls, setAvatarUrls] = useState<Record<string, string | null>>({});
+
+  // Fetch avatar URLs for all unique reviewers
+  useEffect(() => {
+    const usernames = [...new Set(reviews.map(r => r.username))];
+    if (usernames.length === 0) return;
+    // Batch fetch from users table
+    Promise.all(
+      usernames.map(async (u) => {
+        try {
+          const { data } = await supabase.from("users").select("avatar_url").eq("username", u).maybeSingle();
+          return { username: u, url: data?.avatar_url || null };
+        } catch { return { username: u, url: null }; }
+      })
+    ).then(results => {
+      const map: Record<string, string | null> = {};
+      results.forEach(({ username, url }) => { map[username] = url; });
+      setAvatarUrls(map);
+    });
+  }, [reviews]);
 
   const toggleComments = async (reviewId: string, reviewAuthor: string) => {
     const newExpanded = new Set(expandedComments);
@@ -555,14 +579,16 @@ export function ReviewSection({
     setError("");
 
     try {
+      const body: Record<string, unknown> = {
+        tmdbId,
+        mediaType,
+        content: content.trim(),
+      };
+      if (trackRating > 0) body.rating = trackRating;
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tmdbId,
-          mediaType,
-          content: content.trim(),
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
@@ -702,9 +728,13 @@ export function ReviewSection({
             <div key={review.id} className="bg-[#1a1a2e] rounded-xl p-4">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
-                    {review.username[0].toUpperCase()}
-                  </div>
+                  {avatarUrls[review.username] ? (
+                    <img src={avatarUrls[review.username]!} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
+                      {review.username[0].toUpperCase()}
+                    </div>
+                  )}
                   <span className="text-sm font-medium text-white">
                     {review.username}
                   </span>
