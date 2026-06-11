@@ -45,7 +45,7 @@ export default function PublishedCollections() {
   return (
     <div className="mt-5">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs text-[#6b7280] font-medium">📚 Published Collections</p>
+        <p className="text-xs text-[#6b7280] font-medium">📚 Curated Collections</p>
         <div className="flex gap-1">
           <button
             onClick={() => scroll("left")}

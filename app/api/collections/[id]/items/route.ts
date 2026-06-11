@@ -76,9 +76,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
     const body = await req.json();
-    const { tmdbId, mediaType } = body;
+    const { tmdbId, mediaType, note } = body;
     const { id: listId } = await params;
     if (tmdbId == null || !mediaType) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    if (!note || !note.trim()) return NextResponse.json({ error: "A one-line note is required" }, { status: 400 });
+    if (note.length > 140) return NextResponse.json({ error: "Note must be under 140 characters" }, { status: 400 });
 
     const userId = await resolveUserId(username);
     if (!userId) return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -88,7 +90,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!list) return NextResponse.json({ error: "Collection not found" }, { status: 404 });
     if (list.user_id !== userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { error } = await supabase.from("list_items").insert({ list_id: listId, tmdb_id: tmdbId, media_type: mediaType });
+    const { error } = await supabase.from("list_items").insert({ list_id: listId, tmdb_id: tmdbId, media_type: mediaType, note: note.trim() });
     if (error) {
       if (error.code === "23505") return NextResponse.json({ error: "Already in collection" }, { status: 409 });
       return NextResponse.json({ error: error.message }, { status: 500 });

@@ -263,6 +263,8 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
 
   async function addToCollection(listId: string, listName: string) {
     if (!authUser) return;
+    const note = prompt("One-line note (required):");
+    if (!note || !note.trim()) return;
     const username = authUser.user_metadata?.username || "";
     setAddingCollId(listId);
     setCollFeedback(null);
@@ -270,7 +272,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       const res = await fetch(`/api/collections/${listId}/items`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime" }),
+        body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", note: note.trim() }),
       });
       const json = await res.json();
       if (res.ok) {

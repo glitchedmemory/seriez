@@ -314,6 +314,8 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
 
   async function addToCollection(listId: string, listName: string) {
     if (!authUser) return;
+    const note = prompt("One-line note (required):");
+    if (!note || !note.trim()) return;
     const username = authUser.user_metadata?.username || "";
     setAddingCollId(listId);
     setCollFeedback(null);
@@ -321,7 +323,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
       const res = await fetch(`/api/collections/${listId}/items`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, tmdbId: data.id, mediaType: "tv" }),
+        body: JSON.stringify({ username, tmdbId: data.id, mediaType: "tv", note: note.trim() }),
       });
       const json = await res.json();
       if (res.ok) {
