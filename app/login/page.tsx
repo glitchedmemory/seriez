@@ -19,17 +19,20 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setError(error.message);
       setLoading(false);
-    } else {
+    } else if (data.user) {
       // Store username in localStorage so RouletteCard + sidebar avatar work
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      const username = data.user.user_metadata?.username;
+      if (username) {
+        localStorage.setItem("seriez-username", username);
+      } else {
+        // Fallback: lookup from users table
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?select=username&id=eq.${user.id}`,
+            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?select=username&id=eq.${data.user.id}`,
             { headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! } }
           );
           const rows = await res.json();
