@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { PosterCard, HorizontalScroll } from "@/components/PosterCard";
 import { HeroCard } from "@/components/HeroCard";
 import { GenreChips } from "@/components/GenreChips";
+import RouletteCard from "@/components/RouletteCard";
 import PosterImage from "@/components/PosterImage";
 import type { TmdbResult } from "@/lib/tmdb";
 
@@ -310,6 +311,10 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
           </section>
 
           <GenreChips selected={activeGenre} onSelect={setActiveGenre} />
+
+          <div className="px-4 md:px-0 mt-6 mb-2">
+            <RouletteCard />
+          </div>
 
           <section>
             <div className="px-4 md:px-0 mb-3">
