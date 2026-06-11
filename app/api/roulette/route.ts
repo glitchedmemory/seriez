@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { resolveUserId } from "@/lib/auth-helper";
+import { resolveUserId } from "@/lib/user-utils";
 
 const TMDB_KEY = process.env.TMDB_API_KEY!;
 const TMDB_API = "https://api.themoviedb.org/3";
