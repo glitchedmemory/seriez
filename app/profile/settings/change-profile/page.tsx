@@ -16,7 +16,6 @@ export default function ChangeProfilePage() {
   const [bgPositionY, setBgPositionY] = useState(50);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [bgUploading, setBgUploading] = useState(false);
-  const [activeOverlay, setActiveOverlay] = useState<"avatar" | "bg" | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
   const [followersCount, setFollowersCount] = useState(0);
@@ -106,7 +105,7 @@ export default function ChangeProfilePage() {
 
   return (
     <ErrorBoundary sectionName="Change Profile">
-      <div className="max-w-lg md:max-w-4xl mx-auto pb-32" onClick={() => setActiveOverlay(null)}>
+      <div className="max-w-lg md:max-w-4xl mx-auto pb-32">
         {/* Header */}
         <div className="flex items-center gap-4 px-4 pt-4 pb-3">
           <button
@@ -121,8 +120,8 @@ export default function ChangeProfilePage() {
         {/* ── Cover area ── */}
         <div className="relative">
           <button
-            onClick={(e) => { e.stopPropagation(); setActiveOverlay(activeOverlay === "bg" ? null : "bg"); }}
-            className={`relative w-full h-40 block cursor-pointer ${
+            onClick={(e) => { e.stopPropagation(); bgInputRef.current?.click(); }}
+            className={`relative w-full h-40 block cursor-pointer active:scale-[0.99] transition-transform ${
               !backgroundUrl ? "bg-gradient-to-br from-[#6366f1] via-[#7c3aed] to-[#a855f7]" : ""
             }`}
             style={backgroundUrl ? {
@@ -138,22 +137,19 @@ export default function ChangeProfilePage() {
                 <div className="absolute -bottom-16 -left-8 w-56 h-56 rounded-full bg-white" />
               </div>
             )}
+            {bgUploading && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              </div>
+            )}
           </button>
-
-          {/* Background overlay */}
-          {activeOverlay === "bg" && (
-            <div className="absolute inset-x-0 top-0 h-40 bg-black/60 backdrop-blur-sm flex items-center justify-center gap-3 z-10" onClick={(e) => e.stopPropagation()}>
-              <button onClick={() => bgInputRef.current?.click()} disabled={bgUploading}
-                className="px-5 py-2 bg-[#6366f1] hover:bg-[#818cf8] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                {bgUploading ? "Uploading..." : backgroundUrl ? "Change Image" : "Add Image"}
-              </button>
-              {backgroundUrl && (
-                <button onClick={handleBackgroundDelete}
-                  className="px-5 py-2 bg-white/10 backdrop-blur border border-white/20 hover:bg-red-500/20 hover:border-red-500/50 hover:text-red-400 text-white text-sm font-medium rounded-lg transition-colors">
-                  Delete
-                </button>
-              )}
-            </div>
+          {backgroundUrl && (
+            <button
+              onClick={(e) => { e.stopPropagation(); handleBackgroundDelete(); }}
+              className="absolute top-2 right-2 w-7 h-7 bg-red-500/90 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg transition-colors z-10"
+            >
+              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
           )}
 
           {/* ── Avatar (overlaps cover) ── */}
