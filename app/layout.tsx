@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
-  title: "Seriez — Movies & TV Shows, Anime Tracker",
+  title: "Seriez — MOVIES. TV SHOWS. ANIME. TRACKED.",
   description: "Track movies, TV shows, and anime. Save what you watch.",
   icons: {
     icon: [
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   openGraph: {
-    title: "Seriez — Movies & TV Shows, Anime Tracker",
+    title: "Seriez — MOVIES. TV SHOWS. ANIME. TRACKED.",
     description: "Track movies, TV shows, and anime. Rate, review, and discover your next watch.",
     type: "website",
     siteName: "Seriez",
@@ -52,13 +52,13 @@ export const metadata: Metadata = {
         url: "/og-image.svg",
         width: 1200,
         height: 630,
-        alt: "Seriez — Movies & TV Shows, Anime Tracker",
+        alt: "Seriez — MOVIES. TV SHOWS. ANIME. TRACKED.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Seriez — Movies & TV Shows, Anime Tracker",
+    title: "Seriez — MOVIES. TV SHOWS. ANIME. TRACKED.",
     description: "Track movies, TV shows, and anime. Rate, review, and discover your next watch.",
     images: ["/og-image.svg"],
   },
