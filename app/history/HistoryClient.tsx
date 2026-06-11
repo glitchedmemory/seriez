@@ -6,7 +6,6 @@ import DayPopup from "./DayPopup";
 import type { DayEntry } from "./DayPopup";
 import WatchGraph from "./WatchGraph";
 import TopGenres from "./TopGenres";
-import WatchList from "./WatchList";
 import type { WatchListItem } from "./WatchList";
 
 interface HistoryData {
@@ -238,12 +237,6 @@ export default function HistoryClient() {
           </button>
         </div>
       </div>
-
-      {/* ── Divider ── */}
-      <div className="h-2 bg-[#0a0a14] mb-5" />
-
-      {/* ── This Month's Diary ── */}
-      <WatchList items={data.watchList} monthlyView />
 
       {popup && <DayPopup date={popup.date} entries={popup.entries} onClose={() => setPopup(null)} />}
     </div>
