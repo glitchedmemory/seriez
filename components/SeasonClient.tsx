@@ -771,7 +771,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
 
         {/* Reviews for this series (shared across all seasons) */}
         <section className="mt-6">
-          <ReviewSection tmdbId={data.id} mediaType="tv" trackStatus={trackStatus} trackVersion={trackVersion} authUser={authUser} />
+          <ReviewSection tmdbId={data.id} mediaType="tv" trackStatus={trackStatus} trackVersion={trackVersion} trackRating={rating} authUser={authUser} />
         </section>
       </div>
     </div>
