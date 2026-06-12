@@ -142,7 +142,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
               onClick={handleWatchNow}
               className="px-5 py-2 rounded-full bg-white text-black text-sm font-semibold hover:bg-gray-200 transition-colors inline-flex items-center gap-1.5 border-none cursor-pointer"
             >
-              ▶ Watch Now
+              📌 Track Now
             </button>
             <button
               onClick={handlePlusClick}
