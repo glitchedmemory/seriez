@@ -120,23 +120,6 @@ export default function HistoryClient() {
     personaDesc = "You watch with a critical eye and only the best earn your stars. Standards high, taste refined.";
   }
 
-  // Rating distribution
-  const ratingDist: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 0.5 ~ 5.0
-  for (const item of data.watchList) {
-    if (item.rating > 0) {
-      const idx = Math.round(item.rating * 2) - 1;
-      if (idx >= 0 && idx < 11) ratingDist[idx]++;
-    }
-  }
-  const starBuckets = [
-    { label: "5★", count: ratingDist[9] + ratingDist[10] || 0 },
-    { label: "4★", count: ratingDist[7] + ratingDist[8] || 0 },
-    { label: "3★", count: ratingDist[5] + ratingDist[6] || 0 },
-    { label: "2★", count: ratingDist[3] + ratingDist[4] || 0 },
-    { label: "1★", count: ratingDist[1] + ratingDist[2] || 0 },
-  ];
-  const maxStarCount = Math.max(...starBuckets.map(b => b.count), 1);
-
   return (
     <div className="max-w-lg md:max-w-4xl mx-auto pb-32">
       {/* ── Header nav ── */}
@@ -186,27 +169,6 @@ export default function HistoryClient() {
         {/* Top Genres (moved from below) */}
         {data.watchList.length > 0 && (
           <TopGenres genres={data.topGenres} />
-        )}
-
-        {/* Rating Spread → moved down */}
-        {data.watchList.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-[15px] font-bold text-white tracking-tight mb-3">Rating Spread</h3>
-            <div className="space-y-1.5">
-              {starBuckets.map((b) => (
-                <div key={b.label} className="flex items-center gap-2">
-                  <span className="w-7 text-right text-xs font-semibold text-[#d1d5db]">{b.label}</span>
-                  <div className="flex-1 h-2.5 bg-[#25253a] rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${b.label === "5★" || b.label === "4★" ? "bg-[#6366f1]" : "bg-[#4338ca]"}`}
-                      style={{ width: `${(b.count / maxStarCount) * 100}%` }}
-                    />
-                  </div>
-                  <span className="w-4 text-right text-[11px] font-semibold text-[#9ca3af]">{b.count}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         )}
 
         {/* Streaming Top 10 */}
