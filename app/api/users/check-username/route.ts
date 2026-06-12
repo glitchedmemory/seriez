@@ -6,7 +6,18 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Reserved brand names — these and their variants cannot be registered
-const RESERVED_NAMES = ["seriez", "glitchedmemory", "admin", "mod", "moderator", "support", "help", "system", "root"];
+const RESERVED_NAMES = [
+  // Platform/brand
+  "seriez", "glitchedmemory",
+  // Authority/roles
+  "admin", "administrator", "manager", "owner", "operator", "staff", "supervisor", "director",
+  "ceo", "cfo", "cto", "founder", "cofounder", "president", "executive", "leader", "chief",
+  "master", "boss", "head", "official",
+  // Moderation
+  "mod", "moderator",
+  // System
+  "support", "help", "system", "root", "server", "bot", "test", "null", "undefined",
+];
 
 /** Normalize a string by stripping all non-alpha characters and lowercasing */
 function normalize(s: string): string {
@@ -53,6 +64,11 @@ export async function GET(req: NextRequest) {
 
   if (!username || username.length < 2) {
     return NextResponse.json({ exists: false, error: "Username must be at least 2 characters" });
+  }
+
+  // Only English letters allowed (a-z, A-Z)
+  if (!/^[a-zA-Z]+$/.test(username)) {
+    return NextResponse.json({ exists: false, error: "Username must contain only English letters (a-z, A-Z)" });
   }
 
   // Check reserved names

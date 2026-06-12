@@ -27,7 +27,7 @@ export default function SignupPage() {
     try {
       const res = await fetch(`/api/users/check-username?username=${encodeURIComponent(trimmed)}`);
       const data = await res.json();
-      if (data.reserved || data.exists) {
+      if (data.reserved || data.exists || data.error) {
         setUsernameStatus("taken");
         return;
       }
