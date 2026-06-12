@@ -55,27 +55,19 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
             <button
               key={p.key}
               onClick={() => setActiveTab(p.key)}
-              className="flex-1 flex items-center justify-center px-2 py-2 rounded-lg transition-colors"
+              className="flex-1 flex items-center justify-center px-2 py-1.5 rounded-lg transition-all"
               style={{
                 backgroundColor: activeTab === p.key ? p.color + "22" : "transparent",
-                outline: activeTab === p.key ? `2px solid ${p.color}` : "none",
-                outlineOffset: -2,
-              }}
-              onMouseEnter={(e) => {
-                if (activeTab !== p.key)
-                  (e.currentTarget as HTMLElement).style.backgroundColor = "#25253a";
-              }}
-              onMouseLeave={(e) => {
-                if (activeTab !== p.key)
-                  (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+                borderBottom: activeTab === p.key ? `2px solid ${p.color}` : "2px solid transparent",
               }}
             >
               <img
                 src={p.icon}
                 alt={p.label}
-                className="h-4 w-auto"
+                className="h-5 w-auto rounded"
                 style={{
-                  filter: activeTab === p.key ? "none" : "grayscale(100%) brightness(0.5)",
+                  opacity: activeTab === p.key ? 1 : 0.55,
+                  filter: activeTab === p.key ? "none" : "grayscale(100%)",
                 }}
               />
             </button>
@@ -113,11 +105,11 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
                 <img
                   src={item.poster}
                   alt=""
-                  className="w-6 h-9 rounded object-cover flex-shrink-0 bg-[#0f0f1a]"
+                  className="w-8 h-12 rounded object-cover flex-shrink-0 bg-[#1a1a2e]"
                   loading="lazy"
                 />
               ) : (
-                <div className="w-6 h-9 rounded bg-[#0f0f1a] flex-shrink-0 flex items-center justify-center">
+                <div className="w-8 h-12 rounded bg-[#1a1a2e] flex-shrink-0 flex items-center justify-center">
                   <span className="text-[8px] text-[#4b5563]">—</span>
                 </div>
               )}
