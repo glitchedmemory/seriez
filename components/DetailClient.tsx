@@ -208,7 +208,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
       {(detail.backdrop || detail.poster) && (
         <div className="relative w-full h-48 md:h-72 overflow-hidden">
           <PosterImage
-            src={(detail.backdrop || detail.poster)!.replace("w342", "w780")}
+            src={(detail.backdrop || detail.poster)!.replace("w342", "w1280")}
             alt=""
             fill
             priority

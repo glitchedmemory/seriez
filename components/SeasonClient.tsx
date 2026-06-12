@@ -343,7 +343,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
       {(data.backdropPath || data.anilistBanner || data.posterPath) && (
         <div className="relative w-full h-48 md:h-72 overflow-hidden">
           <PosterImage
-            src={data.backdropPath?.replace("w342", "w780") || data.anilistBanner || data.posterPath?.replace("w342", "w780") || ""}
+            src={data.backdropPath?.replace("w342", "w1280") || data.anilistBanner || data.posterPath?.replace("w342", "w1280") || ""}
             alt=""
             fill
             priority
