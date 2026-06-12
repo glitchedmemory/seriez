@@ -450,15 +450,19 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* History — replaces Activity/취향분석 tabs */}
-      <div className={!isOwn && compareData ? "mt-6" : "mt-6"}>
-        <HistoryClient />
-      </div>
+      {/* History — only for logged-in users */}
+      {user && (
+        <div className="mt-6">
+          <HistoryClient />
+        </div>
+      )}
 
-      {/* 🎰 Roulette */}
-      <div className="px-4 mt-6">
-        <RouletteCard />
-      </div>
+      {/* 🎰 Roulette — only for logged-in users */}
+      {user && (
+        <div className="px-4 mt-6">
+          <RouletteCard />
+        </div>
+      )}
     </div>
     </ErrorBoundary>
   );
