@@ -6,6 +6,9 @@ import { validateAndReplaceTrailers } from "./yt-validator";
 const poster = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w342${path}` : null;
 
+const backdrop = (path: string | null) =>
+  path ? `https://image.tmdb.org/t/p/w1280${path}` : null;
+
 // TMDB genre ID → name mapping
 export const GENRE_MAP: Record<number, string> = {
   28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy",
@@ -73,7 +76,7 @@ function format(item: TmdbItem): TmdbResult {
     id: item.id,
     title: item.title || item.name || "Unknown",
     poster: poster(item.poster_path),
-    backdrop: poster(item.backdrop_path?.replace("w342", "w1280") || ""),
+    backdrop: backdrop(item.backdrop_path),
     rating: Math.round(item.vote_average * 10) / 10,
     year: dateStr ? parseInt(dateStr.slice(0, 4)) : 0,
     type: isMovie ? "movie" : "tv",
@@ -463,7 +466,7 @@ export async function getMovieDetail(id: number): Promise<TmdbDetail> {
     tagline: detail.tagline || "",
     overview: detail.overview || "",
     poster: poster(detail.poster_path),
-    backdrop: poster(detail.backdrop_path),
+    backdrop: backdrop(detail.backdrop_path),
     rating: Math.round(detail.vote_average * 10) / 10,
     voteCount: detail.vote_count || 0,
     year: detail.release_date ? parseInt(detail.release_date.slice(0, 4)) : 0,
@@ -521,7 +524,7 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
     tagline: detail.tagline || "",
     overview: detail.overview || "",
     poster: poster(detail.poster_path),
-    backdrop: poster(detail.backdrop_path),
+    backdrop: backdrop(detail.backdrop_path),
     rating: Math.round(detail.vote_average * 10) / 10,
     voteCount: detail.vote_count || 0,
     year: detail.first_air_date ? parseInt(detail.first_air_date.slice(0, 4)) : 0,

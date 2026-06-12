@@ -17,13 +17,16 @@ async function tmdbGet(endpoint: string, params: Record<string, string> = {}) {
 const poster = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w342${path}` : null;
 
+const backdrop = (path: string | null) =>
+  path ? `https://image.tmdb.org/t/p/w1280${path}` : null;
+
 function formatItem(item: any, mediaType: "movie" | "tv"): TmdbResult {
   const dateStr = item.release_date || item.first_air_date || "";
   return {
     id: item.id,
     title: item.title || item.name || "Unknown",
     poster: poster(item.poster_path),
-    backdrop: poster(item.backdrop_path?.replace("w342", "w1280") || ""),
+    backdrop: backdrop(item.backdrop_path),
     rating: Math.round((item.vote_average || 0) * 10) / 10,
     year: dateStr ? parseInt(dateStr.slice(0, 4)) : 0,
     type: mediaType,

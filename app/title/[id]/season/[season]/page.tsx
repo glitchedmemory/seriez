@@ -11,6 +11,10 @@ function poster(path: string | null) {
   return path ? `https://image.tmdb.org/t/p/w342${path}` : null;
 }
 
+function backdrop(path: string | null) {
+  return path ? `https://image.tmdb.org/t/p/w1280${path}` : null;
+}
+
 /** Fetch AniList banner image for a given anime title */
 async function fetchAnilistBanner(title: string): Promise<string | null> {
   try {
@@ -228,7 +232,7 @@ export default async function SeasonPage({ params }: Props) {
       tagline: seriesData.tagline || "",
       overview: seriesData.overview || "",
       posterPath: poster(seriesData.poster_path),
-      backdropPath: poster(seriesData.backdrop_path),
+      backdropPath: backdrop(seriesData.backdrop_path),
       anilistBanner: anilistBanner || null,
       rating: Math.round(seriesData.vote_average * 10) / 10,
       voteCount: seriesData.vote_count || 0,
