@@ -16,6 +16,9 @@ export async function GET(req: NextRequest) {
   const tmdbId = searchParams.get("tmdbId");
   const mediaType = searchParams.get("mediaType");
   const statsOnly = searchParams.get("stats") === "true";
+  const page = parseInt(searchParams.get("page") || "1");
+  const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 50);
+  const offset = (page - 1) * limit;
   const username = await resolveUsername(req);
 
   if (!tmdbId || !mediaType) {
@@ -42,14 +45,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ average: total > 0 ? Math.round((sum / total) * 10) / 10 : 0, total, distribution });
   }
 
-  const { data, error } = await supabase
-    .from("reviews")
-    .select("id, username, content, rating, likes_count, is_hidden, created_at")
-    .eq("tmdb_id", tmdbIdNum).eq("media_type", mediaType)
-    .order("created_at", { ascending: false }).limit(50);
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
   // Check if current user is admin
   let isAdmin = false;
   if (username?.trim()) {
@@ -58,6 +53,25 @@ export async function GET(req: NextRequest) {
     isAdmin = userData?.role === "admin";
   }
 
+  // Count total (filtering hidden for non-admins)
+  let totalQuery = supabase.from("reviews").select("id", { count: "exact", head: true })
+    .eq("tmdb_id", tmdbIdNum).eq("media_type", mediaType);
+  if (!isAdmin) totalQuery = totalQuery.eq("is_hidden", false);
+  const { count: totalCount } = await totalQuery;
+  const total = totalCount || 0;
+
+  // Fetch page
+  let query = supabase
+    .from("reviews")
+    .select("id, username, content, rating, likes_count, is_hidden, created_at")
+    .eq("tmdb_id", tmdbIdNum).eq("media_type", mediaType);
+  if (!isAdmin) query = query.eq("is_hidden", false);
+  query = query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+
+  const { data, error } = await query;
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
   let likedSet = new Set<string>();
   if (username?.trim()) {
     const { data: likes } = await supabaseAdmin
@@ -65,8 +79,7 @@ export async function GET(req: NextRequest) {
     if (likes) likedSet = new Set(likes.map((l: any) => l.review_id));
   }
 
-  // Filter out hidden reviews for non-admins
-  const visible = isAdmin ? data : (data || []).filter((r: any) => !r.is_hidden);
+  const visible = data || [];
 
   // Fetch comment counts for visible reviews
   const reviewIds = visible.map((r: any) => r.id);
@@ -94,12 +107,17 @@ export async function GET(req: NextRequest) {
     if (premiumUsers) premiumSet = new Set(premiumUsers.map((u: any) => u.username));
   }
 
-  return NextResponse.json(visible.map((r) => ({
-    id: r.id, username: r.username || "Anonymous", content: r.content,
-    rating: FROM_DB(r.rating || 0), likes: r.likes_count || 0, liked: likedSet.has(r.id),
-    isHidden: r.is_hidden || false, commentCount: commentCounts[r.id] || 0,
-    isPremium: premiumSet.has(r.username), createdAt: r.created_at,
-  })));
+  return NextResponse.json({
+    reviews: visible.map((r) => ({
+      id: r.id, username: r.username || "Anonymous", content: r.content,
+      rating: FROM_DB(r.rating || 0), likes: r.likes_count || 0, liked: likedSet.has(r.id),
+      isHidden: r.is_hidden || false, commentCount: commentCounts[r.id] || 0,
+      isPremium: premiumSet.has(r.username), createdAt: r.created_at,
+    })),
+    total,
+    page,
+    limit,
+  });
 }
 
 export async function POST(req: NextRequest) {

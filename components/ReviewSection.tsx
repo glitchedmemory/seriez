@@ -267,6 +267,10 @@ export function ReviewSection({
 }) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<RatingStatsData | null>(null);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const REVIEWS_PER_PAGE = 20;
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -552,13 +556,19 @@ export function ReviewSection({
     }
   }, [authUser]);
 
-  const fetchAll = useCallback(async () => {
+  const fetchAll = useCallback(async (pageNum = 1) => {
     try {
       const [reviewsRes, statsRes] = await Promise.all([
-        fetch(`/api/reviews?tmdbId=${tmdbId}&mediaType=${mediaType}`),
+        fetch(`/api/reviews?tmdbId=${tmdbId}&mediaType=${mediaType}&page=${pageNum}&limit=${REVIEWS_PER_PAGE}`),
         fetch(`/api/reviews?tmdbId=${tmdbId}&mediaType=${mediaType}&stats=true`),
       ]);
-      if (reviewsRes.ok) setReviews(await reviewsRes.json());
+      if (reviewsRes.ok) {
+        const data = await reviewsRes.json();
+        setReviews(data.reviews || []);
+        setTotalReviews(data.total || 0);
+        setCurrentPage(data.page || 1);
+        setTotalPages(Math.max(1, Math.ceil((data.total || 0) / REVIEWS_PER_PAGE)));
+      }
       if (statsRes.ok) setStats(await statsRes.json());
     } catch {
       // silent
@@ -573,8 +583,13 @@ export function ReviewSection({
 
   // Re-fetch stats when tracking status or version changes
   useEffect(() => {
-    fetchAll();
-  }, [trackStatus, trackVersion, fetchAll]);
+    fetchAll(1);
+  }, [trackStatus, trackVersion]);
+
+  function goToPage(p: number) {
+    if (p < 1 || p > totalPages) return;
+    fetchAll(p);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -864,6 +879,50 @@ export function ReviewSection({
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-center gap-1 flex-wrap">
+          <button
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-2 py-1 text-xs rounded bg-[#1a1a2e] text-[#9ca3af] hover:text-white disabled:opacity-30 transition-colors"
+          >
+            ← Prev
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2)
+            .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+              if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+              acc.push(p);
+              return acc;
+            }, [])
+            .map((item, i) =>
+              item === "..." ? (
+                <span key={`dots-${i}`} className="px-1 text-[10px] text-[#6b7280]">…</span>
+              ) : (
+                <button
+                  key={item}
+                  onClick={() => goToPage(item as number)}
+                  className={`w-7 h-7 text-xs rounded-full transition-colors ${
+                    currentPage === item
+                      ? "bg-[#6366f1] text-white"
+                      : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white"
+                  }`}
+                >
+                  {item}
+                </button>
+              )
+            )}
+          <button
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-2 py-1 text-xs rounded bg-[#1a1a2e] text-[#9ca3af] hover:text-white disabled:opacity-30 transition-colors"
+          >
+            Next →
+          </button>
         </div>
       )}
     </div>
