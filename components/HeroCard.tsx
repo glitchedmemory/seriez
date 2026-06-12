@@ -219,10 +219,10 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
           </a>
         ) : (
           <div className="mt-3 mx-4 md:mx-0">
-            <div className="bg-[#1a1a2e] border border-dashed border-[#2d2d4a] rounded-xl flex items-center justify-center" style={{ minHeight: 250 }}>
+            <div className="bg-[#1a1a2e] border border-dashed border-[#2d2d4a] rounded-xl flex items-center justify-center" style={{ minHeight: 100 }}>
               <div className="text-center">
                 <p className="text-[10px] text-[#4b5563] uppercase tracking-[0.15em] mb-1">Advertisement</p>
-                <p className="text-xs text-[#6b7280]">AdSense · 300×250</p>
+                <p className="text-xs text-[#6b7280]">AdSense · 320×100</p>
               </div>
             </div>
           </div>
