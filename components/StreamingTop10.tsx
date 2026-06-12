@@ -12,9 +12,9 @@ interface Top10Item {
 }
 
 const PLATFORMS: { key: string; label: string; icon: string }[] = [
-  { key: "netflix", label: "Netflix", icon: "N" },
-  { key: "disney", label: "Disney+", icon: "D+" },
-  { key: "amazon", label: "Prime", icon: "▶" },
+  { key: "netflix", label: "Netflix", icon: "/icons/platforms/netflix.svg" },
+  { key: "disney", label: "Disney+", icon: "/icons/platforms/disney-plus.svg" },
+  { key: "amazon", label: "Prime", icon: "/icons/platforms/prime-video.svg" },
 ];
 
 export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
@@ -50,13 +50,20 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
             <button
               key={p.key}
               onClick={() => setActiveTab(p.key)}
-              className={`flex-1 text-xs font-bold px-2 py-1.5 rounded-lg transition-colors ${
+              className={`flex-1 flex items-center justify-center px-2 py-1.5 rounded-lg transition-colors ${
                 activeTab === p.key
-                  ? "bg-[#6366f1] text-white"
-                  : "bg-[#25253a] text-[#9ca3af] hover:text-white"
+                  ? "bg-[#25253a] ring-1 ring-[#6366f1]"
+                  : "bg-[#1a1a2e] hover:bg-[#25253a]"
               }`}
             >
-              {p.icon}
+              <img
+                src={p.icon}
+                alt={p.label}
+                className="h-4 w-auto"
+                style={{
+                  filter: activeTab === p.key ? "none" : "grayscale(100%) brightness(0.6)",
+                }}
+              />
             </button>
           ))}
         </div>
