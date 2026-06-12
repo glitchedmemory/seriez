@@ -15,7 +15,7 @@ async function tmdbGet(endpoint: string, params: Record<string, string> = {}) {
 }
 
 const poster = (path: string | null) =>
-  path ? `https://image.tmdb.org/t/p/w342${path}` : null;
+  path ? `https://image.tmdb.org/t/p/w780${path}` : null;
 
 const backdrop = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w1280${path}` : null;

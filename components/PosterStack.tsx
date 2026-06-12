@@ -8,7 +8,7 @@ export interface PosterData {
   posterPath: string | null;
 }
 
-const TMDB_IMAGE = "https://image.tmdb.org/t/p/w185";
+const TMDB_IMAGE = "https://image.tmdb.org/t/p/w500";
 
 interface PosterStackProps {
   posters: PosterData[];

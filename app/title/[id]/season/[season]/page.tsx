@@ -8,7 +8,7 @@ const ANILIST_API = "https://graphql.anilist.co";
 const API_KEY = process.env.TMDB_API_KEY!;
 
 function poster(path: string | null) {
-  return path ? `https://image.tmdb.org/t/p/w342${path}` : null;
+  return path ? `https://image.tmdb.org/t/p/w780${path}` : null;
 }
 
 function backdrop(path: string | null) {

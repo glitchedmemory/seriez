@@ -547,7 +547,7 @@ async function fetchAniDBEpisodes(title: string): Promise<AnimeEpisode[]> {
 
 // ─── TMDB Episode Thumbnails ───
 
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w300";
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w780";
 const TMDB_API = "https://api.themoviedb.org/3";
 const TMDB_KEY = process.env.TMDB_API_KEY!;
 

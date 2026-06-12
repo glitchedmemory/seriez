@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 const TMDB_KEY = process.env.TMDB_API_KEY!;
 const TMDB_API = "https://api.themoviedb.org/3";
-const TMDB_IMAGE = "https://image.tmdb.org/t/p/w500";
+const TMDB_IMAGE = "https://image.tmdb.org/t/p/w780";
 
 /**
  * SPIN LOGIC:
