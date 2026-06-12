@@ -94,6 +94,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
           fill
           className="rounded-none md:rounded-2xl group-hover:scale-105 transition-transform duration-700"
           priority
+          unoptimized
         />
         </div>
 
