@@ -101,7 +101,7 @@ export default function SignupPage() {
   return (
     <div className="max-w-sm mx-auto px-4 pt-20 pb-32">
       <div className="flex justify-center mb-6">
-        <img src="/seriez-logo-white.png" alt="Seriez" className="h-20 w-auto" />
+        <img src="/seriez-logo-white.png" alt="Seriez" className="h-32 w-auto" />
       </div>
       <h1 className="text-2xl font-bold text-white mb-2">Create account</h1>
       <p className="text-sm text-[#9ca3af] mb-6">Start tracking what you watch</p>
