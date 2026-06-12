@@ -475,8 +475,8 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
               </div>
             )}
 
-            {/* Star rating — only when Watched */}
-            {isWatched && (
+            {/* Star rating — available for all signed-in users */}
+            {authUser && (
               <div className="flex justify-center md:justify-start mt-2">
                 <StarInput value={rating} onChange={handleRatingChange} />
               </div>

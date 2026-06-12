@@ -5,7 +5,10 @@ import { useState, useEffect } from "react";
 interface Top10Item {
   rank: number;
   title: string;
-  score?: number;
+  score: number;
+  tmdbId?: number;
+  poster?: string;
+  mediaType?: string;
 }
 
 const PLATFORMS: { key: string; label: string; icon: string }[] = [
@@ -59,12 +62,25 @@ export function StreamingTop10() {
 
         <div className="space-y-0.5">
           {currentData.map((item) => (
-            <div
+            <a
               key={`${activeTab}-${item.rank}`}
-              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-[#25253a] transition-colors cursor-pointer"
+              href={
+                item.tmdbId
+                  ? `/title/${item.tmdbId}?type=${item.mediaType || "movie"}`
+                  : undefined
+              }
+              onClick={(e) => {
+                if (!item.tmdbId) e.preventDefault();
+              }}
+              className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-colors ${
+                item.tmdbId
+                  ? "hover:bg-[#25253a] cursor-pointer"
+                  : "cursor-default"
+              }`}
             >
+              {/* Rank */}
               <span
-                className={`text-[11px] font-bold w-5 text-right flex-shrink-0 ${
+                className={`text-[11px] font-bold w-4 text-right flex-shrink-0 ${
                   item.rank === 1
                     ? "text-[#f59e0b]"
                     : item.rank === 2
@@ -76,10 +92,24 @@ export function StreamingTop10() {
               >
                 {item.rank}
               </span>
+
+              {/* Poster */}
+              {item.poster ? (
+                <img
+                  src={item.poster}
+                  alt=""
+                  className="w-6 h-9 rounded object-cover flex-shrink-0 bg-[#0f0f1a]"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-6 h-9 rounded bg-[#0f0f1a] flex-shrink-0" />
+              )}
+
+              {/* Title */}
               <span className="text-[12px] text-white truncate">
                 {item.title}
               </span>
-            </div>
+            </a>
           ))}
         </div>
       </div>
@@ -88,25 +118,19 @@ export function StreamingTop10() {
 }
 
 const PLACEHOLDER_DATA: Record<string, Top10Item[]> = {
-  netflix: [
-    { rank: 1, title: "Loading...", score: 0 },
-    { rank: 2, title: "Loading...", score: 0 },
-    { rank: 3, title: "Loading...", score: 0 },
-    { rank: 4, title: "Loading...", score: 0 },
-    { rank: 5, title: "Loading...", score: 0 },
-  ],
-  disney: [
-    { rank: 1, title: "Loading...", score: 0 },
-    { rank: 2, title: "Loading...", score: 0 },
-    { rank: 3, title: "Loading...", score: 0 },
-    { rank: 4, title: "Loading...", score: 0 },
-    { rank: 5, title: "Loading...", score: 0 },
-  ],
-  amazon: [
-    { rank: 1, title: "Loading...", score: 0 },
-    { rank: 2, title: "Loading...", score: 0 },
-    { rank: 3, title: "Loading...", score: 0 },
-    { rank: 4, title: "Loading...", score: 0 },
-    { rank: 5, title: "Loading...", score: 0 },
-  ],
+  netflix: Array.from({ length: 5 }, (_, i) => ({
+    rank: i + 1,
+    title: "Loading...",
+    score: 0,
+  })),
+  disney: Array.from({ length: 5 }, (_, i) => ({
+    rank: i + 1,
+    title: "Loading...",
+    score: 0,
+  })),
+  amazon: Array.from({ length: 5 }, (_, i) => ({
+    rank: i + 1,
+    title: "Loading...",
+    score: 0,
+  })),
 };
