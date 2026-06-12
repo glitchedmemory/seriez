@@ -166,6 +166,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
   const [forYouReason, setForYouReason] = useState("");
   const [forYouReasons, setForYouReasons] = useState<Record<number, string>>({});
   const [seriezUsername, setSeriezUsername] = useState<string>("");
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     let username = localStorage.getItem("seriez-username");
@@ -178,6 +179,15 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
       }
     }
     setSeriezUsername(username || "");
+
+    // Check premium status
+    if (username) {
+      fetch(`/api/profile?username=${encodeURIComponent(username)}`)
+        .then((r) => r.json())
+        .then((data) => setIsPremium(data.is_premium || false))
+        .catch(() => {});
+    }
+
     if (!username) {
       setForYouItems([]);
       return;
@@ -298,7 +308,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
 
       <div className="md:flex md:gap-6 md:px-4 md:pt-6">
         <div className="md:flex-1 md:min-w-0 md:space-y-8">
-          {hero && <HeroCard item={hero} nextItem={nextHero} region={region} />}
+          {hero && <HeroCard item={hero} nextItem={nextHero} region={region} isPremium={isPremium} />}
 
           <section>
             <div className="px-4 md:px-0 mb-3">
