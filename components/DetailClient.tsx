@@ -289,8 +289,8 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               ))}
             </div>
 
-            {/* Star rating — available for all signed-in users */}
-            {authUser && (
+            {/* Star rating — only when Watched */}
+            {authUser && isWatched && (
               <div className="flex justify-center md:justify-start mt-2">
                 <StarInput value={rating} onChange={handleRatingChange} />
               </div>
