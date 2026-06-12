@@ -626,6 +626,11 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           </section>
         )}
 
+        {/* Reviews */}
+        <section className="mt-6">
+          <ReviewSection tmdbId={detail.id} mediaType="anime" trackStatus={trackStatus} trackVersion={trackVersion} trackRating={rating} authUser={authUser} />
+        </section>
+
         {/* Episodes — interactive with watch tracking */}
         {episodes.length > 0 ? (
           <section className="mt-6">
@@ -815,11 +820,6 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
 
         {/* Recommendations */}
         <AnimeRecSection items={detail.recommendations} />
-
-        {/* Reviews */}
-        <section className="mt-6">
-          <ReviewSection tmdbId={detail.id} mediaType="anime" trackStatus={trackStatus} trackVersion={trackVersion} trackRating={rating} authUser={authUser} />
-        </section>
       </div>
     </div>
   );

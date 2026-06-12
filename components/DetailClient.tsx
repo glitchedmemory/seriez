@@ -444,6 +444,11 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
           </section>
         )}
 
+        {/* Reviews */}
+        <section className="mt-6">
+          <ReviewSection tmdbId={detail.id} mediaType={detail.type} trackStatus={trackStatus} trackVersion={trackVersion} trackRating={rating} authUser={authUser} />
+        </section>
+
         {/* Trailers */}
         {detail.videos.length > 0 && (
           <section id="trailers" className="mt-6">
@@ -507,11 +512,6 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
 
         {/* Recommended */}
         <SimilarSection items={detail.similar} />
-
-        {/* Reviews */}
-        <section className="mt-6">
-          <ReviewSection tmdbId={detail.id} mediaType={detail.type} trackStatus={trackStatus} trackVersion={trackVersion} trackRating={rating} authUser={authUser} />
-        </section>
       </div>
     </div>
   );
