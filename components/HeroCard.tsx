@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { TmdbResult } from "@/lib/tmdb";
 import PosterImage from "@/components/PosterImage";
 
-export function HeroCard({ item, nextItem, region }: { item: TmdbResult; nextItem?: TmdbResult; region: string }) {
+export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResult; nextItem?: TmdbResult; region: string; isPremium?: boolean }) {
   const router = useRouter();
   // Collections state
   const [collections, setCollections] = useState<{ id: string; name: string; itemCount: number }[]>([]);
@@ -186,40 +186,47 @@ export function HeroCard({ item, nextItem, region }: { item: TmdbResult; nextIte
         </div>
       </a>
 
-      {/* Tonight's Pick / Next recommendation bar */}
+      {/* Tonight's Pick (premium) or Ad (free) */}
       {nextItem && (
-        <a
-          href={`/title/${nextItem.id}?type=${nextItem.type}`}
-          className="mt-3 mx-4 md:mx-0 flex items-center gap-3 bg-[#1a1a2e] hover:bg-[#25253a] rounded-xl p-2.5 transition-colors cursor-pointer"
-        >
-          {/* Poster thumbnail */}
-          <div className="flex-shrink-0 w-12 h-[72px] rounded-lg overflow-hidden bg-[#0f0f1a] relative">
-            <PosterImage
-              src={nextItem.poster}
-              alt={nextItem.title}
-              fill
-              className="rounded-lg"
-              sizes="48px"
-            />
+        isPremium ? (
+          <a
+            href={`/title/${nextItem.id}?type=${nextItem.type}`}
+            className="mt-3 mx-4 md:mx-0 flex items-center gap-3 bg-[#1a1a2e] hover:bg-[#25253a] rounded-xl p-2.5 transition-colors cursor-pointer"
+          >
+            <div className="flex-shrink-0 w-12 h-[72px] rounded-lg overflow-hidden bg-[#0f0f1a] relative">
+              <PosterImage
+                src={nextItem.poster}
+                alt={nextItem.title}
+                fill
+                className="rounded-lg"
+                sizes="48px"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-[#6366f1] uppercase tracking-wide font-medium">
+                Tonight&apos;s Pick
+              </p>
+              <p className="text-sm font-semibold text-white truncate">
+                {nextItem.title}
+              </p>
+              <p className="text-xs text-[#9ca3af]">
+                {nextItem.type === "movie" ? "Movie" : nextItem.type === "anime" ? "Anime" : "TV"} · {nextItem.year} · ★ {nextItem.rating}
+              </p>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-[#6b7280] flex-shrink-0">
+              <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+            </svg>
+          </a>
+        ) : (
+          <div className="mt-3 mx-4 md:mx-0">
+            <div className="bg-[#1a1a2e] border border-dashed border-[#2d2d4a] rounded-xl flex items-center justify-center" style={{ minHeight: 250 }}>
+              <div className="text-center">
+                <p className="text-[10px] text-[#4b5563] uppercase tracking-[0.15em] mb-1">Advertisement</p>
+                <p className="text-xs text-[#6b7280]">AdSense · 300×250</p>
+              </div>
+            </div>
           </div>
-
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] text-[#6366f1] uppercase tracking-wide font-medium">
-              Tonight&apos;s Pick · {region}
-            </p>
-            <p className="text-sm font-semibold text-white truncate">
-              {nextItem.title}
-            </p>
-            <p className="text-xs text-[#9ca3af]">
-              {nextItem.type === "movie" ? "Movie" : nextItem.type === "anime" ? "Anime" : "TV"} · {nextItem.year} · ★ {nextItem.rating}
-            </p>
-          </div>
-
-          {/* Arrow */}
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-[#6b7280] flex-shrink-0">
-            <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-          </svg>
-        </a>
+        )
       )}
     </div>
   );
