@@ -120,7 +120,7 @@ export async function GET(_req: NextRequest) {
       title: detail.title || detail.name,
       poster: detail.poster_path ? `${TMDB_IMAGE}${detail.poster_path}` : null,
       backdrop: detail.backdrop_path
-        ? `https://image.tmdb.org/t/p/w780${detail.backdrop_path}`
+        ? `https://image.tmdb.org/t/p/original${detail.backdrop_path}`
         : null,
       year: (detail.release_date || detail.first_air_date || "").slice(0, 4),
       rating: Math.round((detail.vote_average || 0) * 10) / 10,

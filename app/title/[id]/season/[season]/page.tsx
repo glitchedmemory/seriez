@@ -12,7 +12,7 @@ function poster(path: string | null) {
 }
 
 function backdrop(path: string | null) {
-  return path ? `https://image.tmdb.org/t/p/w1280${path}` : null;
+  return path ? `https://image.tmdb.org/t/p/original${path}` : null;
 }
 
 /** Fetch AniList banner image for a given anime title */
