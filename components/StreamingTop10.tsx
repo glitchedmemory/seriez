@@ -12,12 +12,13 @@ interface Top10Item {
 }
 
 const PLATFORMS: { key: string; label: string; icon: string }[] = [
-  { key: "netflix", label: "Netflix", icon: "🎬" },
-  { key: "disney", label: "Disney+", icon: "✨" },
-  { key: "amazon", label: "Prime", icon: "📦" },
+  { key: "netflix", label: "Netflix", icon: "N" },
+  { key: "disney", label: "Disney+", icon: "D+" },
+  { key: "amazon", label: "Prime", icon: "▶" },
 ];
 
-export function StreamingTop10() {
+export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
+  const isPage = variant === "page";
   const [activeTab, setActiveTab] = useState("netflix");
   const [data, setData] = useState<Record<string, Top10Item[]>>({});
   const [loading, setLoading] = useState(true);
@@ -49,13 +50,13 @@ export function StreamingTop10() {
             <button
               key={p.key}
               onClick={() => setActiveTab(p.key)}
-              className={`flex-1 text-[10px] font-medium px-2 py-1.5 rounded-lg transition-colors ${
+              className={`flex-1 text-xs font-bold px-2 py-1.5 rounded-lg transition-colors ${
                 activeTab === p.key
                   ? "bg-[#6366f1] text-white"
                   : "bg-[#25253a] text-[#9ca3af] hover:text-white"
               }`}
             >
-              {p.icon} {p.label}
+              {p.icon}
             </button>
           ))}
         </div>
