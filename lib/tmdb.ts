@@ -7,7 +7,7 @@ const poster = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w780${path}` : null;
 
 const backdrop = (path: string | null) =>
-  path ? `https://image.tmdb.org/t/p/w1280${path}` : null;
+  path ? `https://image.tmdb.org/t/p/original${path}` : null;
 
 // TMDB genre ID → name mapping
 export const GENRE_MAP: Record<number, string> = {

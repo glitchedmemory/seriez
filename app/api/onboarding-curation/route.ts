@@ -18,7 +18,7 @@ const poster = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w780${path}` : null;
 
 const backdrop = (path: string | null) =>
-  path ? `https://image.tmdb.org/t/p/w1280${path}` : null;
+  path ? `https://image.tmdb.org/t/p/original${path}` : null;
 
 function formatItem(item: any, mediaType: "movie" | "tv"): TmdbResult {
   const dateStr = item.release_date || item.first_air_date || "";
