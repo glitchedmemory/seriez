@@ -270,7 +270,7 @@ export function ReviewSection({
   const [totalReviews, setTotalReviews] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const REVIEWS_PER_PAGE = 20;
+  const REVIEWS_PER_PAGE = 10;
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
