@@ -24,13 +24,6 @@ const tabs: { name: string; icon: ReactNode; path: string }[] = [
 
 export default function TabBar() {
   const pathname = usePathname();
-  const [user, setUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
-  const supabase = createClient();
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null)).catch(() => {});
-  }, []);
-
   if (pathname === "/onboarding") return null;
 
   return (
@@ -38,24 +31,20 @@ export default function TabBar() {
       <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
         {tabs.map((tab) => {
           const active = pathname === tab.path;
-          const isProfile = tab.name === "Profile";
-          const label = isProfile && !user ? "Sign In" : tab.name;
           return (
             <a
               key={tab.name}
-              href={isProfile && !user ? "/login" : tab.path}
-              aria-label={label}
+              href={tab.path}
+              aria-label={tab.name}
               aria-current={active ? "page" : undefined}
               className={`flex flex-col items-center gap-1 px-3 py-2 text-xs transition-colors ${
-                active ? "text-[#a855f7]" : isProfile && !user ? "text-red-400" : "text-[#9ca3af] hover:text-white"
+                active ? "text-[#a855f7]" : "text-[#9ca3af] hover:text-white"
               }`}
             >
               <span className={`text-xl ${active ? "[&>img]:filter [&>img]:brightness-0 [&>img]:saturate-100 [&>img]:invert-[33%] [&>img]:sepia-[54%] [&>img]:saturate-[2050%] [&>img]:hue-rotate-[245deg] [&>img]:brightness-[.95] [&>img]:contrast-[.93]" : ""}`}>
-                {isProfile && !user ? (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
-                ) : tab.icon}
+                {tab.icon}
               </span>
-              <span className="font-medium">{label}</span>
+              <span className="font-medium">{tab.name}</span>
             </a>
           );
         })}
@@ -167,12 +156,12 @@ export function Sidebar() {
           </a>
         ) : (
           <a href="/login" className="flex items-center gap-3 px-1.5 py-2 min-w-max">
-            <div className="w-8 h-8 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0">
+              <span className="text-xs font-bold text-white">G</span>
             </div>
-            <div className="whitespace-nowrap">
-              <p className="text-sm font-medium text-red-300">Sign in</p>
-              <p className="text-xs text-[#9ca3af]">Unlock Seriez</p>
+            <div className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <p className="text-sm font-medium text-white">Guest</p>
+              <p className="text-xs text-[#9ca3af]">Sign in →</p>
             </div>
           </a>
         )}
