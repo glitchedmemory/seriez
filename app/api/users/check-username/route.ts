@@ -66,9 +66,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ exists: false, error: "Username must be at least 2 characters" });
   }
 
-  // Only English letters, numbers, and . _ - allowed
-  if (!/^[a-zA-Z0-9._-]+$/.test(username)) {
-    return NextResponse.json({ exists: false, error: "Username can only contain English letters, numbers, and . _ -" });
+  // Only English letters, numbers, . _ -, and CJK characters (Korean/Chinese/Japanese) allowed
+  if (!/^[a-zA-Z0-9._\-\uAC00-\uD7AF\u1100-\u11FF\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF]+$/.test(username)) {
+    return NextResponse.json({ exists: false, error: "Username contains invalid characters" });
   }
 
   // Check reserved names
