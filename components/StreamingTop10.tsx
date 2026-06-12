@@ -11,31 +11,36 @@ interface Top10Item {
   mediaType?: string;
 }
 
-// Inline SVG brand logos — no cache issues, always up to date
+// ── Official brand LOGO MARKS (not text) ──
+
+/** Netflix "N" logo mark — iconic red fold */
 function NetflixLogo() {
   return (
-    <svg viewBox="0 0 200 40" className="h-5 w-auto" fill="none">
-      <rect width="200" height="40" rx="6" fill="#E50914"/>
-      <text x="100" y="27" textAnchor="middle" fontFamily="Arial,Helvetica,sans-serif" fontSize="22" fontWeight="900" fill="white" letterSpacing="3">NETFLIX</text>
+    <svg viewBox="0 0 24 24" className="h-6 w-auto" fill="none">
+      <path fill="#E50914" d="M5.398 0l8.348 23.602c2.346.059 4.856.398 4.856.398L10.113 0zm8.489 0v9.172l4.715 13.33V0zM5.398 1.5V24c1.873-.225 2.81-.312 4.715-.398V14.83z"/>
     </svg>
   );
 }
 
+/** Disney+ logo mark — blue arc */
 function DisneyLogo() {
   return (
-    <svg viewBox="0 0 200 40" className="h-5 w-auto" fill="none">
-      <rect width="200" height="40" rx="6" fill="#113CCF"/>
-      <text x="100" y="27" textAnchor="middle" fontFamily="Arial,Helvetica,sans-serif" fontSize="18" fontWeight="900" fill="white" letterSpacing="2">DISNEY+</text>
+    <svg viewBox="0 0 24 24" className="h-6 w-auto">
+      <path fill="#113CCF" d="M2.96 7.303c-.44 0-.96-.058-.96-.319c0-1.839 3.238-1.918 4.618-1.918c1.799 0 4.097.558 6.055 1.258c2.979 1.08 9.016 4.678 9.016 8.795c0 3.638-3.918 5.377-7.556 5.377a20 20 0 0 1-2.918-.3c-.06.221-.1.38-.24.84a4 4 0 0 1-.7.079l-.459-.039c-.3-.36-.4-.939-.52-1.559c-1.818-1.059-2.999-1.959-3.538-2.579c-.46-.48-.98-1.12-.98-1.739c0-.319.2-.6.66-.918c.94-.7 2.139-1.08 4.098-1.421l.04-.818c.02-.2.22-2.339.68-2.739c.739.6.819 1.219.879 2.139c.02.4.04.819.1 1.259h.28c1.399 0 5.677.359 5.677 2.378c0 .48-.7 1.379-1.38 1.379a1.73 1.73 0 0 1-.879-.259c.299-.341.739-.64.859-.9c-.4-.48-2.558-1.039-4.137-1.039a4 4 0 0 0-.52.02l.02 4.378c.639.4 1.419.439 1.918.439c2.2 0 6.756-.379 6.756-3.938c0-3.518-4.497-6.236-7.855-7.515a19.5 19.5 0 0 0-7.216-1.36a6.6 6.6 0 0 0-1.639.18c-.339.08-.459.16-.459.24c0 .139.679.22.76.26a.2.2 0 0 1 .1.159a.24.24 0 0 1-.08.16c-.081 0-.26.02-.48.02m6.495 7.016c-1.978.161-4.178.361-4.178 1.06c0 .54.92 1.2 1.48 1.619a6.4 6.4 0 0 0 2.518 1.2Zm10.141-8.955a31 31 0 0 0-.038 1.567c0 .272 0 .583.009.933c-.038.176-.291.195-.418.253a1 1 0 0 1-.233-.174V5.482c0-.264.009-.535.009-.944c0-.205 0-.438-.009-.72c0-.175.029-.34.137-.729a.31.31 0 0 1 .272-.204c.223.058.447.155.525.34c-.234.691-.214 1.449-.254 2.139m-.349-.077c.389.019.856.038 1.566.038c.272 0 .584 0 .933-.009c.176.037.196.291.254.417q-.071.129-.175.234h-2.461c-.262 0-.535-.009-.942-.009c-.205 0-.439 0-.72.009c-.176.002-.341-.027-.73-.135a.32.32 0 0 1-.205-.272c.058-.224.156-.448.34-.526c.691.234 1.45.214 2.141.253Z"/>
     </svg>
   );
 }
 
+/** Amazon Prime Video logo — smile arrow + play triangle */
 function PrimeLogo() {
   return (
-    <svg viewBox="0 0 200 40" className="h-5 w-auto" fill="none">
-      <rect width="200" height="40" rx="6" fill="#00A8E1"/>
-      <text x="100" y="22" textAnchor="middle" fontFamily="Arial,Helvetica,sans-serif" fontSize="11" fontWeight="700" fill="white" letterSpacing="1">prime video</text>
-      <path d="M103 24 L99 30 L107 30 Z" fill="white"/>
+    <svg viewBox="0 0 48 48" className="h-6 w-auto">
+      <circle cx="24" cy="24" r="21.5" fill="none" stroke="#00A8E1" strokeWidth="1.5"/>
+      <path fill="#00A8E1" d="M17.993 15.125l-2 5.3l-2-5.3"/><rect width="4" height="5.3" x="32.007" y="15.215" fill="none" stroke="#00A8E1" strokeWidth="1" rx="2"/>
+      <circle cx="18.007" cy="12.675" r=".7" fill="#00A8E1"/>
+      <path fill="none" stroke="#00A8E1" strokeWidth="1" d="M18.007 15.125v5.3m11.738-1.009a2 2 0 0 1-1.738 1.009h0a2 2 0 0 1-2-2v-1.3a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v.65h-4m-2-.65a2 2 0 0 0-2-2h0a2 2 0 0 0-2 2v1.3a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2m0 2v-8"/>
+      <path fill="none" stroke="#00A8E1" strokeWidth="1" d="M32.28 24.406c1.113-.45 3.092-1.05 3.688-.327c.644.781-.17 2.477-.92 3.794"/>
+      <path fill="none" stroke="#00A8E1" strokeWidth="1" d="M11.798 24.929c1.759 1.396 6.954 3.534 12.488 3.534a17 17 0 0 0 10.167-3.08"/>
     </svg>
   );
 }
@@ -79,7 +84,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
           <span>📺</span> Streaming Top 10
         </h3>
 
-        {/* Tabs with inline brand logos */}
+        {/* Tabs with official brand logo marks */}
         <div className="flex gap-1 mb-3">
           {PLATFORMS.map((p) => {
             const isActive = activeTab === p.key;
@@ -88,7 +93,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
               <button
                 key={p.key}
                 onClick={() => setActiveTab(p.key)}
-                className="flex-1 flex items-center justify-center px-2 py-1.5 rounded-lg transition-all"
+                className="flex-1 flex items-center justify-center px-2 py-2 rounded-lg transition-all"
                 style={{
                   backgroundColor: isActive ? p.color + "22" : "transparent",
                   borderBottom: isActive ? `2px solid ${p.color}` : "2px solid transparent",
@@ -96,7 +101,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
               >
                 <span
                   style={{
-                    opacity: isActive ? 1 : 0.55,
+                    opacity: isActive ? 1 : 0.45,
                     filter: isActive ? "none" : "grayscale(100%)",
                   }}
                   className="leading-none"
@@ -142,13 +147,11 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
                   className="w-10 h-14 rounded object-cover flex-shrink-0 bg-[#1a1a2e] border border-[#2d2d4a]"
                   loading="lazy"
                   onError={(e) => {
-                    // Hide broken image, show placeholder
                     (e.target as HTMLImageElement).style.display = "none";
                     (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden");
                   }}
                 />
               ) : null}
-              {/* Fallback placeholder (shown via onError or when no poster) */}
               <div
                 className={item.poster ? "hidden" : "w-10 h-14 rounded bg-[#0f0f1a] flex-shrink-0 flex items-center justify-center border border-[#2d2d4a]"}
               >
