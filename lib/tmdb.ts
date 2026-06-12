@@ -4,7 +4,7 @@ const API_KEY = process.env.TMDB_API_KEY!;
 import { validateAndReplaceTrailers } from "./yt-validator";
 
 const poster = (path: string | null) =>
-  path ? `https://image.tmdb.org/t/p/w342${path}` : null;
+  path ? `https://image.tmdb.org/t/p/w780${path}` : null;
 
 const backdrop = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w1280${path}` : null;

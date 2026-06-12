@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const TMDB_IMAGE = "https://image.tmdb.org/t/p/w185";
+const TMDB_IMAGE = "https://image.tmdb.org/t/p/w500";
 
 export interface WatchListItem {
   tmdbId: number;

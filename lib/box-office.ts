@@ -73,7 +73,7 @@ async function tmdbSearch(title: string): Promise<MatchResult | null> {
         return {
           id: match.id,
           title: match.title,
-          poster: `https://image.tmdb.org/t/p/w342${match.poster_path}`,
+          poster: `https://image.tmdb.org/t/p/w780${match.poster_path}`,
           year: parseInt((match.release_date || "").slice(0, 4)) || 0,
           rating: Math.round(match.vote_average * 10) / 10,
           type: "movie",

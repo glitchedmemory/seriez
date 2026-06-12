@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
         year: (r.release_date || r.first_air_date || "").slice(0, 4),
         type: r.media_type,
         poster: r.poster_path
-          ? `https://image.tmdb.org/t/p/w92${r.poster_path}`
+          ? `https://image.tmdb.org/t/p/w500${r.poster_path}`
           : null,
         rating: Math.round((r.vote_average || 0) * 10) / 10,
         _aliases: [] as string[],

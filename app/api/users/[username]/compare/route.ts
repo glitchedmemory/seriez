@@ -10,7 +10,7 @@ const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROL
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE = "https://api.themoviedb.org/3";
-const TMDB_IMAGE = "https://image.tmdb.org/t/p/w342";
+const TMDB_IMAGE = "https://image.tmdb.org/t/p/w780";
 
 export async function GET(
   req: NextRequest,

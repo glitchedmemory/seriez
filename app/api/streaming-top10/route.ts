@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { readFileSync, existsSync, writeFileSync } from "fs";
 import { join } from "path";
 
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w92";
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 
 interface RawItem {
   rank: number;

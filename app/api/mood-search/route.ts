@@ -152,7 +152,7 @@ export async function GET(req: NextRequest) {
     allResults.push({
       id: item.id,
       title: item.title,
-      poster: `https://image.tmdb.org/t/p/w342${item.poster_path}`,
+      poster: `https://image.tmdb.org/t/p/w780${item.poster_path}`,
       year: (item.release_date || "").slice(0, 4),
       rating: Math.round(item.vote_average * 10) / 10,
       type: "movie",
@@ -171,7 +171,7 @@ export async function GET(req: NextRequest) {
     allResults.push({
       id: item.id,
       title: item.name,
-      poster: `https://image.tmdb.org/t/p/w342${item.poster_path}`,
+      poster: `https://image.tmdb.org/t/p/w780${item.poster_path}`,
       year: (item.first_air_date || "").slice(0, 4),
       rating: Math.round(item.vote_average * 10) / 10,
       type: "tv",

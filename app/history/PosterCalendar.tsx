@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import Image from "next/image";
 import type { DayEntry } from "./DayPopup";
 
-const TMDB_IMAGE = "https://image.tmdb.org/t/p/w185";
+const TMDB_IMAGE = "https://image.tmdb.org/t/p/w500";
 
 interface PosterCalendarProps {
   year: number;

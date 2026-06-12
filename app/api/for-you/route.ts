@@ -84,7 +84,7 @@ function formatResult(item: TmdbItem, type: "movie" | "tv"): TmdbResult {
   return {
     id: item.id,
     title,
-    poster: item.poster_path ? `https://image.tmdb.org/t/p/w342${item.poster_path}` : null,
+    poster: item.poster_path ? `https://image.tmdb.org/t/p/w780${item.poster_path}` : null,
     backdrop: item.backdrop_path ? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}` : null,
     rating: Math.round(item.vote_average * 10) / 10,
     year: year || 0,
