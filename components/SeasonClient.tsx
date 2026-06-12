@@ -578,6 +578,11 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
           </section>
         )}
 
+        {/* Reviews for this series (shared across all seasons) */}
+        <section className="mt-6">
+          <ReviewSection tmdbId={data.id} mediaType="tv" trackStatus={trackStatus} trackVersion={trackVersion} trackRating={rating} authUser={authUser} />
+        </section>
+
         {/* Episodes */}
         {data.episodes.length > 0 && (
           <section className="mt-6">
@@ -760,11 +765,6 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
 
         {/* Recommended */}
         <SimilarSection items={data.similar} />
-
-        {/* Reviews for this series (shared across all seasons) */}
-        <section className="mt-6">
-          <ReviewSection tmdbId={data.id} mediaType="tv" trackStatus={trackStatus} trackVersion={trackVersion} trackRating={rating} authUser={authUser} />
-        </section>
       </div>
     </div>
   );
