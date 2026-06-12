@@ -1,0 +1,161 @@
+{
+  "updated_at": "2026-06-12T10:19:37.998179Z",
+  "data": {
+    "netflix": [
+      {
+        "rank": 1,
+        "title": "Office Romance",
+        "score": 899
+      },
+      {
+        "rank": 2,
+        "title": "The Marked Woman",
+        "score": 766
+      },
+      {
+        "rank": 3,
+        "title": "Colors of Evil: Black",
+        "score": 581
+      },
+      {
+        "rank": 4,
+        "title": "The Murder of Rachel Nickell",
+        "score": 243
+      },
+      {
+        "rank": 5,
+        "title": "Swapped",
+        "score": 199
+      },
+      {
+        "rank": 6,
+        "title": "Monster-in-Law",
+        "score": 157
+      },
+      {
+        "rank": 7,
+        "title": "Ladies First",
+        "score": 149
+      },
+      {
+        "rank": 8,
+        "title": "Sonic the Hedgehog 3",
+        "score": 114
+      },
+      {
+        "rank": 9,
+        "title": "Maa Behen",
+        "score": 108
+      },
+      {
+        "rank": 10,
+        "title": "Tag",
+        "score": 102
+      }
+    ],
+    "disney": [
+      {
+        "rank": 1,
+        "title": "Toy Story 5 | A Special Look",
+        "score": 700
+      },
+      {
+        "rank": 2,
+        "title": "Hoppers",
+        "score": 696
+      },
+      {
+        "rank": 3,
+        "title": "Toy Story",
+        "score": 541
+      },
+      {
+        "rank": 4,
+        "title": "Toy Story 2",
+        "score": 468
+      },
+      {
+        "rank": 5,
+        "title": "Toy Story 3",
+        "score": 352
+      },
+      {
+        "rank": 6,
+        "title": "Taylor Swift I Knew It, I Knew You | Toy Story 5 Music Video",
+        "score": 300
+      },
+      {
+        "rank": 7,
+        "title": "Toy Story 4",
+        "score": 290
+      },
+      {
+        "rank": 8,
+        "title": "The Punisher: One Last Kill",
+        "score": 283
+      },
+      {
+        "rank": 9,
+        "title": "Send Help",
+        "score": 237
+      },
+      {
+        "rank": 10,
+        "title": "Predator: Badlands",
+        "score": 51
+      }
+    ],
+    "amazon": [
+      {
+        "rank": 1,
+        "title": "Tom Clancy's Jack Ryan: Ghost War",
+        "score": 450
+      },
+      {
+        "rank": 2,
+        "title": "Over Your Dead Body",
+        "score": 336
+      },
+      {
+        "rank": 3,
+        "title": "Crime 101",
+        "score": 223
+      },
+      {
+        "rank": 4,
+        "title": "Greenland 2: Migration",
+        "score": 166
+      },
+      {
+        "rank": 5,
+        "title": "Despicable Me 4",
+        "score": 132
+      },
+      {
+        "rank": 6,
+        "title": "My Fault: London",
+        "score": 114
+      },
+      {
+        "rank": 7,
+        "title": "Bride Hard",
+        "score": 68
+      },
+      {
+        "rank": 8,
+        "title": "Love Me Love Me",
+        "score": 62
+      },
+      {
+        "rank": 9,
+        "title": "Shelter",
+        "score": 58
+      },
+      {
+        "rank": 10,
+        "title": "Summer House",
+        "score": 58
+      }
+    ]
+  }
+}

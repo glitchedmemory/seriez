@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { PosterCard, HorizontalScroll } from "@/components/PosterCard";
 import { HeroCard } from "@/components/HeroCard";
 import { GenreChips } from "@/components/GenreChips";
+import { StreamingTop10 } from "@/components/StreamingTop10";
 import PosterImage from "@/components/PosterImage";
 import type { TmdbResult } from "@/lib/tmdb";
 
@@ -358,6 +359,20 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
             </div>
           </div>
 
+          {/* ── Streaming Top 10 (Mobile) ── */}
+          <div className="block md:hidden px-4 mb-6">
+            <StreamingTop10 />
+          </div>
+
+          <section>
+            <div className="px-4 md:px-0 mb-3">
+              <SectionHeader emoji="⏳" title="Coming Soon" subtitle="Upcoming releases" />
+            </div>
+            <PosterGrid>
+              {upcoming.map((item) => <CardWrapper key={item.id} item={item} showCountdown />)}
+            </PosterGrid>
+          </section>
+
           <section>
             <div className="px-4 md:px-0 mb-3">
               <div className="flex items-center gap-3">
@@ -436,7 +451,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
           <div className="h-4" />
         </div>
 
-        {/* Desktop Sidebar */}
+          {/* Desktop Sidebar */}
         <aside className="hidden md:block w-72 lg:w-80 flex-shrink-0 space-y-5">
           {/* Inline Search */}
           <div className="relative">
@@ -455,46 +470,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
           </div>
 
           {/* Streaming Top 10 */}
-          <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-white mb-1">📺 Streaming Top 10</h3>
-            <p className="text-[11px] text-[#6b7280] leading-relaxed">
-              Real-time streaming charts coming soon — Netflix, Disney+, and more.
-            </p>
-            <div className="mt-3 flex gap-1">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="flex-1 h-1 rounded-full bg-[#2d2d4a]">
-                  <div className="h-full rounded-full bg-[#6366f1]" style={{ width: `${30 + i * 25}%` }} />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Trending sidebar with posters */}
-          <div>
-            <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-1.5">
-              <span>🔥</span> Trending
-            </h3>
-            <div className="space-y-2">
-              {trending.slice(0, 7).map((item, i) => (
-                <a
-                  key={item.id}
-                  href={`/title/${item.id}?type=${item.type}`}
-                  className="flex items-center gap-3 bg-[#1a1a2e] rounded-xl p-2 hover:bg-[#25253a] transition-colors group"
-                >
-                  <span className={`text-xs font-bold w-5 text-center flex-shrink-0 ${
-                    i === 0 ? "text-[#f59e0b]" : i === 1 ? "text-[#9ca3af]" : "text-[#6b7280]"
-                  }`}>{i + 1}</span>
-                  <div className="w-9 h-[54px] rounded-lg overflow-hidden bg-[#0f0f1a] flex-shrink-0 relative">
-                    <PosterImage src={item.poster} alt="" fill className="rounded-lg" sizes="36px" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[13px] text-white truncate group-hover:text-[#6366f1] transition-colors">{item.title}</p>
-                    <p className="text-[11px] text-[#6b7280]">{item.year} · ★ {item.rating}</p>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
+          <StreamingTop10 />
         </aside>
       </div>
     </div>
