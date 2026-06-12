@@ -6,6 +6,7 @@ import DayPopup from "./DayPopup";
 import type { DayEntry } from "./DayPopup";
 import WatchGraph from "./WatchGraph";
 import TopGenres from "./TopGenres";
+import { StreamingTop10 } from "@/components/StreamingTop10";
 import type { WatchListItem } from "./WatchList";
 
 interface HistoryData {
@@ -182,7 +183,12 @@ export default function HistoryClient() {
           <StatCard value={data.stats.avgRating.toString()} label="Avg Rating" />
         </div>
 
-        {/* Rating Spread */}
+        {/* Top Genres (moved from below) */}
+        {data.watchList.length > 0 && (
+          <TopGenres genres={data.topGenres} />
+        )}
+
+        {/* Rating Spread → moved down */}
         {data.watchList.length > 0 && (
           <div className="mb-6">
             <h3 className="text-[15px] font-bold text-white tracking-tight mb-3">Rating Spread</h3>
@@ -203,8 +209,8 @@ export default function HistoryClient() {
           </div>
         )}
 
-        {/* Top Genres */}
-        <TopGenres genres={data.topGenres} />
+        {/* Streaming Top 10 */}
+        <StreamingTop10 variant="page" />
       </div>
 
       {/* Popup */}
