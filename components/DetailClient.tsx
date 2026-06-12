@@ -212,6 +212,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
             alt=""
             fill
             priority
+            unoptimized
             className={!detail.backdrop ? "blur-2xl scale-125 opacity-50" : ""}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f1a] via-[#0f0f1a]/60 to-transparent" />

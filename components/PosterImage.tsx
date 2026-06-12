@@ -9,6 +9,7 @@ interface Props {
   className?: string;
   sizes?: string;
   priority?: boolean;
+  unoptimized?: boolean;
 }
 
 export default function PosterImage({
@@ -20,6 +21,7 @@ export default function PosterImage({
   className = "",
   sizes = "(max-width: 768px) 128px, (max-width: 1200px) 160px, 200px",
   priority = false,
+  unoptimized = false,
 }: Props) {
   if (!src) {
     return (
@@ -41,6 +43,7 @@ export default function PosterImage({
         className={`object-cover ${className}`}
         sizes={sizes}
         priority={priority}
+        unoptimized={unoptimized}
       />
     );
   }
@@ -54,6 +57,7 @@ export default function PosterImage({
       className={`object-cover ${className}`}
       sizes={sizes}
       priority={priority}
+      unoptimized={unoptimized}
     />
   );
 }
