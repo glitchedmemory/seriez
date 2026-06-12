@@ -5,6 +5,19 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
+const PW_RULES = {
+  minLength: 8,
+  label: "8+ chars, upper/lower/special",
+};
+
+function validatePassword(pw: string): string | null {
+  if (pw.length < PW_RULES.minLength) return `Password must be at least ${PW_RULES.minLength} characters`;
+  if (!/[A-Z]/.test(pw)) return "Password must include at least one uppercase letter";
+  if (!/[a-z]/.test(pw)) return "Password must include at least one lowercase letter";
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pw)) return "Password must include at least one special character";
+  return null;
+}
+
 export default function SettingsPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -37,8 +50,9 @@ export default function SettingsPage() {
       setPwMsg({ ok: false, text: "Please fill in all fields" });
       return;
     }
-    if (newPw.length < 6) {
-      setPwMsg({ ok: false, text: "Password must be at least 6 characters" });
+    const pwError = validatePassword(newPw);
+    if (pwError) {
+      setPwMsg({ ok: false, text: pwError });
       return;
     }
     if (currentPw === newPw) {
@@ -124,68 +138,87 @@ export default function SettingsPage() {
 
   return (
     <ErrorBoundary sectionName="Settings">
-      <div className="max-w-lg md:max-w-4xl mx-auto pb-32">
+      <div className="max-w-lg md:max-w-2xl mx-auto pb-32">
         {/* Header */}
-        <div className="flex items-center gap-4 px-4 pt-4 pb-3">
+        <div className="flex items-center gap-4 px-4 pt-6 pb-4">
           <button
             onClick={() => router.back()}
             className="text-[#9ca3af] hover:text-white transition-colors"
           >
             ← Back
           </button>
-          <h1 className="text-lg font-bold text-white">Settings</h1>
+          <h1 className="text-xl font-bold text-white">Settings</h1>
         </div>
 
-        <div className="px-4 space-y-4 mt-2">
-          {/* ── Change Profile ── */}
+        <div className="px-4 space-y-3 mt-1">
+          {/* ── Profile ── */}
           <button
             onClick={() => router.push("/profile/settings/change-profile")}
-            className="w-full flex items-center justify-between bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-4 hover:border-[#6366f1]/40 transition-colors"
+            className="w-full flex items-center justify-between bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl px-4 py-3.5 hover:border-[#6366f1]/50 transition-colors group"
           >
-            <span className="text-sm text-white">Change Profile</span>
-            <span className="text-[#6b7280]">Avatar · Background ›</span>
+            <div className="flex items-center gap-3">
+              <span className="text-lg">👤</span>
+              <span className="text-sm text-white">Change Profile</span>
+            </div>
+            <span className="text-xs text-[#4b5563] group-hover:text-[#9ca3af] transition-colors">
+              Avatar · Background →
+            </span>
           </button>
 
-          {/* ── Change Email ── */}
-          <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-4 opacity-60">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-white">Change Email</span>
-              <span className="text-[10px] text-[#f59e0b]">SMTP setup required</span>
+          {/* ── Email ── */}
+          <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl px-4 py-3.5 opacity-50">
+            <div className="flex items-center gap-3">
+              <span className="text-lg">✉️</span>
+              <div>
+                <span className="text-sm text-white">Change Email</span>
+                <p className="text-[10px] text-[#f59e0b]">SMTP setup required</p>
+              </div>
             </div>
           </div>
 
-          {/* ── Change Password ── */}
+          {/* ── Password ── */}
           <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl overflow-hidden">
             <button
               onClick={() => setShowPwForm(!showPwForm)}
-              className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.03] transition-colors"
             >
-              <span className="text-sm text-white">Change Password</span>
-              <span className="text-[#6b7280] text-xs">{showPwForm ? "▲" : "▼"}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-lg">🔒</span>
+                <span className="text-sm text-white">Change Password</span>
+              </div>
+              <span className="text-[#6b7280] text-xs transition-transform duration-200" style={{ transform: showPwForm ? "rotate(180deg)" : "rotate(0deg)" }}>
+                ▼
+              </span>
             </button>
             {showPwForm && (
               <div className="px-4 pb-4 space-y-3 border-t border-[#2d2d4a] pt-4">
-                <input
-                  type="password"
-                  placeholder="Current password"
-                  value={currentPw}
-                  onChange={(e) => setCurrentPw(e.target.value)}
-                  className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#6b7280] focus:outline-none focus:border-[#6366f1]"
-                />
-                <input
-                  type="password"
-                  placeholder="New password (min 6 characters)"
-                  value={newPw}
-                  onChange={(e) => setNewPw(e.target.value)}
-                  className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#6b7280] focus:outline-none focus:border-[#6366f1]"
-                />
+                <div>
+                  <label className="text-[11px] text-[#9ca3af] block mb-1.5">Current password</label>
+                  <input
+                    type="password"
+                    value={currentPw}
+                    onChange={(e) => setCurrentPw(e.target.value)}
+                    className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:border-[#6366f1]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-[#9ca3af] block mb-1.5">New password</label>
+                  <input
+                    type="password"
+                    placeholder={PW_RULES.label}
+                    value={newPw}
+                    onChange={(e) => setNewPw(e.target.value)}
+                    className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:border-[#6366f1]"
+                  />
+                  <p className="text-[10px] text-[#6b7280] mt-1">{PW_RULES.label}</p>
+                </div>
                 {pwMsg && (
-                  <p className={`text-xs ${pwMsg.ok ? "text-green-400" : "text-red-400"}`}>{pwMsg.text}</p>
+                  <p className={`text-xs ${pwMsg.ok ? "text-emerald-400" : "text-red-400"}`}>{pwMsg.text}</p>
                 )}
                 <button
                   onClick={handleChangePassword}
                   disabled={pwLoading}
-                  className="w-full py-2 bg-[#6366f1] hover:bg-[#818cf8] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="w-full py-2.5 bg-[#6366f1] hover:bg-[#818cf8] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   {pwLoading ? "Changing..." : "Change Password"}
                 </button>
@@ -197,43 +230,47 @@ export default function SettingsPage() {
           <button
             onClick={handleLogout}
             disabled={logoutLoading}
-            className="w-full flex items-center justify-between bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-4 hover:border-red-500/40 transition-colors"
+            className="w-full flex items-center gap-3 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl px-4 py-3.5 hover:border-red-500/40 transition-colors"
           >
-            <span className="text-sm text-red-400">Log Out</span>
-            <span className="text-[#6b7280] text-xs">›</span>
+            <span className="text-lg">🚪</span>
+            <span className="text-sm text-red-400">{logoutLoading ? "Logging out..." : "Log Out"}</span>
           </button>
 
           {/* ── Reset Ratings ── */}
           <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl overflow-hidden">
             <button
               onClick={() => setShowResetConfirm(!showResetConfirm)}
-              className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.03] transition-colors"
             >
-              <span className="text-sm text-[#f59e0b]">Reset Ratings & Reviews</span>
-              <span className="text-[#6b7280] text-xs">{showResetConfirm ? "▲" : "▼"}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-lg">🔄</span>
+                <span className="text-sm text-[#f59e0b]">Reset Ratings & Reviews</span>
+              </div>
+              <span className="text-[#6b7280] text-xs transition-transform duration-200" style={{ transform: showResetConfirm ? "rotate(180deg)" : "rotate(0deg)" }}>
+                ▼
+              </span>
             </button>
             {showResetConfirm && (
               <div className="px-4 pb-4 space-y-3 border-t border-[#2d2d4a] pt-4">
-                <p className="text-xs text-[#9ca3af]">
-                  This will delete all your ratings and reviews. This action cannot be undone.
-                  Type your username to continue.
+                <p className="text-xs text-[#9ca3af] leading-relaxed">
+                  This will permanently delete all your ratings and reviews. Type your username to confirm.
                 </p>
                 <input
                   type="text"
                   placeholder="Enter username"
                   value={resetInput}
                   onChange={(e) => setResetInput(e.target.value)}
-                  className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#6b7280] focus:outline-none focus:border-[#f59e0b]"
+                  className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:border-[#f59e0b]"
                 />
                 {resetMsg && (
-                  <p className={`text-xs ${resetMsg.includes("have been") ? "text-green-400" : "text-red-400"}`}>{resetMsg}</p>
+                  <p className={`text-xs ${resetMsg.includes("have been") ? "text-emerald-400" : "text-red-400"}`}>{resetMsg}</p>
                 )}
                 <button
                   onClick={handleResetRatings}
                   disabled={resetLoading || !resetInput}
-                  className="w-full py-2 bg-[#f59e0b] hover:bg-[#fbbf24] disabled:opacity-50 text-black text-sm font-medium rounded-lg transition-colors"
+                  className="w-full py-2.5 bg-[#f59e0b] hover:bg-[#fbbf24] disabled:opacity-50 text-black text-sm font-medium rounded-lg transition-colors"
                 >
-                  {resetLoading ? "Resetting..." : "Reset"}
+                  {resetLoading ? "Resetting..." : "Reset All Ratings"}
                 </button>
               </div>
             )}
@@ -243,37 +280,47 @@ export default function SettingsPage() {
           <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl overflow-hidden">
             <button
               onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
-              className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.03] transition-colors"
             >
-              <span className="text-sm text-red-400">Delete Account</span>
-              <span className="text-[#6b7280] text-xs">{showDeleteConfirm ? "▲" : "▼"}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-lg">🗑️</span>
+                <span className="text-sm text-red-400">Delete Account</span>
+              </div>
+              <span className="text-[#6b7280] text-xs transition-transform duration-200" style={{ transform: showDeleteConfirm ? "rotate(180deg)" : "rotate(0deg)" }}>
+                ▼
+              </span>
             </button>
             {showDeleteConfirm && (
               <div className="px-4 pb-4 space-y-3 border-t border-[#2d2d4a] pt-4">
-                <p className="text-xs text-[#9ca3af]">
+                <p className="text-xs text-[#9ca3af] leading-relaxed">
                   Your account and all data will be permanently deleted. This cannot be undone.
                 </p>
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={deletePw}
-                  onChange={(e) => setDeletePw(e.target.value)}
-                  className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#6b7280] focus:outline-none focus:border-red-500"
-                />
-                <input
-                  type="text"
-                  placeholder="Enter username"
-                  value={deleteInput}
-                  onChange={(e) => setDeleteInput(e.target.value)}
-                  className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#6b7280] focus:outline-none focus:border-red-500"
-                />
+                <div>
+                  <label className="text-[11px] text-[#9ca3af] block mb-1.5">Password</label>
+                  <input
+                    type="password"
+                    value={deletePw}
+                    onChange={(e) => setDeletePw(e.target.value)}
+                    className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:border-red-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-[#9ca3af] block mb-1.5">Username</label>
+                  <input
+                    type="text"
+                    placeholder="Enter your username"
+                    value={deleteInput}
+                    onChange={(e) => setDeleteInput(e.target.value)}
+                    className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:border-red-500"
+                  />
+                </div>
                 {deleteMsg && (
                   <p className="text-xs text-red-400">{deleteMsg}</p>
                 )}
                 <button
                   onClick={handleDeleteAccount}
                   disabled={deleteLoading || !deletePw || !deleteInput}
-                  className="w-full py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="w-full py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   {deleteLoading ? "Deleting..." : "Delete Account"}
                 </button>
