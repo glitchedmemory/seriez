@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
@@ -11,33 +10,25 @@ import PosterImage from "@/components/PosterImage";
 // ─── Inline SVG icon components ───
 function HeartIcon({ active }: { active: boolean }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={active ? "text-pink-500" : "text-gray-400"}>
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={active ? "#14b8a6" : "none"} stroke={active ? "#14b8a6" : "#6b7280"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78l1.06-1.06a5.5 5.5 0 0 0 0-7.78"/>
     </svg>
   );
 }
 
-function WatchingIcon({ active }: { active: boolean }) {
+function PlayIcon({ active }: { active: boolean }) {
   return (
-    <Image
-      src={active ? "/icons/watching-pink.png" : "/icons/watching-gray.png"}
-      alt="Watching"
-      width={20}
-      height={20}
-      style={{ imageRendering: "pixelated" }}
-    />
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={active ? "#14b8a6" : "none"} stroke={active ? "#14b8a6" : "#6b7280"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="5 3 19 12 5 21 5 3"/>
+    </svg>
   );
 }
 
-function WatchedIcon({ active }: { active: boolean }) {
+function CheckIcon({ active }: { active: boolean }) {
   return (
-    <Image
-      src={active ? "/icons/watched-pink.png" : "/icons/watched-gray.png"}
-      alt="Watched"
-      width={20}
-      height={20}
-      style={{ imageRendering: "pixelated" }}
-    />
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={active ? "#14b8a6" : "#6b7280"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
   );
 }
 
@@ -437,45 +428,45 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                     </p>
                   </div>
                 ) : (
-            <div className="flex gap-1 mt-4 justify-center md:justify-start">
+            <div className="flex gap-2 mt-4 justify-center md:justify-start">
               <button
                 onClick={() => handleTrack("plan_to_watch")}
                 disabled={trackLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border"
+                className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                 style={{
-                  color: isWanted ? "#ec4899" : "#9ca3af",
-                  borderColor: isWanted ? "#ec489950" : "#2d2d4a",
-                  backgroundColor: isWanted ? "#ec489910" : "#1a1a2e",
+                  color: isWanted ? "#14b8a6" : "#6b7280",
+                  backgroundColor: isWanted ? "#14b8a610" : "#1a1a2e",
+                  border: isWanted ? "1px solid #14b8a640" : "1px solid #2d2d4a",
                 }}
               >
                 <HeartIcon active={isWanted} />
-                To Watch
+                TO WATCH
               </button>
               <button
                 onClick={() => handleTrack("watching")}
                 disabled={trackLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border"
+                className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                 style={{
-                  color: isWatching ? "#ec4899" : "#9ca3af",
-                  borderColor: isWatching ? "#ec489950" : "#2d2d4a",
-                  backgroundColor: isWatching ? "#ec489910" : "#1a1a2e",
+                  color: isWatching ? "#14b8a6" : "#6b7280",
+                  backgroundColor: isWatching ? "#14b8a610" : "#1a1a2e",
+                  border: isWatching ? "1px solid #14b8a640" : "1px solid #2d2d4a",
                 }}
               >
-                <WatchingIcon active={isWatching} />
-                Watching
+                <PlayIcon active={isWatching} />
+                WATCHING
               </button>
               <button
                 onClick={() => handleTrack("completed")}
                 disabled={trackLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border"
+                className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                 style={{
-                  color: isWatched ? "#ec4899" : "#9ca3af",
-                  borderColor: isWatched ? "#ec489950" : "#2d2d4a",
-                  backgroundColor: isWatched ? "#ec489910" : "#1a1a2e",
+                  color: isWatched ? "#14b8a6" : "#6b7280",
+                  backgroundColor: isWatched ? "#14b8a610" : "#1a1a2e",
+                  border: isWatched ? "1px solid #14b8a640" : "1px solid #2d2d4a",
                 }}
               >
-                <WatchedIcon active={isWatched} />
-                Watched
+                <CheckIcon active={isWatched} />
+                WATCHED
               </button>
             </div>
             )}
