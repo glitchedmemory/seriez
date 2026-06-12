@@ -11,15 +11,44 @@ interface Top10Item {
   mediaType?: string;
 }
 
+// Inline SVG brand logos — no cache issues, always up to date
+function NetflixLogo() {
+  return (
+    <svg viewBox="0 0 200 40" className="h-5 w-auto" fill="none">
+      <rect width="200" height="40" rx="6" fill="#E50914"/>
+      <text x="100" y="27" textAnchor="middle" fontFamily="Arial,Helvetica,sans-serif" fontSize="22" fontWeight="900" fill="white" letterSpacing="3">NETFLIX</text>
+    </svg>
+  );
+}
+
+function DisneyLogo() {
+  return (
+    <svg viewBox="0 0 200 40" className="h-5 w-auto" fill="none">
+      <rect width="200" height="40" rx="6" fill="#113CCF"/>
+      <text x="100" y="27" textAnchor="middle" fontFamily="Arial,Helvetica,sans-serif" fontSize="18" fontWeight="900" fill="white" letterSpacing="2">DISNEY+</text>
+    </svg>
+  );
+}
+
+function PrimeLogo() {
+  return (
+    <svg viewBox="0 0 200 40" className="h-5 w-auto" fill="none">
+      <rect width="200" height="40" rx="6" fill="#00A8E1"/>
+      <text x="100" y="22" textAnchor="middle" fontFamily="Arial,Helvetica,sans-serif" fontSize="11" fontWeight="700" fill="white" letterSpacing="1">prime video</text>
+      <path d="M103 24 L99 30 L107 30 Z" fill="white"/>
+    </svg>
+  );
+}
+
 const PLATFORMS: {
   key: string;
   label: string;
-  icon: string;
   color: string;
+  Logo: React.ComponentType;
 }[] = [
-  { key: "netflix", label: "Netflix", icon: "/icons/platforms/netflix.svg", color: "#E50914" },
-  { key: "disney", label: "Disney+", icon: "/icons/platforms/disney-plus.svg", color: "#113CCF" },
-  { key: "amazon", label: "Prime", icon: "/icons/platforms/prime-video.svg", color: "#00A8E1" },
+  { key: "netflix", label: "Netflix", color: "#E50914", Logo: NetflixLogo },
+  { key: "disney", label: "Disney+", color: "#113CCF", Logo: DisneyLogo },
+  { key: "amazon", label: "Prime", color: "#00A8E1", Logo: PrimeLogo },
 ];
 
 export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
@@ -38,7 +67,8 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
   }, []);
 
   const currentData = data[activeTab] || (loading ? PLACEHOLDER_DATA[activeTab] : []);
-  const activeColor = PLATFORMS.find((p) => p.key === activeTab)?.color || "#6366f1";
+  const activePlatform = PLATFORMS.find((p) => p.key === activeTab);
+  const activeColor = activePlatform?.color || "#6366f1";
 
   if (!loading && Object.keys(data).length === 0) return null;
 
@@ -49,29 +79,33 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
           <span>📺</span> Streaming Top 10
         </h3>
 
-        {/* Tabs with brand logos */}
+        {/* Tabs with inline brand logos */}
         <div className="flex gap-1 mb-3">
-          {PLATFORMS.map((p) => (
-            <button
-              key={p.key}
-              onClick={() => setActiveTab(p.key)}
-              className="flex-1 flex items-center justify-center px-2 py-1.5 rounded-lg transition-all"
-              style={{
-                backgroundColor: activeTab === p.key ? p.color + "22" : "transparent",
-                borderBottom: activeTab === p.key ? `2px solid ${p.color}` : "2px solid transparent",
-              }}
-            >
-              <img
-                src={p.icon}
-                alt={p.label}
-                className="h-5 w-auto rounded"
+          {PLATFORMS.map((p) => {
+            const isActive = activeTab === p.key;
+            const LogoComponent = p.Logo;
+            return (
+              <button
+                key={p.key}
+                onClick={() => setActiveTab(p.key)}
+                className="flex-1 flex items-center justify-center px-2 py-1.5 rounded-lg transition-all"
                 style={{
-                  opacity: activeTab === p.key ? 1 : 0.55,
-                  filter: activeTab === p.key ? "none" : "grayscale(100%)",
+                  backgroundColor: isActive ? p.color + "22" : "transparent",
+                  borderBottom: isActive ? `2px solid ${p.color}` : "2px solid transparent",
                 }}
-              />
-            </button>
-          ))}
+              >
+                <span
+                  style={{
+                    opacity: isActive ? 1 : 0.55,
+                    filter: isActive ? "none" : "grayscale(100%)",
+                  }}
+                  className="leading-none"
+                >
+                  <LogoComponent />
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* List */}
@@ -105,14 +139,21 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
                 <img
                   src={item.poster}
                   alt=""
-                  className="w-8 h-12 rounded object-cover flex-shrink-0 bg-[#1a1a2e]"
+                  className="w-10 h-14 rounded object-cover flex-shrink-0 bg-[#1a1a2e] border border-[#2d2d4a]"
                   loading="lazy"
+                  onError={(e) => {
+                    // Hide broken image, show placeholder
+                    (e.target as HTMLImageElement).style.display = "none";
+                    (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden");
+                  }}
                 />
-              ) : (
-                <div className="w-8 h-12 rounded bg-[#1a1a2e] flex-shrink-0 flex items-center justify-center">
-                  <span className="text-[8px] text-[#4b5563]">—</span>
-                </div>
-              )}
+              ) : null}
+              {/* Fallback placeholder (shown via onError or when no poster) */}
+              <div
+                className={item.poster ? "hidden" : "w-10 h-14 rounded bg-[#0f0f1a] flex-shrink-0 flex items-center justify-center border border-[#2d2d4a]"}
+              >
+                <span className="text-[9px] text-[#4b5563]">—</span>
+              </div>
 
               <span className="text-[12px] text-white truncate">{item.title}</span>
             </a>
