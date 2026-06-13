@@ -116,7 +116,7 @@ function CommentTree({
                     </button>
                   )}
                   {authUsername === c.username && (
-                    <button onClick={() => { if (confirm("Delete this comment?")) onDelete(c.id); }}
+                    <button onClick={() => onDelete(c.id)}
                       className="text-[10px] text-[#6b7280] hover:text-red-400 transition-colors ml-auto"
                       title="Delete your comment">🗑️</button>
                   )}
@@ -420,6 +420,8 @@ export function ReviewSection({
     }
   };
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const getUsername = () => authUser?.user_metadata?.username || "";
 
   const handleReport = async (targetType: "review" | "comment", targetId: string) => {
@@ -447,18 +449,20 @@ export function ReviewSection({
 
   const handleDeleteReview = async (reviewId: string) => {
     const username = getUsername();
-    if (!username) return;
+    if (!username || !reviewId) return;
+    setDeletingId(reviewId);
     try {
       const res = await fetch(`/api/reviews?reviewId=${reviewId}&username=${encodeURIComponent(username)}`, { method: "DELETE" });
       if (res.ok) {
         setReviews((prev) => prev.filter((r) => r.id !== reviewId));
       } else {
         const err = await res.json().catch(() => ({}));
-        alert(err.error || "Failed to delete review");
+        alert(err.error || "Failed to delete");
       }
     } catch {
-      alert("Network error — please try again");
+      alert("Network error");
     }
+    setDeletingId(null);
   };
 
   const handleDeleteComment = async (commentId: number, reviewId: string) => {
@@ -839,11 +843,12 @@ export function ReviewSection({
                 {/* Delete own review */}
                 {authUser?.user_metadata?.username === review.username && (
                   <button
-                    onClick={() => { if (confirm("Delete this review?")) handleDeleteReview(review.id); }}
-                    className="flex items-center gap-1 text-xs text-[#6b7280] hover:text-red-400 transition-colors"
+                    onClick={() => handleDeleteReview(review.id)}
+                    disabled={deletingId === review.id}
+                    className="flex items-center gap-1 text-xs text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50"
                     title="Delete your review"
                   >
-                    🗑️
+                    {deletingId === review.id ? "⏳" : "🗑️"}
                   </button>
                 )}
                 {/* Admin: delete hidden review */}
