@@ -105,12 +105,12 @@ function CommentTree({
                     <button onClick={() => authUsername ? onReport(c.id) : router.push("/login")}
                       disabled={reportingComments.has(String(c.id)) && !!authUsername}
                       className={`text-[11px] transition-colors disabled:opacity-50 ml-auto ${
-                        (reportCounts[String(c.id)] || 0) > 0
+                        (reportCounts?.[String(c.id)] || 0) > 0
                           ? "text-green-400"
                           : "text-[#6b7280] hover:text-red-400"
                       }`}
-                      title={reportCounts[String(c.id)] ? "Reported ✓" : "Report"}>
-                      {reportCounts[String(c.id)] ? "✓ Reported" : (
+                      title={reportCounts?.[String(c.id)] ? "Reported ✓" : "Report"}>
+                      {reportCounts?.[String(c.id)] ? "✓ Reported" : (
                         <img src="/report-button.png" alt="Report" className="h-5 w-auto opacity-70 hover:opacity-100" />
                       )}
                     </button>
