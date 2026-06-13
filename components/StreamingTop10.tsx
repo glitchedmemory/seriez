@@ -68,14 +68,25 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
   const [category, setCategory] = useState<Category>("movies");
   const [data, setData] = useState<Record<string, PlatformData>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     fetch("/api/streaming-top10")
-      .then((r) => r.json())
-      .then((json) => {
-        if (json.data) setData(json.data);
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
       })
-      .catch(() => {})
+      .then((json) => {
+        if (json.data && Object.keys(json.data).length > 0) {
+          setData(json.data);
+        } else {
+          throw new Error("Empty data");
+        }
+      })
+      .catch((e) => {
+        console.error("StreamingTop10 fetch failed:", e);
+        setError(true);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -86,6 +97,17 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
 
   const activePlatform = PLATFORMS.find((p) => p.key === activeTab);
   const activeColor = activePlatform?.color || "#6366f1";
+
+  if (error) {
+    return (
+      <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl overflow-hidden">
+        <div className="p-3 text-center">
+          <h3 className="text-xs font-semibold text-white mb-1">📺 Streaming Top 10</h3>
+          <p className="text-[10px] text-[#6b7280]">Failed to load</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!loading && Object.keys(data).length === 0) return null;
 
