@@ -89,13 +89,11 @@ export async function GET() {
         const enrichItems = async (items: RawItem[], type: string) => {
           const result: EnrichedItem[] = [];
           for (const item of items) {
-            const flixPoster = item.poster; // FlixPatrol poster (fallback only)
-            const tmdb = await searchTMDB(item.title, type);
+            const flixPoster = item.poster; // FlixPatrol poster (primary — user requires)
+            const tmdb = flixPoster ? null : await searchTMDB(item.title, type);
             result.push({
               ...item,
-              // Prefer TMDB posters — FlixPatrol URLs often blocked by browsers
-              poster: tmdb?.poster || flixPoster,
-              tmdbPoster: tmdb?.poster,
+              poster: flixPoster || tmdb?.poster,
               tmdbId: tmdb?.id,
               mediaType: tmdb?.mediaType,
             });
