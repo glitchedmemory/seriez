@@ -78,17 +78,19 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
       })
       .then((json) => {
         console.log("StreamingTop10 API response:", json);
+        // Force-show raw data for debugging
+        const raw = JSON.stringify(json?.data || {}, null, 0).substring(0, 500);
         if (json.data && Object.keys(json.data).length > 0) {
           console.log("StreamingTop10 setting data, keys:", Object.keys(json.data));
           setData(json.data);
         } else {
           console.error("StreamingTop10 empty data");
-          throw new Error("Empty data");
+          setData({ __raw: { movies: [{ rank: 1, title: `API empty. Raw: ${raw}`, score: 0 }] as any, tv: [] } as any });
         }
       })
       .catch((e) => {
         console.error("StreamingTop10 fetch failed:", e);
-        setError(true);
+        setData({ __raw: { movies: [{ rank: 1, title: `Fetch error: ${e}`, score: 0 }] as any, tv: [] } as any });
       })
       .finally(() => setLoading(false));
   }, []);
