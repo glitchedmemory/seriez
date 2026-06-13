@@ -195,6 +195,9 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
           <div className="flex items-center gap-2.5 px-2 py-1.5 text-[12px] text-[#f59e0b]">
             ⚡ DEBUG: dataKeys={Object.keys(data).join(',')||'none'}, activeTab={activeTab}, category={category}, items={currentData.length}
           </div>
+          <div className="flex items-center gap-2.5 px-2 py-1.5 text-[11px] text-[#ef4444]">
+            🔴 platformData keys: {platformData ? Object.keys(platformData).join(',') : 'NULL'}, sample: {platformData ? JSON.stringify(platformData).substring(0, 200) : 'NULL'}
+          </div>
           {currentData.map((item) => (
             <a
               key={`${activeTab}-${category}-${item.rank}`}
