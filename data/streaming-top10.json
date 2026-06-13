@@ -1,109 +1,129 @@
 {
-  "updated_at": "2026-06-13T11:24:04.971180+00:00",
+  "updated_at": "2026-06-13T11:40:42.600884+00:00",
   "data": {
     "netflix": {
       "movies": [
         {
           "rank": 1,
           "title": "Office Romance",
-          "score": 873
+          "score": 873,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/c/w72/cigigse5ehzlyzgl1pc17hfnhcb.jpg"
         },
         {
           "rank": 2,
           "title": "The Marked Woman",
-          "score": 725
+          "score": 725,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/a/w72/a3njzagktqtocrva3sluskthfnl.jpg"
         },
         {
           "rank": 3,
           "title": "Colors of Evil: Black",
-          "score": 688
+          "score": 688,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/w/w72/wiubczkpntiqmlc5dehgu1lnfip.jpg"
         },
         {
           "rank": 4,
           "title": "Sonic the Hedgehog 3",
-          "score": 185
+          "score": 185,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/n/w72/nyer1vqvkx1yiesmc3otb2fzvpy.jpg"
         },
         {
           "rank": 5,
           "title": "Swapped",
-          "score": 179
+          "score": 179,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/q/w72/qoil7txfx4ekhtjyoqh1o7kawpz.jpg"
         },
         {
           "rank": 6,
           "title": "The Murder of Rachel Nickell",
-          "score": 168
+          "score": 168,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/i/w72/ibtnwrpugssuv7pbvrigr97jdvs.jpg"
         },
         {
           "rank": 7,
           "title": "Monster-in-Law",
-          "score": 145
+          "score": 145,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/5/w72/5gsldahlqjx1mb6l9vji6txqgas.jpg"
         },
         {
           "rank": 8,
           "title": "Zack Snyder's Justice League",
-          "score": 136
+          "score": 136,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/2/w72/2jfquqnh64mnpxkygt45aofbajn.jpg"
         },
         {
           "rank": 9,
           "title": "Ladies First",
-          "score": 120
+          "score": 120,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/5/w72/59lotc4jck3hpx0torbk4zypymg.jpg"
         },
         {
           "rank": 10,
           "title": "Boonie Bears: The Big Shrink",
-          "score": 101
+          "score": 101,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/m/w72/mukb7nzzdhdxupzvo332qloa6fp.jpg"
         }
       ],
       "tv": [
         {
           "rank": 1,
           "title": "Teach You a Lesson",
-          "score": 795
+          "score": 795,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/g/w72/gqrvgt40dkvvvxktmthaaebh0fj.jpg"
         },
         {
           "rank": 2,
           "title": "The Witness",
-          "score": 780
+          "score": 780,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/z/w72/zz99x2bwxpwys6y4ew7yltkktqr.jpg"
         },
         {
           "rank": 3,
           "title": "Michael Jackson: The Verdict",
-          "score": 591
+          "score": 591,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/p/w72/pjaq1dfjtz0f8a1khfndj9be20p.jpg"
         },
         {
           "rank": 4,
           "title": "Outlast: The Jungle",
-          "score": 349
+          "score": 349,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/m/w72/mkhpv2ega3s4xfyl7kpopxora04.jpg"
         },
         {
           "rank": 5,
           "title": "Berlin and the Lady with an Ermine",
-          "score": 242
+          "score": 242,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/f/w72/fkjg7mo7wut9semevmhftgi6t4v.jpg"
         },
         {
           "rank": 6,
           "title": "My Royal Nemesis",
-          "score": 209
+          "score": 209,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/1/w72/1o4z2hmlg0hrpljmaf8tzguagls.jpg"
         },
         {
           "rank": 7,
           "title": "Sweet Magnolias",
-          "score": 197
+          "score": 197,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/n/w72/n1wdsfonccg3cdhhgbywztyizf9.jpg"
         },
         {
           "rank": 8,
           "title": "The Four Seasons",
-          "score": 175
+          "score": 175,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/6/w72/6yj4xwcrcltsnft3vnqcxjhpxdq.jpg"
         },
         {
           "rank": 9,
           "title": "Rosario Tijeras",
-          "score": 165
+          "score": 165,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/q/w72/q03eql8aux49lvh6it3ilmwzhqu.jpg"
         },
         {
           "rank": 10,
           "title": "Nemesis",
-          "score": 161
+          "score": 161,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/n/w72/ny7zwsmw5pjojdk2cobqitj7bm.jpg"
         }
       ]
     },
@@ -112,104 +132,124 @@
         {
           "rank": 1,
           "title": "Toy Story 5 | A Special Look",
-          "score": 702
+          "score": 702,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/h/w72/hcwniq2vxhuo8prcdvjuvfelvfs.jpg"
         },
         {
           "rank": 2,
           "title": "Hoppers",
-          "score": 694
+          "score": 694,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/6/w72/6m170isczxx5cyumjiryziev8co.jpg"
         },
         {
           "rank": 3,
           "title": "Toy Story",
-          "score": 558
+          "score": 558,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/r/w72/rhirbceoe9lr4veexuwcc2wartg.jpg"
         },
         {
           "rank": 4,
           "title": "Toy Story 2",
-          "score": 482
+          "score": 482,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/g/w72/gd12nm0vnrgbaumzdjte4obedgz.jpg"
         },
         {
           "rank": 5,
           "title": "Toy Story 3",
-          "score": 374
+          "score": 374,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/t/w72/towaavel1p3ls9dhobo45elodu3.jpg"
         },
         {
           "rank": 6,
           "title": "Toy Story 4",
-          "score": 310
+          "score": 310,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/w/w72/w9kr8qbmq01hwnvk4alvnq2ca0l.jpg"
         },
         {
           "rank": 7,
           "title": "Taylor Swift I Knew It, I Knew You | Toy Story 5 Music Video",
-          "score": 261
+          "score": 261,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/g/w72/goggsbcsypnxq0yapyexe7nnopt.jpg"
         },
         {
           "rank": 8,
           "title": "The Punisher: One Last Kill",
-          "score": 225
+          "score": 225,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/m/w72/mlv70iuchlzxcxkowjwspsfdfub.jpg"
         },
         {
           "rank": 9,
           "title": "Send Help",
-          "score": 221
+          "score": 221,
+          "poster": null
         },
         {
           "rank": 10,
           "title": "Messi: The Forgotten Tape",
-          "score": 46
+          "score": 46,
+          "poster": null
         }
       ],
       "tv": [
         {
           "rank": 1,
           "title": "The Testaments",
-          "score": 607
+          "score": 607,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/x/w72/xvsfoplisboikdxxecantn4pj9a.jpg"
         },
         {
           "rank": 2,
           "title": "Not Suitable for Work",
-          "score": 538
+          "score": 538,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/h/w72/hpucdfivwwcn6sxk8eoex0dby0c.jpg"
         },
         {
           "rank": 3,
           "title": "Perfect Crown",
-          "score": 370
+          "score": 370,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/h/w72/hpkizo05wwgawqlv2vcpqztg6ap.jpg"
         },
         {
           "rank": 4,
           "title": "Alice and Steve",
-          "score": 321
+          "score": 321,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/g/w72/gpou8wnitz1ulelkllclrqanxxf.jpg"
         },
         {
           "rank": 5,
           "title": "High Potential",
-          "score": 304
+          "score": 304,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/l/w72/lmyflruveofnwix4lwoquojnlhz.jpg"
         },
         {
           "rank": 6,
           "title": "Malcolm in the Middle: Life's Still Unfair",
-          "score": 272
+          "score": 272,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/4/w72/4uxazrytcmfox2xty1gcuxlhhjj.jpg"
         },
         {
           "rank": 7,
           "title": "Doctor on the Edge",
-          "score": 222
+          "score": 222,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/z/w72/zweyhe03vn1rbjf8bsf9dng0w8e.jpg"
         },
         {
           "rank": 8,
           "title": "Star Wars: Maul - Shadow Lord",
-          "score": 164
+          "score": 164,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/f/w72/ftfld3s9ybnozbfhd2axvwes93h.jpg"
         },
         {
           "rank": 9,
           "title": "Bluey Minisodes",
-          "score": 155
+          "score": 155,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/d/w72/dap61fwsjggdn9zlj2x8orxs19j.jpg"
         },
         {
           "rank": 10,
           "title": "Sofia the First: Royal Magic",
-          "score": 121
+          "score": 121,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/b/w72/btmaulyx0ecn7slcxjyq1anx7yx.jpg"
         }
       ]
     },
@@ -218,106 +258,127 @@
         {
           "rank": 1,
           "title": "Tom Clancy's Jack Ryan: Ghost War",
-          "score": 439
+          "score": 439,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/8/w72/8ehyxuh5mwe41aee9gkhe8dkzvb.jpg"
         },
         {
           "rank": 2,
           "title": "Over Your Dead Body",
-          "score": 284
+          "score": 284,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/q/w72/qkevzssuxsxcya7afqoecbr9wmj.jpg"
         },
         {
           "rank": 3,
           "title": "Greenland 2: Migration",
-          "score": 158
+          "score": 158,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/z/w72/z2tqcjlsw6uej8njv8bsqxga3dr.jpg"
         },
         {
           "rank": 4,
           "title": "The Housemaid",
-          "score": 137
+          "score": 137,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/q/w72/qwc6wh49pdytmsygtcavm1hayir.jpg"
         },
         {
           "rank": 5,
           "title": "Despicable Me 4",
-          "score": 118
+          "score": 118,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/w/w72/wwba3taojhk7ndycrhoqpsg0fah.jpg"
         },
         {
           "rank": 6,
           "title": "My Fault: London",
-          "score": 107
+          "score": 107,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/t/w72/ttn5d6gkowkwhmczdgctavanmai.jpg"
         },
         {
           "rank": 7,
           "title": "Crime 101",
-          "score": 104
+          "score": 104,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/t/w72/tvvpfioterhnnozmhdnwivwjpca.jpg"
         },
         {
           "rank": 8,
           "title": "Shelter",
-          "score": 85
+          "score": 85,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/k/w72/klvzs66sg19qmacdwxsrkdfqhqs.jpg"
         },
         {
           "rank": 9,
           "title": "Bride Hard",
-          "score": 59
+          "score": 59,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/p/w72/pvli4kl16ofypwvn5ytnzusx4l0.jpg"
         },
         {
           "rank": 10,
           "title": "Summer House",
-          "score": 53
+          "score": 53,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/8/w72/81xuchgvphbfehihigbxbynezxp.jpg"
         }
       ],
       "tv": [
         {
           "rank": 1,
           "title": "Every Year After",
-          "score": 470
+          "score": 470,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/n/w72/nzgf0jnsjnxlf8o7iszzx8qxhx9.jpg"
         },
         {
           "rank": 2,
           "title": "Off Campus",
-          "score": 430
+          "score": 430,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/4/w72/4exfbv3o86izcofebhv84e6qbjc.jpg"
         },
         {
           "rank": 3,
           "title": "Spider-Noir",
-          "score": 366
+          "score": 366,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/c/w72/crazl6mmdm6q6uuqgc335umgcfd.jpg"
         },
         {
           "rank": 4,
           "title": "The Boys",
-          "score": 254
+          "score": 254,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/i/w72/in1r2ddc421jxsorwaiiaqvi2ke.jpg"
         },
         {
           "rank": 5,
           "title": "Clarkson's Farm",
-          "score": 212
+          "score": 212,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/y/w72/ykc3fqwd2eanwbuwqcrh7bche3v.jpg"
         },
         {
           "rank": 6,
           "title": "The Legend of Vox Machina",
-          "score": 127
+          "score": 127,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/4/w72/4fqfhmvnohe2nlcligivmtmnfem.jpg"
         },
         {
           "rank": 7,
           "title": "Yo soy Betty la fea",
-          "score": 116
+          "score": 116,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/i/w72/ieboixidgaxvr6w8akgg5meusuo.jpg"
         },
         {
           "rank": 8,
           "title": "Pa' Quererte",
-          "score": 96
+          "score": 96,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/j/w72/jka5kmace158gyrg3ldu0iv7mrf.jpg"
         },
         {
           "rank": 9,
           "title": "The Summer I Turned Pretty",
-          "score": 68
+          "score": 68,
+          "poster": "https://flixpatrol.com/runtime/cache/files/posters/a/w72/a7zip4qatrawwqghhyknn5uullf.jpg"
         },
         {
           "rank": 10,
           "title": "Las de siempre",
-          "score": 35
+          "score": 35,
+          "poster": null
         }
       ]
     }
-  }
+  },
+  "source": "flixpatrol"
 }

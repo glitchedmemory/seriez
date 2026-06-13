@@ -8,11 +8,12 @@ interface RawItem {
   rank: number;
   title: string;
   score: number;
+  poster?: string; // FlixPatrol poster URL
 }
 
 interface EnrichedItem extends RawItem {
   tmdbId?: number;
-  poster?: string;
+  tmdbPoster?: string; // TMDB poster (fallback)
   mediaType?: string;
 }
 
@@ -34,7 +35,6 @@ async function searchTMDB(
   if (!apiKey) return null;
 
   try {
-    // Use known media type from FlixPatrol for better accuracy
     const searchType = knownType === "tv" ? "tv" : "movie";
     const url = `https://api.themoviedb.org/3/search/${searchType}?api_key=${apiKey}&query=${encodeURIComponent(title)}&language=en-US&page=1`;
     const res = await fetch(url);
@@ -80,33 +80,31 @@ export async function GET() {
       } catch {}
     }
 
-    // If no cache, enrich with TMDB (movies + tv for each platform)
+    // If no cache, enrich with TMDB — but keep FlixPatrol posters as primary
     if (!enriched) {
       enriched = {};
       for (const [platform, platformData] of Object.entries(rawData)) {
         const enrichedPlatform: EnrichedPlatformData = { movies: [], tv: [] };
 
-        // Enrich movies
-        for (const item of platformData.movies || []) {
-          const tmdb = await searchTMDB(item.title, "movie");
-          enrichedPlatform.movies.push({
-            ...item,
-            tmdbId: tmdb?.id,
-            poster: tmdb?.poster,
-            mediaType: tmdb?.mediaType,
-          });
-        }
+        const enrichItems = async (items: RawItem[], type: string) => {
+          const result: EnrichedItem[] = [];
+          for (const item of items) {
+            const flixPoster = item.poster; // FlixPatrol poster (primary)
+            const tmdb = flixPoster ? null : await searchTMDB(item.title, type);
+            result.push({
+              ...item,
+              // Keep FlixPatrol poster as primary; TMDB as tmdbPoster fallback
+              poster: flixPoster || tmdb?.poster,
+              tmdbPoster: flixPoster ? undefined : tmdb?.poster,
+              tmdbId: tmdb?.id,
+              mediaType: tmdb?.mediaType,
+            });
+          }
+          return result;
+        };
 
-        // Enrich TV shows
-        for (const item of platformData.tv || []) {
-          const tmdb = await searchTMDB(item.title, "tv");
-          enrichedPlatform.tv.push({
-            ...item,
-            tmdbId: tmdb?.id,
-            poster: tmdb?.poster,
-            mediaType: tmdb?.mediaType,
-          });
-        }
+        enrichedPlatform.movies = await enrichItems(platformData.movies || [], "movie");
+        enrichedPlatform.tv = await enrichItems(platformData.tv || [], "tv");
 
         enriched[platform] = enrichedPlatform;
       }
