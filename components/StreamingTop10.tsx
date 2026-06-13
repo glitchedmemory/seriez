@@ -11,6 +11,11 @@ interface Top10Item {
   mediaType?: string;
 }
 
+interface PlatformData {
+  movies: Top10Item[];
+  tv: Top10Item[];
+}
+
 // ── Official brand LOGO MARKS (not text) ──
 
 /** Netflix "N" logo mark — iconic red fold */
@@ -56,9 +61,12 @@ const PLATFORMS: {
   { key: "amazon", label: "Prime", color: "#00A8E1", Logo: PrimeLogo },
 ];
 
+type Category = "movies" | "tv";
+
 export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
   const [activeTab, setActiveTab] = useState("netflix");
-  const [data, setData] = useState<Record<string, Top10Item[]>>({});
+  const [category, setCategory] = useState<Category>("movies");
+  const [data, setData] = useState<Record<string, PlatformData>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -71,7 +79,11 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const currentData = data[activeTab] || (loading ? PLACEHOLDER_DATA[activeTab] : []);
+  const platformData = data[activeTab];
+  const currentData: Top10Item[] = loading
+    ? Array.from({ length: 5 }, (_, i) => ({ rank: i + 1, title: "Loading...", score: 0 }))
+    : (platformData?.[category] || []);
+
   const activePlatform = PLATFORMS.find((p) => p.key === activeTab);
   const activeColor = activePlatform?.color || "#6366f1";
 
@@ -80,9 +92,36 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
   return (
     <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl overflow-hidden">
       <div className="p-3">
-        <h3 className="text-xs font-semibold text-white mb-2 flex items-center gap-1.5">
-          <span>📺</span> Streaming Top 10
-        </h3>
+        {/* Header row: title + Movies/TV Shows toggle */}
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-xs font-semibold text-white flex items-center gap-1.5">
+            <span>📺</span> Streaming Top 10
+          </h3>
+
+          {/* Movies / TV Shows toggle */}
+          <div className="flex rounded-lg bg-[#0f0f1a] p-0.5 border border-[#2d2d4a]">
+            <button
+              onClick={() => setCategory("movies")}
+              className="px-2.5 py-1 text-[10px] font-medium rounded-md transition-all"
+              style={{
+                backgroundColor: category === "movies" ? activeColor : "transparent",
+                color: category === "movies" ? "#fff" : "#6b7280",
+              }}
+            >
+              Movies
+            </button>
+            <button
+              onClick={() => setCategory("tv")}
+              className="px-2.5 py-1 text-[10px] font-medium rounded-md transition-all"
+              style={{
+                backgroundColor: category === "tv" ? activeColor : "transparent",
+                color: category === "tv" ? "#fff" : "#6b7280",
+              }}
+            >
+              TV Shows
+            </button>
+          </div>
+        </div>
 
         {/* Tabs with official brand logo marks */}
         <div className="flex gap-1 mb-3">
@@ -117,8 +156,8 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
         <div className="space-y-0.5">
           {currentData.map((item) => (
             <a
-              key={`${activeTab}-${item.rank}`}
-              href={item.tmdbId ? `/title/${item.tmdbId}?type=${item.mediaType || "movie"}` : "#"}
+              key={`${activeTab}-${category}-${item.rank}`}
+              href={item.tmdbId ? `/title/${item.tmdbId}?type=${item.mediaType || category === "tv" ? "tv" : "movie"}` : "#"}
               onClick={(e) => {
                 if (!item.tmdbId) e.preventDefault();
               }}
@@ -166,21 +205,3 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
     </div>
   );
 }
-
-const PLACEHOLDER_DATA: Record<string, Top10Item[]> = {
-  netflix: Array.from({ length: 5 }, (_, i) => ({
-    rank: i + 1,
-    title: "Loading...",
-    score: 0,
-  })),
-  disney: Array.from({ length: 5 }, (_, i) => ({
-    rank: i + 1,
-    title: "Loading...",
-    score: 0,
-  })),
-  amazon: Array.from({ length: 5 }, (_, i) => ({
-    rank: i + 1,
-    title: "Loading...",
-    score: 0,
-  })),
-};
