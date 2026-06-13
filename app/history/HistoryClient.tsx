@@ -176,7 +176,7 @@ export default function HistoryClient() {
         <StreamingTop10 variant="page" />
 
         {/* 🎰 Roulette */}
-        <div className="mt-0">
+        <div className="mt-8">
           <RouletteCard />
         </div>
       </div>
