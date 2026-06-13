@@ -38,6 +38,7 @@ function CommentTree({
   titleName,
   authUsername,
   avatarUrls,
+  reportCounts,
 }: {
   comments: any[];
   depth: number;
@@ -60,6 +61,7 @@ function CommentTree({
   titleName: string;
   authUsername?: string;
   avatarUrls?: Record<string, string | null>;
+  reportCounts?: Record<string, number>;
 }) {
   const router = useRouter();
   const nodes = parentId != null
@@ -168,7 +170,7 @@ function CommentTree({
                 reportingComments={reportingComments} replyInputs={replyInputs} replyingTo={replyingTo}
                 expandedThreads={expandedThreads} onToggleThread={onToggleThread} onLike={onLike}
                 reviewId={reviewId} reviewTmdbId={reviewTmdbId} reviewAuthor={reviewAuthor}
-                titleName={titleName} authUsername={authUsername} avatarUrls={avatarUrls} />
+                titleName={titleName} authUsername={authUsername} avatarUrls={avatarUrls} reportCounts={reportCounts} />
             )}
             {/* Deep thread: "Continue this thread" */}
             {hasChildren && beyondDepth && (
@@ -184,7 +186,7 @@ function CommentTree({
                     reportingComments={reportingComments} replyInputs={replyInputs} replyingTo={replyingTo}
                     expandedThreads={expandedThreads} onToggleThread={onToggleThread} onLike={onLike}
                     reviewId={reviewId} reviewTmdbId={reviewTmdbId} reviewAuthor={reviewAuthor}
-                    titleName={titleName} authUsername={authUsername} avatarUrls={avatarUrls} />
+                    titleName={titleName} authUsername={authUsername} avatarUrls={avatarUrls} reportCounts={reportCounts} />
                 )}
               </div>
             )}
@@ -882,6 +884,7 @@ export function ReviewSection({
                       titleName=""
                       authUsername={authUser?.user_metadata?.username}
                       avatarUrls={avatarUrls}
+                      reportCounts={reportCounts}
                     />
                   ) : (
                     <p className="text-xs text-[#6b7280] mb-3">No comments yet</p>
