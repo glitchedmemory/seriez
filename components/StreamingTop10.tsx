@@ -215,7 +215,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
           {currentData.map((item) => (
             <a
               key={`${activeTab}-${category}-${item.rank}`}
-              href={item.tmdbId ? `/title/${item.tmdbId}?type=${item.mediaType || category === "tv" ? "tv" : "movie"}` : "#"}
+              href={item.tmdbId ? `/title/${item.tmdbId}?type=${item.mediaType || (category === "tv" ? "tv" : "movie")}` : "#"}
               onClick={(e) => {
                 if (!item.tmdbId) e.preventDefault();
               }}
