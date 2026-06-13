@@ -20,26 +20,15 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { target_type, target_id } = await req.json();
-    if (!target_type || !target_id) {
-      return NextResponse.json({ error: "target_type and target_id required" }, { status: 400 });
+    const { target_type, target_id, username } = await req.json();
+    if (!target_type || !target_id || !username) {
+      return NextResponse.json({ error: "target_type, target_id, and username required" }, { status: 400 });
     }
     if (!["review", "comment"].includes(target_type)) {
       return NextResponse.json({ error: "target_type must be review or comment" }, { status: 400 });
     }
 
-    // Get auth user from cookie
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { auth: { persistSession: false } }
-    );
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const reporter = user.user_metadata?.username || user.email || "unknown";
+    const reporter = username.trim();
 
     // Insert report (UNIQUE constraint prevents duplicates)
     const { error: insertErr } = await supabaseAdmin.from("reports").insert({

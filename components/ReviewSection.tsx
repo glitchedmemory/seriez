@@ -420,15 +420,18 @@ export function ReviewSection({
     }
   };
 
+  const getUsername = () => authUser?.user_metadata?.username || "";
+
   const handleReport = async (targetType: "review" | "comment", targetId: string) => {
     if (!authUser) return;
+    const username = getUsername();
+    if (!username) return;
     setReportingReview((prev) => new Set(prev).add(targetId));
     try {
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ target_type: targetType, target_id: targetId }),
+        body: JSON.stringify({ target_type: targetType, target_id: targetId, username }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -443,8 +446,10 @@ export function ReviewSection({
   };
 
   const handleDeleteReview = async (reviewId: string) => {
+    const username = getUsername();
+    if (!username) return;
     try {
-      const res = await fetch(`/api/reviews?reviewId=${reviewId}`, { method: "DELETE", credentials: "include" });
+      const res = await fetch(`/api/reviews?reviewId=${reviewId}&username=${encodeURIComponent(username)}`, { method: "DELETE" });
       if (res.ok) {
         setReviews((prev) => prev.filter((r) => r.id !== reviewId));
       } else {
@@ -457,8 +462,10 @@ export function ReviewSection({
   };
 
   const handleDeleteComment = async (commentId: number, reviewId: string) => {
+    const username = getUsername();
+    if (!username) return;
     try {
-      const res = await fetch(`/api/review-comments?commentId=${commentId}`, { method: "DELETE", credentials: "include" });
+      const res = await fetch(`/api/review-comments?commentId=${commentId}&username=${encodeURIComponent(username)}`, { method: "DELETE" });
       if (res.ok) {
         setComments((prev) => ({
           ...prev,
