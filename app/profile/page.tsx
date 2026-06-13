@@ -459,7 +459,7 @@ export default function ProfilePage() {
 
       {/* 🎰 Roulette — only for logged-in users */}
       {user && (
-        <div className="px-4 mt-6">
+        <div className="px-4 mt-2">
           <RouletteCard />
         </div>
       )}

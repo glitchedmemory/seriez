@@ -121,6 +121,16 @@ export default function RouletteCard() {
       >
         {/* Poster section */}
         <div className="relative aspect-[16/9] bg-[#0f0f23] overflow-hidden">
+          {/* Reset button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setResult(null);
+            }}
+            className="absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white/70 hover:text-white text-sm transition-colors"
+          >
+            ✕
+          </button>
           {result!.backdrop ? (
             <img
               src={result!.backdrop}
@@ -185,28 +195,12 @@ export default function RouletteCard() {
           )}
 
           {/* Overview */}
-          <p className="text-xs text-[#8b8fa3] leading-relaxed line-clamp-2 mb-3">
+          <p className="text-xs text-[#8b8fa3] leading-relaxed line-clamp-2">
             {result!.tagline && (
               <span className="italic text-[#a5b4fc]">"{result!.tagline}"{" "}</span>
             )}
             {result!.overview}
           </p>
-
-          {/* Spin again button */}
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] text-[#4b5563]">Tap for details →</span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setResult(null);
-                spin();
-              }}
-              disabled={spinning}
-              className="px-4 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-[#a5b4fc] transition-colors disabled:opacity-50"
-            >
-              {spinning ? "..." : "🔄 Spin Again"}
-            </button>
-          </div>
         </div>
       </button>
     </div>
