@@ -151,6 +151,49 @@ export async function POST(req: NextRequest) {
 }
 
 // ─── PATCH: like / unlike a comment ───
+// ─── DELETE: delete a comment (author or admin) ───
+export async function DELETE(req: NextRequest) {
+  try {
+    const username = await resolveUsername(req);
+    if (!username) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const commentId = searchParams.get("commentId");
+    if (!commentId) {
+      return NextResponse.json({ error: "Missing commentId" }, { status: 400 });
+    }
+
+    const user = username.trim();
+
+    // Check admin
+    const { data: userData } = await supabaseAdmin
+      .from("users").select("role").eq("username", user).maybeSingle();
+    const isAdmin = userData?.role === "admin";
+
+    // Get comment
+    const { data: comment } = await supabaseAdmin
+      .from("review_comments").select("username").eq("id", commentId).maybeSingle();
+
+    if (!comment) {
+      return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+    }
+
+    if (comment.username !== user && !isAdmin) {
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+    }
+
+    // Delete likes + child comments
+    await supabaseAdmin.from("comment_likes").delete().eq("comment_id", commentId);
+    await supabaseAdmin.from("review_comments").delete().eq("parent_id", commentId);
+    const { error } = await supabaseAdmin.from("review_comments").delete().eq("id", commentId);
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true });
+  } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
+}
+
 export async function PATCH(req: NextRequest) {
   try {
     const username = await resolveUsername(req);

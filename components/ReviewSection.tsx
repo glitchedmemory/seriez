@@ -105,6 +105,11 @@ function CommentTree({
                       className="text-[10px] text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50 ml-auto"
                       title="Report"><img src="/report-button.png" alt="Report" className="h-4 w-auto opacity-70 group-hover:opacity-100" /></button>
                   )}
+                  {authUsername === c.username && (
+                    <button onClick={() => { if (confirm("Delete this comment?")) onDelete(c.id); }}
+                      className="text-[10px] text-[#6b7280] hover:text-red-400 transition-colors ml-auto"
+                      title="Delete your comment">🗑️</button>
+                  )}
                   {isAdmin && c.is_hidden && (
                     <button onClick={() => onDelete(c.id)}
                       className="text-[10px] text-red-400 hover:text-red-300 ml-1">🗑️</button>
@@ -427,21 +432,23 @@ export function ReviewSection({
   };
 
   const handleDeleteReview = async (reviewId: string) => {
-    if (!isAdmin) return;
     try {
-      await supabase.from("reviews").delete().eq("id", reviewId);
-      setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      const res = await fetch(`/api/reviews?reviewId=${reviewId}`, { method: "DELETE" });
+      if (res.ok) {
+        setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      }
     } catch {}
   };
 
   const handleDeleteComment = async (commentId: number, reviewId: string) => {
-    if (!isAdmin) return;
     try {
-      await supabase.from("review_comments").delete().eq("id", commentId);
-      setComments((prev) => ({
-        ...prev,
-        [reviewId]: (prev[reviewId] || []).filter((c) => c.id !== commentId),
-      }));
+      const res = await fetch(`/api/review-comments?commentId=${commentId}`, { method: "DELETE" });
+      if (res.ok) {
+        setComments((prev) => ({
+          ...prev,
+          [reviewId]: (prev[reviewId] || []).filter((c) => c.id !== commentId),
+        }));
+      }
     } catch {}
   };
 
@@ -784,7 +791,7 @@ export function ReviewSection({
                   <span>💬</span>
                   <span>{review.commentCount || "Comment"}</span>
                 </button>
-                {/* Report button — always visible */}
+                {/* Report button */}
                 {authUser?.user_metadata?.username !== review.username && (
                   <button
                     onClick={() => authUser ? handleReport("review", review.id) : router.push("/login")}
@@ -793,6 +800,16 @@ export function ReviewSection({
                     title="Report this review"
                   >
                     <img src="/report-button.png" alt="Report" className="h-5 w-auto" />
+                  </button>
+                )}
+                {/* Delete own review */}
+                {authUser?.user_metadata?.username === review.username && (
+                  <button
+                    onClick={() => { if (confirm("Delete this review?")) handleDeleteReview(review.id); }}
+                    className="flex items-center gap-1 text-xs text-[#6b7280] hover:text-red-400 transition-colors"
+                    title="Delete your review"
+                  >
+                    🗑️
                   </button>
                 )}
                 {/* Admin: delete hidden review */}
