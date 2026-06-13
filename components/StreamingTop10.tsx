@@ -77,9 +77,12 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
         return r.json();
       })
       .then((json) => {
+        console.log("StreamingTop10 API response:", json);
         if (json.data && Object.keys(json.data).length > 0) {
+          console.log("StreamingTop10 setting data, keys:", Object.keys(json.data));
           setData(json.data);
         } else {
+          console.error("StreamingTop10 empty data");
           throw new Error("Empty data");
         }
       })
@@ -94,6 +97,16 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
   const currentData: Top10Item[] = loading
     ? Array.from({ length: 5 }, (_, i) => ({ rank: i + 1, title: "Loading...", score: 0 }))
     : (platformData?.[category] || []);
+
+  // DEBUG
+  if (!loading && currentData.length === 0 && Object.keys(data).length > 0) {
+    console.warn("StreamingTop10: data loaded but currentData empty", {
+      activeTab, category,
+      dataKeys: Object.keys(data),
+      platformData,
+      platformDataKeys: platformData ? Object.keys(platformData) : null,
+    });
+  }
 
   const activePlatform = PLATFORMS.find((p) => p.key === activeTab);
   const activeColor = activePlatform?.color || "#6366f1";
