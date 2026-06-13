@@ -89,8 +89,9 @@ export async function GET() {
         const enrichItems = async (items: RawItem[], type: string) => {
           const result: EnrichedItem[] = [];
           for (const item of items) {
-            const flixPoster = item.poster; // FlixPatrol poster (primary — user requires)
-            const tmdb = flixPoster ? null : await searchTMDB(item.title, type);
+            const flixPoster = item.poster;
+            // Always fetch TMDB for tmdbId (needed for page links), FlixPatrol stays as poster
+            const tmdb = await searchTMDB(item.title, type);
             result.push({
               ...item,
               poster: flixPoster || tmdb?.poster,
