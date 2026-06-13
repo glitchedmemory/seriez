@@ -134,13 +134,16 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const username = await resolveUsername(req);
+    const body = await req.json();
+    const { tmdbId, mediaType, content, rating, username: bodyUsername } = body;
+
+    // Try Supabase session first, fall back to body param
+    let username = await resolveUsername(req);
+    if (!username && bodyUsername) username = bodyUsername;
     if (!username) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { tmdbId, mediaType, content, rating } = body;
     if (!tmdbId || !mediaType || !content?.trim()) {
       return NextResponse.json({ error: "All fields required" }, { status: 400 });
     }
