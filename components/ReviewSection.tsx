@@ -433,23 +433,33 @@ export function ReviewSection({
 
   const handleDeleteReview = async (reviewId: string) => {
     try {
-      const res = await fetch(`/api/reviews?reviewId=${reviewId}`, { method: "DELETE" });
+      const res = await fetch(`/api/reviews?reviewId=${reviewId}`, { method: "DELETE", credentials: "include" });
       if (res.ok) {
         setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to delete review");
       }
-    } catch {}
+    } catch {
+      alert("Network error — please try again");
+    }
   };
 
   const handleDeleteComment = async (commentId: number, reviewId: string) => {
     try {
-      const res = await fetch(`/api/review-comments?commentId=${commentId}`, { method: "DELETE" });
+      const res = await fetch(`/api/review-comments?commentId=${commentId}`, { method: "DELETE", credentials: "include" });
       if (res.ok) {
         setComments((prev) => ({
           ...prev,
           [reviewId]: (prev[reviewId] || []).filter((c) => c.id !== commentId),
         }));
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to delete comment");
       }
-    } catch {}
+    } catch {
+      alert("Network error — please try again");
+    }
   };
 
   const handleReportComment = (reviewId: string) => async (commentId: number) => {
