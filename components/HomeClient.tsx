@@ -311,11 +311,6 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
         <div className="md:flex-1 md:min-w-0 md:space-y-8">
           {hero && <HeroCard item={hero} nextItem={nextHero} region={region} isPremium={isPremium} />}
 
-          {/* Streaming Top 10 — Mobile (above main content) */}
-          <div className="md:hidden px-4 mt-4">
-            <StreamingTop10 />
-          </div>
-
           <section>
             <div className="px-4 md:px-0 mb-3">
               <SectionHeader emoji="⏳" title="Coming Soon" subtitle="Upcoming releases" />
