@@ -168,20 +168,16 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const username = await resolveUsername(req);
-    if (!username) {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-    }
-
     const { searchParams } = new URL(req.url);
     const reviewId = searchParams.get("reviewId");
-    if (!reviewId) {
-      return NextResponse.json({ error: "Missing reviewId" }, { status: 400 });
+    const username = searchParams.get("username");
+    if (!reviewId || !username) {
+      return NextResponse.json({ error: "Missing reviewId or username" }, { status: 400 });
     }
 
     const user = username.trim();
 
-    // Check if user is admin
+    // Check admin
     const { data: userData } = await supabaseAdmin
       .from("users").select("role").eq("username", user).maybeSingle();
     const isAdmin = userData?.role === "admin";
