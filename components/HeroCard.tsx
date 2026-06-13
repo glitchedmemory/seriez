@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { TmdbResult } from "@/lib/tmdb";
 import PosterImage from "@/components/PosterImage";
+import { LockKeyholeOpen } from "lucide-react";
 
 export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResult; nextItem?: TmdbResult; region: string; isPremium?: boolean }) {
   const router = useRouter();
@@ -143,7 +144,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
               onClick={handleWatchNow}
               className="px-5 py-2 rounded-full bg-white text-black text-sm font-semibold hover:bg-gray-200 transition-colors inline-flex items-center gap-1.5 border-none cursor-pointer"
             >
-              📌 Track Now
+              <LockKeyholeOpen className="w-4 h-4" /> Track Now
             </button>
             <button
               onClick={handlePlusClick}
