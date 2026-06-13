@@ -102,8 +102,16 @@ function CommentTree({
                   {authUsername !== c.username && (
                     <button onClick={() => authUsername ? onReport(c.id) : router.push("/login")}
                       disabled={reportingComments.has(String(c.id)) && !!authUsername}
-                      className="text-[10px] text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50 ml-auto"
-                      title="Report"><img src="/report-button.png" alt="Report" className="h-4 w-auto opacity-70 group-hover:opacity-100" /></button>
+                      className={`text-[11px] transition-colors disabled:opacity-50 ml-auto ${
+                        (reportCounts[String(c.id)] || 0) > 0
+                          ? "text-green-400"
+                          : "text-[#6b7280] hover:text-red-400"
+                      }`}
+                      title={reportCounts[String(c.id)] ? "Reported ✓" : "Report"}>
+                      {reportCounts[String(c.id)] ? "✓ Reported" : (
+                        <img src="/report-button.png" alt="Report" className="h-5 w-auto opacity-70 hover:opacity-100" />
+                      )}
+                    </button>
                   )}
                   {authUsername === c.username && (
                     <button onClick={() => { if (confirm("Delete this comment?")) onDelete(c.id); }}
@@ -417,6 +425,7 @@ export function ReviewSection({
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ target_type: targetType, target_id: targetId }),
       });
       if (res.ok) {
@@ -806,10 +815,16 @@ export function ReviewSection({
                   <button
                     onClick={() => authUser ? handleReport("review", review.id) : router.push("/login")}
                     disabled={reportingReview.has(review.id)}
-                    className="flex items-center gap-1 text-xs text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50"
-                    title="Report this review"
+                    className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
+                      (reportCounts[review.id] || 0) > 0
+                        ? "text-green-400"
+                        : "text-[#6b7280] hover:text-red-400"
+                    }`}
+                    title={reportCounts[review.id] ? "Reported ✓" : "Report this review"}
                   >
-                    <img src="/report-button.png" alt="Report" className="h-5 w-auto" />
+                    {reportCounts[review.id] ? "✓ Reported" : (
+                      <img src="/report-button.png" alt="Report" className="h-6 w-auto" />
+                    )}
                   </button>
                 )}
                 {/* Delete own review */}
