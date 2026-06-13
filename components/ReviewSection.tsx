@@ -64,6 +64,7 @@ function CommentTree({
   reportCounts?: Record<string, number>;
 }) {
   const router = useRouter();
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const nodes = parentId != null
     ? comments.filter((c: any) => c.parent_id === parentId)
     : comments.filter((c: any) => c.parent_id == null);
@@ -116,9 +117,18 @@ function CommentTree({
                     </button>
                   )}
                   {authUsername === c.username && (
-                    <button onClick={() => { if (confirm("Delete this comment?")) onDelete(c.id); }}
-                      className="text-[10px] text-[#6b7280] hover:text-red-400 transition-colors ml-auto"
-                      title="Delete your comment">🗑️</button>
+                    confirmDelete === c.id ? (
+                      <span className="flex items-center gap-1 ml-auto">
+                        <button onClick={() => { onDelete(c.id); setConfirmDelete(null); }}
+                          className="text-[9px] px-1.5 py-0.5 bg-red-600 text-white rounded hover:bg-red-500">Del</button>
+                        <button onClick={() => setConfirmDelete(null)}
+                          className="text-[9px] text-[#6b7280] hover:text-white">Cancel</button>
+                      </span>
+                    ) : (
+                      <button onClick={() => setConfirmDelete(c.id)}
+                        className="text-[10px] text-[#6b7280] hover:text-red-400 transition-colors ml-auto"
+                        title="Delete your comment">🗑️</button>
+                    )
                   )}
                   {isAdmin && c.is_hidden && (
                     <button onClick={() => onDelete(c.id)}
@@ -421,6 +431,7 @@ export function ReviewSection({
   };
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const getUsername = () => authUser?.user_metadata?.username || "";
 
@@ -842,14 +853,31 @@ export function ReviewSection({
                 )}
                 {/* Delete own review */}
                 {authUser?.user_metadata?.username === review.username && (
-                  <button
-                    onClick={() => { if (confirm("Delete this review?")) handleDeleteReview(review.id); }}
-                    disabled={deletingId === review.id}
-                    className="flex items-center gap-1 text-xs text-[#6b7280] hover:text-red-400 transition-colors disabled:opacity-50"
-                    title="Delete your review"
-                  >
-                    {deletingId === review.id ? "⏳" : "🗑️"}
-                  </button>
+                  confirmDeleteId === review.id ? (
+                    <span className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleDeleteReview(review.id)}
+                        disabled={deletingId === review.id}
+                        className="text-[10px] px-2 py-0.5 bg-red-600 text-white rounded hover:bg-red-500 transition-colors"
+                      >
+                        {deletingId === review.id ? "⏳" : "Confirm"}
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="text-[10px] text-[#6b7280] hover:text-white"
+                      >
+                        Cancel
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDeleteId(review.id)}
+                      className="flex items-center gap-1 text-xs text-[#6b7280] hover:text-red-400 transition-colors"
+                      title="Delete your review"
+                    >
+                      🗑️
+                    </button>
+                  )
                 )}
                 {/* Admin: delete hidden review */}
                 {isAdmin && review.isHidden && (
