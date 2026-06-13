@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ProfileSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import HistoryClient from "@/app/history/HistoryClient";
-import RouletteCard from "@/components/RouletteCard";
 
 export const dynamic = "force-dynamic";
 
@@ -454,13 +453,6 @@ export default function ProfilePage() {
       {user && (
         <div className="mt-6">
           <HistoryClient />
-        </div>
-      )}
-
-      {/* 🎰 Roulette — only for logged-in users */}
-      {user && (
-        <div className="px-4 mt-2">
-          <RouletteCard />
         </div>
       )}
     </div>
