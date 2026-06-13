@@ -1,0 +1,497 @@
+{
+  "updated_at": "2026-06-13T11:24:04.971180+00:00",
+  "data": {
+    "netflix": {
+      "movies": [
+        {
+          "rank": 1,
+          "title": "Office Romance",
+          "score": 873,
+          "tmdbId": 1358005,
+          "poster": "https://image.tmdb.org/t/p/w500/1HRUTqEVDmJC4L6tp6zd85MI6uH.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 2,
+          "title": "The Marked Woman",
+          "score": 725,
+          "tmdbId": 1274706,
+          "poster": "https://image.tmdb.org/t/p/w500/dyUZ6IKbzmgtdshHevJahpH51Eq.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 3,
+          "title": "Colors of Evil: Black",
+          "score": 688,
+          "tmdbId": 1560681,
+          "poster": "https://image.tmdb.org/t/p/w500/reeKdj7BSznr7wSGzAtIMrPFgKo.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 4,
+          "title": "Sonic the Hedgehog 3",
+          "score": 185,
+          "tmdbId": 939243,
+          "poster": "https://image.tmdb.org/t/p/w500/d8Ryb8AunYAuycVKDp5HpdWPKgC.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 5,
+          "title": "Swapped",
+          "score": 179,
+          "tmdbId": 1007757,
+          "poster": "https://image.tmdb.org/t/p/w500/tHhxWxge06goXU6ZQH1hj7vK8Hd.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 6,
+          "title": "The Murder of Rachel Nickell",
+          "score": 168,
+          "tmdbId": 1693002,
+          "poster": "https://image.tmdb.org/t/p/w500/db9nxdSqZ8Mh6RDRreF1HFsz9hx.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 7,
+          "title": "Monster-in-Law",
+          "score": 145,
+          "tmdbId": 4379,
+          "poster": "https://image.tmdb.org/t/p/w500/iRqcGkIPdRbEaW0xMEA5kgceUF8.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 8,
+          "title": "Zack Snyder's Justice League",
+          "score": 136,
+          "tmdbId": 791373,
+          "poster": "https://image.tmdb.org/t/p/w500/tnAuB8q5vv7Ax9UAEje5Xi4BXik.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 9,
+          "title": "Ladies First",
+          "score": 120,
+          "tmdbId": 1368881,
+          "poster": "https://image.tmdb.org/t/p/w500/kjR56Yv17pbjTVBTMjqepvcus4f.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 10,
+          "title": "Boonie Bears: The Big Shrink",
+          "score": 101,
+          "tmdbId": 529426,
+          "poster": "https://image.tmdb.org/t/p/w500/3SHjHTSbbl9bWe4dFCignISpGEA.jpg",
+          "mediaType": "movie"
+        }
+      ],
+      "tv": [
+        {
+          "rank": 1,
+          "title": "Teach You a Lesson",
+          "score": 795,
+          "tmdbId": 276161,
+          "poster": "https://image.tmdb.org/t/p/w500/fMECSPrTmRClSViMsXFYmiYIcWP.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 2,
+          "title": "The Witness",
+          "score": 780,
+          "tmdbId": 280511,
+          "poster": "https://image.tmdb.org/t/p/w500/eNIfjYji9m29Xyj4KVDiUy2UmMa.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 3,
+          "title": "Michael Jackson: The Verdict",
+          "score": 591,
+          "tmdbId": 323111,
+          "poster": "https://image.tmdb.org/t/p/w500/8R40yI5AJ931Hd3P4Yf8pdFgwJ1.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 4,
+          "title": "Outlast: The Jungle",
+          "score": 349,
+          "tmdbId": 322803,
+          "poster": "https://image.tmdb.org/t/p/w500/mkhpV2EgA3S4xFyl7KPOpxORa04.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 5,
+          "title": "Berlin and the Lady with an Ermine",
+          "score": 242,
+          "tmdbId": 308014,
+          "poster": "https://image.tmdb.org/t/p/w500/sTumew0Q01ZHmFneA9cJRi3QUYC.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 6,
+          "title": "My Royal Nemesis",
+          "score": 209,
+          "tmdbId": 303143,
+          "poster": "https://image.tmdb.org/t/p/w500/rYLQbyIvbEd0lF84iXrx7CbPcBB.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 7,
+          "title": "Sweet Magnolias",
+          "score": 197,
+          "tmdbId": 102904,
+          "poster": "https://image.tmdb.org/t/p/w500/n1WDSFOnCCg3cdHHGBywZtYIzf9.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 8,
+          "title": "The Four Seasons",
+          "score": 175,
+          "tmdbId": 243316,
+          "poster": "https://image.tmdb.org/t/p/w500/w09XeYl096pwES8riRMZwEA9rnh.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 9,
+          "title": "Rosario Tijeras",
+          "score": 165,
+          "tmdbId": 74428,
+          "poster": "https://image.tmdb.org/t/p/w500/zY7jshpbPNs5U677HxRZUltb7gm.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 10,
+          "title": "Nemesis",
+          "score": 161,
+          "tmdbId": 285807,
+          "poster": "https://image.tmdb.org/t/p/w500/NY7ZwSMw5PjoJdK2CObqiTj7Bm.jpg",
+          "mediaType": "tv"
+        }
+      ]
+    },
+    "disney": {
+      "movies": [
+        {
+          "rank": 1,
+          "title": "Toy Story 5 | A Special Look",
+          "score": 702
+        },
+        {
+          "rank": 2,
+          "title": "Hoppers",
+          "score": 694,
+          "tmdbId": 1327819,
+          "poster": "https://image.tmdb.org/t/p/w500/xjtWQ2CL1mpmMNwuU5HeS4Iuwuu.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 3,
+          "title": "Toy Story",
+          "score": 558,
+          "tmdbId": 1084244,
+          "poster": "https://image.tmdb.org/t/p/w500/pxG26JdyuiDvJbSoucknaFiLeZD.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 4,
+          "title": "Toy Story 2",
+          "score": 482,
+          "tmdbId": 863,
+          "poster": "https://image.tmdb.org/t/p/w500/4rbcp3ng8n1MKHjpeqW0L7Fnpzz.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 5,
+          "title": "Toy Story 3",
+          "score": 374,
+          "tmdbId": 10193,
+          "poster": "https://image.tmdb.org/t/p/w500/AbbXspMOwdvwWZgVN0nabZq03Ec.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 6,
+          "title": "Toy Story 4",
+          "score": 310,
+          "tmdbId": 301528,
+          "poster": "https://image.tmdb.org/t/p/w500/w9kR8qbmQ01HwnvK4alvnQ2ca0L.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 7,
+          "title": "Taylor Swift I Knew It, I Knew You | Toy Story 5 Music Video",
+          "score": 261
+        },
+        {
+          "rank": 8,
+          "title": "The Punisher: One Last Kill",
+          "score": 225,
+          "tmdbId": 1439930,
+          "poster": "https://image.tmdb.org/t/p/w500/qQclTgLMDvGBuUBFGHRipxkEwWR.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 9,
+          "title": "Send Help",
+          "score": 221,
+          "tmdbId": 1198994,
+          "poster": "https://image.tmdb.org/t/p/w500/zbJWVHOtj3ljBzWgL1P8pxP03Up.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 10,
+          "title": "Messi: The Forgotten Tape",
+          "score": 46,
+          "tmdbId": 1712330,
+          "poster": "https://image.tmdb.org/t/p/w500/tehQ9xAsLDXK5Wv31Zzph84urjb.jpg",
+          "mediaType": "movie"
+        }
+      ],
+      "tv": [
+        {
+          "rank": 1,
+          "title": "The Testaments",
+          "score": 607,
+          "tmdbId": 287527,
+          "poster": "https://image.tmdb.org/t/p/w500/xVsFopLisBoiKdXXecaNTN4pJ9A.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 2,
+          "title": "Not Suitable for Work",
+          "score": 538,
+          "tmdbId": 284725,
+          "poster": "https://image.tmdb.org/t/p/w500/hpucDFIvWwcn6sXk8EOEX0dbY0C.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 3,
+          "title": "Perfect Crown",
+          "score": 370,
+          "tmdbId": 278573,
+          "poster": "https://image.tmdb.org/t/p/w500/nNYwETsj4XxZ4tnouiYCPBQNO2L.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 4,
+          "title": "Alice and Steve",
+          "score": 321,
+          "tmdbId": 318203,
+          "poster": "https://image.tmdb.org/t/p/w500/gPou8wNiTz1uleLKllclrqanXXf.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 5,
+          "title": "High Potential",
+          "score": 304,
+          "tmdbId": 226637,
+          "poster": "https://image.tmdb.org/t/p/w500/xCtaUDBUP1iKqtoqpHfeH1T2pWF.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 6,
+          "title": "Malcolm in the Middle: Life's Still Unfair",
+          "score": 272,
+          "tmdbId": 279471,
+          "poster": "https://image.tmdb.org/t/p/w500/4uXAZRYtcMfoX2XtY1gcUxLHhjj.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 7,
+          "title": "Doctor on the Edge",
+          "score": 222,
+          "tmdbId": 287009,
+          "poster": "https://image.tmdb.org/t/p/w500/zwEYhe03vN1rbjF8Bsf9Dng0W8e.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 8,
+          "title": "Star Wars: Maul - Shadow Lord",
+          "score": 164,
+          "tmdbId": 289219,
+          "poster": "https://image.tmdb.org/t/p/w500/il6uHNSy41e7a7QLM0cHtOYGlHI.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 9,
+          "title": "Bluey Minisodes",
+          "score": 155,
+          "tmdbId": 256953,
+          "poster": "https://image.tmdb.org/t/p/w500/lEQSyxyeBLsH9ZjxAuGUfP4aOcO.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 10,
+          "title": "Sofia the First: Royal Magic",
+          "score": 121,
+          "tmdbId": 261647,
+          "poster": "https://image.tmdb.org/t/p/w500/btMAULyx0ecn7slCxJYQ1aNX7yx.jpg",
+          "mediaType": "tv"
+        }
+      ]
+    },
+    "amazon": {
+      "movies": [
+        {
+          "rank": 1,
+          "title": "Tom Clancy's Jack Ryan: Ghost War",
+          "score": 439,
+          "tmdbId": 1380291,
+          "poster": "https://image.tmdb.org/t/p/w500/8ehYxUh5MWE41AeE9gkHE8DKzvB.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 2,
+          "title": "Over Your Dead Body",
+          "score": 284,
+          "tmdbId": 1390300,
+          "poster": "https://image.tmdb.org/t/p/w500/b0mJReRxiPv8NwnFDayp3VVJKc2.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 3,
+          "title": "Greenland 2: Migration",
+          "score": 158,
+          "tmdbId": 840464,
+          "poster": "https://image.tmdb.org/t/p/w500/z2tqCJLsw6uEJ8nJV8BsQXGa3dr.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 4,
+          "title": "The Housemaid",
+          "score": 137,
+          "tmdbId": 1368166,
+          "poster": "https://image.tmdb.org/t/p/w500/cWsBscZzwu5brg9YjNkGewRUvJX.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 5,
+          "title": "Despicable Me 4",
+          "score": 118,
+          "tmdbId": 519182,
+          "poster": "https://image.tmdb.org/t/p/w500/wWba3TaojhK7NdycRhoQpsG0FaH.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 6,
+          "title": "My Fault: London",
+          "score": 107,
+          "tmdbId": 1294203,
+          "poster": "https://image.tmdb.org/t/p/w500/ttN5D6GKOwKWHmCzDGctAvaNMAi.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 7,
+          "title": "Crime 101",
+          "score": 104,
+          "tmdbId": 1171145,
+          "poster": "https://image.tmdb.org/t/p/w500/tVvpFIoteRHNnoZMhdnwIVwJpCA.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 8,
+          "title": "Shelter",
+          "score": 85,
+          "tmdbId": 1290821,
+          "poster": "https://image.tmdb.org/t/p/w500/buPFnHZ3xQy6vZEHxbHgL1Pc6CR.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 9,
+          "title": "Bride Hard",
+          "score": 59,
+          "tmdbId": 1124619,
+          "poster": "https://image.tmdb.org/t/p/w500/3mExdWLSxAiUCb4NMcYmxSkO7n4.jpg",
+          "mediaType": "movie"
+        },
+        {
+          "rank": 10,
+          "title": "Summer House",
+          "score": 53,
+          "tmdbId": 1556616,
+          "poster": "https://image.tmdb.org/t/p/w500/81xUChgVphBFehihIgbXbyneZXP.jpg",
+          "mediaType": "movie"
+        }
+      ],
+      "tv": [
+        {
+          "rank": 1,
+          "title": "Every Year After",
+          "score": 470,
+          "tmdbId": 260592,
+          "poster": "https://image.tmdb.org/t/p/w500/nZGf0jnSJNXLf8o7iSzzX8qxHX9.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 2,
+          "title": "Off Campus",
+          "score": 430,
+          "tmdbId": 273240,
+          "poster": "https://image.tmdb.org/t/p/w500/cbODFqkcmRgrYH8NkG4Q4Hcg8Z1.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 3,
+          "title": "Spider-Noir",
+          "score": 366,
+          "tmdbId": 220102,
+          "poster": "https://image.tmdb.org/t/p/w500/oD8WSVqz84ZRfelkr7JPeJwR9Iv.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 4,
+          "title": "The Boys",
+          "score": 254,
+          "tmdbId": 76479,
+          "poster": "https://image.tmdb.org/t/p/w500/in1R2dDc421JxsoRWaIIAqVI2KE.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 5,
+          "title": "Clarkson's Farm",
+          "score": 212,
+          "tmdbId": 117648,
+          "poster": "https://image.tmdb.org/t/p/w500/toVhyqMT3ICfahE7Ad8obJvZHpX.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 6,
+          "title": "The Legend of Vox Machina",
+          "score": 127,
+          "tmdbId": 135934,
+          "poster": "https://image.tmdb.org/t/p/w500/zjQTSYZEmy0GVnK1aFLvNiAwluo.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 7,
+          "title": "Yo soy Betty la fea",
+          "score": 116,
+          "tmdbId": 16286,
+          "poster": "https://image.tmdb.org/t/p/w500/iEBOiXiDGaxVR6w8aKgG5MEusuO.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 8,
+          "title": "Pa' Quererte",
+          "score": 96,
+          "tmdbId": 136228,
+          "poster": "https://image.tmdb.org/t/p/w500/nIRGpLrNZnrwVzujj8DSayZpeOk.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 9,
+          "title": "The Summer I Turned Pretty",
+          "score": 68,
+          "tmdbId": 194766,
+          "poster": "https://image.tmdb.org/t/p/w500/xBIz53wYWsKfFpN0TaizVAjKJ0z.jpg",
+          "mediaType": "tv"
+        },
+        {
+          "rank": 10,
+          "title": "Las de siempre",
+          "score": 35,
+          "tmdbId": 310954,
+          "poster": "https://image.tmdb.org/t/p/w500/aP4EGptIlbfWNgbcim5tcxu8y9b.jpg",
+          "mediaType": "tv"
+        }
+      ]
+    }
+  }
+}

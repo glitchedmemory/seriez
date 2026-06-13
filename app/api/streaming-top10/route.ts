@@ -10,21 +10,33 @@ interface RawItem {
   score: number;
 }
 
-interface EnrichedItem {
-  rank: number;
-  title: string;
-  score: number;
+interface EnrichedItem extends RawItem {
   tmdbId?: number;
   poster?: string;
   mediaType?: string;
 }
 
-async function searchTMDB(title: string): Promise<{ id: number; poster: string; mediaType: string } | null> {
+interface PlatformData {
+  movies: RawItem[];
+  tv: RawItem[];
+}
+
+interface EnrichedPlatformData {
+  movies: EnrichedItem[];
+  tv: EnrichedItem[];
+}
+
+async function searchTMDB(
+  title: string,
+  knownType: string
+): Promise<{ id: number; poster: string; mediaType: string } | null> {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) return null;
 
   try {
-    const url = `https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&query=${encodeURIComponent(title)}&language=en-US&page=1`;
+    // Use known media type from FlixPatrol for better accuracy
+    const searchType = knownType === "tv" ? "tv" : "movie";
+    const url = `https://api.themoviedb.org/3/search/${searchType}?api_key=${apiKey}&query=${encodeURIComponent(title)}&language=en-US&page=1`;
     const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();
@@ -33,7 +45,7 @@ async function searchTMDB(title: string): Promise<{ id: number; poster: string; 
       return {
         id: match.id,
         poster: `${TMDB_IMAGE_BASE}${match.poster_path}`,
-        mediaType: match.media_type === "tv" ? "tv" : "movie",
+        mediaType: searchType,
       };
     }
   } catch {}
@@ -53,37 +65,50 @@ export async function GET() {
 
     const raw = readFileSync(filePath, "utf-8");
     const parsed = JSON.parse(raw);
-    const rawData: Record<string, RawItem[]> = parsed.data;
+    const rawData: Record<string, PlatformData> = parsed.data;
 
     // Try to load enriched cache
     const enrichedPath = join(process.cwd(), "data", "streaming-top10-enriched.json");
-    let enriched: Record<string, EnrichedItem[]> | null = null;
+    let enriched: Record<string, EnrichedPlatformData> | null = null;
 
     if (existsSync(enrichedPath)) {
       try {
         const cached = JSON.parse(readFileSync(enrichedPath, "utf-8"));
-        // Only use cache if data timestamp matches
         if (cached.updated_at === parsed.updated_at) {
           enriched = cached.data;
         }
       } catch {}
     }
 
-    // If no cache, enrich with TMDB
+    // If no cache, enrich with TMDB (movies + tv for each platform)
     if (!enriched) {
       enriched = {};
-      for (const [platform, items] of Object.entries(rawData)) {
-        const enrichedItems: EnrichedItem[] = [];
-        for (const item of items as RawItem[]) {
-          const tmdb = await searchTMDB(item.title);
-          enrichedItems.push({
+      for (const [platform, platformData] of Object.entries(rawData)) {
+        const enrichedPlatform: EnrichedPlatformData = { movies: [], tv: [] };
+
+        // Enrich movies
+        for (const item of platformData.movies || []) {
+          const tmdb = await searchTMDB(item.title, "movie");
+          enrichedPlatform.movies.push({
             ...item,
             tmdbId: tmdb?.id,
             poster: tmdb?.poster,
             mediaType: tmdb?.mediaType,
           });
         }
-        enriched[platform] = enrichedItems;
+
+        // Enrich TV shows
+        for (const item of platformData.tv || []) {
+          const tmdb = await searchTMDB(item.title, "tv");
+          enrichedPlatform.tv.push({
+            ...item,
+            tmdbId: tmdb?.id,
+            poster: tmdb?.poster,
+            mediaType: tmdb?.mediaType,
+          });
+        }
+
+        enriched[platform] = enrichedPlatform;
       }
 
       // Save cache

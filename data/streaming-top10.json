@@ -1,161 +1,323 @@
 {
-  "updated_at": "2026-06-12T10:19:37.998179Z",
+  "updated_at": "2026-06-13T11:24:04.971180+00:00",
   "data": {
-    "netflix": [
-      {
-        "rank": 1,
-        "title": "Office Romance",
-        "score": 899
-      },
-      {
-        "rank": 2,
-        "title": "The Marked Woman",
-        "score": 766
-      },
-      {
-        "rank": 3,
-        "title": "Colors of Evil: Black",
-        "score": 581
-      },
-      {
-        "rank": 4,
-        "title": "The Murder of Rachel Nickell",
-        "score": 243
-      },
-      {
-        "rank": 5,
-        "title": "Swapped",
-        "score": 199
-      },
-      {
-        "rank": 6,
-        "title": "Monster-in-Law",
-        "score": 157
-      },
-      {
-        "rank": 7,
-        "title": "Ladies First",
-        "score": 149
-      },
-      {
-        "rank": 8,
-        "title": "Sonic the Hedgehog 3",
-        "score": 114
-      },
-      {
-        "rank": 9,
-        "title": "Maa Behen",
-        "score": 108
-      },
-      {
-        "rank": 10,
-        "title": "Tag",
-        "score": 102
-      }
-    ],
-    "disney": [
-      {
-        "rank": 1,
-        "title": "Toy Story 5 | A Special Look",
-        "score": 700
-      },
-      {
-        "rank": 2,
-        "title": "Hoppers",
-        "score": 696
-      },
-      {
-        "rank": 3,
-        "title": "Toy Story",
-        "score": 541
-      },
-      {
-        "rank": 4,
-        "title": "Toy Story 2",
-        "score": 468
-      },
-      {
-        "rank": 5,
-        "title": "Toy Story 3",
-        "score": 352
-      },
-      {
-        "rank": 6,
-        "title": "Taylor Swift I Knew It, I Knew You | Toy Story 5 Music Video",
-        "score": 300
-      },
-      {
-        "rank": 7,
-        "title": "Toy Story 4",
-        "score": 290
-      },
-      {
-        "rank": 8,
-        "title": "The Punisher: One Last Kill",
-        "score": 283
-      },
-      {
-        "rank": 9,
-        "title": "Send Help",
-        "score": 237
-      },
-      {
-        "rank": 10,
-        "title": "Predator: Badlands",
-        "score": 51
-      }
-    ],
-    "amazon": [
-      {
-        "rank": 1,
-        "title": "Tom Clancy's Jack Ryan: Ghost War",
-        "score": 450
-      },
-      {
-        "rank": 2,
-        "title": "Over Your Dead Body",
-        "score": 336
-      },
-      {
-        "rank": 3,
-        "title": "Crime 101",
-        "score": 223
-      },
-      {
-        "rank": 4,
-        "title": "Greenland 2: Migration",
-        "score": 166
-      },
-      {
-        "rank": 5,
-        "title": "Despicable Me 4",
-        "score": 132
-      },
-      {
-        "rank": 6,
-        "title": "My Fault: London",
-        "score": 114
-      },
-      {
-        "rank": 7,
-        "title": "Bride Hard",
-        "score": 68
-      },
-      {
-        "rank": 8,
-        "title": "Love Me Love Me",
-        "score": 62
-      },
-      {
-        "rank": 9,
-        "title": "Shelter",
-        "score": 58
-      },
-      {
-        "rank": 10,
-        "title": "Summer House",
-        "score": 58
-      }
-    ]
+    "netflix": {
+      "movies": [
+        {
+          "rank": 1,
+          "title": "Office Romance",
+          "score": 873
+        },
+        {
+          "rank": 2,
+          "title": "The Marked Woman",
+          "score": 725
+        },
+        {
+          "rank": 3,
+          "title": "Colors of Evil: Black",
+          "score": 688
+        },
+        {
+          "rank": 4,
+          "title": "Sonic the Hedgehog 3",
+          "score": 185
+        },
+        {
+          "rank": 5,
+          "title": "Swapped",
+          "score": 179
+        },
+        {
+          "rank": 6,
+          "title": "The Murder of Rachel Nickell",
+          "score": 168
+        },
+        {
+          "rank": 7,
+          "title": "Monster-in-Law",
+          "score": 145
+        },
+        {
+          "rank": 8,
+          "title": "Zack Snyder's Justice League",
+          "score": 136
+        },
+        {
+          "rank": 9,
+          "title": "Ladies First",
+          "score": 120
+        },
+        {
+          "rank": 10,
+          "title": "Boonie Bears: The Big Shrink",
+          "score": 101
+        }
+      ],
+      "tv": [
+        {
+          "rank": 1,
+          "title": "Teach You a Lesson",
+          "score": 795
+        },
+        {
+          "rank": 2,
+          "title": "The Witness",
+          "score": 780
+        },
+        {
+          "rank": 3,
+          "title": "Michael Jackson: The Verdict",
+          "score": 591
+        },
+        {
+          "rank": 4,
+          "title": "Outlast: The Jungle",
+          "score": 349
+        },
+        {
+          "rank": 5,
+          "title": "Berlin and the Lady with an Ermine",
+          "score": 242
+        },
+        {
+          "rank": 6,
+          "title": "My Royal Nemesis",
+          "score": 209
+        },
+        {
+          "rank": 7,
+          "title": "Sweet Magnolias",
+          "score": 197
+        },
+        {
+          "rank": 8,
+          "title": "The Four Seasons",
+          "score": 175
+        },
+        {
+          "rank": 9,
+          "title": "Rosario Tijeras",
+          "score": 165
+        },
+        {
+          "rank": 10,
+          "title": "Nemesis",
+          "score": 161
+        }
+      ]
+    },
+    "disney": {
+      "movies": [
+        {
+          "rank": 1,
+          "title": "Toy Story 5 | A Special Look",
+          "score": 702
+        },
+        {
+          "rank": 2,
+          "title": "Hoppers",
+          "score": 694
+        },
+        {
+          "rank": 3,
+          "title": "Toy Story",
+          "score": 558
+        },
+        {
+          "rank": 4,
+          "title": "Toy Story 2",
+          "score": 482
+        },
+        {
+          "rank": 5,
+          "title": "Toy Story 3",
+          "score": 374
+        },
+        {
+          "rank": 6,
+          "title": "Toy Story 4",
+          "score": 310
+        },
+        {
+          "rank": 7,
+          "title": "Taylor Swift I Knew It, I Knew You | Toy Story 5 Music Video",
+          "score": 261
+        },
+        {
+          "rank": 8,
+          "title": "The Punisher: One Last Kill",
+          "score": 225
+        },
+        {
+          "rank": 9,
+          "title": "Send Help",
+          "score": 221
+        },
+        {
+          "rank": 10,
+          "title": "Messi: The Forgotten Tape",
+          "score": 46
+        }
+      ],
+      "tv": [
+        {
+          "rank": 1,
+          "title": "The Testaments",
+          "score": 607
+        },
+        {
+          "rank": 2,
+          "title": "Not Suitable for Work",
+          "score": 538
+        },
+        {
+          "rank": 3,
+          "title": "Perfect Crown",
+          "score": 370
+        },
+        {
+          "rank": 4,
+          "title": "Alice and Steve",
+          "score": 321
+        },
+        {
+          "rank": 5,
+          "title": "High Potential",
+          "score": 304
+        },
+        {
+          "rank": 6,
+          "title": "Malcolm in the Middle: Life's Still Unfair",
+          "score": 272
+        },
+        {
+          "rank": 7,
+          "title": "Doctor on the Edge",
+          "score": 222
+        },
+        {
+          "rank": 8,
+          "title": "Star Wars: Maul - Shadow Lord",
+          "score": 164
+        },
+        {
+          "rank": 9,
+          "title": "Bluey Minisodes",
+          "score": 155
+        },
+        {
+          "rank": 10,
+          "title": "Sofia the First: Royal Magic",
+          "score": 121
+        }
+      ]
+    },
+    "amazon": {
+      "movies": [
+        {
+          "rank": 1,
+          "title": "Tom Clancy's Jack Ryan: Ghost War",
+          "score": 439
+        },
+        {
+          "rank": 2,
+          "title": "Over Your Dead Body",
+          "score": 284
+        },
+        {
+          "rank": 3,
+          "title": "Greenland 2: Migration",
+          "score": 158
+        },
+        {
+          "rank": 4,
+          "title": "The Housemaid",
+          "score": 137
+        },
+        {
+          "rank": 5,
+          "title": "Despicable Me 4",
+          "score": 118
+        },
+        {
+          "rank": 6,
+          "title": "My Fault: London",
+          "score": 107
+        },
+        {
+          "rank": 7,
+          "title": "Crime 101",
+          "score": 104
+        },
+        {
+          "rank": 8,
+          "title": "Shelter",
+          "score": 85
+        },
+        {
+          "rank": 9,
+          "title": "Bride Hard",
+          "score": 59
+        },
+        {
+          "rank": 10,
+          "title": "Summer House",
+          "score": 53
+        }
+      ],
+      "tv": [
+        {
+          "rank": 1,
+          "title": "Every Year After",
+          "score": 470
+        },
+        {
+          "rank": 2,
+          "title": "Off Campus",
+          "score": 430
+        },
+        {
+          "rank": 3,
+          "title": "Spider-Noir",
+          "score": 366
+        },
+        {
+          "rank": 4,
+          "title": "The Boys",
+          "score": 254
+        },
+        {
+          "rank": 5,
+          "title": "Clarkson's Farm",
+          "score": 212
+        },
+        {
+          "rank": 6,
+          "title": "The Legend of Vox Machina",
+          "score": 127
+        },
+        {
+          "rank": 7,
+          "title": "Yo soy Betty la fea",
+          "score": 116
+        },
+        {
+          "rank": 8,
+          "title": "Pa' Quererte",
+          "score": 96
+        },
+        {
+          "rank": 9,
+          "title": "The Summer I Turned Pretty",
+          "score": 68
+        },
+        {
+          "rank": 10,
+          "title": "Las de siempre",
+          "score": 35
+        }
+      ]
+    }
   }
 }
