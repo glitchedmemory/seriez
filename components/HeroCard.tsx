@@ -67,8 +67,8 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
     e.preventDefault();
     e.stopPropagation();
     const url = item.type === "tv"
-      ? `/title/${item.id}/season/1#trailers`
-      : `/title/${item.id}?type=${item.type}#trailers`;
+      ? `/title/${item.id}/season/1`
+      : `/title/${item.id}?type=${item.type}`;
     router.push(url);
   }
 
