@@ -191,6 +191,10 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
 
         {/* List */}
         <div className="space-y-0.5">
+          {/* Debug: always-show test item */}
+          <div className="flex items-center gap-2.5 px-2 py-1.5 text-[12px] text-[#f59e0b]">
+            ⚡ DEBUG: dataKeys={Object.keys(data).join(',')||'none'}, activeTab={activeTab}, category={category}, items={currentData.length}
+          </div>
           {currentData.map((item) => (
             <a
               key={`${activeTab}-${category}-${item.rank}`}
