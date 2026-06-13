@@ -154,6 +154,49 @@ export async function POST(req: NextRequest) {
   } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
 }
 
+export async function DELETE(req: NextRequest) {
+  try {
+    const username = await resolveUsername(req);
+    if (!username) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const reviewId = searchParams.get("reviewId");
+    if (!reviewId) {
+      return NextResponse.json({ error: "Missing reviewId" }, { status: 400 });
+    }
+
+    const user = username.trim();
+
+    // Check if user is admin
+    const { data: userData } = await supabaseAdmin
+      .from("users").select("role").eq("username", user).maybeSingle();
+    const isAdmin = userData?.role === "admin";
+
+    // Get the review to check ownership
+    const { data: review } = await supabaseAdmin
+      .from("reviews").select("username").eq("id", reviewId).maybeSingle();
+
+    if (!review) {
+      return NextResponse.json({ error: "Review not found" }, { status: 404 });
+    }
+
+    // Only author or admin can delete
+    if (review.username !== user && !isAdmin) {
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+    }
+
+    // Delete associated likes + comments first
+    await supabaseAdmin.from("review_likes").delete().eq("review_id", reviewId);
+    await supabaseAdmin.from("review_comments").delete().eq("review_id", reviewId);
+    const { error } = await supabaseAdmin.from("reviews").delete().eq("id", reviewId);
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true });
+  } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
+}
+
 export async function PATCH(req: NextRequest) {
   try {
     const username = await resolveUsername(req);
