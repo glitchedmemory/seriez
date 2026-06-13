@@ -71,26 +71,30 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch("/api/streaming-top10")
+    fetch("/api/streaming-top10?t=" + Date.now())
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
       .then((json) => {
-        console.log("StreamingTop10 API response:", json);
-        // Force-show raw data for debugging
-        const raw = JSON.stringify(json?.data || {}, null, 0).substring(0, 500);
-        if (json.data && Object.keys(json.data).length > 0) {
-          console.log("StreamingTop10 setting data, keys:", Object.keys(json.data));
-          setData(json.data);
+        // Normalize: API sometimes returns flat arrays, wrap into {movies, tv}
+        const raw = json.data || {};
+        const normalized: Record<string, PlatformData> = {};
+        for (const [key, val] of Object.entries(raw)) {
+          if (Array.isArray(val)) {
+            normalized[key] = { movies: val as Top10Item[], tv: [] };
+          } else if (val && typeof val === "object" && "movies" in val) {
+            normalized[key] = val as PlatformData;
+          }
+        }
+        if (Object.keys(normalized).length > 0) {
+          setData(normalized);
         } else {
-          console.error("StreamingTop10 empty data");
-          setData({ __raw: { movies: [{ rank: 1, title: `API empty. Raw: ${raw}`, score: 0 }] as any, tv: [] } as any });
+          setData({ __raw: { movies: [{ rank: 1, title: `API empty. Raw: ${JSON.stringify(raw).substring(0, 300)}`, score: 0 }], tv: [] } });
         }
       })
       .catch((e) => {
-        console.error("StreamingTop10 fetch failed:", e);
-        setData({ __raw: { movies: [{ rank: 1, title: `Fetch error: ${e}`, score: 0 }] as any, tv: [] } as any });
+        setData({ __raw: { movies: [{ rank: 1, title: `Fetch error: ${e}`, score: 0 }], tv: [] } });
       })
       .finally(() => setLoading(false));
   }, []);
@@ -191,13 +195,6 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
 
         {/* List */}
         <div className="space-y-0.5">
-          {/* Debug: always-show test item */}
-          <div className="flex items-center gap-2.5 px-2 py-1.5 text-[12px] text-[#f59e0b]">
-            ⚡ DEBUG: dataKeys={Object.keys(data).join(',')||'none'}, activeTab={activeTab}, category={category}, items={currentData.length}
-          </div>
-          <div className="flex items-center gap-2.5 px-2 py-1.5 text-[11px] text-[#ef4444]">
-            🔴 platformData keys: {platformData ? Object.keys(platformData).join(',') : 'NULL'}, sample: {platformData ? JSON.stringify(platformData).substring(0, 200) : 'NULL'}
-          </div>
           {currentData.map((item) => (
             <a
               key={`${activeTab}-${category}-${item.rank}`}
