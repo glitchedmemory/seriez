@@ -7,6 +7,7 @@ import type { DayEntry } from "./DayPopup";
 import WatchGraph from "./WatchGraph";
 import TopGenres from "./TopGenres";
 import { StreamingTop10 } from "@/components/StreamingTop10";
+import RouletteCard from "@/components/RouletteCard";
 import type { WatchListItem } from "./WatchList";
 
 interface HistoryData {
@@ -173,6 +174,11 @@ export default function HistoryClient() {
 
         {/* Streaming Top 10 */}
         <StreamingTop10 variant="page" />
+
+        {/* 🎰 Roulette */}
+        <div className="mt-0">
+          <RouletteCard />
+        </div>
       </div>
 
       {/* Popup */}
