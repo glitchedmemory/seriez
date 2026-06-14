@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import Link from "next/link";
 import PosterImage from "@/components/PosterImage";
 
@@ -120,10 +120,11 @@ export default function FeedPage() {
             const avatarGradient = getAvatarColor(a.username);
 
             return (
-            <Link
+              <Fragment key={a.id}>
+                <Link
               key={a.id}
               href={href}
-              className={`flex items-start gap-3 px-4 py-3.5 hover:bg-bg-primary transition-colors group relative ${idx < activities.length - 1 ? "border-b border-dotted border-border/50" : ""}`}
+              className={`flex items-start gap-3 px-4 py-3.5 hover:bg-bg-primary transition-colors group relative ${idx < activities.length - 1 || idx === 2 ? "border-b border-dotted border-border/50" : ""}`}
             >
               {/* Left color bar */}
               <div
@@ -197,6 +198,17 @@ export default function FeedPage() {
                 </div>
               )}
             </Link>
+                {idx === 2 && (
+                  <div className="px-4 py-4 border-b border-dotted border-border/50">
+                    <div className="bg-bg-card border border-dashed border-border rounded-xl flex items-center justify-center" style={{ minHeight: 80 }}>
+                      <div className="text-center">
+                        <p className="text-[10px] text-text-secondary uppercase tracking-[0.15em] mb-1">Advertisement</p>
+                        <p className="text-xs text-text-secondary">AdSense · 320×100</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Fragment>
             );
           })}
         </div>

@@ -78,6 +78,16 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
         ))}
       </div>
 
+      {/* ── AdSense ── */}
+      <div className="mb-3">
+        <div className="bg-bg-card border border-dashed border-border rounded-xl flex items-center justify-center" style={{ minHeight: 80 }}>
+          <div className="text-center">
+            <p className="text-[10px] text-text-secondary uppercase tracking-[0.15em] mb-1">Advertisement</p>
+            <p className="text-xs text-text-secondary">AdSense · 320×100</p>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
         {sortedItems.map(item => (
         <a key={`${item.mediaType}-${item.tmdbId}`} href={`/title/${item.tmdbId}${item.mediaType === "tv" ? "/season/1" : `?type=${item.mediaType}`}`} className="block group">
