@@ -649,6 +649,16 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           </section>
         )}
 
+        {/* ── AdSense ── */}
+        <div className="mt-6">
+          <div className="bg-bg-card border border-dashed border-border rounded-xl flex items-center justify-center" style={{ minHeight: 100 }}>
+            <div className="text-center">
+              <p className="text-[10px] text-text-secondary uppercase tracking-[0.15em] mb-1">Advertisement</p>
+              <p className="text-xs text-text-secondary">AdSense · 320×100</p>
+            </div>
+          </div>
+        </div>
+
         {/* Reviews */}
         <section className="mt-6">
           <ReviewSection tmdbId={detail.id} mediaType="anime" trackStatus={trackStatus} trackVersion={trackVersion} trackRating={rating} authUser={authUser} />
