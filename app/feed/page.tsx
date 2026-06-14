@@ -85,7 +85,7 @@ export default function FeedPage() {
 
   return (
     <div className="max-w-lg md:max-w-2xl mx-auto min-h-screen pb-24">
-      <header className="sticky top-0 z-40 bg-bg-primary/95 backdrop-blur-md px-4 py-3 border-b border-[#1a1a2e]">
+      <header className="sticky top-0 z-40 bg-bg-primary/95 backdrop-blur-md px-4 py-3 border-b border-border">
         <h1 className="text-xl font-bold bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">
           Feed
         </h1>
@@ -123,7 +123,7 @@ export default function FeedPage() {
             <Link
               key={a.id}
               href={href}
-              className={`flex items-start gap-3 px-4 py-3.5 hover:bg-bg-primary transition-colors group relative ${idx < activities.length - 1 ? "border-b border-dotted border-[#1a1a2e]/50" : ""}`}
+              className={`flex items-start gap-3 px-4 py-3.5 hover:bg-bg-primary transition-colors group relative ${idx < activities.length - 1 ? "border-b border-dotted border-border/50" : ""}`}
             >
               {/* Left color bar */}
               <div
@@ -144,9 +144,9 @@ export default function FeedPage() {
               <div className="min-w-0 flex-1">
                 {/* Top row: username + action + title + badge */}
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[13px] font-bold text-[#a78bfa]">{a.username}</span>
+                  <span className="text-[13px] font-bold text-accent-light">{a.username}</span>
                   <span className="text-[13px] text-text-secondary">{cfg.text}</span>
-                  <span className="text-[13px] font-semibold text-[#e5e7eb] group-hover:text-accent transition-colors truncate max-w-[200px]">
+                  <span className="text-[13px] font-semibold text-text-primary group-hover:text-accent transition-colors truncate max-w-[200px]">
                     {isCollection ? a.collectionName : a.title}
                   </span>
                   {cfg.badge && (
@@ -169,12 +169,12 @@ export default function FeedPage() {
                       📁 {a.itemCount} item{a.itemCount !== 1 ? "s" : ""}
                     </span>
                   )}
-                  <span className="text-[11px] text-[#4b5563]">{timeAgo(a.createdAt)}</span>
+                  <span className="text-[11px] text-text-secondary">{timeAgo(a.createdAt)}</span>
                 </div>
 
                 {/* Review snippet */}
                 {hasReview && (
-                  <div className="mt-2 text-[11px] text-text-secondary leading-relaxed italic bg-[#12121f] border-l-2 border-[#a855f7] rounded-r-md px-2.5 py-2">
+                  <div className="mt-2 text-[11px] text-text-secondary leading-relaxed italic bg-bg-surface border-l-2 border-[#a855f7] rounded-r-md px-2.5 py-2">
                     &ldquo;{a.content}&rdquo;
                   </div>
                 )}
