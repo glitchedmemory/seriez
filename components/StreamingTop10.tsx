@@ -148,7 +148,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
   if (!loading && Object.keys(data).length === 0) return null;
 
   return (
-    <div className="bg-bg-card border border-border rounded-xl overflow-hidden shadow-sm ring-1 ring-black/5">
+    <div className="bg-bg-card border border-border rounded-xl overflow-hidden light:shadow-sm light:ring-1 light:ring-black/5">
       <div className="p-3">
         {/* Header row: title + Movies/TV Shows toggle */}
         <div className="flex items-center justify-between mb-2">
@@ -163,8 +163,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
               className="px-2.5 py-1 text-[10px] font-medium rounded-md transition-all"
               style={{
                 backgroundColor: category === "movies" ? activeColor : "transparent",
-                color: category === "movies" ? "#fff" : "var(--text-primary)",
-                opacity: category === "movies" ? 1 : 0.45,
+                color: category === "movies" ? "#fff" : "#6b7280",
               }}
             >
               Movies
@@ -174,8 +173,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
               className="px-2.5 py-1 text-[10px] font-medium rounded-md transition-all"
               style={{
                 backgroundColor: category === "tv" ? activeColor : "transparent",
-                color: category === "tv" ? "#fff" : "var(--text-primary)",
-                opacity: category === "tv" ? 1 : 0.45,
+                color: category === "tv" ? "#fff" : "#6b7280",
               }}
             >
               TV Shows
@@ -224,16 +222,16 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
               className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-colors hover:bg-bg-surface cursor-pointer"
             >
               <span
-                className={`text-[11px] font-bold w-4 text-right flex-shrink-0 ${
-                  item.rank === 2 ? "opacity-65" : item.rank >= 4 ? "opacity-45" : ""
-                }`}
+                className="text-[11px] font-bold w-4 text-right flex-shrink-0"
                 style={{
                   color:
                     item.rank === 1
                       ? activeColor
+                      : item.rank === 2
+                      ? "#9ca3af"
                       : item.rank === 3
-                      ? "#b45309"
-                      : "var(--text-primary)",
+                      ? "#d97706"
+                      : "#6b7280",
                 }}
               >
                 {item.rank}
@@ -254,7 +252,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
               <div
                 className={item.poster ? "hidden" : "w-10 h-14 rounded bg-bg-primary flex-shrink-0 flex items-center justify-center border border-border"}
               >
-                <span className="text-[9px] text-text-primary/30">—</span>
+                <span className="text-[9px] text-[#4b5563]">—</span>
               </div>
 
               <span className="text-[12px] text-text-primary truncate">{item.title}</span>
