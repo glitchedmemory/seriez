@@ -313,17 +313,6 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
 
           <section>
             <div className="px-4 md:px-0 mb-3">
-              <SectionHeader emoji="⏳" title="Coming Soon" subtitle="Upcoming releases" />
-            </div>
-            <PosterGrid>
-              {upcoming.map((item) => <CardWrapper key={item.id} item={item} showCountdown />)}
-            </PosterGrid>
-          </section>
-
-          <GenreChips selected={activeGenre} onSelect={setActiveGenre} />
-
-          <section>
-            <div className="px-4 md:px-0 mb-3">
               <SectionHeader emoji="🎯" title="For You" subtitle={
                 forYouLoading
                   ? "Loading..."
@@ -347,6 +336,17 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
                   <CardWrapper key={item.id} item={item} reasonText={forYouReasons[item.id]} />
                 ))
               )}
+            </PosterGrid>
+          </section>
+
+          <GenreChips selected={activeGenre} onSelect={setActiveGenre} />
+
+          <section>
+            <div className="px-4 md:px-0 mb-3">
+              <SectionHeader emoji="⏳" title="Coming Soon" subtitle="Upcoming releases" />
+            </div>
+            <PosterGrid>
+              {upcoming.map((item) => <CardWrapper key={item.id} item={item} showCountdown />)}
             </PosterGrid>
           </section>
 

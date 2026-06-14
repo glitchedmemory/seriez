@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ListSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -22,10 +22,19 @@ const TABS = [
   { key: "completed", label: "Watched" },
 ];
 
+const SORT_OPTIONS = [
+  { key: "recent", label: "Recent" },
+  { key: "rating", label: "My Rating" },
+  { key: "popularity", label: "Popular" },
+  { key: "year", label: "Year" },
+] as const;
+type SortKey = typeof SORT_OPTIONS[number]["key"];
+
 // ─── Tracking grid ───
 function TrackingGrid({ activeTab }: { activeTab: string }) {
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sort, setSort] = useState<SortKey>("recent");
 
   useEffect(() => {
     const username = localStorage.getItem("seriez-username") || "Anonymous";
@@ -36,12 +45,41 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
     fetch(url).then(r => r.json()).then(data => { setItems(data.items || []); setLoading(false); }).catch(() => setLoading(false));
   }, [activeTab]);
 
+  const sortedItems = useMemo(() => {
+    const sorted = [...items];
+    switch (sort) {
+      case "rating": sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)); break;
+      case "popularity": sorted.sort((a, b) => (b.tmdbRating ?? 0) - (a.tmdbRating ?? 0)); break;
+      case "year": sorted.sort((a, b) => (b.year ?? 0) - (a.year ?? 0)); break;
+      default: break;
+    }
+    return sorted;
+  }, [items, sort]);
+
   if (loading) return <ListSkeleton rows={6} />;
   if (items.length === 0) return <EmptyState icon="📚" title={activeTab ? `No ${TABS.find(t=>t.key===activeTab)?.label || "items"} yet` : "Your library is empty"} description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />;
 
   return (
-    <div className="px-4 mt-4 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-      {items.map(item => (
+    <div className="px-4 mt-4">
+      {/* Sort bar */}
+      <div className="flex gap-1.5 mb-3">
+        {SORT_OPTIONS.map(opt => (
+          <button
+            key={opt.key}
+            onClick={() => setSort(opt.key)}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium transition-colors ${
+              sort === opt.key
+                ? "bg-[#6366f1] text-white"
+                : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+        {sortedItems.map(item => (
         <a key={`${item.mediaType}-${item.tmdbId}`} href={`/title/${item.tmdbId}${item.mediaType === "tv" ? "/season/1" : `?type=${item.mediaType}`}`} className="block group">
           <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-[#1a1a2e]">
             {item.poster ? <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-white/20 text-2xl font-bold">{item.title.slice(0,2)}</div>}
@@ -53,6 +91,7 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
           <p className="text-[10px] text-[#6b7280]">{item.year || "—"} · {item.mediaType==="movie"?"Movie":"TV"}</p>
         </a>
       ))}
+      </div>
     </div>
   );
 }
