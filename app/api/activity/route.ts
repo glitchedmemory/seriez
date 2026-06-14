@@ -22,21 +22,21 @@ function getVirtualActivities(): Activity[] {
       id: "v-review-1", type: "review",
       username: "cinephile_jane", tmdbId: 930600, mediaType: "movie",
       title: "", poster: null, year: null,
-      rating: 8, content: "Darkly hilarious. A cabin-in-the-woods setup where both leads are secretly trying to kill each other. The comedic timing is flawless and the third act twist genuinely surprised me.",
+      rating: 4, content: "Darkly hilarious. A cabin-in-the-woods setup where both leads are secretly trying to kill each other. The comedic timing is flawless and the third act twist genuinely surprised me.",
       createdAt: h(2),
     },
     {
       id: "v-rated-1", type: "rated",
       username: "moviefan92", tmdbId: 533535, mediaType: "movie",
       title: "", poster: null, year: null,
-      rating: 9,
+      rating: 4.5,
       createdAt: h(3),
     },
     {
       id: "v-watched-1", type: "watched",
       username: "series_tracker", tmdbId: 1399, mediaType: "tv",
       title: "", poster: null, year: null,
-      rating: 9,
+      rating: 4.5,
       createdAt: h(5),
     },
     {
@@ -49,7 +49,7 @@ function getVirtualActivities(): Activity[] {
       id: "v-review-2", type: "review",
       username: "film_critic_sam", tmdbId: 845781, mediaType: "movie",
       title: "", poster: null, year: null,
-      rating: 6, content: "A fun holiday romp with great chemistry between the leads. Santa as a buff action hero works better than expected.",
+      rating: 3, content: "A fun holiday romp with great chemistry between the leads. Santa as a buff action hero works better than expected.",
       createdAt: h(8),
     },
     {
@@ -71,7 +71,7 @@ function getVirtualActivities(): Activity[] {
       id: "v-review-3", type: "review",
       username: "anime_lover", tmdbId: 37854, mediaType: "tv",
       title: "", poster: null, year: null,
-      rating: 10, content: "After 1000+ episodes I can confidently say this is the greatest adventure story ever told. The world-building is unmatched.",
+      rating: 5, content: "After 1000+ episodes I can confidently say this is the greatest adventure story ever told. The world-building is unmatched.",
       createdAt: d(2),
     },
     {
@@ -84,7 +84,7 @@ function getVirtualActivities(): Activity[] {
       id: "v-rated-2", type: "rated",
       username: "film_critic_sam", tmdbId: 872585, mediaType: "movie",
       title: "", poster: null, year: null,
-      rating: 10,
+      rating: 5,
       createdAt: d(1),
     },
     {
@@ -100,7 +100,7 @@ function getVirtualActivities(): Activity[] {
       id: "v-watched-2", type: "watched",
       username: "moviefan92", tmdbId: 693134, mediaType: "movie",
       title: "", poster: null, year: null,
-      rating: 9,
+      rating: 4.5,
       createdAt: d(2),
     },
     {
@@ -113,7 +113,7 @@ function getVirtualActivities(): Activity[] {
       id: "v-review-4", type: "review",
       username: "series_tracker", tmdbId: 94605, mediaType: "tv",
       title: "", poster: null, year: null,
-      rating: 10, content: "Visually stunning with a story that hits every emotional beat. Best video game adaptation ever made — and one of the best shows period.",
+      rating: 5, content: "Visually stunning with a story that hits every emotional beat. Best video game adaptation ever made — and one of the best shows period.",
       createdAt: d(4),
     },
     {
@@ -127,167 +127,146 @@ function getVirtualActivities(): Activity[] {
 
 export async function GET(req: NextRequest) {
   const username = await resolveUsername(req);
-  if (!username) {
-    // Guest — show virtual activities so page isn't empty
-    return NextResponse.json({ activities: getVirtualActivities() });
-  }
+  let activities: Activity[] = [];
 
-  const userId = await resolveUserId(username);
-  if (!userId) {
-    return NextResponse.json({ activities: getVirtualActivities() });
-  }
+  if (username) {
+    const userId = await resolveUserId(username);
+    if (userId) {
+      // Try to get real activities from follows
+      const { data: follows } = await supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", userId);
 
-  // 1. Get users this person follows
-  const { data: follows } = await supabase
-    .from("follows")
-    .select("following_id")
-    .eq("follower_id", userId);
+      if (follows?.length) {
+        const followingIds = follows.map((f) => f.following_id);
+        const { data: followedUsers } = await supabase
+          .from("users")
+          .select("id, username")
+          .in("id", followingIds);
 
-  if (!follows?.length) {
-    // No follows yet — show virtual activities
-    return NextResponse.json({ activities: getVirtualActivities() });
-  }
+        const idToUsername: Record<string, string> = {};
+        for (const u of followedUsers || []) {
+          idToUsername[u.id] = u.username;
+        }
 
-  const followingIds = follows.map((f) => f.following_id);
+        const followingUsernames = Object.values(idToUsername);
+        if (followingUsernames.length) {
+          // Get real reviews
+          const { data: reviews } = await supabase
+            .from("reviews")
+            .select("username, tmdb_id, media_type, content, rating, created_at")
+            .in("username", followingUsernames)
+            .order("created_at", { ascending: false })
+            .limit(30);
 
-  // Resolve IDs to usernames
-  const { data: followedUsers } = await supabase
-    .from("users")
-    .select("id, username")
-    .in("id", followingIds);
+          // Get real tracking
+          const { data: tracking } = await supabase
+            .from("media_trackings")
+            .select("username, tmdb_id, media_type, status, rating, updated_at")
+            .in("username", followingUsernames)
+            .order("updated_at", { ascending: false })
+            .limit(30);
 
-  const idToUsername: Record<string, string> = {};
-  for (const u of followedUsers || []) {
-    idToUsername[u.id] = u.username;
-  }
+          // Reviews
+          for (const r of reviews || []) {
+            if (r.rating && r.rating >= 5) {
+              activities.push({
+                id: `rev-${r.username}-${r.tmdb_id}`,
+                type: "rated",
+                username: r.username,
+                tmdbId: r.tmdb_id,
+                mediaType: r.media_type,
+                title: "", poster: null, year: null,
+                rating: r.rating >= 10 ? r.rating / 10 : r.rating,
+                content: r.content?.slice(0, 200),
+                createdAt: r.created_at,
+              });
+            }
+            if (r.content) {
+              activities.push({
+                id: `review-${r.username}-${r.tmdb_id}`,
+                type: "review",
+                username: r.username,
+                tmdbId: r.tmdb_id,
+                mediaType: r.media_type,
+                title: "", poster: null, year: null,
+                content: r.content.slice(0, 200),
+                rating: r.rating >= 10 ? r.rating / 10 : r.rating || undefined,
+                createdAt: r.created_at,
+              });
+            }
+          }
 
-  const followingUsernames = Object.values(idToUsername);
-  if (!followingUsernames.length) {
-    return NextResponse.json({ activities: getVirtualActivities() });
-  }
+          // Tracking
+          for (const t of tracking || []) {
+            const typeMap: Record<string, string> = {
+              completed: "watched",
+              watching: "watching",
+              plan_to_watch: "plan_to_watch",
+            };
+            const type = typeMap[t.status];
+            if (!type) continue;
+            activities.push({
+              id: `track-${t.username}-${t.tmdb_id}`,
+              type: type as Activity["type"],
+              username: t.username,
+              tmdbId: t.tmdb_id,
+              mediaType: t.media_type,
+              title: "", poster: null, year: null,
+              rating: t.rating || undefined,
+              createdAt: t.updated_at,
+            });
+          }
 
-  // 2. Get recent reviews from followed users
-  const { data: reviews } = await supabase
-    .from("reviews")
-    .select("username, tmdb_id, media_type, content, rating, created_at")
-    .in("username", followingUsernames)
-    .order("created_at", { ascending: false })
-    .limit(30);
+          // Collections
+          const { data: collections } = await supabase
+            .from("user_lists")
+            .select("id, user_id, name, published_at")
+            .in("user_id", followingIds)
+            .eq("is_published", true)
+            .order("published_at", { ascending: false })
+            .limit(20);
 
-  // 3. Get recent tracking changes from followed users
-  const { data: tracking } = await supabase
-    .from("media_trackings")
-    .select("username, tmdb_id, media_type, status, rating, updated_at")
-    .in("username", followingUsernames)
-    .order("updated_at", { ascending: false })
-    .limit(30);
-
-  // 4. Combine and deduplicate into activity feed
-  const activities: Activity[] = [];
-
-  // Reviews
-  for (const r of reviews || []) {
-    if (r.rating && r.rating >= 5) {
-      activities.push({
-        id: `rev-${r.username}-${r.tmdb_id}`,
-        type: "rated",
-        username: r.username,
-        tmdbId: r.tmdb_id,
-        mediaType: r.media_type,
-        title: "",
-        poster: null,
-        year: null,
-        rating: r.rating >= 10 ? r.rating / 10 : r.rating,
-        content: r.content?.slice(0, 200),
-        createdAt: r.created_at,
-      });
-    }
-    if (r.content) {
-      activities.push({
-        id: `review-${r.username}-${r.tmdb_id}`,
-        type: "review",
-        username: r.username,
-        tmdbId: r.tmdb_id,
-        mediaType: r.media_type,
-        title: "",
-        poster: null,
-        year: null,
-        content: r.content.slice(0, 200),
-        rating: r.rating >= 10 ? r.rating / 10 : r.rating || undefined,
-        createdAt: r.created_at,
-      });
-    }
-  }
-
-  // Tracking
-  for (const t of tracking || []) {
-    const typeMap: Record<string, string> = {
-      completed: "watched",
-      watching: "watching",
-      plan_to_watch: "plan_to_watch",
-    };
-    const type = typeMap[t.status];
-    if (!type) continue;
-
-    activities.push({
-      id: `track-${t.username}-${t.tmdb_id}`,
-      type: type as Activity["type"],
-      username: t.username,
-      tmdbId: t.tmdb_id,
-      mediaType: t.media_type,
-      title: "",
-      poster: null,
-      year: null,
-      rating: t.rating || undefined,
-      createdAt: t.updated_at,
-    });
-  }
-
-  // Collections: published by followed users
-  const { data: collections } = await supabase
-    .from("user_lists")
-    .select("id, user_id, name, published_at")
-    .in("user_id", followingIds)
-    .eq("is_published", true)
-    .order("published_at", { ascending: false })
-    .limit(20);
-
-  if (collections?.length) {
-    const listIds = collections.map((c: any) => c.id);
-    const { data: itemCounts } = await supabase
-      .from("list_items")
-      .select("list_id")
-      .in("list_id", listIds);
-    const countMap: Record<string, number> = {};
-    for (const li of (itemCounts || [])) {
-      countMap[li.list_id] = (countMap[li.list_id] || 0) + 1;
-    }
-
-    for (const c of collections) {
-      const resolvedUsername = idToUsername[c.user_id];
-      if (!resolvedUsername) continue;
-      activities.push({
-        id: `col-${c.id}`,
-        type: "collection",
-        username: resolvedUsername,
-        tmdbId: 0,
-        mediaType: "",
-        title: "",
-        poster: null,
-        year: null,
-        collectionName: c.name,
-        itemCount: countMap[c.id] || 0,
-        createdAt: c.published_at,
-      });
+          if (collections?.length) {
+            const listIds = collections.map((c: any) => c.id);
+            const { data: itemCounts } = await supabase
+              .from("list_items")
+              .select("list_id")
+              .in("list_id", listIds);
+            const countMap: Record<string, number> = {};
+            for (const li of (itemCounts || [])) {
+              countMap[li.list_id] = (countMap[li.list_id] || 0) + 1;
+            }
+            for (const c of collections) {
+              const resolvedUsername = idToUsername[c.user_id];
+              if (!resolvedUsername) continue;
+              activities.push({
+                id: `col-${c.id}`,
+                type: "collection",
+                username: resolvedUsername,
+                tmdbId: 0, mediaType: "",
+                title: "", poster: null, year: null,
+                collectionName: c.name,
+                itemCount: countMap[c.id] || 0,
+                createdAt: c.published_at,
+              });
+            }
+          }
+        }
+      }
     }
   }
 
-  // Merge real + virtual
-  activities.push(...getVirtualActivities().map(a => ({...a, id: `v-${a.id}`})));
+  // Always add virtual activities as fallback/extra
+  if (activities.length === 0) {
+    activities = getVirtualActivities();
+  } else {
+    activities.push(...getVirtualActivities());
+  }
 
-  // Sort by most recent, deduplicate, limit
+  // Sort, deduplicate, limit
   activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
   const seen = new Set<string>();
   const unique = activities.filter((a) => {
     const key = `${a.username}-${a.tmdbId}-${a.type}`;
@@ -296,7 +275,7 @@ export async function GET(req: NextRequest) {
     return true;
   }).slice(0, 20);
 
-  // 5. Enrich with TMDB data in parallel (skip collections)
+  // Enrich ALL entries with TMDB data (real + virtual, same pipeline)
   const enriched = await Promise.all(
     unique.map(async (a) => {
       if (a.type === "collection" || a.tmdbId === 0) return a;
