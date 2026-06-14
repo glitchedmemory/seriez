@@ -28,7 +28,7 @@ export default function WatchGraph({ data }: { data: MonthlyData[] }) {
 
   return (
     <div className="bg-bg-card border border-border rounded-2xl p-5">
-      <h2 className="text-white text-base font-bold mb-1">
+      <h2 className="text-text-primary text-base font-bold mb-1">
         📊 Monthly Watch Activity
       </h2>
       <p className="text-text-secondary text-xs mb-4">Episodes watched per month</p>

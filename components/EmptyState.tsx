@@ -13,7 +13,7 @@ export default function EmptyState({ icon, title, description, action }: Props) 
       <div className="w-20 h-20 rounded-full bg-bg-card border border-border flex items-center justify-center mb-4">
         <span className="text-3xl">{icon}</span>
       </div>
-      <p className="text-white font-semibold mb-1 text-base">{title}</p>
+      <p className="text-text-primary font-semibold mb-1 text-base">{title}</p>
       {description && (
         <p className="text-sm text-text-secondary max-w-xs leading-relaxed">{description}</p>
       )}

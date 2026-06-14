@@ -103,7 +103,7 @@ export default function FeedPage() {
       ) : activities.length === 0 ? (
         <div className="px-4 mt-10 text-center">
           <span className="text-4xl mb-3 block">🔔</span>
-          <h2 className="text-white text-lg font-bold mb-2">No activity yet</h2>
+          <h2 className="text-text-primary text-lg font-bold mb-2">No activity yet</h2>
           <p className="text-text-secondary text-sm">
             Follow other users to see their activity here.
           </p>
@@ -135,7 +135,7 @@ export default function FeedPage() {
               <div
                 className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center flex-shrink-0 mt-0.5`}
               >
-                <span className="text-xs font-bold text-white">
+                <span className="text-xs font-bold text-text-primary">
                   {a.username.slice(0, 1).toUpperCase()}
                 </span>
               </div>
@@ -190,7 +190,7 @@ export default function FeedPage() {
                   {a.poster ? (
                     <PosterImage src={a.poster} alt="" fill className="rounded-lg" sizes="40px" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/10 text-lg font-bold">
+                    <div className="w-full h-full flex items-center justify-center text-text-primary/10 text-lg font-bold">
                       {a.title.slice(0, 1)}
                     </div>
                   )}

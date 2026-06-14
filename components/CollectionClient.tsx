@@ -143,7 +143,7 @@ export default function CollectionClient() {
     return (
       <div className="max-w-2xl mx-auto min-h-screen px-4 py-20 pb-24 text-center">
         <p className="text-4xl mb-4">📭</p>
-        <h1 className="text-lg font-semibold text-white mb-2">Collection not found</h1>
+        <h1 className="text-lg font-semibold text-text-primary mb-2">Collection not found</h1>
         <button onClick={() => router.push("/search")} className="text-sm text-accent hover:underline">
           ← Back to Search
         </button>
@@ -159,7 +159,7 @@ export default function CollectionClient() {
       </button>
 
       <div className="relative">
-        <h1 className="text-xl font-bold text-white pr-14 mb-1">{collection.name}</h1>
+        <h1 className="text-xl font-bold text-text-primary pr-14 mb-1">{collection.name}</h1>
         <button onClick={handleLike} className={`absolute top-4 right-16 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${liked ? "bg-[#f87171]/20 text-[#f87171] shadow-[0_0_8px_rgba(248,113,113,0.25)]" : "bg-white/5 text-text-secondary hover:bg-white/10 hover:text-[#f87171] active:scale-95"}`}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           {likesCount}
@@ -191,11 +191,11 @@ export default function CollectionClient() {
                     sizes="(max-width: 640px) 50vw, 200px"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/10 text-2xl">🎬</div>
+                  <div className="w-full h-full flex items-center justify-center text-text-primary/10 text-2xl">🎬</div>
                 )}
               </div>
               <div className="p-2.5">
-                <p className="text-xs font-medium text-white truncate">{item.title}</p>
+                <p className="text-xs font-medium text-text-primary truncate">{item.title}</p>
                 <div className="flex items-center gap-2 mt-0.5">
                   {item.year && <span className="text-[10px] text-text-secondary">{item.year}</span>}
                   {item.rating > 0 && (
@@ -220,7 +220,7 @@ export default function CollectionClient() {
 
       {/* Comments Section */}
       <section>
-        <h2 className="text-sm font-semibold text-white mb-3">
+        <h2 className="text-sm font-semibold text-text-primary mb-3">
           💬 Comments {comments.length > 0 && `(${comments.length})`}
         </h2>
 
@@ -234,12 +234,12 @@ export default function CollectionClient() {
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleComment(); }}}
               placeholder="Write a comment..."
               maxLength={200}
-              className="flex-1 bg-bg-card text-white text-xs rounded-lg px-3 py-2 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary"
+              className="flex-1 bg-bg-card text-text-primary text-xs rounded-lg px-3 py-2 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary"
             />
             <button
               onClick={handleComment}
               disabled={!commentText.trim() || submitting}
-              className="px-3 py-2 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-white text-xs font-medium rounded-lg transition-colors flex-shrink-0"
+              className="px-3 py-2 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-text-primary text-xs font-medium rounded-lg transition-colors flex-shrink-0"
             >
               Post
             </button>
@@ -258,13 +258,13 @@ export default function CollectionClient() {
                 {avatarUrls[c.username] ? (
                   <img src={avatarUrls[c.username]!} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-0.5" />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-sm font-bold text-white flex-shrink-0 mt-0.5">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-sm font-bold text-text-primary flex-shrink-0 mt-0.5">
                     {c.username[0]?.toUpperCase()}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-white hover:text-accent cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
+                    <span className="text-xs font-medium text-text-primary hover:text-accent cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
                     <span className="text-[10px] text-text-secondary">
                       {new Date(c.created_at).toLocaleDateString()}
                     </span>

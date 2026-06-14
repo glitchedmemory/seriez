@@ -129,7 +129,7 @@ export function Sidebar() {
               aria-current={active ? "page" : undefined}
               className={`flex items-center gap-3 px-1.5 py-2.5 rounded-lg text-sm font-medium transition-all min-w-max ${
                 active
-                  ? "bg-accent/10 text-white"
+                  ? "bg-accent/10 text-text-primary"
                   : "text-text-secondary hover:text-white hover:bg-bg-card"
               }`}
             >
@@ -151,21 +151,21 @@ export function Sidebar() {
               <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             ) : (
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-bold text-white">{initial}</span>
+                <span className="text-xs font-bold text-text-primary">{initial}</span>
               </div>
             )}
             <div className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <p className="text-sm font-medium text-white">{displayName}</p>
+              <p className="text-sm font-medium text-text-primary">{displayName}</p>
               <p className="text-xs text-text-secondary">Profile →</p>
             </div>
           </a>
         ) : (
           <a href="/login" className="flex items-center gap-3 px-1.5 py-2 min-w-max">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-bold text-white">G</span>
+              <span className="text-xs font-bold text-text-primary">G</span>
             </div>
             <div className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <p className="text-sm font-medium text-white">Guest</p>
+              <p className="text-sm font-medium text-text-primary">Guest</p>
               <p className="text-xs text-text-secondary">Sign in →</p>
             </div>
           </a>

@@ -110,7 +110,7 @@ export default function ChangeProfilePage() {
           >
             ← Back
           </button>
-          <h1 className="text-lg font-bold text-white">Change Profile</h1>
+          <h1 className="text-lg font-bold text-text-primary">Change Profile</h1>
         </div>
 
         {/* ── Cover area ── */}
@@ -144,7 +144,7 @@ export default function ChangeProfilePage() {
               onClick={(e) => { e.stopPropagation(); handleBackgroundDelete(); }}
               className="absolute top-2 right-2 w-7 h-7 bg-red-500/90 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg transition-colors z-10"
             >
-              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              <svg className="w-3.5 h-3.5 text-text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           )}
 
@@ -161,7 +161,7 @@ export default function ChangeProfilePage() {
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
                   ) : (
-                    <span className="text-3xl font-bold text-white">{initial}</span>
+                    <span className="text-3xl font-bold text-text-primary">{initial}</span>
                   )}
                 </button>
                 {avatarUrl && (
@@ -169,7 +169,7 @@ export default function ChangeProfilePage() {
                     onClick={(e) => { e.stopPropagation(); handleAvatarDelete(); }}
                     className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg transition-colors z-10"
                   >
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <svg className="w-3 h-3 text-text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
                   </button>
                 )}
               </div>
@@ -178,11 +178,11 @@ export default function ChangeProfilePage() {
 
             {/* Username + stats */}
             <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-2xl font-bold text-white">@{displayName}</h2>
+              <h2 className="text-2xl font-bold text-text-primary">@{displayName}</h2>
             </div>
             <div className="flex gap-5 text-sm text-text-secondary">
-              <span><strong className="text-white">{followersCount}</strong> followers</span>
-              <span><strong className="text-white">{followingCount}</strong> following</span>
+              <span><strong className="text-text-primary">{followersCount}</strong> followers</span>
+              <span><strong className="text-text-primary">{followingCount}</strong> following</span>
             </div>
           </div>
         </div>

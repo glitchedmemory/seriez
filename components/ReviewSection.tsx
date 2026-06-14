@@ -91,13 +91,13 @@ function CommentTree({
               {avatarUrls?.[c.username] ? (
                 <img src={avatarUrls[c.username]!} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-0.5" />
               ) : (
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0 mt-0.5 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-text-primary flex-shrink-0 mt-0.5 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
                   {c.username[0]?.toUpperCase()}
                 </div>
               )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-white hover:text-accent cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
+                  <span className="text-xs font-medium text-text-primary hover:text-accent cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
                   {c.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block" />}
                   {isAdmin && c.is_hidden && (
                     <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded">🚨 hidden</span>
@@ -167,9 +167,9 @@ function CommentTree({
                   onChange={(e) => onReplyChange(c.id, e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onReply(c.id); }}}
                   maxLength={1000}
-                  className="flex-1 bg-bg-surface text-white text-[10px] rounded-lg px-2 py-1.5 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary" />
+                  className="flex-1 bg-bg-surface text-text-primary text-[10px] rounded-lg px-2 py-1.5 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary" />
                 <button onClick={() => onReply(c.id)} disabled={!replyInputs[String(c.id)]?.trim()}
-                  className="px-2 py-1 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-white text-[10px] font-medium rounded-lg transition-colors flex-shrink-0">Post</button>
+                  className="px-2 py-1 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-text-primary text-[10px] font-medium rounded-lg transition-colors flex-shrink-0">Post</button>
               </div>
             )}
             {/* Children: inline up to MAX_DEPTH, collapsed beyond */}
@@ -727,7 +727,7 @@ export function ReviewSection({
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold text-white">Reviews</h2>
+        <h2 className="text-lg font-semibold text-text-primary">Reviews</h2>
         {stats && stats.total > 0 && (
           <span className="text-xs text-text-secondary">
             {stats.total}
@@ -754,13 +754,13 @@ export function ReviewSection({
             onChange={(e) => setContent(e.target.value)}
             maxLength={2000}
             rows={3}
-            className="w-full bg-bg-surface text-white text-sm rounded-lg px-3 py-2 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary resize-none"
+            className="w-full bg-bg-surface text-text-primary text-sm rounded-lg px-3 py-2 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary resize-none"
           />
           {error && <p className="text-xs text-red-400">{error}</p>}
           <button
             type="submit"
             disabled={submitting}
-            className="px-4 py-1.5 bg-accent hover:bg-[#5558e6] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+            className="px-4 py-1.5 bg-accent hover:bg-[#5558e6] disabled:opacity-50 text-text-primary text-sm font-medium rounded-lg transition-colors"
           >
             {submitting ? "Submitting..." : "Submit Review"}
           </button>
@@ -811,11 +811,11 @@ export function ReviewSection({
                 {avatarUrls[review.username] ? (
                   <img src={avatarUrls[review.username]!} alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
                 ) : (
-                  <div className="w-11 h-11 rounded-full flex items-center justify-center text-base font-bold text-white flex-shrink-0 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center text-base font-bold text-text-primary flex-shrink-0 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
                     {review.username[0].toUpperCase()}
                   </div>
                 )}
-                <span className="text-sm font-semibold text-white hover:text-[#a5b4fc] cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${review.username}`)}>
+                <span className="text-sm font-semibold text-text-primary hover:text-[#a5b4fc] cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${review.username}`)}>
                   {review.username}
                 </span>
                 {review.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block" />}
@@ -970,12 +970,12 @@ export function ReviewSection({
                         }
                       }}
                       maxLength={1000}
-                      className="flex-1 bg-bg-surface text-white text-xs rounded-lg px-3 py-2 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary"
+                      className="flex-1 bg-bg-surface text-text-primary text-xs rounded-lg px-3 py-2 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary"
                     />
                     <button
                       onClick={() => submitComment(review.id, review.username, tmdbId, "")}
                       disabled={!commentInputs[review.id]?.trim()}
-                      className="px-3 py-1.5 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-white text-xs font-medium rounded-lg transition-colors flex-shrink-0"
+                      className="px-3 py-1.5 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-text-primary text-xs font-medium rounded-lg transition-colors flex-shrink-0"
                     >
                       Post
                     </button>

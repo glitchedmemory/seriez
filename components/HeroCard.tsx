@@ -120,20 +120,20 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
               {item.year} · {item.type === "movie" ? "Movie" : item.type === "anime" ? "Anime" : "TV"}
             </span>
             {item.genres.slice(0, 3).map((g) => (
-              <span key={g} className="text-[11px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/80">
+              <span key={g} className="text-[11px] px-1.5 py-0.5 rounded-full bg-white/10 text-text-primary/80">
                 {g}
               </span>
             ))}
           </div>
 
           {/* Title */}
-          <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-2">
+          <h2 className="text-3xl md:text-4xl font-bold text-text-primary leading-tight mb-2">
             {item.title}
           </h2>
 
           {/* Synopsis */}
           {item.overview && (
-            <p className="text-sm text-white/70 leading-relaxed mb-4 max-w-lg line-clamp-2">
+            <p className="text-sm text-text-primary/70 leading-relaxed mb-4 max-w-lg line-clamp-2">
               {item.overview}
             </p>
           )}
@@ -148,7 +148,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
             </button>
             <button
               onClick={handlePlusClick}
-              className="px-3 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors inline-flex items-center gap-1.5 border-none cursor-pointer"
+              className="px-3 py-2 rounded-full bg-white/10 text-text-primary text-sm font-medium hover:bg-white/20 transition-colors inline-flex items-center gap-1.5 border-none cursor-pointer"
             >
               +
             </button>
@@ -175,7 +175,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
                         setShowCollDropdown(false);
                       }}
                       disabled={addingCollId === c.id}
-                      className="w-full text-left px-3 py-2.5 text-xs text-white hover:bg-bg-surface flex justify-between items-center transition-colors disabled:opacity-50 border-none cursor-pointer"
+                      className="w-full text-left px-3 py-2.5 text-xs text-text-primary hover:bg-bg-surface flex justify-between items-center transition-colors disabled:opacity-50 border-none cursor-pointer"
                     >
                       <span>{c.name}</span>
                       <span className="text-[10px] text-text-secondary">{c.itemCount}</span>
@@ -208,7 +208,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
               <p className="text-[10px] text-accent uppercase tracking-wide font-medium">
                 Tonight&apos;s Pick
               </p>
-              <p className="text-sm font-semibold text-white truncate">
+              <p className="text-sm font-semibold text-text-primary truncate">
                 {nextItem.title}
               </p>
               <p className="text-xs text-text-secondary">

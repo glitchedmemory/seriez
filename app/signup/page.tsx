@@ -100,7 +100,7 @@ export default function SignupPage() {
 
   return (
     <div className="max-w-sm mx-auto px-4 pt-20 pb-32">
-      <h1 className="text-2xl font-bold text-white mb-2">Create account</h1>
+      <h1 className="text-2xl font-bold text-text-primary mb-2">Create account</h1>
       <p className="text-sm text-text-secondary mb-6">Start tracking what you watch</p>
 
       <form onSubmit={handleSignup}>
@@ -110,7 +110,7 @@ export default function SignupPage() {
           value={username}
           onChange={(e) => { setUsername(e.target.value); setUsernameStatus("idle"); }}
           onBlur={(e) => checkUsername(e.target.value)}
-          className={`w-full bg-bg-card text-white rounded-xl px-4 py-3 outline-none border mb-1 ${
+          className={`w-full bg-bg-card text-text-primary rounded-xl px-4 py-3 outline-none border mb-1 ${
             usernameStatus === "available" ? "border-emerald-500" :
             usernameStatus === "taken" || usernameStatus === "short" ? "border-red-500" :
             "border-border focus:border-accent"
@@ -129,7 +129,7 @@ export default function SignupPage() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full bg-bg-card text-white rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-3"
+          className="w-full bg-bg-card text-text-primary rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-3"
           required
         />
         <input
@@ -137,7 +137,7 @@ export default function SignupPage() {
           placeholder="Password (8+ chars, upper/lower/special)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full bg-bg-card text-white rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-1"
+          className="w-full bg-bg-card text-text-primary rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-1"
           required
           minLength={8}
         />

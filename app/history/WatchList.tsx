@@ -35,7 +35,7 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
 
   return (
     <div className="px-4 pb-6">
-      <h2 className="text-[15px] font-bold text-white tracking-tight mb-3">
+      <h2 className="text-[15px] font-bold text-text-primary tracking-tight mb-3">
         This Month&apos;s Diary
       </h2>
       <div className="divide-y divide-[#1a1a2e]">
@@ -58,7 +58,7 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-800 flex items-center justify-center">
-                  <span className="text-white/60 text-[9px] font-semibold text-center px-1">
+                  <span className="text-text-primary/60 text-[9px] font-semibold text-center px-1">
                     {item.title.slice(0, 4)}
                   </span>
                 </div>
@@ -67,7 +67,7 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white truncate tracking-tight">
+              <p className="text-sm font-bold text-text-primary truncate tracking-tight">
                 {item.title}
               </p>
               <p className="text-xs text-text-secondary font-medium mt-0.5">

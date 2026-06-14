@@ -101,7 +101,7 @@ export default function SearchPage() {
             onKeyDown={handleKeyDown}
             placeholder="Search movies, TV shows & anime..."
             aria-label="Search movies, TV shows and anime"
-            className="w-full bg-bg-card text-white text-sm rounded-xl pl-10 pr-4 py-3 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary"
+            className="w-full bg-bg-card text-text-primary text-sm rounded-xl pl-10 pr-4 py-3 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary"
           />
           {query && (
             <button
@@ -175,7 +175,7 @@ export default function SearchPage() {
                   {item.poster ? (
                     <PosterImage src={item.poster} alt={item.title} width={48} height={72} className="rounded-lg" sizes="48px" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/20 text-xs font-bold">
+                    <div className="w-full h-full flex items-center justify-center text-text-primary/20 text-xs font-bold">
                       {item.title.slice(0, 2)}
                     </div>
                   )}
@@ -183,7 +183,7 @@ export default function SearchPage() {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">
+                  <p className="text-sm font-medium text-text-primary truncate">
                     {item.title}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
