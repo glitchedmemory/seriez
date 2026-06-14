@@ -112,7 +112,12 @@ function CommentTree({
                       }`}
                       title={reportCounts?.[String(c.id)] ? "Reported ✓" : "Report"}>
                       {reportCounts?.[String(c.id)] ? "✓ Reported" : (
-                        <span className="light:bg-red-50 light:rounded light:p-0.5"><img src="/report-button.png" alt="Report" className="h-5 w-auto opacity-70 hover:opacity-100" /></span>
+                        <span className="light:bg-red-50 light:rounded light:p-0.5">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-auto opacity-70 hover:opacity-100 text-red-400">
+                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+                            <line x1="4" y1="22" x2="4" y2="15"/>
+                          </svg>
+                        </span>
                       )}
                     </button>
                   )}
@@ -869,7 +874,12 @@ export function ReviewSection({
                   title={reportCounts[review.id] ? "Reported ✓" : "Report this review"}
                 >
                   {reportCounts[review.id] ? "✓ Reported" : (
-                    <span className="light:bg-red-50 light:rounded light:p-0.5"><img src="/report-button.png" alt="Report" className="h-6 w-auto" /></span>
+                    <span className="light:bg-red-50 light:rounded light:p-0.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-auto text-red-400">
+                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+                        <line x1="4" y1="22" x2="4" y2="15"/>
+                      </svg>
+                    </span>
                   )}
                 </button>
               )}
@@ -1092,14 +1102,14 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
   return (
     <div style={{ padding: "12px 16px" }}>
       {/* Average rating */}
-      <p style={{ fontSize: 13, fontWeight: 500, color: "#d1d5db", margin: 0 }}>Rating</p>
-      <p style={{ fontSize: 34, fontWeight: 700, color: "#fff", lineHeight: 1.1, margin: 0 }}>
+      <p style={{ fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", margin: 0 }}>Rating</p>
+      <p style={{ fontSize: 34, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.1, margin: 0 }}>
         {average > 0 ? average.toFixed(1) : "—"}
       </p>
 
       {/* Total reviews */}
-      <p style={{ fontSize: 11, color: "#6b7280", marginTop: 4, marginBottom: 0 }}>Total reviews</p>
-      <p style={{ fontSize: 13, fontWeight: 600, color: "#fff", margin: 0 }}>
+      <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4, marginBottom: 0 }}>Total reviews</p>
+      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", margin: 0 }}>
         {total >= 10000 ? `${(total / 10000).toFixed(1)}만` : total >= 1000 ? `${(total / 1000).toFixed(1)}k` : String(total)}
       </p>
 
@@ -1140,7 +1150,7 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
       <div style={{ display: "flex", gap: BAR_GAP, marginTop: 6 }}>
         {buckets.map((star) => (
           <div key={`lbl-${star}`} style={{ width: BAR_WIDTH, textAlign: "center" }}>
-            <span style={{ fontSize: 10, color: "#6b7280" }}>
+            <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>
               {star % 1 === 0 ? star : ""}
             </span>
           </div>
