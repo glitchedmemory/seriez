@@ -12,7 +12,7 @@ import type { WatchListItem } from "./WatchList";
 
 interface HistoryData {
   calendar: Record<string, DayEntry[]>;
-  stats: { totalHours: number; avgRating: number; totalTitles: number; totalEpisodes: number };
+  stats: { weeklyHours: number; totalHours: number; allTimeHours: number; avgRating: number; totalTitles: number; totalEpisodes: number };
   monthlyGraph: { month: string; count: number }[];
   topGenres: { name: string; avgRating: number; count: number }[];
   watchList: WatchListItem[];
@@ -146,6 +146,15 @@ export default function HistoryClient() {
 
       {/* ── Divider ── */}
       <div className="h-2 bg-[#0a0a14] mb-5" />
+
+      {/* Watch time overview */}
+      <div className="px-4 mb-5">
+        <div className="grid grid-cols-3 gap-3">
+          <StatCard value={`${data.stats.weeklyHours}h`} label="This Week" />
+          <StatCard value={`${data.stats.totalHours}h`} label="This Month" />
+          <StatCard value={`${data.stats.allTimeHours}h`} label="All Time" />
+        </div>
+      </div>
 
       {/* ── Taste Profile ── */}
       <div className="px-4 mb-5">

@@ -149,6 +149,27 @@ export async function GET(req: NextRequest) {
     if (e.runtime) totalMin += e.runtime * e.episodeCount;
     totalEps += e.episodeCount;
   }
+
+  // Weekly: current ISO week (Monday–Sunday)
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  monday.setHours(0, 0, 0, 0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+  const weekStart = monday.toISOString().split("T")[0];
+  const weekEnd = sunday.toISOString().split("T")[0];
+  let weeklyMin = 0, allTimeMin = 0;
+  for (const w of (watches || [])) {
+    const tmdb = tmdbMap.get(w.tmdb_id);
+    const rt = tmdb?.tmdbInfo?.runtime;
+    if (!rt) continue;
+    allTimeMin += rt;
+    const watchDate = new Date(w.watched_at).toISOString().split("T")[0];
+    if (watchDate >= weekStart && watchDate <= weekEnd) weeklyMin += rt;
+  }
   const allRatings = Array.from(ratingMap.values()).filter(r => r.rating > 0);
   const avgRating = allRatings.length > 0 ? Math.round((allRatings.reduce((s,r)=>s+r.rating,0)/allRatings.length)*10)/10 : 0;
 
@@ -182,7 +203,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     calendar,
-    stats: { totalHours: Math.round(totalMin/6)/10, avgRating, totalTitles: titles.size, totalEpisodes: totalEps },
+    stats: { weeklyHours: Math.round(weeklyMin/6)/10, totalHours: Math.round(totalMin/6)/10, allTimeHours: Math.round(allTimeMin/6)/10, avgRating, totalTitles: titles.size, totalEpisodes: totalEps },
     monthlyGraph, topGenres, watchList,
   });
 }
