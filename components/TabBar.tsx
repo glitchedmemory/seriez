@@ -46,7 +46,7 @@ export default function TabBar() {
                 active ? "text-[#a855f7]" : "text-[#9ca3af] hover:text-white"
               }`}
             >
-              <span className={`text-xl ${active && tab.name !== "Feed" ? "[&>img]:filter [&>img]:brightness-0 [&>img]:saturate-100 [&>img]:invert-[33%] [&>img]:sepia-[54%] [&>img]:saturate-[2050%] [&>img]:hue-rotate-[245deg] [&>img]:brightness-[.95] [&>img]:contrast-[.93]" : ""}`}>
+              <span className={`text-xl ${active ? "[&>img]:filter [&>img]:brightness-0 [&>img]:saturate-100 [&>img]:invert-[33%] [&>img]:sepia-[54%] [&>img]:saturate-[2050%] [&>img]:hue-rotate-[245deg] [&>img]:brightness-[.95] [&>img]:contrast-[.93]" : ""}`}>
                 {tab.icon}
               </span>
               <span className="font-medium">{tab.name}</span>
