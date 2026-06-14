@@ -166,6 +166,19 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
             }).catch(() => {});
           });
         }
+        // Auto-check Episode 1 when starting Watching from idle
+        if (newStatus === "watching" && !watchedEpisodes.has("1-1")) {
+          setWatchedEpisodes((prev) => {
+            const next = new Set(prev);
+            next.add("1-1");
+            return next;
+          });
+          fetch("/api/episodes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, tmdbId: detail.id, seasonNumber: 1, episodeNumber: 1 }),
+          }).catch(() => {});
+        }
       } else {
         await fetch("/api/track", {
           method: "DELETE",
@@ -233,6 +246,16 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       });
     } catch {}
     setEpToggleLoading(null);
+
+    // Was completed, now unchecking an episode → downgrade to watching
+    if (trackStatus === "completed" && wasWatched && watchedEpisodes.size - 1 < episodes.length) {
+      setTrackStatus("watching");
+      fetch("/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching" }),
+      }).catch(() => {});
+    }
 
     // All episodes checked → auto-complete
     const nowAllWatched = !wasWatched && watchedEpisodes.size + 1 >= episodes.length;

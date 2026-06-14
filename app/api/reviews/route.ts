@@ -72,17 +72,32 @@ export async function GET(req: NextRequest) {
   const { count: totalCount } = await totalQuery;
   const total = totalCount || 0;
 
-  // Fetch page
+  // Fetch all reviews (sort in memory: top 2 by likes pinned, rest by created_at)
   let query = supabase
     .from("reviews")
     .select("id, username, content, rating, likes_count, is_hidden, created_at")
     .eq("tmdb_id", tmdbIdNum).eq("media_type", mediaType);
   if (!isAdmin) query = query.eq("is_hidden", false);
-  query = query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
 
   const { data, error } = await query;
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Sort: top 2 by likes_count DESC pinned, rest by created_at DESC
+  const all = data || [];
+  const sortedByLikes = [...all].sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0));
+  const pinnedIds = new Set(sortedByLikes.slice(0, 2).map(r => r.id));
+  const sorted = [...all].sort((a, b) => {
+    const aPinned = pinnedIds.has(a.id);
+    const bPinned = pinnedIds.has(b.id);
+    if (aPinned && bPinned) return (b.likes_count || 0) - (a.likes_count || 0);
+    if (aPinned) return -1;
+    if (bPinned) return 1;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  // Paginate in memory
+  const visible = sorted.slice(offset, offset + limit);
 
   let likedSet = new Set<string>();
   if (username?.trim()) {
@@ -90,8 +105,6 @@ export async function GET(req: NextRequest) {
       .from("review_likes").select("review_id").eq("username", username.trim());
     if (likes) likedSet = new Set(likes.map((l: any) => l.review_id));
   }
-
-  const visible = data || [];
 
   // Fetch comment counts for visible reviews
   const reviewIds = visible.map((r: any) => r.id);
