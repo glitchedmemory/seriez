@@ -32,7 +32,7 @@ export default function TabBar() {
   if (pathname === "/onboarding") return null;
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0f0f1a]/95 backdrop-blur-md border-t border-[#1a1a2e]">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-bg-primary/95 backdrop-blur-md border-t border-[#1a1a2e]">
       <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
         {tabs.map((tab) => {
           const active = pathname === tab.path;
@@ -43,7 +43,7 @@ export default function TabBar() {
               aria-label={tab.name}
               aria-current={active ? "page" : undefined}
               className={`flex flex-col items-center gap-1 px-3 py-2 text-xs transition-colors ${
-                active ? "text-[#a855f7]" : "text-[#9ca3af] hover:text-white"
+                active ? "text-accent-light" : "text-text-secondary hover:text-white"
               }`}
             >
               <span className={`text-xl ${active ? "[&>img]:filter [&>img]:brightness-0 [&>img]:saturate-100 [&>img]:invert-[33%] [&>img]:sepia-[54%] [&>img]:saturate-[2050%] [&>img]:hue-rotate-[245deg] [&>img]:brightness-[.95] [&>img]:contrast-[.93]" : ""}`}>
@@ -107,10 +107,10 @@ export function Sidebar() {
   const initial = displayName.slice(0, 1).toUpperCase();
 
   return (
-    <aside className="hidden md:flex flex-col h-screen sticky top-0 border-r border-[#1a1a2e] px-3 py-6 transition-all duration-200 w-14 hover:w-56 group overflow-hidden hover:overflow-visible z-50 bg-[#0f0f1a]">
+    <aside className="hidden md:flex flex-col h-screen sticky top-0 border-r border-[#1a1a2e] px-3 py-6 transition-all duration-200 w-14 hover:w-56 group overflow-hidden hover:overflow-visible z-50 bg-bg-primary">
       <Link
         href="/"
-        className="flex items-center gap-3 px-1.5 py-2.5 rounded-lg mb-6 hover:bg-[#1a1a2e] transition-colors min-w-max"
+        className="flex items-center gap-3 px-1.5 py-2.5 rounded-lg mb-6 hover:bg-bg-card transition-colors min-w-max"
       >
         <span className="text-xl flex-shrink-0">🎬</span>
         <h1 className="text-xl font-bold bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -129,8 +129,8 @@ export function Sidebar() {
               aria-current={active ? "page" : undefined}
               className={`flex items-center gap-3 px-1.5 py-2.5 rounded-lg text-sm font-medium transition-all min-w-max ${
                 active
-                  ? "bg-[#6366f1]/10 text-white"
-                  : "text-[#9ca3af] hover:text-white hover:bg-[#1a1a2e]"
+                  ? "bg-accent/10 text-white"
+                  : "text-text-secondary hover:text-white hover:bg-bg-card"
               }`}
             >
               <span className="text-lg flex-shrink-0">{tab.icon}</span>
@@ -156,7 +156,7 @@ export function Sidebar() {
             )}
             <div className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <p className="text-sm font-medium text-white">{displayName}</p>
-              <p className="text-xs text-[#9ca3af]">Profile →</p>
+              <p className="text-xs text-text-secondary">Profile →</p>
             </div>
           </a>
         ) : (
@@ -166,7 +166,7 @@ export function Sidebar() {
             </div>
             <div className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <p className="text-sm font-medium text-white">Guest</p>
-              <p className="text-xs text-[#9ca3af]">Sign in →</p>
+              <p className="text-xs text-text-secondary">Sign in →</p>
             </div>
           </a>
         )}

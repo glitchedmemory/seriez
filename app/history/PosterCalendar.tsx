@@ -46,13 +46,13 @@ export default function PosterCalendar({
     <div className={`transition-opacity ${fetching ? "opacity-50" : ""}`}>
       {/* Month header */}
       <div className="flex items-center justify-center gap-5 py-2 mb-1">
-        <button onClick={onPrevMonth} className="text-[#6366f1] text-lg font-light px-1 hover:text-[#818cf8] transition-colors" aria-label="Previous month">
+        <button onClick={onPrevMonth} className="text-accent text-lg font-light px-1 hover:text-[#818cf8] transition-colors" aria-label="Previous month">
           ‹
         </button>
         <h2 className="text-lg font-bold text-white tracking-tight">
           {MONTHS[month - 1]} {year}
         </h2>
-        <button onClick={onNextMonth} className="text-[#6366f1] text-lg font-light px-1 hover:text-[#818cf8] transition-colors" aria-label="Next month">
+        <button onClick={onNextMonth} className="text-accent text-lg font-light px-1 hover:text-[#818cf8] transition-colors" aria-label="Next month">
           ›
         </button>
       </div>
@@ -63,7 +63,7 @@ export default function PosterCalendar({
           <div
             key={d}
             className={`text-xs font-semibold py-1 tracking-wide ${
-              i === 0 ? "text-[#ef4444]" : i === 6 ? "text-[#6366f1]" : "text-[#6b7280]"
+              i === 0 ? "text-[#ef4444]" : i === 6 ? "text-accent" : "text-text-secondary"
             }`}
           >
             {d}
@@ -101,13 +101,13 @@ export default function PosterCalendar({
                 disabled={isEmpty}
                 className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium transition-colors ${
                   isToday
-                    ? "bg-[#6366f1] text-white font-bold"
+                    ? "bg-accent text-white font-bold"
                     : i % 7 === 0
                     ? "text-[#ef4444]"
                     : i % 7 === 6
-                    ? "text-[#6366f1]"
+                    ? "text-accent"
                     : "text-[#d1d5db]"
-                } ${!isEmpty ? "cursor-pointer hover:bg-[#1a1a2e]" : ""}`}
+                } ${!isEmpty ? "cursor-pointer hover:bg-bg-card" : ""}`}
               >
                 {day}
               </button>

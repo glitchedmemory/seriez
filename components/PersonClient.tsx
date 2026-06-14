@@ -7,9 +7,9 @@ function CreditCard({ item, type }: { item: { id: number; title: string; charact
   return (
     <a
       href={`/title/${item.id}?type=${type}`}
-      className="flex items-center gap-3 bg-[#1a1a2e] rounded-xl p-3 hover:bg-[#25253a] transition-colors"
+      className="flex items-center gap-3 bg-bg-card rounded-xl p-3 hover:bg-bg-surface transition-colors"
     >
-      <div className="flex-shrink-0 w-10 h-[60px] rounded-lg overflow-hidden bg-[#0f0f1a] relative">
+      <div className="flex-shrink-0 w-10 h-[60px] rounded-lg overflow-hidden bg-bg-primary relative">
         <PosterImage
           src={item.poster}
           alt={item.title}
@@ -20,10 +20,10 @@ function CreditCard({ item, type }: { item: { id: number; title: string; charact
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-white truncate">{item.title}</p>
-        <p className="text-xs text-[#6b7280]">{item.year}</p>
-        <p className="text-[11px] text-[#a855f7] truncate">{item.character}</p>
+        <p className="text-xs text-text-secondary">{item.year}</p>
+        <p className="text-[11px] text-accent-light truncate">{item.character}</p>
       </div>
-      <div className="text-xs text-[#f59e0b]">★ {item.rating}</div>
+      <div className="text-xs text-gold">★ {item.rating}</div>
     </a>
   );
 }
@@ -35,7 +35,7 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
       <div className="flex flex-col md:flex-row gap-6 pt-8">
         {/* Photo */}
         <div className="flex-shrink-0 w-32 h-32 md:w-48 md:h-48 mx-auto md:mx-0">
-          <div className="w-full h-full rounded-2xl overflow-hidden bg-[#1a1a2e] relative">
+          <div className="w-full h-full rounded-2xl overflow-hidden bg-bg-card relative">
             <PosterImage
               src={person.photo}
               alt={person.name}
@@ -51,16 +51,16 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
           <h1 className="text-2xl md:text-3xl font-bold text-white">
             {person.name}
           </h1>
-          <p className="text-sm text-[#6366f1] mt-1">{person.knownFor}</p>
+          <p className="text-sm text-accent mt-1">{person.knownFor}</p>
 
           {person.birthday && (
-            <p className="text-xs text-[#9ca3af] mt-2">
+            <p className="text-xs text-text-secondary mt-2">
               Born: {person.birthday}
               {person.birthplace ? ` · ${person.birthplace}` : ""}
             </p>
           )}
           {person.deathday && (
-            <p className="text-xs text-[#9ca3af]">
+            <p className="text-xs text-text-secondary">
               Died: {person.deathday}
             </p>
           )}

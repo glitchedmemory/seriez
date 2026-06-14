@@ -106,7 +106,7 @@ export default function ChangeProfilePage() {
         <div className="flex items-center gap-4 px-4 pt-4 pb-3">
           <button
             onClick={() => router.back()}
-            className="text-[#9ca3af] hover:text-white transition-colors"
+            className="text-text-secondary hover:text-white transition-colors"
           >
             ← Back
           </button>
@@ -180,7 +180,7 @@ export default function ChangeProfilePage() {
             <div className="flex items-center gap-2 mb-1">
               <h2 className="text-2xl font-bold text-white">@{displayName}</h2>
             </div>
-            <div className="flex gap-5 text-sm text-[#9ca3af]">
+            <div className="flex gap-5 text-sm text-text-secondary">
               <span><strong className="text-white">{followersCount}</strong> followers</span>
               <span><strong className="text-white">{followingCount}</strong> following</span>
             </div>

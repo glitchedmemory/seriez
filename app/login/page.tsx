@@ -66,12 +66,12 @@ export default function LoginPage() {
   return (
     <div className="max-w-sm mx-auto px-4 pt-20 pb-32">
       <h1 className="text-2xl font-bold text-white mb-2">Sign in</h1>
-      <p className="text-sm text-[#9ca3af] mb-6">Save your watch data across devices</p>
+      <p className="text-sm text-text-secondary mb-6">Save your watch data across devices</p>
 
       {sent ? (
-        <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-5 text-center">
+        <div className="bg-bg-card border border-border rounded-xl p-5 text-center">
           <p className="text-white font-medium mb-1">Magic link sent!</p>
-          <p className="text-sm text-[#9ca3af]">Check {email} for the sign-in link.</p>
+          <p className="text-sm text-text-secondary">Check {email} for the sign-in link.</p>
         </div>
       ) : (
         <>
@@ -81,13 +81,13 @@ export default function LoginPage() {
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-[#1a1a2e] text-white rounded-xl px-4 py-3 outline-none border border-[#2d2d4a] focus:border-[#6366f1] mb-3"
+              className="w-full bg-bg-card text-white rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-3"
               required
             />
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-[#6366f1] text-white font-semibold hover:bg-[#818cf8] transition-colors disabled:opacity-50"
+              className="w-full py-3 rounded-xl bg-accent text-white font-semibold hover:bg-[#818cf8] transition-colors disabled:opacity-50"
             >
               Send magic link
             </button>
@@ -95,7 +95,7 @@ export default function LoginPage() {
 
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-1 h-px bg-[#2d2d4a]" />
-            <span className="text-xs text-[#6b7280]">or password</span>
+            <span className="text-xs text-text-secondary">or password</span>
             <div className="flex-1 h-px bg-[#2d2d4a]" />
           </div>
 
@@ -105,7 +105,7 @@ export default function LoginPage() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-[#1a1a2e] text-white rounded-xl px-4 py-3 outline-none border border-[#2d2d4a] focus:border-[#6366f1] mb-3"
+              className="w-full bg-bg-card text-white rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-3"
               required
             />
             <input
@@ -113,7 +113,7 @@ export default function LoginPage() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#1a1a2e] text-white rounded-xl px-4 py-3 outline-none border border-[#2d2d4a] focus:border-[#6366f1] mb-1"
+              className="w-full bg-bg-card text-white rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-1"
               required
             />
             {error && <p className="text-red-400 text-xs mb-3">{error}</p>}
@@ -126,9 +126,9 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-[#9ca3af]">
+          <p className="text-center text-sm text-text-secondary">
             No account?{" "}
-            <a href="/signup" className="text-[#6366f1] hover:underline">
+            <a href="/signup" className="text-accent hover:underline">
               Create one
             </a>
           </p>

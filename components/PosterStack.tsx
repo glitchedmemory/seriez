@@ -20,7 +20,7 @@ export default function PosterStack({ posters, day, count }: PosterStackProps) {
   // Single poster: full cell fill
   if (posters.length === 1) {
     return (
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-[#0f0f1a]">
+      <div className="relative aspect-square overflow-hidden rounded-lg bg-bg-primary">
         {posters[0].posterPath ? (
           <Image
             src={`${TMDB_IMAGE}${posters[0].posterPath}`}
@@ -43,7 +43,7 @@ export default function PosterStack({ posters, day, count }: PosterStackProps) {
   // Multiple posters: stacked effect
   const displayPosters = posters.slice(0, 3);
   return (
-    <div className="relative aspect-square overflow-hidden rounded-lg bg-[#0f0f1a]">
+    <div className="relative aspect-square overflow-hidden rounded-lg bg-bg-primary">
       {/* Background: first poster dimmed */}
       {posters[0].posterPath ? (
         <Image

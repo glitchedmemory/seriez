@@ -73,15 +73,15 @@ export default function DayPopup({ date, entries, onClose }: DayPopupProps) {
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
       {/* Popup */}
-      <div className="relative w-full max-w-md bg-[#1a1a2e] border border-[#2d2d4a] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-200">
+      <div className="relative w-full max-w-md bg-bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#2d2d4a]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <h3 className="text-white font-semibold text-sm">
             {formatDate(date)}
           </h3>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-[#2d2d4a] text-[#9ca3af] hover:bg-[#3d3d5a] hover:text-white transition-colors text-sm"
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-[#2d2d4a] text-text-secondary hover:bg-[#3d3d5a] hover:text-white transition-colors text-sm"
           >
             ✕
           </button>
@@ -96,7 +96,7 @@ export default function DayPopup({ date, entries, onClose }: DayPopupProps) {
                 href={`/title/${entry.tmdbId}`}
                 className="flex flex-col items-center gap-2 group w-[88px]"
               >
-                <div className="w-[80px] aspect-[2/3] rounded-lg overflow-hidden bg-[#0f0f1a] relative shadow-lg group-hover:ring-2 ring-[#6366f1] transition-all">
+                <div className="w-[80px] aspect-[2/3] rounded-lg overflow-hidden bg-bg-primary relative shadow-lg group-hover:ring-2 ring-accent transition-all">
                   {entry.posterPath ? (
                     <Image
                       src={`${TMDB_IMAGE}${entry.posterPath}`}
@@ -119,12 +119,12 @@ export default function DayPopup({ date, entries, onClose }: DayPopupProps) {
                     {entry.title}
                   </p>
                   {entry.rating > 0 && (
-                    <p className="text-[#f59e0b] text-[10px] mt-0.5">
+                    <p className="text-gold text-[10px] mt-0.5">
                       ★ {entry.rating}
                     </p>
                   )}
                   {entry.runtime && (
-                    <p className="text-[#6b7280] text-[10px]">
+                    <p className="text-text-secondary text-[10px]">
                       {entry.mediaType === "movie"
                         ? formatRuntime(entry.runtime)
                         : `${entry.runtime}m × ${entry.episodeCount}`}
@@ -137,9 +137,9 @@ export default function DayPopup({ date, entries, onClose }: DayPopupProps) {
         </div>
 
         {/* Total time */}
-        <div className="px-5 py-3 border-t border-[#2d2d4a] bg-[#0f0f1a]/50">
+        <div className="px-5 py-3 border-t border-border bg-bg-primary/50">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-[#6b7280]">Total watch time</span>
+            <span className="text-text-secondary">Total watch time</span>
             <span className="text-white font-semibold">
               {formatRuntime(totalMinutes)}
             </span>

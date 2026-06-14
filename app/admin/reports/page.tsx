@@ -78,23 +78,23 @@ export default function AdminReportsPage() {
       {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
       {loading ? (
-        <p className="text-[#6b7280]">Loading...</p>
+        <p className="text-text-secondary">Loading...</p>
       ) : items.length === 0 ? (
-        <p className="text-[#6b7280]">No hidden content. Clean! ✅</p>
+        <p className="text-text-secondary">No hidden content. Clean! ✅</p>
       ) : (
         <div className="space-y-4">
           {items.map((item) => {
             const key = `${item.type}-${item.id}`;
             const verdict = verdicts[key] || item.ai_verdict;
             return (
-              <div key={key} className="bg-[#1a1a2e] rounded-xl p-4 border border-red-800/30">
+              <div key={key} className="bg-bg-card rounded-xl p-4 border border-red-800/30">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xs bg-red-900/50 text-red-300 px-2 py-0.5 rounded">
                       {item.type === "review" ? "📝 Review" : "💬 Comment"}
                     </span>
-                    <span className="text-xs text-[#6b7280]">{item.username}</span>
-                    <span className="text-xs text-[#6b7280]">{formatDate(item.created_at)}</span>
+                    <span className="text-xs text-text-secondary">{item.username}</span>
+                    <span className="text-xs text-text-secondary">{formatDate(item.created_at)}</span>
                     {(item as any).report_count >= 5 && (
                       <span className="text-xs bg-red-900/60 text-red-300 px-2 py-0.5 rounded-full font-bold">
                         🚩 {(item as any).report_count}
@@ -123,7 +123,7 @@ export default function AdminReportsPage() {
                     </button>
                   </div>
                 </div>
-                <p className="text-sm text-[#d1d5db] bg-[#25253a] p-3 rounded-lg whitespace-pre-wrap">
+                <p className="text-sm text-[#d1d5db] bg-bg-surface p-3 rounded-lg whitespace-pre-wrap">
                   {item.content}
                 </p>
                 {verdict && (

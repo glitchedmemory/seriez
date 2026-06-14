@@ -181,7 +181,7 @@ export default function ProfilePage() {
                 params.delete("tab");
                 router.push(`/profile?${params.toString()}`);
               }}
-              className="text-[#9ca3af] hover:text-white transition-colors"
+              className="text-text-secondary hover:text-white transition-colors"
             >
               ← Back
             </button>
@@ -195,7 +195,7 @@ export default function ProfilePage() {
             {followListLoading ? (
               <div className="space-y-3 mt-2">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-4 animate-pulse">
+                  <div key={i} className="bg-bg-card border border-border rounded-xl p-4 animate-pulse">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-[#2d2d4a]" />
                       <div className="flex-1">
@@ -207,7 +207,7 @@ export default function ProfilePage() {
                 ))}
               </div>
             ) : followList.length === 0 ? (
-              <p className="text-center text-[#6b7280] py-12">
+              <p className="text-center text-text-secondary py-12">
                 {tab === "followers" ? "No followers yet" : "Not following anyone yet"}
               </p>
             ) : (
@@ -216,7 +216,7 @@ export default function ProfilePage() {
                   <a
                     key={u.username}
                     href={`/profile?username=${encodeURIComponent(u.username)}`}
-                    className="flex items-center gap-3 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-3 hover:border-[#6366f1]/50 transition-colors"
+                    className="flex items-center gap-3 bg-bg-card border border-border rounded-xl p-3 hover:border-accent/50 transition-colors"
                   >
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0">
                       <span className="text-base font-bold text-white">
@@ -225,7 +225,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white">@{u.username}</p>
-                      <p className="text-[10px] text-[#6b7280]">
+                      <p className="text-[10px] text-text-secondary">
                         {u.ratingsCount || 0} ratings · {u.commentsCount || 0} comments
                       </p>
                     </div>
@@ -244,13 +244,13 @@ export default function ProfilePage() {
                             );
                           });
                         }}
-                        className="px-3 py-1.5 bg-[#6366f1] hover:bg-[#818cf8] text-white text-xs font-medium rounded-lg transition-colors"
+                        className="px-3 py-1.5 bg-accent hover:bg-[#818cf8] text-white text-xs font-medium rounded-lg transition-colors"
                       >
                         Follow
                       </button>
                     )}
                     {u.isFollowing && u.username !== ownUsername && (
-                      <span className="text-[10px] text-[#6b7280] px-2">Following</span>
+                      <span className="text-[10px] text-text-secondary px-2">Following</span>
                     )}
                   </a>
                 ))}
@@ -301,14 +301,14 @@ export default function ProfilePage() {
                 bounce ? "scale-110" : "scale-100"
               } ${
                 isFollowing
-                  ? "bg-[#1a1a2e] border border-[#2d2d4a] text-[#9ca3af] hover:text-red-400 hover:border-red-500"
-                  : "bg-[#6366f1] text-white hover:bg-[#818cf8] shadow-lg shadow-[#6366f1]/25"
+                  ? "bg-bg-card border border-border text-text-secondary hover:text-red-400 hover:border-red-500"
+                  : "bg-accent text-white hover:bg-[#818cf8] shadow-lg shadow-[#6366f1]/25"
               }`}>
               {isFollowing ? "Following" : "Follow"}
             </button>
           ) : !isOwn && !user ? (
             <a href="/login"
-              className="px-5 py-2 rounded-xl text-sm font-semibold bg-[#6366f1] text-white hover:bg-[#818cf8] shadow-lg shadow-[#6366f1]/25 transition-colors mb-1">
+              className="px-5 py-2 rounded-xl text-sm font-semibold bg-accent text-white hover:bg-[#818cf8] shadow-lg shadow-[#6366f1]/25 transition-colors mb-1">
               Follow
             </a>
           ) : null}
@@ -319,12 +319,12 @@ export default function ProfilePage() {
           {(isOwn && user) && (
             <button
               onClick={() => router.push("/profile/settings")}
-              className="text-[#6b7280] hover:text-white transition-colors"
+              className="text-text-secondary hover:text-white transition-colors"
               title="Settings"
             >⚙️</button>
           )}
         </div>
-        <div className="flex gap-5 mt-1 text-sm text-[#9ca3af]">
+        <div className="flex gap-5 mt-1 text-sm text-text-secondary">
           <button onClick={() => fetchFollowList("followers")} className="hover:text-white transition-colors">
             <strong className="text-white">{followersCount}</strong> followers
           </button>
@@ -342,7 +342,7 @@ export default function ProfilePage() {
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#818cf8] to-[#a78bfa] flex items-center justify-center flex-shrink-0">
               <span className="text-white text-xs">♡</span>
             </div>
-            <span className="text-sm text-[#9ca3af]">Taste Match</span>
+            <span className="text-sm text-text-secondary">Taste Match</span>
             <span className="text-2xl font-bold text-white ml-auto">{compareData.matchRate}%</span>
           </div>
 
@@ -365,12 +365,12 @@ export default function ProfilePage() {
           {/* Both Enjoyed */}
           {compareData.bothEnjoyed.length > 0 && (
             <div>
-              <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-2 px-1">Both Enjoyed</h3>
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-2 px-1">Both Enjoyed</h3>
               <div className="space-y-2">
                 {compareData.bothEnjoyed.slice(0, 3).map((item, i) => (
                   <a key={i} href={`/title/${item.tmdbId}?type=${item.mediaType}`}
-                    className="flex items-center gap-3 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-3 hover:border-[#6366f1]/40 transition-colors">
-                    <div className="w-14 h-[84px] rounded-lg overflow-hidden bg-[#0f0f1a] flex-shrink-0">
+                    className="flex items-center gap-3 bg-bg-card border border-border rounded-xl p-3 hover:border-accent/40 transition-colors">
+                    <div className="w-14 h-[84px] rounded-lg overflow-hidden bg-bg-primary flex-shrink-0">
                       {item.poster ? (
                         <img src={item.poster} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
                       ) : (
@@ -379,7 +379,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white font-medium truncate">{item.title}</p>
-                      {item.year && <p className="text-[11px] text-[#6b7280] mt-0.5">{item.year}</p>}
+                      {item.year && <p className="text-[11px] text-text-secondary mt-0.5">{item.year}</p>}
                     </div>
                   </a>
                 ))}
@@ -390,12 +390,12 @@ export default function ProfilePage() {
           {/* Ratings Apart */}
           {compareData.divergent.length > 0 && (
             <div>
-              <h3 className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-2 px-1">Ratings Apart</h3>
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-2 px-1">Ratings Apart</h3>
               <div className="space-y-2">
                 {compareData.divergent.slice(0, 3).map((item, i) => (
                   <a key={i} href={`/title/${item.tmdbId}?type=${item.mediaType}`}
-                    className="flex items-center gap-3 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-3 hover:border-[#6366f1]/40 transition-colors">
-                    <div className="w-14 h-[84px] rounded-lg overflow-hidden bg-[#0f0f1a] flex-shrink-0">
+                    className="flex items-center gap-3 bg-bg-card border border-border rounded-xl p-3 hover:border-accent/40 transition-colors">
+                    <div className="w-14 h-[84px] rounded-lg overflow-hidden bg-bg-primary flex-shrink-0">
                       {item.poster ? (
                         <img src={item.poster} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
                       ) : (
@@ -406,7 +406,7 @@ export default function ProfilePage() {
                       <p className="text-sm text-white font-medium truncate">{item.title}</p>
                       <div className="flex items-center gap-4 mt-1.5">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] text-[#6b7280] w-8">You</span>
+                          <span className="text-[10px] text-text-secondary w-8">You</span>
                           <div className="flex items-center gap-1">
                             <span className="text-sm font-semibold text-[#818cf8]">{item.myRating}</span>
                             <span className="text-[10px] text-[#818cf8]/60">★</span>
@@ -414,10 +414,10 @@ export default function ProfilePage() {
                         </div>
                         <div className="w-px h-4 bg-[#2d2d4a]" />
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] text-[#6b7280] w-8">Them</span>
+                          <span className="text-[10px] text-text-secondary w-8">Them</span>
                           <div className="flex items-center gap-1">
-                            <span className="text-sm font-semibold text-[#f59e0b]">{item.theirRating}</span>
-                            <span className="text-[10px] text-[#f59e0b]/60">★</span>
+                            <span className="text-sm font-semibold text-gold">{item.theirRating}</span>
+                            <span className="text-[10px] text-gold/60">★</span>
                           </div>
                         </div>
                       </div>
@@ -464,7 +464,7 @@ function StatBadge({ value, label, color, prefix = "" }: { value: string | numbe
   return (
     <div className="flex-1 text-center">
       <p className={`text-lg font-bold ${color}`}>{prefix}{value}</p>
-      <p className="text-[10px] text-[#6b7280] uppercase tracking-wide">{label}</p>
+      <p className="text-[10px] text-text-secondary uppercase tracking-wide">{label}</p>
     </div>
   );
 }

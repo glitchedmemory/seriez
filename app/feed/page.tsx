@@ -21,11 +21,11 @@ interface Activity {
 }
 
 const TYPE_CONFIG: Record<string, { emoji: string; text: string; badge: string; color: string; badgeClass: string }> = {
-  review:      { emoji: "📝", text: "reviewed",         badge: "REVIEW",   color: "#a855f7", badgeClass: "bg-[#a855f7]/15 text-[#c084fc]" },
-  rated:       { emoji: "⭐", text: "rated",             badge: "RATED",    color: "#f59e0b", badgeClass: "bg-[#f59e0b]/15 text-[#fbbf24]" },
+  review:      { emoji: "📝", text: "reviewed",         badge: "REVIEW",   color: "#a855f7", badgeClass: "bg-accent-light/15 text-[#c084fc]" },
+  rated:       { emoji: "⭐", text: "rated",             badge: "RATED",    color: "#f59e0b", badgeClass: "bg-gold/15 text-[#fbbf24]" },
   watched:     { emoji: "✅", text: "watched",            badge: "WATCHED",  color: "#22c55e", badgeClass: "bg-[#22c55e]/15 text-[#4ade80]" },
   watching:    { emoji: "👁️", text: "is watching",       badge: "WATCHING", color: "#3b82f6", badgeClass: "bg-[#3b82f6]/15 text-[#60a5fa]" },
-  plan_to_watch:{ emoji: "📌", text: "plans to watch",  badge: "PLAN",     color: "#6b7280", badgeClass: "bg-[#6b7280]/15 text-[#9ca3af]" },
+  plan_to_watch:{ emoji: "📌", text: "plans to watch",  badge: "PLAN",     color: "#6b7280", badgeClass: "bg-[#6b7280]/15 text-text-secondary" },
   collection:  { emoji: "📁", text: "published a collection", badge: "", color: "#ec4899", badgeClass: "" },
 };
 
@@ -64,7 +64,7 @@ function RatingStars({ rating }: { rating: number }) {
     else if (i === full && half) stars.push("★");
     else stars.push("☆");
   }
-  return <span className="text-[#f59e0b] text-[13px] tracking-tight">{stars.join(" ")}</span>;
+  return <span className="text-gold text-[13px] tracking-tight">{stars.join(" ")}</span>;
 }
 
 export default function FeedPage() {
@@ -85,7 +85,7 @@ export default function FeedPage() {
 
   return (
     <div className="max-w-lg md:max-w-2xl mx-auto min-h-screen pb-24">
-      <header className="sticky top-0 z-40 bg-[#0f0f1a]/95 backdrop-blur-md px-4 py-3 border-b border-[#1a1a2e]">
+      <header className="sticky top-0 z-40 bg-bg-primary/95 backdrop-blur-md px-4 py-3 border-b border-[#1a1a2e]">
         <h1 className="text-xl font-bold bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">
           Feed
         </h1>
@@ -93,18 +93,18 @@ export default function FeedPage() {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <div className="w-6 h-6 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
         </div>
       ) : error ? (
         <div className="px-4 mt-10 text-center">
           <span className="text-4xl mb-3 block">📭</span>
-          <p className="text-[#6b7280] text-sm">{error}</p>
+          <p className="text-text-secondary text-sm">{error}</p>
         </div>
       ) : activities.length === 0 ? (
         <div className="px-4 mt-10 text-center">
           <span className="text-4xl mb-3 block">🔔</span>
           <h2 className="text-white text-lg font-bold mb-2">No activity yet</h2>
-          <p className="text-[#6b7280] text-sm">
+          <p className="text-text-secondary text-sm">
             Follow other users to see their activity here.
           </p>
         </div>
@@ -123,7 +123,7 @@ export default function FeedPage() {
             <Link
               key={a.id}
               href={href}
-              className={`flex items-start gap-3 px-4 py-3.5 hover:bg-[#0f0f1a] transition-colors group relative ${idx < activities.length - 1 ? "border-b border-dotted border-[#1a1a2e]/50" : ""}`}
+              className={`flex items-start gap-3 px-4 py-3.5 hover:bg-bg-primary transition-colors group relative ${idx < activities.length - 1 ? "border-b border-dotted border-[#1a1a2e]/50" : ""}`}
             >
               {/* Left color bar */}
               <div
@@ -145,8 +145,8 @@ export default function FeedPage() {
                 {/* Top row: username + action + title + badge */}
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-[13px] font-bold text-[#a78bfa]">{a.username}</span>
-                  <span className="text-[13px] text-[#9ca3af]">{cfg.text}</span>
-                  <span className="text-[13px] font-semibold text-[#e5e7eb] group-hover:text-[#6366f1] transition-colors truncate max-w-[200px]">
+                  <span className="text-[13px] text-text-secondary">{cfg.text}</span>
+                  <span className="text-[13px] font-semibold text-[#e5e7eb] group-hover:text-accent transition-colors truncate max-w-[200px]">
                     {isCollection ? a.collectionName : a.title}
                   </span>
                   {cfg.badge && (
@@ -162,7 +162,7 @@ export default function FeedPage() {
                     <RatingStars rating={a.rating} />
                   )}
                   {!isCollection && a.year && (
-                    <span className="text-[11px] text-[#6b7280]">{a.year}</span>
+                    <span className="text-[11px] text-text-secondary">{a.year}</span>
                   )}
                   {isCollection && a.itemCount !== undefined && (
                     <span className="text-[11px] text-[#ec4899]">
@@ -174,7 +174,7 @@ export default function FeedPage() {
 
                 {/* Review snippet */}
                 {hasReview && (
-                  <div className="mt-2 text-[11px] text-[#6b7280] leading-relaxed italic bg-[#12121f] border-l-2 border-[#a855f7] rounded-r-md px-2.5 py-2">
+                  <div className="mt-2 text-[11px] text-text-secondary leading-relaxed italic bg-[#12121f] border-l-2 border-[#a855f7] rounded-r-md px-2.5 py-2">
                     &ldquo;{a.content}&rdquo;
                   </div>
                 )}
@@ -182,11 +182,11 @@ export default function FeedPage() {
 
               {/* Poster or collection icon */}
               {isCollection ? (
-                <div className="w-10 h-[56px] rounded-lg bg-[#1a1a2e] flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-[56px] rounded-lg bg-bg-card flex items-center justify-center flex-shrink-0">
                   <span className="text-xl">📁</span>
                 </div>
               ) : (
-                <div className="w-10 h-[56px] rounded-lg overflow-hidden bg-[#1a1a2e] flex-shrink-0 relative">
+                <div className="w-10 h-[56px] rounded-lg overflow-hidden bg-bg-card flex-shrink-0 relative">
                   {a.poster ? (
                     <PosterImage src={a.poster} alt="" fill className="rounded-lg" sizes="40px" />
                   ) : (

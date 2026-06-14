@@ -100,8 +100,8 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
         </div>
 
         {/* Dark overlay gradient - left side darker for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f1a]/95 via-[#0f0f1a]/60 to-[#0f0f1a]/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f1a]/90 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-bg-primary/95 via-[#0f0f1a]/60 to-bg-primary/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-bg-primary/90 via-transparent to-transparent" />
         </div>
 
         {/* Top badges */}
@@ -115,8 +115,8 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
         <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
           {/* Rating */}
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-[#f59e0b] text-sm">★ {item.rating}</span>
-            <span className="text-[#9ca3af] text-xs">
+            <span className="text-gold text-sm">★ {item.rating}</span>
+            <span className="text-text-secondary text-xs">
               {item.year} · {item.type === "movie" ? "Movie" : item.type === "anime" ? "Anime" : "TV"}
             </span>
             {item.genres.slice(0, 3).map((g) => (
@@ -153,14 +153,14 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
               +
             </button>
             {collFeedback && (
-              <span className="text-[11px] text-[#6366f1]">{collFeedback}</span>
+              <span className="text-[11px] text-accent">{collFeedback}</span>
             )}
             {showCollDropdown && (
-              <div className="absolute top-full mt-2 left-0 w-52 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl shadow-2xl z-50">
+              <div className="absolute top-full mt-2 left-0 w-52 bg-bg-card border border-border rounded-xl shadow-2xl z-50">
                 {collections.length === 0 ? (
-                  <div className="px-3 py-3 text-[11px] text-[#6b7280] text-center">
+                  <div className="px-3 py-3 text-[11px] text-text-secondary text-center">
                     No collections yet.
-                    <a href="/library?tab=collections" className="block mt-1 text-[#6366f1] hover:underline">
+                    <a href="/library?tab=collections" className="block mt-1 text-accent hover:underline">
                       Create one →
                     </a>
                   </div>
@@ -175,10 +175,10 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
                         setShowCollDropdown(false);
                       }}
                       disabled={addingCollId === c.id}
-                      className="w-full text-left px-3 py-2.5 text-xs text-white hover:bg-[#25253a] flex justify-between items-center transition-colors disabled:opacity-50 border-none cursor-pointer"
+                      className="w-full text-left px-3 py-2.5 text-xs text-white hover:bg-bg-surface flex justify-between items-center transition-colors disabled:opacity-50 border-none cursor-pointer"
                     >
                       <span>{c.name}</span>
-                      <span className="text-[10px] text-[#6b7280]">{c.itemCount}</span>
+                      <span className="text-[10px] text-text-secondary">{c.itemCount}</span>
                     </button>
                   ))
                 )}
@@ -193,9 +193,9 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
         isPremium ? (
           <a
             href={`/title/${nextItem.id}?type=${nextItem.type}`}
-            className="mt-3 mx-4 md:mx-0 flex items-center gap-3 bg-[#1a1a2e] hover:bg-[#25253a] rounded-xl p-2.5 transition-colors cursor-pointer"
+            className="mt-3 mx-4 md:mx-0 flex items-center gap-3 bg-bg-card hover:bg-bg-surface rounded-xl p-2.5 transition-colors cursor-pointer"
           >
-            <div className="flex-shrink-0 w-12 h-[72px] rounded-lg overflow-hidden bg-[#0f0f1a] relative">
+            <div className="flex-shrink-0 w-12 h-[72px] rounded-lg overflow-hidden bg-bg-primary relative">
               <PosterImage
                 src={nextItem.poster}
                 alt={nextItem.title}
@@ -205,26 +205,26 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
               />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-[#6366f1] uppercase tracking-wide font-medium">
+              <p className="text-[10px] text-accent uppercase tracking-wide font-medium">
                 Tonight&apos;s Pick
               </p>
               <p className="text-sm font-semibold text-white truncate">
                 {nextItem.title}
               </p>
-              <p className="text-xs text-[#9ca3af]">
+              <p className="text-xs text-text-secondary">
                 {nextItem.type === "movie" ? "Movie" : nextItem.type === "anime" ? "Anime" : "TV"} · {nextItem.year} · ★ {nextItem.rating}
               </p>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-[#6b7280] flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-text-secondary flex-shrink-0">
               <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
             </svg>
           </a>
         ) : (
           <div className="mt-3 mx-4 md:mx-0">
-            <div className="bg-[#1a1a2e] border border-dashed border-[#2d2d4a] rounded-xl flex items-center justify-center" style={{ minHeight: 100 }}>
+            <div className="bg-bg-card border border-dashed border-border rounded-xl flex items-center justify-center" style={{ minHeight: 100 }}>
               <div className="text-center">
                 <p className="text-[10px] text-[#4b5563] uppercase tracking-[0.15em] mb-1">Advertisement</p>
-                <p className="text-xs text-[#6b7280]">AdSense · 320×100</p>
+                <p className="text-xs text-text-secondary">AdSense · 320×100</p>
               </div>
             </div>
           </div>

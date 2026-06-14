@@ -14,8 +14,8 @@ export function GenreChip({
       onClick={onClick}
       className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
         active
-          ? "bg-[#6366f1] text-white shadow-lg shadow-[#6366f1]/25"
-          : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white hover:bg-[#25253a]"
+          ? "bg-accent text-white shadow-lg shadow-[#6366f1]/25"
+          : "bg-bg-card text-text-secondary hover:text-white hover:bg-bg-surface"
       }`}
     >
       {genre}

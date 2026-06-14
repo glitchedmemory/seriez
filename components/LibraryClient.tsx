@@ -69,8 +69,8 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
             onClick={() => setSort(opt.key)}
             className={`px-3 py-1 rounded-full text-[11px] font-medium transition-colors ${
               sort === opt.key
-                ? "bg-[#6366f1] text-white"
-                : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white"
+                ? "bg-accent text-white"
+                : "bg-bg-card text-text-secondary hover:text-white"
             }`}
           >
             {opt.label}
@@ -81,14 +81,14 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
       <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
         {sortedItems.map(item => (
         <a key={`${item.mediaType}-${item.tmdbId}`} href={`/title/${item.tmdbId}${item.mediaType === "tv" ? "/season/1" : `?type=${item.mediaType}`}`} className="block group">
-          <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-[#1a1a2e]">
+          <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card">
             {item.poster ? <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-white/20 text-2xl font-bold">{item.title.slice(0,2)}</div>}
             <div className="absolute top-2 left-2"><span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${item.status==="completed"?"bg-green-500/20 text-green-400":item.status==="watching"?"bg-blue-500/20 text-blue-400":"bg-amber-500/20 text-amber-400"}`}>{item.status==="completed"?"Watched":item.status==="watching"?"Watching":"To Watch"}</span></div>
-            {item.tmdbRating > 0 && <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-[#f59e0b]">★ {item.tmdbRating}</div>}
+            {item.tmdbRating > 0 && <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-gold">★ {item.tmdbRating}</div>}
             {item.rating && <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-pink-400">★ {item.rating}</div>}
           </div>
-          <p className="mt-1.5 text-xs font-medium text-white leading-tight line-clamp-2 group-hover:text-[#6366f1] transition-colors">{item.title}</p>
-          <p className="text-[10px] text-[#6b7280]">{item.year || "—"} · {item.mediaType==="movie"?"Movie":"TV"}</p>
+          <p className="mt-1.5 text-xs font-medium text-white leading-tight line-clamp-2 group-hover:text-accent transition-colors">{item.title}</p>
+          <p className="text-[10px] text-text-secondary">{item.year || "—"} · {item.mediaType==="movie"?"Movie":"TV"}</p>
         </a>
       ))}
       </div>
@@ -152,23 +152,23 @@ function CollectionsView() {
     return (
       <div className="px-4 mt-4">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => setSelectedId(null)} className="text-[#9ca3af] hover:text-white text-sm">← Back</button>
+          <button onClick={() => setSelectedId(null)} className="text-text-secondary hover:text-white text-sm">← Back</button>
           <h2 className="text-lg font-semibold text-white">{collection?.name}</h2>
-          <span className="text-xs text-[#9ca3af]">{items.length} items</span>
+          <span className="text-xs text-text-secondary">{items.length} items</span>
         </div>
-        {itemsLoading ? <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin" /></div>
+        {itemsLoading ? <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" /></div>
         : items.length === 0 ? <EmptyState icon="🎞️" title="No items yet" description="Add movies and shows to this collection." action={{ label: "Browse titles", href: "/" }} />
         : <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {items.map(item => (
             <div key={`${item.mediaType}-${item.tmdbId}`} className="relative group">
               <a href={`/title/${item.tmdbId}${item.mediaType==="tv"?"/season/1":`?type=${item.mediaType}`}`} className="block">
-                <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-[#1a1a2e]">
+                <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card">
                   {item.poster ? <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-white/20 text-2xl font-bold">{item.title.slice(0,2)}</div>}
-                  {item.rating > 0 && <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-[#f59e0b]">★ {item.rating}</div>}
+                  {item.rating > 0 && <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-gold">★ {item.rating}</div>}
                   <button onClick={(e) => { e.preventDefault(); removeItem(selectedId, item.tmdbId, item.mediaType); }} className="absolute top-2 left-2 bg-red-500/80 hover:bg-red-500 rounded-full w-5 h-5 flex items-center justify-center text-white text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
                 </div>
                 <p className="mt-1.5 text-xs font-medium text-white leading-tight line-clamp-2">{item.title}</p>
-                <p className="text-[10px] text-[#6b7280]">{item.year||"—"} · {item.mediaType==="movie"?"Movie":"TV"}</p>
+                <p className="text-[10px] text-text-secondary">{item.year||"—"} · {item.mediaType==="movie"?"Movie":"TV"}</p>
               </a>
             </div>
           ))}
@@ -185,18 +185,18 @@ function CollectionsView() {
       <>
       <div className="flex gap-2 mb-4">
         <input value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key==="Enter" && createCollection()}
-          placeholder="New collection name..." className="flex-1 bg-[#1a1a2e] text-white text-sm rounded-xl px-3 py-2 outline-none border border-[#2d2d4a] focus:border-[#6366f1] placeholder:text-[#6b7280]" maxLength={50} />
+          placeholder="New collection name..." className="flex-1 bg-bg-card text-white text-sm rounded-xl px-3 py-2 outline-none border border-border focus:border-accent placeholder:text-text-secondary" maxLength={50} />
         <button onClick={createCollection} disabled={creating || !newName.trim()}
-          className="px-4 py-2 rounded-xl bg-[#6366f1] text-white text-sm font-medium disabled:opacity-40 hover:bg-[#5558e7] transition-colors">Create</button>
+          className="px-4 py-2 rounded-xl bg-accent text-white text-sm font-medium disabled:opacity-40 hover:bg-[#5558e7] transition-colors">Create</button>
       </div>
-      {loading ? <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin" /></div>
+      {loading ? <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" /></div>
       : collections.length === 0 ? <EmptyState icon="🗂️" title="No collections yet" description="Create your first collection to organize your favorite titles." />
       : <div className="space-y-2">
         {collections.map(c => (
-          <div key={c.id} className="flex items-center gap-3 bg-[#1a1a2e] rounded-xl p-3 hover:bg-[#25253a] transition-colors cursor-pointer group" onClick={() => { setSelectedId(c.id); fetchItems(c.id); }}>
-            <div className="flex-1 min-w-0"><p className="text-sm font-medium text-white truncate">{c.name}</p><p className="text-xs text-[#6b7280]">{c.itemCount} item{c.itemCount !== 1 ? "s" : ""}</p></div>
-            <button onClick={e => { e.stopPropagation(); togglePublish(c.id); }} className={`text-[10px] font-medium px-2 py-1 rounded-lg transition-colors ${c.isPublished ? "bg-[#374151]/50 text-[#9ca3af] hover:bg-[#374151]" : "bg-[#6366f1]/10 text-[#818cf8] hover:bg-[#6366f1]/20"}`}>{c.isPublished ? "혼자보기" : "발행하기"}</button>
-            <button onClick={e => { e.stopPropagation(); deleteCollection(c.id); }} className="text-[#6b7280] hover:text-red-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity">🗑</button>
+          <div key={c.id} className="flex items-center gap-3 bg-bg-card rounded-xl p-3 hover:bg-bg-surface transition-colors cursor-pointer group" onClick={() => { setSelectedId(c.id); fetchItems(c.id); }}>
+            <div className="flex-1 min-w-0"><p className="text-sm font-medium text-white truncate">{c.name}</p><p className="text-xs text-text-secondary">{c.itemCount} item{c.itemCount !== 1 ? "s" : ""}</p></div>
+            <button onClick={e => { e.stopPropagation(); togglePublish(c.id); }} className={`text-[10px] font-medium px-2 py-1 rounded-lg transition-colors ${c.isPublished ? "bg-[#374151]/50 text-text-secondary hover:bg-[#374151]" : "bg-accent/10 text-[#818cf8] hover:bg-accent/20"}`}>{c.isPublished ? "혼자보기" : "발행하기"}</button>
+            <button onClick={e => { e.stopPropagation(); deleteCollection(c.id); }} className="text-text-secondary hover:text-red-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity">🗑</button>
           </div>
         ))}
       </div>}
@@ -233,7 +233,7 @@ export default function LibraryClient() {
 
   return (
     <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
-      <header className="sticky top-0 z-40 bg-[#0f0f1a]/95 backdrop-blur-md px-4 py-3 border-b border-[#1a1a2e]">
+      <header className="sticky top-0 z-40 bg-bg-primary/95 backdrop-blur-md px-4 py-3 border-b border-[#1a1a2e]">
         <h1 className="text-xl font-bold bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">My List</h1>
       </header>
 
@@ -244,7 +244,7 @@ export default function LibraryClient() {
             className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${
               activeFilter === "completed"
                 ? "bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/30"
-                : "bg-[#1a1a2e] text-[#9ca3af] hover:text-[#10b981]"
+                : "bg-bg-card text-text-secondary hover:text-[#10b981]"
             }`}>
             <span className="block text-lg font-bold">{stats.completed}</span>WATCHED
           </button>
@@ -252,23 +252,23 @@ export default function LibraryClient() {
             className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${
               activeFilter === "watching"
                 ? "bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/30"
-                : "bg-[#1a1a2e] text-[#9ca3af] hover:text-[#3b82f6]"
+                : "bg-bg-card text-text-secondary hover:text-[#3b82f6]"
             }`}>
             <span className="block text-lg font-bold">{stats.watching}</span>WATCHING
           </button>
           <button onClick={() => setActiveFilter(activeFilter === "plan_to_watch" ? null : "plan_to_watch")}
             className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${
               activeFilter === "plan_to_watch"
-                ? "bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/30"
-                : "bg-[#1a1a2e] text-[#9ca3af] hover:text-[#f59e0b]"
+                ? "bg-gold/10 text-gold border border-gold/30"
+                : "bg-bg-card text-text-secondary hover:text-gold"
             }`}>
             <span className="block text-lg font-bold">{stats.plan_to_watch}</span>TO WATCH
           </button>
           <button onClick={() => setActiveFilter(activeFilter === "collections" ? null : "collections")}
             className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${
               activeFilter === "collections"
-                ? "bg-[#a855f7]/10 text-[#a855f7] border border-[#a855f7]/30"
-                : "bg-[#1a1a2e] text-[#9ca3af] hover:text-[#a855f7]"
+                ? "bg-accent-light/10 text-accent-light border border-[#a855f7]/30"
+                : "bg-bg-card text-text-secondary hover:text-accent-light"
             }`}>
             <span className="block text-lg font-bold">{stats.collections}</span>COLLECTIONS
           </button>

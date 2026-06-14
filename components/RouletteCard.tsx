@@ -54,7 +54,7 @@ export default function RouletteCard() {
   // IDLE — no result yet
   if (!result && !message) {
     return (
-      <div className="relative bg-gradient-to-br from-[#1a1a3e] via-[#191938] to-[#13132e] rounded-2xl overflow-hidden border border-[#6366f1]/10">
+      <div className="relative bg-gradient-to-br from-[#1a1a3e] via-[#191938] to-[#13132e] rounded-2xl overflow-hidden border border-accent/10">
         {/* Subtle top glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-1 bg-gradient-to-r from-transparent via-[#6366f1]/40 to-transparent rounded-full" />
 
@@ -96,7 +96,7 @@ export default function RouletteCard() {
   // MESSAGE — error / sign-in prompt
   if (message && !result) {
     return (
-      <div className="bg-gradient-to-br from-[#1a1a3e] via-[#191938] to-[#13132e] rounded-2xl overflow-hidden border border-[#6366f1]/10">
+      <div className="bg-gradient-to-br from-[#1a1a3e] via-[#191938] to-[#13132e] rounded-2xl overflow-hidden border border-accent/10">
         <div className="flex flex-col items-center px-6 py-10 text-center">
           <span className="text-4xl mb-3">🎰</span>
           <p className="text-sm text-[#8b8fa3] mb-6">{message}</p>
@@ -114,7 +114,7 @@ export default function RouletteCard() {
 
   // RESULT — got a pick
   return (
-    <div className="bg-gradient-to-br from-[#1a1a3e] via-[#191938] to-[#13132e] rounded-2xl overflow-hidden border border-[#6366f1]/10">
+    <div className="bg-gradient-to-br from-[#1a1a3e] via-[#191938] to-[#13132e] rounded-2xl overflow-hidden border border-accent/10">
       <button
         onClick={() => router.push(`/title/${result!.id}?type=${result!.mediaType}`)}
         className="w-full text-left group"
@@ -167,10 +167,10 @@ export default function RouletteCard() {
                 <span className="text-xs text-[#a5b4fc]">{result!.year}</span>
               )}
               {result!.runtime && (
-                <span className="text-xs text-[#6b7280]">{result!.runtime}</span>
+                <span className="text-xs text-text-secondary">{result!.runtime}</span>
               )}
               {result!.rating > 0 && (
-                <span className="text-xs text-[#f59e0b] font-medium">
+                <span className="text-xs text-gold font-medium">
                   ★ {result!.rating}
                 </span>
               )}
@@ -186,7 +186,7 @@ export default function RouletteCard() {
               {result!.genres.map((g) => (
                 <span
                   key={g}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#9ca3af] border border-white/5"
+                  className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-text-secondary border border-white/5"
                 >
                   {g}
                 </span>

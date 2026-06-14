@@ -29,7 +29,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-          <div className="w-12 h-12 rounded-full bg-[#1a1a2e] border border-[#2d2d4a] flex items-center justify-center mb-4">
+          <div className="w-12 h-12 rounded-full bg-bg-card border border-border flex items-center justify-center mb-4">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
@@ -37,10 +37,10 @@ export default class ErrorBoundary extends Component<Props, State> {
           <p className="text-sm text-white font-medium mb-1">
             {this.props.sectionName || "This section"} couldn&apos;t load
           </p>
-          <p className="text-xs text-[#6b7280] mb-4">Please try again</p>
+          <p className="text-xs text-text-secondary mb-4">Please try again</p>
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
-            className="px-4 py-2 rounded-xl bg-[#6366f1] text-white text-sm font-medium hover:bg-[#818cf8] transition-colors"
+            className="px-4 py-2 rounded-xl bg-accent text-white text-sm font-medium hover:bg-[#818cf8] transition-colors"
           >
             Retry
           </button>
