@@ -1,0 +1,16 @@
+/* ====== Seriez Dark Theme ====== */
+/* Brand: deep navy base with indigo/purple accents, cinematic mood */
+
+:root {
+  --bg-primary: #0f0f1a;
+  --bg-card: #1a1a2e;
+  --bg-surface: #25253a;
+  --accent: #6366f1;
+  --accent-light: #a855f7;
+  --gold: #f59e0b;
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --border-color: #2a2a45;
+  --shadow-color: rgba(0, 0, 0, 0.4);
+  --scrollbar-thumb: #3f3f5a;
+}
