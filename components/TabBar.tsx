@@ -17,7 +17,7 @@ const tabs: { name: string; icon: ReactNode; path: string }[] = [
   { name: "My List", icon: <Image src="/icons/library.png" alt="My List" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/library" },
   {
     name: "Feed",
-    icon: <Image src="/icons/feed.png" alt="Feed" width={24} height={24} style={{ imageRendering: "pixelated" }} />,
+    icon: <Image src="/icons/feed.png" alt="Feed" width={24} height={24} style={{ imageRendering: "pixelated" }} unoptimized />,
     path: "/feed",
   },
   {
