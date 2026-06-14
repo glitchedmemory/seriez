@@ -109,8 +109,8 @@ export default function FeedPage() {
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-[#1a1a2e]">
-          {activities.map((a) => {
+        <div className="">
+          {activities.map((a, idx) => {
             const cfg = TYPE_CONFIG[a.type] || TYPE_CONFIG.plan_to_watch;
             const isCollection = a.type === "collection";
             const hasReview = a.type === "review" && a.content;
@@ -123,7 +123,7 @@ export default function FeedPage() {
             <Link
               key={a.id}
               href={href}
-              className="flex items-start gap-3 px-4 py-3.5 hover:bg-[#0f0f1a] transition-colors group relative"
+              className={`flex items-start gap-3 px-4 py-3.5 hover:bg-[#0f0f1a] transition-colors group relative ${idx < activities.length - 1 ? "border-b border-dotted border-[#1a1a2e]/50" : ""}`}
             >
               {/* Left color bar */}
               <div
