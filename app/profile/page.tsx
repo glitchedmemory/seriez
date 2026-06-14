@@ -181,7 +181,7 @@ export default function ProfilePage() {
                 params.delete("tab");
                 router.push(`/profile?${params.toString()}`);
               }}
-              className="text-text-secondary hover:text-white transition-colors"
+              className="text-text-secondary hover:text-text-primary transition-colors"
             >
               ← Back
             </button>
@@ -197,10 +197,10 @@ export default function ProfilePage() {
                 {[1, 2, 3].map(i => (
                   <div key={i} className="bg-bg-card border border-border rounded-xl p-4 animate-pulse">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-[#2d2d4a]" />
+                      <div className="w-12 h-12 rounded-full bg-bg-card-hover" />
                       <div className="flex-1">
-                        <div className="h-4 w-24 bg-[#2d2d4a] rounded mb-2" />
-                        <div className="h-3 w-32 bg-[#2d2d4a] rounded" />
+                        <div className="h-4 w-24 bg-bg-card-hover rounded mb-2" />
+                        <div className="h-3 w-32 bg-bg-card-hover rounded" />
                       </div>
                     </div>
                   </div>
@@ -286,7 +286,7 @@ export default function ProfilePage() {
       <div className="relative px-4 -mt-10">
         <div className="flex items-end gap-4 mb-4">
           <div
-            className={`w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 ring-4 ring-[#0f0f1a] shadow-xl overflow-hidden ${!avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""}`}
+            className={`w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 ring-4 ring-bg-primary shadow-xl overflow-hidden ${!avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""}`}
           >
             {avatarUrl ? (
               <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
@@ -319,16 +319,16 @@ export default function ProfilePage() {
           {(isOwn && user) && (
             <button
               onClick={() => router.push("/profile/settings")}
-              className="text-text-secondary hover:text-white transition-colors"
+              className="text-text-secondary hover:text-text-primary transition-colors"
               title="Settings"
             >⚙️</button>
           )}
         </div>
         <div className="flex gap-5 mt-1 text-sm text-text-secondary">
-          <button onClick={() => fetchFollowList("followers")} className="hover:text-white transition-colors">
+          <button onClick={() => fetchFollowList("followers")} className="hover:text-text-primary transition-colors">
             <strong className="text-text-primary">{followersCount}</strong> followers
           </button>
-          <button onClick={() => fetchFollowList("following")} className="hover:text-white transition-colors">
+          <button onClick={() => fetchFollowList("following")} className="hover:text-text-primary transition-colors">
             <strong className="text-text-primary">{followingCount}</strong> following
           </button>
         </div>
@@ -412,7 +412,7 @@ export default function ProfilePage() {
                             <span className="text-[10px] text-[#818cf8]/60">★</span>
                           </div>
                         </div>
-                        <div className="w-px h-4 bg-[#2d2d4a]" />
+                        <div className="w-px h-4 bg-border" />
                         <div className="flex items-center gap-1.5">
                           <span className="text-[10px] text-text-secondary w-8">Them</span>
                           <div className="flex items-center gap-1">
