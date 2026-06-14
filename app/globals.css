@@ -14,17 +14,18 @@
 }
 
 .light {
-  --bg-primary: #f8f9fc;
+  /* "Cinematic Pearl" — warm, brand-coherent light palette */
+  --bg-primary: #f9f7f5;
   --bg-card: #ffffff;
-  --bg-surface: #f0f1f5;
-  --accent: #4f46e5;
-  --accent-light: #7c3aed;
-  --gold: #d97706;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --shadow-color: rgba(0, 0, 0, 0.08);
-  --scrollbar-thumb: #d1d5db;
+  --bg-surface: #f3f0ed;
+  --accent: #5952e8;
+  --accent-light: #8455f0;
+  --gold: #e07b00;
+  --text-primary: #1a1a2e;
+  --text-secondary: #6b5e7a;
+  --border-color: #e8e3de;
+  --shadow-color: rgba(0, 0, 0, 0.06);
+  --scrollbar-thumb: #d5cfca;
 }
 
 /* ====== Tailwind v4 @theme inline — bridges CSS vars to Tailwind tokens ====== */
