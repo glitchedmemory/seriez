@@ -123,7 +123,7 @@ export default function AdminReportsPage() {
                     </button>
                   </div>
                 </div>
-                <p className="text-sm text-[#d1d5db] bg-bg-surface p-3 rounded-lg whitespace-pre-wrap">
+                <p className="text-sm text-[#d1d5db] light:text-text-primary bg-bg-surface p-3 rounded-lg whitespace-pre-wrap">
                   {item.content}
                 </p>
                 {verdict && (

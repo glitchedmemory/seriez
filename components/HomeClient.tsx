@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { PosterCard, HorizontalScroll } from "@/components/PosterCard";
 import { HeroCard } from "@/components/HeroCard";
-import { GenreChips } from "@/components/GenreChips";
 import { StreamingTop10 } from "@/components/StreamingTop10";
 import PosterImage from "@/components/PosterImage";
 import type { TmdbResult } from "@/lib/tmdb";
@@ -110,7 +109,6 @@ function getStoredMode(): TrendingMode {
 }
 
 export default function HomeClient({ trending, upcoming, boxOffice, region, randomSeed }: Props) {
-  const [activeGenre, setActiveGenre] = useState("All");
   const [trendingMode, setTrendingMode] = useState<TrendingMode>(getStoredMode);
   const [animeTrending, setAnimeTrending] = useState<TmdbResult[]>([]);
   const [animeLoading, setAnimeLoading] = useState(false);
@@ -332,8 +330,6 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
               )}
             </PosterGrid>
           </section>
-
-          <GenreChips selected={activeGenre} onSelect={setActiveGenre} />
 
           <section>
             <div className="px-4 md:px-0 mb-3">
