@@ -448,8 +448,8 @@ export default function ProfilePage() {
             className="block bg-gradient-to-r from-[#4c1d95] via-[#7c3aed] to-[#6366f1] rounded-2xl p-5 text-center hover:shadow-lg hover:shadow-[#7c3aed]/20 transition-shadow"
           >
             <span className="text-3xl block mb-2">🎬</span>
-            <h3 className="text-base font-bold text-text-primary mb-1">Join Seriez</h3>
-            <p className="text-xs text-text-primary/70 mb-4">
+            <h3 className="text-base font-bold text-white mb-1">Join Seriez</h3>
+            <p className="text-xs text-white/70 mb-4">
               Track what you watch, discover new favorites, and connect with friends
             </p>
             <span className="inline-block px-6 py-2.5 bg-white text-[#7c3aed] text-sm font-bold rounded-xl hover:bg-white/90 transition-colors">

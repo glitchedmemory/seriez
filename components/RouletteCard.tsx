@@ -66,12 +66,12 @@ export default function RouletteCard() {
           </div>
 
           {/* Title */}
-          <h3 className="text-lg font-bold text-text-primary mb-1.5">
+          <h3 className="text-lg font-bold text-white mb-1.5">
             Feeling Lucky?
           </h3>
 
           {/* Description */}
-          <p className="text-xs text-text-secondary max-w-[240px] mb-8">
+          <p className="text-xs text-white/70 max-w-[240px] mb-8">
             Spin the wheel and discover a random hit from the recent past
           </p>
 
@@ -79,7 +79,7 @@ export default function RouletteCard() {
           <button
             onClick={spin}
             disabled={spinning}
-            className="group relative px-10 py-3 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#818cf8] text-text-primary text-sm font-bold transition-all duration-200 hover:from-[#5558e6] hover:to-[#6366f1] hover:shadow-xl hover:shadow-[#6366f1]/30 active:scale-[0.97] disabled:opacity-50 overflow-hidden"
+            className="group relative px-10 py-3 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#818cf8] text-white text-sm font-bold transition-all duration-200 hover:from-[#5558e6] hover:to-[#6366f1] hover:shadow-xl hover:shadow-[#6366f1]/30 active:scale-[0.97] disabled:opacity-50 overflow-hidden"
           >
             <span className="relative z-10 flex items-center gap-2">
               <span className="text-base">🎰</span>
@@ -99,11 +99,11 @@ export default function RouletteCard() {
       <div className="bg-gradient-to-br from-[#1a1a3e] via-[#191938] to-[#13132e] rounded-2xl overflow-hidden border border-accent/10">
         <div className="flex flex-col items-center px-6 py-10 text-center">
           <span className="text-4xl mb-3">🎰</span>
-          <p className="text-sm text-text-secondary mb-6">{message}</p>
+          <p className="text-sm text-white/70 mb-6">{message}</p>
           <button
             onClick={spin}
             disabled={spinning}
-            className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#818cf8] text-text-primary text-sm font-bold transition-all hover:shadow-lg hover:shadow-[#6366f1]/30 active:scale-[0.97]"
+            className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#818cf8] text-white text-sm font-bold transition-all hover:shadow-lg hover:shadow-[#6366f1]/30 active:scale-[0.97]"
           >
             {spinning ? "SPINNING..." : "Try Again"}
           </button>
@@ -156,7 +156,7 @@ export default function RouletteCard() {
                   {TYPE_EMOJI[result!.spunType]}
                 </span>
               )}
-              <h3 className="text-lg font-bold text-text-primary leading-tight">
+              <h3 className="text-lg font-bold text-white leading-tight">
                 {result!.title}
               </h3>
             </div>
@@ -164,13 +164,13 @@ export default function RouletteCard() {
             {/* Meta row */}
             <div className="flex items-center gap-2 flex-wrap">
               {result!.year && (
-                <span className="text-xs text-accent-light">{result!.year}</span>
+                <span className="text-xs text-[#c4b5fd]">{result!.year}</span>
               )}
               {result!.runtime && (
-                <span className="text-xs text-text-secondary">{result!.runtime}</span>
+                <span className="text-xs text-white/50">{result!.runtime}</span>
               )}
               {result!.rating > 0 && (
-                <span className="text-xs text-gold font-medium">
+                <span className="text-xs text-amber-400 font-medium">
                   ★ {result!.rating}
                 </span>
               )}
@@ -186,7 +186,7 @@ export default function RouletteCard() {
               {result!.genres.map((g) => (
                 <span
                   key={g}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-text-secondary border border-white/5"
+                  className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-white/50 border border-white/5"
                 >
                   {g}
                 </span>
@@ -195,9 +195,9 @@ export default function RouletteCard() {
           )}
 
           {/* Overview */}
-          <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">
+          <p className="text-xs text-white/60 leading-relaxed line-clamp-2">
             {result!.tagline && (
-              <span className="italic text-accent-light">"{result!.tagline}"{" "}</span>
+              <span className="italic text-[#c4b5fd]">"{result!.tagline}"{" "}</span>
             )}
             {result!.overview}
           </p>
