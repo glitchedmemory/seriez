@@ -4,6 +4,7 @@
 .light {
   --bg-primary: #f9f7f5;
   --bg-card: #ffffff;
+  --bg-card-hover: #f0edea;
   --bg-surface: #f3f0ed;
   --accent: #5952e8;
   --accent-light: #8455f0;
