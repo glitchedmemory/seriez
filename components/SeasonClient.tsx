@@ -419,7 +419,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
               {data.genres.map((g) => (
                 <span
                   key={g}
-                  className="text-[11px] px-2.5 py-1 rounded-full bg-bg-card text-[#c4b5fd] border border-accent/30"
+                  className="text-[11px] px-2.5 py-1 rounded-full bg-bg-card text-accent-light border border-accent/30"
                 >
                   {g}
                 </span>
@@ -501,7 +501,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
               <div className="flex justify-center md:justify-start mt-2 relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowCollDropdown(!showCollDropdown)}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-border bg-bg-card text-text-secondary hover:text-white hover:border-accent"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-border bg-bg-card text-text-secondary hover:text-text-primary hover:border-accent"
                 >
                   <span className="text-sm font-bold mr-0.5">+</span>
                   Add to Collection
@@ -574,7 +574,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                     n === data.seasonNumber
                       ? "bg-accent text-white cursor-default"
-                      : "bg-bg-card text-text-secondary hover:text-white hover:bg-[#2d2d4a] border border-border hover:border-accent"
+                      : "bg-bg-card text-text-secondary hover:text-text-primary hover:bg-[#2d2d4a] border border-border hover:border-accent"
                   }`}
                 >
                   S{n}
@@ -588,7 +588,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
         {data.overview && (
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-text-primary mb-2">Overview</h2>
-            <p className="text-sm text-[#d1d5db] leading-relaxed">{data.overview}</p>
+            <p className="text-sm text-text-secondary leading-relaxed">{data.overview}</p>
           </section>
         )}
 
@@ -596,7 +596,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
         {data.seasonOverview && data.seasonOverview !== data.overview && (
           <section className="mt-4">
             <h2 className="text-md font-semibold text-text-secondary mb-1">About This Season</h2>
-            <p className="text-sm text-[#d1d5db] leading-relaxed">{data.seasonOverview}</p>
+            <p className="text-sm text-text-secondary leading-relaxed">{data.seasonOverview}</p>
           </section>
         )}
 
@@ -690,7 +690,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-white disabled:opacity-30 transition-colors"
+                  className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-text-primary disabled:opacity-30 transition-colors"
                 >
                   ← Prev
                 </button>
@@ -711,7 +711,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                         className={`w-7 h-7 text-xs rounded-full transition-colors ${
                           currentPage === item
                             ? "bg-accent text-white"
-                            : "bg-bg-card text-text-secondary hover:text-white"
+                            : "bg-bg-card text-text-secondary hover:text-text-primary"
                         }`}
                       >
                         {item}
@@ -721,7 +721,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalEpPages, p + 1))}
                   disabled={currentPage === totalEpPages}
-                  className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-white disabled:opacity-30 transition-colors"
+                  className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-text-primary disabled:opacity-30 transition-colors"
                 >
                   Next →
                 </button>
