@@ -76,7 +76,7 @@ function getVirtualActivities(): Activity[] {
     },
     {
       id: "v-watching-2", type: "watching",
-      username: "series_tracker", tmdbId: 222766, mediaType: "tv",
+      username: "series_tracker", tmdbId: 100088, mediaType: "tv",
       title: "", poster: null, year: null,
       createdAt: h(6),
     },
@@ -105,7 +105,7 @@ function getVirtualActivities(): Activity[] {
     },
     {
       id: "v-plan-2", type: "plan_to_watch",
-      username: "anime_lover", tmdbId: 130392, mediaType: "tv",
+      username: "anime_lover", tmdbId: 207250, mediaType: "tv",
       title: "", poster: null, year: null,
       createdAt: h(12),
     },
