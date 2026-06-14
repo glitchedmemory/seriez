@@ -26,7 +26,7 @@ export default function TopGenres({ genres }: { genres: GenreData[] }) {
             key={genre.name}
             className={`text-[13px] font-semibold px-3.5 py-1.5 rounded-full tracking-tight ${
               i < 2
-                ? "bg-[#1e1b4b] text-[#a5b4fc]"
+                ? "bg-accent/20 text-accent-light"
                 : "bg-bg-card text-text-secondary"
             }`}
           >
