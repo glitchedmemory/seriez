@@ -334,6 +334,16 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* ── AdSense ── */}
+      <div className="px-4 mt-6">
+        <div className="bg-bg-card border border-dashed border-border rounded-xl flex items-center justify-center" style={{ minHeight: 80 }}>
+          <div className="text-center">
+            <p className="text-[10px] text-text-secondary uppercase tracking-[0.15em] mb-1">Advertisement</p>
+            <p className="text-xs text-text-secondary">AdSense · 320×100</p>
+          </div>
+        </div>
+      </div>
+
       {/* Taste Comparison — only on other users' profiles */}
       {!isOwn && user && compareData && !compareLoading && (
         <div className="px-4 mt-6 space-y-4">
