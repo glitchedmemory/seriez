@@ -145,7 +145,7 @@ export default function HistoryClient() {
       </div>
 
       {/* ── Divider ── */}
-      <div className="h-2 bg-border mb-5" />
+      <div className="h-2 bg-text-secondary/15 mb-5" />
 
       {/* Watch time overview */}
       <div className="px-4 mb-5">

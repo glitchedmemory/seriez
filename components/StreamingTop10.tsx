@@ -163,7 +163,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
               className="px-2.5 py-1 text-[10px] font-medium rounded-md transition-all"
               style={{
                 backgroundColor: category === "movies" ? activeColor : "transparent",
-                color: category === "movies" ? "#fff" : "#6b7280",
+                color: category === "movies" ? "#fff" : "var(--text-secondary)",
               }}
             >
               Movies
@@ -173,7 +173,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
               className="px-2.5 py-1 text-[10px] font-medium rounded-md transition-all"
               style={{
                 backgroundColor: category === "tv" ? activeColor : "transparent",
-                color: category === "tv" ? "#fff" : "#6b7280",
+                color: category === "tv" ? "#fff" : "var(--text-secondary)",
               }}
             >
               TV Shows
@@ -228,10 +228,10 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
                     item.rank === 1
                       ? activeColor
                       : item.rank === 2
-                      ? "#9ca3af"
+                      ? "var(--text-secondary)"
                       : item.rank === 3
-                      ? "#d97706"
-                      : "#6b7280",
+                      ? "#b45309"
+                      : "var(--text-secondary)",
                 }}
               >
                 {item.rank}
@@ -252,7 +252,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
               <div
                 className={item.poster ? "hidden" : "w-10 h-14 rounded bg-bg-primary flex-shrink-0 flex items-center justify-center border border-border"}
               >
-                <span className="text-[9px] text-[#4b5563]">—</span>
+                <span className="text-[9px] text-text-secondary">—</span>
               </div>
 
               <span className="text-[12px] text-text-primary truncate">{item.title}</span>
