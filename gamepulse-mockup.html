@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>GamePulse — UI Mockup (Dark/Light)</title>
+<style>
+/* ============================================================
+   GAMEPULSE DESIGN SYSTEM — Dark & Light
+   ============================================================ */
+
+:root {
+  /* Dark Mode (default) */
+  --bg-floor: #0a0a0f;
+  --bg-base: #111118;
+  --bg-elevated: #1a1a24;
+  --bg-surface: #222230;
+  --text-primary: #e8e8ed;
+  --text-body: #b0b0ba;
+  --text-muted: #6b6b78;
+  --accent: #7c5cfc;
+  --accent-glow: #9d83ff;
+  --live: #22d65b;
+  --live-glow: rgba(34,214,91,0.4);
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --border: #2a2a38;
+  --knicks: #f5842b;
+  --spurs: #c4ced4;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --font: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', sans-serif;
+  --font-display: 'SF Pro Display', 'Inter', -apple-system, sans-serif;
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-card: 0 0 0 1px rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-elevated: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 20px rgba(0,0,0,0.5);
+}
+
+[data-theme="light"] {
+  --bg-floor: #f2f1f6;
+  --bg-base: #ffffff;
+  --bg-elevated: #f8f8fc;
+  --bg-surface: #eeeef4;
+  --text-primary: #12121a;
+  --text-body: #4a4a58;
+  --text-muted: #8a8a98;
+  --border: #e0dfe6;
+  --shadow-card: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-elevated: 0 0 0 1px rgba(0,0,0,0.06), 0 4px 24px rgba(0,0,0,0.08);
+  --live-glow: rgba(34,214,91,0.25);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #1a1a2e;
+  font-family: var(--font);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  min-height: 100vh;
+  gap: 20px;
+}
+
+/* Theme Toggle */
+.theme-bar {
+  display: flex;
+  gap: 0;
+  background: #25253a;
+  border-radius: 30px;
+  padding: 3px;
+  position: sticky;
+  top: 24px;
+  z-index: 100;
+}
+.theme-btn {
+  padding: 10px 24px;
+  border-radius: 27px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  transition: var(--transition);
+  color: #999;
+  background: transparent;
+}
+.theme-btn.active {
+  background: #7c5cfc;
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(124,92,252,0.4);
+}
+
+/* Phone Frame */
+.phone {
+  width: 390px;
+  min-height: 844px;
+  background: var(--bg-floor);
+  border-radius: 44px;
+  overflow: hidden;
+  box-shadow: 0 0 0 8px #1a1a1a, 0 0 0 10px #333, 0 20px 60px rgba(0,0,0,0.6);
+  font-family: var(--font);
+  transition: background var(--transition);
+  position: relative;
+}
+.phone-inner {
+  padding: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 844px;
+}
+
+/* Status Bar */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 28px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px 8px;
+}
+.logo {
+  font-size: 18px;
+  font-weight: 800;
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+.logo span { color: var(--accent); }
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+.header-icon {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+/* ==================== SCREEN 1: HOME ==================== */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 4px;
+}
+
+/* Live Score Card */
+.score-card {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s;
+  border: 1px solid var(--border);
+}
+.score-card:active { transform: scale(0.985); }
+
+.team-accent-bar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  display: flex;
+  flex-direction: column;
+}
+.team-accent-bar .top { flex: 1; background: var(--spurs); }
+.team-accent-bar .bottom { flex: 1; background: var(--knicks); }
+
+.live-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.live-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--live);
+  box-shadow: 0 0 8px var(--live-glow);
+  animation: live-pulse 2s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--live-glow); }
+  50% { opacity: 0.5; box-shadow: 0 0 14px var(--live-glow); }
+}
+.live-text {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--live);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.live-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: auto;
+  font-weight: 500;
+}
+
+.teams { padding-left: 8px; }
+.team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+.team-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-body);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.team-dot {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+}
+.team-score {
+  font-size: 42px;
+  font-weight: 800;
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+}
+.team-score.winning {
+  color: var(--text-primary);
+}
+
+.player-hl {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  padding-left: 8px;
+}
+.player-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.player-stat .name {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.player-stat .val {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.player-stat .sub {
+  font-size: 10px;
+  color: var(--text-body);
+  font-weight: 500;
+}
+
+.ask-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-body);
+  font-size: 13px;
+  font-weight: 500;
+  transition: var(--transition);
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  font-family: var(--font);
+}
+.ask-chip:hover { background: var(--accent); color: #fff; }
+
+/* Question Cards Section */
+.question-card {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+  border: 1px solid var(--border);
+}
+.question-card:active { transform: scale(0.985); background: var(--bg-surface); }
+.q-emoji { font-size: 22px; flex-shrink: 0; }
+.q-content { flex: 1; min-width: 0; }
+.q-question {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+}
+.q-answer {
+  font-size: 12px;
+  color: var(--text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==================== SCREEN 2: ASK ==================== */
+.ask-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 20px 16px;
+}
+.back-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font);
+}
+.ask-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.context-bar {
+  margin: 0 16px 16px;
+  padding: 10px 14px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-body);
+  border: 1px solid var(--border);
+  font-weight: 500;
+}
+.context-bar .cteam { font-weight: 700; color: var(--text-primary); }
+
+.question-input-area {
+  margin: 0 16px 16px;
+  padding: 18px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+.question-prompt {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+.question-field {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font);
+  outline: none;
+  transition: var(--transition);
+}
+.question-field:focus { border-color: var(--accent); }
+.question-field::placeholder { color: var(--text-muted); }
+
+.chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.quick-chip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font);
+}
+.quick-chip:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* Answer Card */
+.answer-section { padding: 0 16px; }
+.answer-bubble {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+}
+.answer-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+.answer-text {
+  font-size: 14px;
+  color: var(--text-body);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.rich-stat-card {
+  background: var(--bg-base);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+}
+.rich-stat-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.stat-row .label { font-size: 12px; color: var(--text-body); font-weight: 500; }
+.stat-row .value { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.stat-row .sub { font-size: 11px; color: var(--text-muted); margin-left: 6px; }
+
+.progress-track {
+  height: 6px;
+  background: var(--bg-surface);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.foul-dots {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+.foul-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--warning);
+}
+.foul-dot.filled { background: var(--warning); }
+
+.followup-chips {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.followup-chip {
+  padding: 6px 14px;
+  border-radius: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font);
+}
+.followup-chip:hover { background: var(--accent); color: #fff; }
+
+.feedback-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.feedback-btn {
+  padding: 5px 12px;
+  border-radius: 12px;
+  background: var(--bg-surface);
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: var(--transition);
+}
+.feedback-btn:hover { color: var(--text-primary); }
+
+/* Bottom Input */
+.bottom-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-floor);
+  padding: 12px 16px 28px;
+  border-top: 1px solid var(--border);
+}
+.voice-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.bottom-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bottom-field {
+  flex: 1;
+  padding: 10px 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font);
+  outline: none;
+}
+.bottom-field::placeholder { color: var(--text-muted); }
+
+/* Tab Bar */
+.tab-bar {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 16px 22px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-floor);
+  position: sticky;
+  bottom: 0;
+}
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: var(--transition);
+}
+.tab-item .icon { font-size: 20px; }
+.tab-item.active { color: var(--accent); }
+
+/* Screen toggle */
+.screen-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-elevated);
+  border-radius: 20px;
+  padding: 2px;
+}
+.screen-btn {
+  padding: 6px 14px;
+  border-radius: 18px;
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+.screen-btn.active { background: var(--accent); color: #fff; }
+
+/* Utility */
+.flex-row { display: flex; align-items: center; gap: 8px; }
+
+/* Scrollbar */
+.content::-webkit-scrollbar { width: 0; }
+
+/* Labels for mockup */
+.mock-label {
+  text-align: center;
+  font-size: 11px;
+  color: #666;
+  margin-top: 6px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* Responsive */
+@media (max-width: 430px) {
+  body { padding: 12px; }
+  .phone { width: 100%; max-width: 390px; border-radius: 32px; }
+}
+</style>
+</head>
+<body>
+
+<div class="theme-bar">
+  <button class="theme-btn active" onclick="setTheme('dark')">🌙 Dark Mode</button>
+  <button class="theme-btn" onclick="setTheme('light')">☀️ Light Mode</button>
+</div>
+
+<!-- ==================== PHONE 1: HOME SCREEN ==================== -->
+<div class="phone" id="phone1">
+  <div class="phone-inner">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span style="display:flex;gap:4px;">●●●●○ &nbsp;WiFi</span>
+    </div>
+
+    <div class="app-header">
+      <div class="logo">Game<span>Pulse</span></div>
+      <div class="screen-toggle" id="screenToggle1">
+        <button class="screen-btn active" onclick="switchScreen('home', this)">Home</button>
+        <button class="screen-btn" onclick="switchScreen('ask', this)">Ask</button>
+      </div>
+    </div>
+
+    <div class="content" id="content1">
+      <!-- Section: Live Scores -->
+      <div class="section-label">🏀 Live Scores</div>
+
+      <div class="score-card">
+        <div class="team-accent-bar">
+          <div class="top"></div>
+          <div class="bottom"></div>
+        </div>
+        <div class="live-row">
+          <div class="live-dot"></div>
+          <span class="live-text">Live</span>
+          <span class="live-time">Q4 4:12</span>
+        </div>
+        <div class="teams">
+          <div class="team-row">
+            <span class="team-name"><span class="team-dot" style="background:var(--knicks)"></span> NYK</span>
+            <span class="team-score">102</span>
+          </div>
+          <div class="team-row">
+            <span class="team-name"><span class="team-dot" style="background:var(--spurs)"></span> SAS</span>
+            <span class="team-score">98</span>
+          </div>
+        </div>
+        <div class="player-hl">
+          <div class="player-stat">
+            <span class="name">B. Brunson</span>
+            <span class="val">34 pts</span>
+            <span class="sub">12-18 FG</span>
+          </div>
+          <div class="player-stat">
+            <span class="name">V. Wembanyama</span>
+            <span class="val">28 pts</span>
+            <span class="sub">11-21 FG</span>
+          </div>
+        </div>
+        <button class="ask-chip">💬 Ask about this game →</button>
+      </div>
+
+      <!-- Section: Questions You'll Ask -->
+      <div class="section-label" style="margin-top:4px;">📌 Questions You'll Ask</div>
+
+      <div class="question-card">
+        <span class="q-emoji">🤔</span>
+        <div class="q-content">
+          <div class="q-question">Why are Spurs losing?</div>
+          <div class="q-answer">3PT 6-22 · Turnovers 18 · Wemby foul trouble (4PF)</div>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <span class="q-emoji">🔥</span>
+        <div class="q-content">
+          <div class="q-question">Brunson career night?</div>
+          <div class="q-answer">34 pts · 70% FG · 5-7 3PT · +20% vs season avg</div>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <span class="q-emoji">💰</span>
+        <div class="q-content">
+          <div class="q-question">Betting line movement?</div>
+          <div class="q-answer">Knicks -1.5 → -3.5 · 78% money on NYK</div>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <span class="q-emoji">📊</span>
+        <div class="q-content">
+          <div class="q-question">Key matchup tonight?</div>
+          <div class="q-answer">Brunson vs Wemby in the paint: 4/7 contested FG</div>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <span class="q-emoji">🏥</span>
+        <div class="q-content">
+          <div class="q-question">Any injuries?</div>
+          <div class="q-answer">Wemby 4PF (not injured, foul management) · All others healthy</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Input -->
+    <div class="bottom-bar" style="margin-top:auto;">
+      <div class="flex-row">
+        <div class="bottom-input">
+          <span style="font-size:18px;">💬</span>
+          <input class="bottom-field" placeholder="Ask anything about today..." type="text">
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-item active"><span class="icon">🏠</span>Home</button>
+      <button class="tab-item"><span class="icon">🔍</span>Search</button>
+      <button class="tab-item"><span class="icon">💬</span>Ask</button>
+      <button class="tab-item"><span class="icon">📊</span>Stats</button>
+      <button class="tab-item"><span class="icon">⚙️</span>Settings</button>
+    </div>
+  </div>
+</div>
+<div class="mock-label">SCREEN 1: Home — Live Scores + Pre-cached Questions</div>
+
+<!-- ==================== PHONE 2: ASK SCREEN ==================== -->
+<div class="phone" id="phone2" style="margin-top:32px;">
+  <div class="phone-inner">
+    <div class="status-bar">
+      <span>9:42</span>
+      <span style="display:flex;gap:4px;">●●●●○ &nbsp;WiFi</span>
+    </div>
+
+    <div class="ask-header">
+      <button class="back-btn">←</button>
+      <span class="ask-title">Ask GamePulse</span>
+    </div>
+
+    <!-- Context Bar -->
+    <div class="context-bar">
+      🏀 <span class="cteam">NYK 102 — 98 SAS</span> · Q4 4:12 · Brunson 34pts
+    </div>
+
+    <div class="content" id="content2">
+      <!-- Question Input -->
+      <div class="question-input-area">
+        <div class="question-prompt">🤔 What do you want to know?</div>
+        <input class="question-field" placeholder="e.g. Why are Spurs losing?" type="text">
+        <div class="chip-grid">
+          <button class="quick-chip">🏆 Score</button>
+          <button class="quick-chip">📊 Stats</button>
+          <button class="quick-chip">💰 Odds</button>
+          <button class="quick-chip">🏥 Injury</button>
+          <button class="quick-chip">📺 Stream</button>
+          <button class="quick-chip">⚖️ Compare</button>
+        </div>
+      </div>
+
+      <!-- Quick Answers -->
+      <div class="section-label" style="padding:0 4px 8px;">⚡ Quick Answers</div>
+
+      <div class="question-card" style="margin-bottom:8px;">
+        <span class="q-emoji">🔥</span>
+        <div class="q-content">
+          <div class="q-question">Top scorer tonight</div>
+          <div class="q-answer">Brunson 34pts (12-18 FG) · Wemby 28pts (11-21 FG)</div>
+        </div>
+      </div>
+
+      <div class="question-card" style="margin-bottom:8px;">
+        <span class="q-emoji">📊</span>
+        <div class="q-content">
+          <div class="q-question">FG% comparison</div>
+          <div class="q-answer">NYK 48% — SAS 43% · Knicks +5%p more efficient</div>
+        </div>
+      </div>
+
+      <div class="question-card" style="margin-bottom:16px;">
+        <span class="q-emoji">⚡</span>
+        <div class="q-content">
+          <div class="q-question">Momentum tracker</div>
+          <div class="q-answer">Last 5 min: NYK +8 · 12-0 run in Q3 was turning point</div>
+        </div>
+      </div>
+
+      <!-- AI Answer Example -->
+      <div class="section-label" style="padding:0 4px 8px;">💬 AI Answer Preview</div>
+
+      <div class="answer-section">
+        <div class="answer-bubble">
+          <div class="answer-label">🤖 GamePulse</div>
+          <div class="answer-text">
+            Spurs are trailing because of <strong style="color:var(--text-primary)">3 key factors</strong>:
+          </div>
+
+          <div class="rich-stat-card">
+            <div class="rich-stat-title">🎯 3-POINT SHOOTING</div>
+            <div class="stat-row">
+              <span class="label">Spurs tonight</span>
+              <span><span class="value">6-22</span><span class="sub">27%</span></span>
+            </div>
+            <div class="stat-row">
+              <span class="label">Season average</span>
+              <span><span class="value">36%</span></span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:27%;background:var(--danger);"></div>
+            </div>
+          </div>
+
+          <div class="rich-stat-card">
+            <div class="rich-stat-title">⚠️ TURNOVERS</div>
+            <div style="display:flex;gap:12px;margin-top:4px;">
+              <div style="flex:1;text-align:center;">
+                <div style="font-size:24px;font-weight:800;color:var(--danger);">18</div>
+                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;">Spurs</div>
+              </div>
+              <div style="color:var(--text-muted);align-self:center;">vs</div>
+              <div style="flex:1;text-align:center;">
+                <div style="font-size:24px;font-weight:800;color:var(--live);">9</div>
+                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;">Knicks</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rich-stat-card">
+            <div class="rich-stat-title">🏥 FOUL TROUBLE</div>
+            <div class="stat-row">
+              <span class="label">Wembanyama</span>
+              <span class="value" style="color:var(--warning);">4 fouls</span>
+            </div>
+            <div class="stat-row" style="margin-bottom:6px;">
+              <span class="label">Q3 playing time</span>
+              <span class="value">8 min</span>
+            </div>
+            <div class="foul-dots">
+              <div class="foul-dot filled"></div>
+              <div class="foul-dot filled"></div>
+              <div class="foul-dot filled"></div>
+              <div class="foul-dot filled"></div>
+              <div class="foul-dot"></div>
+              <div class="foul-dot"></div>
+            </div>
+          </div>
+
+          <div class="answer-text" style="margin-top:8px;">
+            <strong style="color:var(--text-primary)">Summary:</strong> 3-point shooting collapse + turnovers + Wemby foul trouble in Q3 = Spurs offense couldn't find rhythm. Wemby is back in Q4 but facing aggressive defense.
+          </div>
+
+          <div class="followup-chips">
+            <button class="followup-chip">💰 Live odds?</button>
+            <button class="followup-chip">📺 Where to watch?</button>
+            <button class="followup-chip">📜 H2H history?</button>
+          </div>
+
+          <div class="feedback-row">
+            <button class="feedback-btn">👍 Helpful</button>
+            <button class="feedback-btn">👎 Not quite</button>
+            <button class="feedback-btn" style="margin-left:auto;">📋 Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Input -->
+    <div class="bottom-bar">
+      <div class="flex-row">
+        <button class="voice-btn">🎤</button>
+        <div class="bottom-input">
+          <span style="font-size:16px;">💬</span>
+          <input class="bottom-field" placeholder="Ask a follow-up..." type="text">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="mock-label">SCREEN 2: Ask — Question Input + AI Rich Answer Card</div>
+
+<script>
+function setTheme(mode) {
+  document.querySelectorAll('.phone').forEach(p => p.setAttribute('data-theme', mode));
+  document.querySelectorAll('.theme-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.includes(mode === 'dark' ? 'Dark' : 'Light'));
+  });
+}
+
+// Initialize both phones
+document.querySelectorAll('.phone').forEach(p => p.setAttribute('data-theme', 'dark'));
+</script>
+
+</body>
+</html>
