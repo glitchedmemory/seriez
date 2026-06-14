@@ -62,10 +62,10 @@ export function ProfileSkeleton() {
       <div className="space-y-3 mt-6">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="flex gap-3 bg-bg-card rounded-xl p-3">
-            <div className="w-10 h-14 rounded bg-[#2d2d4a]" />
+            <div className="w-10 h-14 rounded bg-bg-card-hover" />
             <div className="flex-1 space-y-2">
-              <div className="h-3 bg-[#2d2d4a] rounded w-3/4" />
-              <div className="h-2 bg-[#2d2d4a] rounded w-1/2" />
+              <div className="h-3 bg-bg-card-hover rounded w-3/4" />
+              <div className="h-2 bg-bg-card-hover rounded w-1/2" />
             </div>
           </div>
         ))}
@@ -79,12 +79,12 @@ export function ListSkeleton({ rows = 5 }: { rows?: number }) {
     <div className="animate-pulse space-y-3">
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="flex gap-3 bg-bg-card border border-border rounded-xl p-3">
-          <div className="w-12 h-16 rounded bg-[#2d2d4a] flex-shrink-0" />
+          <div className="w-12 h-16 rounded bg-bg-card-hover flex-shrink-0" />
           <div className="flex-1 space-y-2">
-            <div className="h-4 bg-[#2d2d4a] rounded w-2/3" />
-            <div className="h-3 bg-[#2d2d4a] rounded w-1/2" />
+            <div className="h-4 bg-bg-card-hover rounded w-2/3" />
+            <div className="h-3 bg-bg-card-hover rounded w-1/2" />
           </div>
-          <div className="w-16 h-8 bg-[#2d2d4a] rounded-lg" />
+          <div className="w-16 h-8 bg-bg-card-hover rounded-lg" />
         </div>
       ))}
     </div>
@@ -98,10 +98,10 @@ export function SearchSkeleton() {
       <div className="space-y-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="flex gap-3 bg-bg-card rounded-xl p-3">
-            <div className="w-10 h-14 rounded bg-[#2d2d4a]" />
+            <div className="w-10 h-14 rounded bg-bg-card-hover" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 bg-[#2d2d4a] rounded w-3/4" />
-              <div className="h-3 bg-[#2d2d4a] rounded w-1/3" />
+              <div className="h-4 bg-bg-card-hover rounded w-3/4" />
+              <div className="h-3 bg-bg-card-hover rounded w-1/3" />
             </div>
           </div>
         ))}

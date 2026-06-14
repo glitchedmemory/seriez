@@ -274,7 +274,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               {detail.genres.map((g) => (
                 <span
                   key={g}
-                  className="text-[11px] px-2.5 py-1 rounded-full bg-bg-card text-[#c4b5fd] border border-accent/30"
+                  className="text-[11px] px-2.5 py-1 rounded-full bg-bg-card text-accent-light border border-accent/30"
                 >
                   {g}
                 </span>
@@ -356,7 +356,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               <div className="flex justify-center md:justify-start mt-2 relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowCollDropdown(!showCollDropdown)}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-border bg-bg-card text-text-secondary hover:text-white hover:border-accent"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-border bg-bg-card text-text-secondary hover:text-text-primary hover:border-accent"
                 >
                   <span className="text-sm font-bold mr-0.5">+</span>
                   Add to Collection
@@ -438,7 +438,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
         {detail.overview && (
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-text-primary mb-2">Overview</h2>
-            <p className="text-sm text-[#d1d5db] leading-relaxed">
+            <p className="text-sm text-text-secondary leading-relaxed">
               {detail.overview}
             </p>
           </section>

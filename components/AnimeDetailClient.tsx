@@ -473,7 +473,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
             {/* Genres */}
             <div className="flex flex-wrap gap-1.5 mt-3 justify-center md:justify-start">
               {detail.genres.map((g) => (
-                <span key={g} className="text-[11px] px-2.5 py-1 rounded-full bg-bg-card text-[#c4b5fd] border border-accent/30">
+                <span key={g} className="text-[11px] px-2.5 py-1 rounded-full bg-bg-card text-accent-light border border-accent/30">
                   {g}
                 </span>
               ))}
@@ -483,7 +483,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
             {detail.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2 justify-center md:justify-start">
                 {detail.tags.map((t) => (
-                  <span key={t.name} className="text-[10px] px-2 py-0.5 rounded-full bg-[#2d2d4a]/50 text-text-secondary">
+                  <span key={t.name} className="text-[10px] px-2 py-0.5 rounded-full bg-bg-card-hover/50 text-text-secondary">
                     {t.name}
                   </span>
                 ))}
@@ -565,7 +565,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
               <div className="flex justify-center md:justify-start mt-2 relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowCollDropdown(!showCollDropdown)}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-border bg-bg-card text-text-secondary hover:text-white hover:border-accent"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-border bg-bg-card text-text-secondary hover:text-text-primary hover:border-accent"
                 >
                   <span className="text-sm font-bold mr-0.5">+</span> Add to Collection
                 </button>
@@ -631,7 +631,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                     tab.isActive
                       ? "bg-accent text-white cursor-default"
-                      : "bg-bg-card text-text-secondary hover:text-white hover:bg-[#2d2d4a] border border-border hover:border-accent"
+                      : "bg-bg-card text-text-secondary hover:text-text-primary hover:bg-[#2d2d4a] border border-border hover:border-accent"
                   }`}
                 >
                   {tab.title}
@@ -645,7 +645,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         {detail.overview && (
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-text-primary mb-2">Overview</h2>
-            <p className="text-sm text-[#d1d5db] leading-relaxed">{detail.overview}</p>
+            <p className="text-sm text-text-secondary leading-relaxed">{detail.overview}</p>
           </section>
         )}
 
@@ -742,7 +742,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-white disabled:opacity-30 transition-colors"
+                  className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-text-primary disabled:opacity-30 transition-colors"
                 >
                   ← Prev
                 </button>
@@ -763,7 +763,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                         className={`w-7 h-7 text-xs rounded-full transition-colors ${
                           currentPage === item
                             ? "bg-accent text-white"
-                            : "bg-bg-card text-text-secondary hover:text-white"
+                            : "bg-bg-card text-text-secondary hover:text-text-primary"
                         }`}
                       >
                         {item}
@@ -773,7 +773,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-white disabled:opacity-30 transition-colors"
+                  className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-text-primary disabled:opacity-30 transition-colors"
                 >
                   Next →
                 </button>

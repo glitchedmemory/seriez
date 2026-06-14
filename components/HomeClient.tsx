@@ -242,7 +242,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
             key={`${item.type}-${item.id}`}
             href={`/title/${item.id}?type=${item.type}`}
             onClick={closeSearch}
-            className="flex items-center gap-3 p-3 hover:bg-bg-card transition-colors border-b border-[#1a1a2e] last:border-0"
+            className="flex items-center gap-3 p-3 hover:bg-bg-card transition-colors border-b border-border last:border-0"
           >
             <div className="w-10 h-[60px] rounded-lg overflow-hidden bg-bg-card flex-shrink-0 relative">
               <PosterImage src={item.poster} alt="" fill className="rounded-lg" sizes="40px" />
@@ -270,12 +270,12 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
   return (
     <div className="max-w-lg md:max-w-none mx-auto min-h-screen">
       {/* ── Mobile header ── */}
-      <header className="md:hidden sticky top-0 z-40 bg-bg-primary/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-[#1a1a2e]">
+      <header className="md:hidden sticky top-0 z-40 bg-bg-primary/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-border">
         {searchOpen ? (
           <div className="flex-1 flex items-center gap-2 relative">
             <button
               onClick={closeSearch}
-              className="text-text-secondary hover:text-white transition-colors flex-shrink-0"
+              className="text-text-secondary hover:text-text-primary transition-colors flex-shrink-0"
               aria-label="Close search"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
@@ -298,7 +298,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
         ) : (
           <>
             <h1 className="text-xl font-bold bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">Seriez</h1>
-            <button onClick={() => setSearchOpen(true)} className="text-text-secondary hover:text-white transition-colors" aria-label="Search">
+            <button onClick={() => setSearchOpen(true)} className="text-text-secondary hover:text-text-primary transition-colors" aria-label="Search">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                 <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
               </svg>
@@ -325,7 +325,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
               {forYouLoading ? (
                 Array.from({ length: 7 }).map((_, i) => (
                   <div key={i} className="animate-pulse">
-                    <div className="aspect-[2/3] bg-[#1e1e3a] rounded-lg" />
+                    <div className="aspect-[2/3] bg-bg-card-hover rounded-lg" />
                   </div>
                 ))
               ) : (

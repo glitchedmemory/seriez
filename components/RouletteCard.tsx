@@ -71,7 +71,7 @@ export default function RouletteCard() {
           </h3>
 
           {/* Description */}
-          <p className="text-xs text-[#8b8fa3] max-w-[240px] mb-8">
+          <p className="text-xs text-text-secondary max-w-[240px] mb-8">
             Spin the wheel and discover a random hit from the recent past
           </p>
 
@@ -99,7 +99,7 @@ export default function RouletteCard() {
       <div className="bg-gradient-to-br from-[#1a1a3e] via-[#191938] to-[#13132e] rounded-2xl overflow-hidden border border-accent/10">
         <div className="flex flex-col items-center px-6 py-10 text-center">
           <span className="text-4xl mb-3">🎰</span>
-          <p className="text-sm text-[#8b8fa3] mb-6">{message}</p>
+          <p className="text-sm text-text-secondary mb-6">{message}</p>
           <button
             onClick={spin}
             disabled={spinning}
@@ -164,7 +164,7 @@ export default function RouletteCard() {
             {/* Meta row */}
             <div className="flex items-center gap-2 flex-wrap">
               {result!.year && (
-                <span className="text-xs text-[#a5b4fc]">{result!.year}</span>
+                <span className="text-xs text-accent-light">{result!.year}</span>
               )}
               {result!.runtime && (
                 <span className="text-xs text-text-secondary">{result!.runtime}</span>
@@ -195,9 +195,9 @@ export default function RouletteCard() {
           )}
 
           {/* Overview */}
-          <p className="text-xs text-[#8b8fa3] leading-relaxed line-clamp-2">
+          <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">
             {result!.tagline && (
-              <span className="italic text-[#a5b4fc]">"{result!.tagline}"{" "}</span>
+              <span className="italic text-accent-light">"{result!.tagline}"{" "}</span>
             )}
             {result!.overview}
           </p>

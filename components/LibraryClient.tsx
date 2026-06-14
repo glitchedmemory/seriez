@@ -70,7 +70,7 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
             className={`px-3 py-1 rounded-full text-[11px] font-medium transition-colors ${
               sort === opt.key
                 ? "bg-accent text-white"
-                : "bg-bg-card text-text-secondary hover:text-white"
+                : "bg-bg-card text-text-secondary hover:text-text-primary"
             }`}
           >
             {opt.label}
@@ -152,7 +152,7 @@ function CollectionsView() {
     return (
       <div className="px-4 mt-4">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => setSelectedId(null)} className="text-text-secondary hover:text-white text-sm">← Back</button>
+          <button onClick={() => setSelectedId(null)} className="text-text-secondary hover:text-text-primary text-sm">← Back</button>
           <h2 className="text-lg font-semibold text-text-primary">{collection?.name}</h2>
           <span className="text-xs text-text-secondary">{items.length} items</span>
         </div>
@@ -233,13 +233,13 @@ export default function LibraryClient() {
 
   return (
     <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
-      <header className="sticky top-0 z-40 bg-bg-primary/95 backdrop-blur-md px-4 py-3 border-b border-[#1a1a2e]">
+      <header className="sticky top-0 z-40 bg-bg-primary/95 backdrop-blur-md px-4 py-3 border-b border-border">
         <h1 className="text-xl font-bold bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">My List</h1>
       </header>
 
       {/* Stats bar */}
       {statsLoaded && (
-        <div className="flex gap-3 px-4 py-3 border-b border-[#1a1a2e]">
+        <div className="flex gap-3 px-4 py-3 border-b border-border">
           <button onClick={() => setActiveFilter(activeFilter === "completed" ? null : "completed")}
             className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${
               activeFilter === "completed"
