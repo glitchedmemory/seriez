@@ -371,21 +371,21 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
                   <button
                     onClick={() => switchTrendingMode("movie")}
                     className={`absolute left-0 top-0 w-[56px] h-full flex items-center justify-center text-[10px] font-semibold transition-colors duration-300 hover:bg-white/5 ${
-                      trendingMode === "movie" ? "text-text-primary" : "text-text-secondary"
+                      trendingMode === "movie" ? "text-text-primary light:text-white" : "text-text-secondary"
                     }`}
                     aria-label="Show trending movies"
                   >🎬 Movies</button>
                   <button
                     onClick={() => switchTrendingMode("tv")}
                     className={`absolute left-[56px] top-0 w-[56px] h-full flex items-center justify-center text-[10px] font-semibold transition-colors duration-300 hover:bg-white/5 ${
-                      trendingMode === "tv" ? "text-text-primary" : "text-text-secondary"
+                      trendingMode === "tv" ? "text-text-primary light:text-white" : "text-text-secondary"
                     }`}
                     aria-label="Show trending TV"
                   >📺 TV</button>
                   <button
                     onClick={() => switchTrendingMode("anime")}
                     className={`absolute left-[112px] top-0 w-[56px] h-full flex items-center justify-center text-[10px] font-semibold transition-colors duration-300 hover:bg-white/5 ${
-                      trendingMode === "anime" ? "text-text-primary" : "text-text-secondary"
+                      trendingMode === "anime" ? "text-text-primary light:text-white" : "text-text-secondary"
                     }`}
                     aria-label="Show trending anime"
                   >🍿 Anime</button>
