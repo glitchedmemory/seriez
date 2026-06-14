@@ -834,12 +834,12 @@ export function ReviewSection({
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-sm font-semibold transition-all duration-200 border ${
                   review.liked
                     ? "text-[#f472b6] bg-[#ec4899]/10 border-[#ec4899]/20"
-                    : "text-[#d1d5db] bg-transparent border-white/10 light:border-border hover:bg-accent/10 hover:border-accent/20 hover:text-[#c7d2fe]"
+                    : "text-[#d1d5db] light:text-text-secondary bg-transparent border-white/10 light:border-border hover:bg-accent/10 hover:border-accent/20 hover:text-[#c7d2fe]"
                 }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                   fill={review.liked ? "#f472b6" : "none"}
-                  stroke={review.liked ? "#f472b6" : "#d1d5db"}
+                  stroke={review.liked ? "#f472b6" : "currentColor"}
                   strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78l1.06-1.06a5.5 5.5 0 0 0 0-7.78"/>
                 </svg>
@@ -850,7 +850,7 @@ export function ReviewSection({
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-sm font-semibold transition-all duration-200 border ${
                   expandedComments.has(review.id)
                     ? "text-[#c7d2fe] bg-accent/10 border-accent/20"
-                    : "text-[#d1d5db] bg-transparent border-white/10 light:border-border hover:bg-accent/10 hover:border-accent/20 hover:text-[#c7d2fe]"
+                    : "text-[#d1d5db] light:text-text-secondary bg-transparent border-white/10 light:border-border hover:bg-accent/10 hover:border-accent/20 hover:text-[#c7d2fe]"
                 }`}
               >
                 <span>💬</span>
