@@ -166,7 +166,7 @@ export default function CollectionClient() {
         </button>
       </div>
       <div className="flex items-center gap-3 text-xs text-text-secondary mb-5">
-        <span>by <span className="text-[#d1d5db]">{collection.owner}</span></span>
+        <span>by <span className="text-[#d1d5db] light:text-text-primary">{collection.owner}</span></span>
         <span>·</span>
         <span>{collection.itemCount} items</span>
       </div>
@@ -269,7 +269,7 @@ export default function CollectionClient() {
                       {new Date(c.created_at).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-xs text-[#d1d5db] mt-0.5">{c.content}</p>
+                  <p className="text-xs text-[#d1d5db] light:text-text-primary mt-0.5">{c.content}</p>
                 </div>
               </div>
             ))}

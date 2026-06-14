@@ -71,7 +71,7 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
       {person.biography && (
         <section className="mt-6">
           <h2 className="text-lg font-semibold text-text-primary mb-2">Biography</h2>
-          <p className="text-sm text-[#d1d5db] leading-relaxed">{person.biography}</p>
+          <p className="text-sm text-[#d1d5db] light:text-text-primary leading-relaxed">{person.biography}</p>
         </section>
       )}
 
