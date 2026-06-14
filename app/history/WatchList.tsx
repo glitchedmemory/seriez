@@ -28,7 +28,7 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
     return (
       <div className="px-4 flex flex-col items-center py-12 text-center">
         <span className="text-3xl mb-3">📋</span>
-        <p className="text-[#9ca3af] text-sm">No watches yet this month</p>
+        <p className="text-text-secondary text-sm">No watches yet this month</p>
       </div>
     );
   }
@@ -43,10 +43,10 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
           <Link
             key={item.tmdbId}
             href={`/title/${item.tmdbId}?type=${item.mediaType}`}
-            className="flex gap-3 py-3 items-center hover:bg-[#1a1a2e]/50 transition-colors -mx-1 px-1 rounded-lg"
+            className="flex gap-3 py-3 items-center hover:bg-bg-card/50 transition-colors -mx-1 px-1 rounded-lg"
           >
             {/* Poster */}
-            <div className="w-12 h-[68px] flex-shrink-0 rounded-md overflow-hidden bg-[#1a1a2e]">
+            <div className="w-12 h-[68px] flex-shrink-0 rounded-md overflow-hidden bg-bg-card">
               {item.posterPath ? (
                 <Image
                   src={`${TMDB_IMAGE}${item.posterPath}`}
@@ -70,7 +70,7 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
               <p className="text-sm font-bold text-white truncate tracking-tight">
                 {item.title}
               </p>
-              <p className="text-xs text-[#9ca3af] font-medium mt-0.5">
+              <p className="text-xs text-text-secondary font-medium mt-0.5">
                 {new Date(item.updatedAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -80,7 +80,7 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
 
             {/* Stars */}
             {item.rating > 0 && (
-              <span className="text-sm font-bold text-[#f59e0b] flex-shrink-0">
+              <span className="text-sm font-bold text-gold flex-shrink-0">
                 ★ {item.rating}
               </span>
             )}

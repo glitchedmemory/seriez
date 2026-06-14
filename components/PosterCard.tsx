@@ -12,7 +12,7 @@ export function PosterCard({ item, showReason }: { item: MediaItem; showReason?:
           </span>
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-semibold text-[#f59e0b]">
+        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-semibold text-gold">
           ★ {item.rating}
         </div>
         <div className="absolute bottom-2 left-2 right-2">
@@ -21,11 +21,11 @@ export function PosterCard({ item, showReason }: { item: MediaItem; showReason?:
           </p>
         </div>
       </div>
-      <p className="mt-1 text-xs text-[#9ca3af]">
+      <p className="mt-1 text-xs text-text-secondary">
         {item.year} · {item.type === "movie" ? "Movie" : item.type === "tv" ? "TV" : "Anime"}
       </p>
       {showReason && item.reason && (
-        <p className="text-[10px] text-[#6366f1] mt-0.5 line-clamp-1">{item.reason}</p>
+        <p className="text-[10px] text-accent mt-0.5 line-clamp-1">{item.reason}</p>
       )}
     </div>
   );

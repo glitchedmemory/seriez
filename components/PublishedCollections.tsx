@@ -45,18 +45,18 @@ export default function PublishedCollections() {
   return (
     <div className="mt-5">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs text-[#6b7280] font-medium">📚 Curated Collections</p>
+        <p className="text-xs text-text-secondary font-medium">📚 Curated Collections</p>
         <div className="flex gap-1">
           <button
             onClick={() => scroll("left")}
-            className="w-6 h-6 rounded-full bg-[#1a1a2e] hover:bg-[#25253a] flex items-center justify-center text-white text-xs transition-colors"
+            className="w-6 h-6 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-white text-xs transition-colors"
             aria-label="Scroll left"
           >
             ←
           </button>
           <button
             onClick={() => scroll("right")}
-            className="w-6 h-6 rounded-full bg-[#1a1a2e] hover:bg-[#25253a] flex items-center justify-center text-white text-xs transition-colors"
+            className="w-6 h-6 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-white text-xs transition-colors"
             aria-label="Scroll right"
           >
             →
@@ -74,9 +74,9 @@ export default function PublishedCollections() {
             className="flex-shrink-0 w-[180px] text-left group"
           >
             {/* 2x2 thumbnail grid */}
-            <div className="grid grid-cols-2 gap-0.5 rounded-xl overflow-hidden bg-[#1a1a2e] aspect-square mb-2 group-hover:ring-1 ring-[#6366f1] transition-all">
+            <div className="grid grid-cols-2 gap-0.5 rounded-xl overflow-hidden bg-bg-card aspect-square mb-2 group-hover:ring-1 ring-accent transition-all">
               {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="aspect-[2/3] bg-[#25253a] overflow-hidden">
+                <div key={i} className="aspect-[2/3] bg-bg-surface overflow-hidden">
                   {c.thumbnails[i] ? (
                     <PosterImage
                       src={c.thumbnails[i]!}
@@ -99,9 +99,9 @@ export default function PublishedCollections() {
             <p className="text-xs font-medium text-white truncate">{c.name}</p>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-[10px] text-[#f87171]">♥ {c.likesCount}</span>
-              <span className="text-[10px] text-[#6b7280]">{c.itemCount} items</span>
+              <span className="text-[10px] text-text-secondary">{c.itemCount} items</span>
             </div>
-            <p className="text-[10px] text-[#6b7280]">by {c.owner}</p>
+            <p className="text-[10px] text-text-secondary">by {c.owner}</p>
           </button>
         ))}
       </div>

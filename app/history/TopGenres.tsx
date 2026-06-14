@@ -9,7 +9,7 @@ export default function TopGenres({ genres }: { genres: GenreData[] }) {
     return (
       <div className="mb-6">
         <h3 className="text-[15px] font-bold text-white tracking-tight mb-3">Top Genres</h3>
-        <p className="text-[#9ca3af] text-sm text-center py-4">
+        <p className="text-text-secondary text-sm text-center py-4">
           Not enough data yet. Start rating titles!
         </p>
       </div>
@@ -27,7 +27,7 @@ export default function TopGenres({ genres }: { genres: GenreData[] }) {
             className={`text-[13px] font-semibold px-3.5 py-1.5 rounded-full tracking-tight ${
               i < 2
                 ? "bg-[#1e1b4b] text-[#a5b4fc]"
-                : "bg-[#1a1a2e] text-[#9ca3af]"
+                : "bg-bg-card text-text-secondary"
             }`}
           >
             {genre.name}

@@ -83,10 +83,10 @@ export default function SearchPage() {
     <ErrorBoundary sectionName="Search">
     <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
       {/* Search input */}
-      <div className="sticky top-0 z-20 bg-[#0f0f1a] pt-4 pb-3 px-4">
+      <div className="sticky top-0 z-20 bg-bg-primary pt-4 pb-3 px-4">
         <div className="relative">
           <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6b7280]"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -101,12 +101,12 @@ export default function SearchPage() {
             onKeyDown={handleKeyDown}
             placeholder="Search movies, TV shows & anime..."
             aria-label="Search movies, TV shows and anime"
-            className="w-full bg-[#1a1a2e] text-white text-sm rounded-xl pl-10 pr-4 py-3 outline-none border border-transparent focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280]"
+            className="w-full bg-bg-card text-white text-sm rounded-xl pl-10 pr-4 py-3 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary"
           />
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6b7280] hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-white"
             >
               ✕
             </button>
@@ -116,9 +116,9 @@ export default function SearchPage() {
 
       {/* ── AdSense Placeholder ── */}
       <div className="px-4 my-4">
-        <div className="w-full h-[60px] rounded-xl border-2 border-dashed border-[#6366f1]/40 bg-[#1a1a2e]/50 flex items-center justify-center text-[#6b7280] text-xs gap-2">
+        <div className="w-full h-[60px] rounded-xl border-2 border-dashed border-accent/40 bg-bg-card/50 flex items-center justify-center text-text-secondary text-xs gap-2">
           <span className="text-base">📢</span>
-          <span className="font-medium text-[#9ca3af]">AdSense Banner</span>
+          <span className="font-medium text-text-secondary">AdSense Banner</span>
           <span>320×50 / 320×100 responsive</span>
         </div>
       </div>
@@ -129,13 +129,13 @@ export default function SearchPage() {
           <>
             {trendingSearches.length > 0 ? (
               <div>
-                <p className="text-xs text-[#6b7280] mb-3 font-medium">🔥 Trending Searches</p>
+                <p className="text-xs text-text-secondary mb-3 font-medium">🔥 Trending Searches</p>
                 <div className="flex flex-wrap gap-2">
                   {trendingSearches.slice(0, 15).map((item) => (
                     <button
                       key={item.id}
                       onClick={() => { setQuery(item.title); logSearch(item.title); }}
-                      className="px-3 py-1.5 rounded-full bg-[#1a1a2e] hover:bg-[#2d2d4a] text-xs text-[#d1d5db] transition-colors border border-[#2d2d4a] hover:border-[#6366f1]"
+                      className="px-3 py-1.5 rounded-full bg-bg-card hover:bg-[#2d2d4a] text-xs text-[#d1d5db] transition-colors border border-border hover:border-accent"
                     >
                       {item.title}
                     </button>
@@ -168,10 +168,10 @@ export default function SearchPage() {
               <button
                 key={item.id}
                 onClick={() => router.push(`/title/${item.id}?type=${item.type}`)}
-                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#1a1a2e] transition-colors text-left"
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-bg-card transition-colors text-left"
               >
                 {/* Poster */}
-                <div className="flex-shrink-0 w-12 aspect-[2/3] rounded-lg overflow-hidden bg-[#1a1a2e]">
+                <div className="flex-shrink-0 w-12 aspect-[2/3] rounded-lg overflow-hidden bg-bg-card">
                   {item.poster ? (
                     <PosterImage src={item.poster} alt={item.title} width={48} height={72} className="rounded-lg" sizes="48px" />
                   ) : (
@@ -187,14 +187,14 @@ export default function SearchPage() {
                     {item.title}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] text-[#6b7280]">
+                    <span className="text-[10px] text-text-secondary">
                       {item.type === "anime" ? "Anime" : item.type === "movie" ? "Movie" : "TV"}
                     </span>
                     {item.year && (
-                      <span className="text-[10px] text-[#6b7280]">{item.year}</span>
+                      <span className="text-[10px] text-text-secondary">{item.year}</span>
                     )}
                     {item.rating > 0 && (
-                      <span className="text-[10px] text-[#f59e0b]">
+                      <span className="text-[10px] text-gold">
                         ★ {item.rating}
                       </span>
                     )}

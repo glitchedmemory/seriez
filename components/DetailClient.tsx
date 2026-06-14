@@ -215,7 +215,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
             unoptimized
             className={!detail.backdrop ? "blur-2xl scale-125 opacity-50" : ""}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f1a] via-[#0f0f1a]/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
         </div>
       )}
 
@@ -223,7 +223,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
         <div className="flex flex-col md:flex-row gap-6">
           {/* Poster */}
           <div className="flex-shrink-0 w-36 md:w-48 mx-auto md:mx-0">
-            <div className="aspect-[2/3] rounded-xl overflow-hidden bg-[#1a1a2e] shadow-2xl relative">
+            <div className="aspect-[2/3] rounded-xl overflow-hidden bg-bg-card shadow-2xl relative">
               <PosterImage
                 src={detail.poster}
                 alt={detail.title}
@@ -240,29 +240,29 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               {detail.title}
             </h1>
             {detail.tagline && (
-              <p className="text-sm text-[#9ca3af] italic mt-1">
+              <p className="text-sm text-text-secondary italic mt-1">
                 &ldquo;{detail.tagline}&rdquo;
               </p>
             )}
 
             {/* Meta row */}
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-3 text-xs text-[#9ca3af]">
-              <span className="bg-[#1a1a2e] px-2 py-0.5 rounded-full">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-3 text-xs text-text-secondary">
+              <span className="bg-bg-card px-2 py-0.5 rounded-full">
                 {detail.year}
               </span>
-              <span className="bg-[#1a1a2e] px-2 py-0.5 rounded-full uppercase">
+              <span className="bg-bg-card px-2 py-0.5 rounded-full uppercase">
                 {detail.type}
               </span>
               {detail.runtime > 0 && (
-                <span className="bg-[#1a1a2e] px-2 py-0.5 rounded-full">
+                <span className="bg-bg-card px-2 py-0.5 rounded-full">
                   {formatRuntime(detail.runtime)}
                 </span>
               )}
-              <span className="bg-[#1a1a2e] px-2 py-0.5 rounded-full">
+              <span className="bg-bg-card px-2 py-0.5 rounded-full">
                 {detail.status}
               </span>
               {detail.type === "tv" && detail.seasons && (
-                <span className="bg-[#1a1a2e] px-2 py-0.5 rounded-full">
+                <span className="bg-bg-card px-2 py-0.5 rounded-full">
                   {detail.seasons} Season{detail.seasons > 1 ? "s" : ""}
                   {detail.episodes ? ` · ${detail.episodes} Ep` : ""}
                 </span>
@@ -274,7 +274,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               {detail.genres.map((g) => (
                 <span
                   key={g}
-                  className="text-[11px] px-2.5 py-1 rounded-full bg-[#1a1a2e] text-[#c4b5fd] border border-[#6366f1]/30"
+                  className="text-[11px] px-2.5 py-1 rounded-full bg-bg-card text-[#c4b5fd] border border-accent/30"
                 >
                   {g}
                 </span>
@@ -288,7 +288,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               </div>
             )}
             {isWatched && trackedAt && (
-              <p className="text-[10px] text-[#6b7280] mt-1 text-center md:text-left">
+              <p className="text-[10px] text-text-secondary mt-1 text-center md:text-left">
                 Watched {formatDate(trackedAt)}
               </p>
             )}
@@ -298,11 +298,11 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               <>
                 {!authUser ? (
                   <div className="mt-4 text-center md:text-left">
-                    <a href="/signup" className="inline-block px-4 py-2 rounded-lg bg-[#6366f1] text-white text-sm font-medium hover:bg-[#818cf8] transition-colors">
+                    <a href="/signup" className="inline-block px-4 py-2 rounded-lg bg-accent text-white text-sm font-medium hover:bg-[#818cf8] transition-colors">
                       Sign in to track
                     </a>
-                    <p className="text-[11px] text-[#6b7280] mt-1">
-                      <a href="/login" className="text-[#6366f1] hover:underline">Sign in</a> to save your watch history
+                    <p className="text-[11px] text-text-secondary mt-1">
+                      <a href="/login" className="text-accent hover:underline">Sign in</a> to save your watch history
                     </p>
                   </div>
                 ) : (
@@ -356,20 +356,20 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               <div className="flex justify-center md:justify-start mt-2 relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowCollDropdown(!showCollDropdown)}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-[#2d2d4a] bg-[#1a1a2e] text-[#9ca3af] hover:text-white hover:border-[#6366f1]"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-border bg-bg-card text-text-secondary hover:text-white hover:border-accent"
                 >
                   <span className="text-sm font-bold mr-0.5">+</span>
                   Add to Collection
                 </button>
                 {collFeedback && (
-                  <span className="text-[11px] ml-2 self-center text-[#6366f1]">{collFeedback}</span>
+                  <span className="text-[11px] ml-2 self-center text-accent">{collFeedback}</span>
                 )}
                 {showCollDropdown && (
-                  <div className="absolute mt-8 w-52 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl shadow-2xl z-50 overflow-hidden">
+                  <div className="absolute mt-8 w-52 bg-bg-card border border-border rounded-xl shadow-2xl z-50 overflow-hidden">
                     {collections.length === 0 ? (
-                      <div className="px-3 py-3 text-[11px] text-[#6b7280] text-center">
+                      <div className="px-3 py-3 text-[11px] text-text-secondary text-center">
                         No collections yet.
-                        <a href="/library?tab=collections" className="block mt-1 text-[#6366f1] hover:underline">Create one →</a>
+                        <a href="/library?tab=collections" className="block mt-1 text-accent hover:underline">Create one →</a>
                       </div>
                     ) : (
                       collections.map((c) => (
@@ -377,10 +377,10 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
                           key={c.id}
                           onClick={() => { addToCollection(c.id, c.name); setShowCollDropdown(false); }}
                           disabled={addingCollId === c.id}
-                          className="w-full text-left px-3 py-2.5 text-xs text-white hover:bg-[#25253a] flex justify-between items-center transition-colors disabled:opacity-50"
+                          className="w-full text-left px-3 py-2.5 text-xs text-white hover:bg-bg-surface flex justify-between items-center transition-colors disabled:opacity-50"
                         >
                           <span>{c.name}</span>
-                          <span className="text-[10px] text-[#6b7280]">{c.itemCount}</span>
+                          <span className="text-[10px] text-text-secondary">{c.itemCount}</span>
                         </button>
                       ))
                     )}
@@ -390,17 +390,17 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
             )}
 
             {/* Extra info */}
-            <div className="mt-3 text-xs text-[#6b7280] space-y-0.5">
+            <div className="mt-3 text-xs text-text-secondary space-y-0.5">
               {detail.type === "movie" && detail.director && (
                 <p>
                   Director:{" "}
-                  <span className="text-[#9ca3af]">{detail.director}</span>
+                  <span className="text-text-secondary">{detail.director}</span>
                 </p>
               )}
               {detail.type === "tv" && detail.createdBy && (
                 <p>
                   Created by:{" "}
-                  <span className="text-[#9ca3af]">
+                  <span className="text-text-secondary">
                     {detail.createdBy.join(", ")}
                   </span>
                 </p>
@@ -408,7 +408,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               {detail.type === "tv" && detail.networks && (
                 <p>
                   Network:{" "}
-                  <span className="text-[#9ca3af]">
+                  <span className="text-text-secondary">
                     {detail.networks.join(", ")}
                   </span>
                 </p>
@@ -416,14 +416,14 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               {detail.type === "movie" && detail.budget ? (
                 <p>
                   Budget:{" "}
-                  <span className="text-[#9ca3af]">
+                  <span className="text-text-secondary">
                     {formatCurrency(detail.budget)}
                   </span>
                   {detail.revenue ? (
                     <>
                       {" "}
                       · Revenue:{" "}
-                      <span className="text-[#9ca3af]">
+                      <span className="text-text-secondary">
                         {formatCurrency(detail.revenue)}
                       </span>
                     </>
@@ -457,7 +457,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
             </h2>
             <div className="space-y-3">
               {detail.videos.slice(0, 3).map((v) => (
-                <div key={v.key} className="aspect-video rounded-xl overflow-hidden bg-[#1a1a2e]">
+                <div key={v.key} className="aspect-video rounded-xl overflow-hidden bg-bg-card">
                   <iframe
                     src={`https://www.youtube.com/embed/${v.key}`}
                     title={v.name}
@@ -479,9 +479,9 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
                 <a
                   key={c.name}
                   href={`/person/${c.id}`}
-                  className="bg-[#1a1a2e] rounded-xl p-2 text-center hover:bg-[#25253a] transition-colors cursor-pointer"
+                  className="bg-bg-card rounded-xl p-2 text-center hover:bg-bg-surface transition-colors cursor-pointer"
                 >
-                  <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full overflow-hidden bg-[#25253a] mb-2 relative">
+                  <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full overflow-hidden bg-bg-surface mb-2 relative">
                     <PosterImage
                       src={c.photo}
                       alt={c.name}
@@ -493,7 +493,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
                   <p className="text-xs font-medium text-white truncate">
                     {c.name}
                   </p>
-                  <p className="text-[10px] text-[#6b7280] truncate">
+                  <p className="text-[10px] text-text-secondary truncate">
                     {c.character}
                   </p>
                 </a>
@@ -502,7 +502,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
             {detail.cast.length > 6 && (
               <button
                 onClick={() => setShowAllCast(!showAllCast)}
-                className="mt-3 text-xs text-[#6366f1] hover:underline mx-auto block"
+                className="mt-3 text-xs text-accent hover:underline mx-auto block"
               >
                 {showAllCast ? "Show less" : `Show all ${detail.cast.length} cast members`}
               </button>
@@ -531,13 +531,13 @@ function SimilarSection({ items }: { items: TmdbDetail["similar"] }) {
         <div className="hidden md:flex gap-1">
           <button
             onClick={() => scroll("left")}
-            className="w-8 h-8 rounded-full bg-[#1a1a2e] hover:bg-[#25253a] flex items-center justify-center text-white text-sm transition-colors"
+            className="w-8 h-8 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-white text-sm transition-colors"
           >
             ←
           </button>
           <button
             onClick={() => scroll("right")}
-            className="w-8 h-8 rounded-full bg-[#1a1a2e] hover:bg-[#25253a] flex items-center justify-center text-white text-sm transition-colors"
+            className="w-8 h-8 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-white text-sm transition-colors"
           >
             →
           </button>
@@ -553,7 +553,7 @@ function SimilarSection({ items }: { items: TmdbDetail["similar"] }) {
             href={`/title/${item.id}?type=${item.type}`}
             className="flex-shrink-0 w-28 group"
           >
-            <div className="aspect-[2/3] rounded-lg overflow-hidden bg-[#1a1a2e] group-hover:scale-105 transition-transform relative">
+            <div className="aspect-[2/3] rounded-lg overflow-hidden bg-bg-card group-hover:scale-105 transition-transform relative">
               <PosterImage
                 src={item.poster}
                 alt={item.title}
@@ -565,7 +565,7 @@ function SimilarSection({ items }: { items: TmdbDetail["similar"] }) {
             <p className="text-[11px] text-white mt-1 line-clamp-1">
               {item.title}
             </p>
-            <p className="text-[10px] text-[#6b7280]">
+            <p className="text-[10px] text-text-secondary">
               ★ {item.rating}
             </p>
           </a>

@@ -136,10 +136,10 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
 
   if (error) {
     return (
-      <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl overflow-hidden">
+      <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
         <div className="p-3 text-center">
           <h3 className="text-xs font-semibold text-white mb-1">📺 Streaming Top 10</h3>
-          <p className="text-[10px] text-[#6b7280]">Failed to load</p>
+          <p className="text-[10px] text-text-secondary">Failed to load</p>
         </div>
       </div>
     );
@@ -148,7 +148,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
   if (!loading && Object.keys(data).length === 0) return null;
 
   return (
-    <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl overflow-hidden">
+    <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
       <div className="p-3">
         {/* Header row: title + Movies/TV Shows toggle */}
         <div className="flex items-center justify-between mb-2">
@@ -157,7 +157,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
           </h3>
 
           {/* Movies / TV Shows toggle */}
-          <div className="flex rounded-lg bg-[#0f0f1a] p-0.5 border border-[#2d2d4a]">
+          <div className="flex rounded-lg bg-bg-primary p-0.5 border border-border">
             <button
               onClick={() => setCategory("movies")}
               className="px-2.5 py-1 text-[10px] font-medium rounded-md transition-all"
@@ -219,7 +219,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
               onClick={(e) => {
                 if (!item.tmdbId) e.preventDefault();
               }}
-              className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-colors hover:bg-[#25253a] cursor-pointer"
+              className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-colors hover:bg-bg-surface cursor-pointer"
             >
               <span
                 className="text-[11px] font-bold w-4 text-right flex-shrink-0"
@@ -241,7 +241,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
                 <img
                   src={item.poster}
                   alt=""
-                  className="w-10 h-14 rounded object-cover flex-shrink-0 bg-[#1a1a2e] border border-[#2d2d4a]"
+                  className="w-10 h-14 rounded object-cover flex-shrink-0 bg-bg-card border border-border"
                   loading="lazy"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = "none";
@@ -250,7 +250,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
                 />
               ) : null}
               <div
-                className={item.poster ? "hidden" : "w-10 h-14 rounded bg-[#0f0f1a] flex-shrink-0 flex items-center justify-center border border-[#2d2d4a]"}
+                className={item.poster ? "hidden" : "w-10 h-14 rounded bg-bg-primary flex-shrink-0 flex items-center justify-center border border-border"}
               >
                 <span className="text-[9px] text-[#4b5563]">—</span>
               </div>

@@ -372,7 +372,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
             unoptimized
             className={(!data.backdropPath && !data.anilistBanner) ? "blur-2xl scale-125 opacity-50" : ""}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f1a] via-[#0f0f1a]/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
         </div>
       )}
 
@@ -380,7 +380,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
         <div className="flex flex-col md:flex-row gap-6">
           {/* Poster */}
           <div className="flex-shrink-0 w-36 md:w-48 mx-auto md:mx-0">
-            <div className="aspect-[2/3] rounded-xl overflow-hidden bg-[#1a1a2e] shadow-2xl relative">
+            <div className="aspect-[2/3] rounded-xl overflow-hidden bg-bg-card shadow-2xl relative">
               <PosterImage
                 src={data.seasonPoster}
                 alt={data.seasonName}
@@ -396,19 +396,19 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
             <h1 className="text-2xl md:text-3xl font-bold text-white leading-tight">
               {data.title}
             </h1>
-            <p className="text-lg text-[#9ca3af] mt-0.5">{data.seasonName}</p>
+            <p className="text-lg text-text-secondary mt-0.5">{data.seasonName}</p>
             {data.tagline && (
-              <p className="text-sm text-[#9ca3af] italic mt-1">
+              <p className="text-sm text-text-secondary italic mt-1">
                 &ldquo;{data.tagline}&rdquo;
               </p>
             )}
 
             {/* Meta row */}
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-3 text-xs text-[#9ca3af]">
-              <span className="bg-[#1a1a2e] px-2 py-0.5 rounded-full">{data.year}</span>
-              <span className="bg-[#1a1a2e] px-2 py-0.5 rounded-full uppercase">tv</span>
-              <span className="bg-[#1a1a2e] px-2 py-0.5 rounded-full">{data.status}</span>
-              <span className="bg-[#1a1a2e] px-2 py-0.5 rounded-full">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-3 text-xs text-text-secondary">
+              <span className="bg-bg-card px-2 py-0.5 rounded-full">{data.year}</span>
+              <span className="bg-bg-card px-2 py-0.5 rounded-full uppercase">tv</span>
+              <span className="bg-bg-card px-2 py-0.5 rounded-full">{data.status}</span>
+              <span className="bg-bg-card px-2 py-0.5 rounded-full">
                 {data.totalSeasons} Season{data.totalSeasons > 1 ? "s" : ""}
                 {data.totalEpisodes ? ` · ${data.totalEpisodes} Ep` : ""}
               </span>
@@ -419,7 +419,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
               {data.genres.map((g) => (
                 <span
                   key={g}
-                  className="text-[11px] px-2.5 py-1 rounded-full bg-[#1a1a2e] text-[#c4b5fd] border border-[#6366f1]/30"
+                  className="text-[11px] px-2.5 py-1 rounded-full bg-bg-card text-[#c4b5fd] border border-accent/30"
                 >
                   {g}
                 </span>
@@ -433,7 +433,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
               </div>
             )}
             {isWatched && trackedAt && (
-              <p className="text-[10px] text-[#6b7280] mt-1 text-center md:text-left">
+              <p className="text-[10px] text-text-secondary mt-1 text-center md:text-left">
                 Watched {formatDate(trackedAt)}
               </p>
             )}
@@ -443,11 +443,11 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
               <>
                 {!authUser ? (
                   <div className="mt-4 text-center md:text-left">
-                    <a href="/signup" className="inline-block px-4 py-2 rounded-lg bg-[#6366f1] text-white text-sm font-medium hover:bg-[#818cf8] transition-colors">
+                    <a href="/signup" className="inline-block px-4 py-2 rounded-lg bg-accent text-white text-sm font-medium hover:bg-[#818cf8] transition-colors">
                       Sign in to track
                     </a>
-                    <p className="text-[11px] text-[#6b7280] mt-1">
-                      <a href="/login" className="text-[#6366f1] hover:underline">Sign in</a> to save your watch history
+                    <p className="text-[11px] text-text-secondary mt-1">
+                      <a href="/login" className="text-accent hover:underline">Sign in</a> to save your watch history
                     </p>
                   </div>
                 ) : (
@@ -501,20 +501,20 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
               <div className="flex justify-center md:justify-start mt-2 relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowCollDropdown(!showCollDropdown)}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-[#2d2d4a] bg-[#1a1a2e] text-[#9ca3af] hover:text-white hover:border-[#6366f1]"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-border bg-bg-card text-text-secondary hover:text-white hover:border-accent"
                 >
                   <span className="text-sm font-bold mr-0.5">+</span>
                   Add to Collection
                 </button>
                 {collFeedback && (
-                  <span className="text-[11px] ml-2 self-center text-[#6366f1]">{collFeedback}</span>
+                  <span className="text-[11px] ml-2 self-center text-accent">{collFeedback}</span>
                 )}
                 {showCollDropdown && (
-                  <div className="absolute mt-8 w-52 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl shadow-2xl z-50 overflow-hidden">
+                  <div className="absolute mt-8 w-52 bg-bg-card border border-border rounded-xl shadow-2xl z-50 overflow-hidden">
                     {collections.length === 0 ? (
-                      <div className="px-3 py-3 text-[11px] text-[#6b7280] text-center">
+                      <div className="px-3 py-3 text-[11px] text-text-secondary text-center">
                         No collections yet.
-                        <a href="/library?tab=collections" className="block mt-1 text-[#6366f1] hover:underline">Create one →</a>
+                        <a href="/library?tab=collections" className="block mt-1 text-accent hover:underline">Create one →</a>
                       </div>
                     ) : (
                       collections.map((c) => (
@@ -522,10 +522,10 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                           key={c.id}
                           onClick={() => { addToCollection(c.id, c.name); setShowCollDropdown(false); }}
                           disabled={addingCollId === c.id}
-                          className="w-full text-left px-3 py-2.5 text-xs text-white hover:bg-[#25253a] flex justify-between items-center transition-colors disabled:opacity-50"
+                          className="w-full text-left px-3 py-2.5 text-xs text-white hover:bg-bg-surface flex justify-between items-center transition-colors disabled:opacity-50"
                         >
                           <span>{c.name}</span>
-                          <span className="text-[10px] text-[#6b7280]">{c.itemCount}</span>
+                          <span className="text-[10px] text-text-secondary">{c.itemCount}</span>
                         </button>
                       ))
                     )}
@@ -535,23 +535,23 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
             )}
 
             {/* Studios */}
-            <div className="mt-3 text-xs text-[#6b7280] space-y-0.5">
+            <div className="mt-3 text-xs text-text-secondary space-y-0.5">
               {data.createdBy && (
                 <p>
                   Created by:{" "}
-                  <span className="text-[#9ca3af]">{data.createdBy.join(", ")}</span>
+                  <span className="text-text-secondary">{data.createdBy.join(", ")}</span>
                 </p>
               )}
               {data.networks && (
                 <p>
                   Network:{" "}
-                  <span className="text-[#9ca3af]">{data.networks.join(", ")}</span>
+                  <span className="text-text-secondary">{data.networks.join(", ")}</span>
                 </p>
               )}
               {data.seasonAirDate && (
                 <p>
                   Season aired:{" "}
-                  <span className="text-[#9ca3af]">{data.seasonAirDate}</span>
+                  <span className="text-text-secondary">{data.seasonAirDate}</span>
                 </p>
               )}
             </div>
@@ -573,8 +573,8 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                   }}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                     n === data.seasonNumber
-                      ? "bg-[#6366f1] text-white cursor-default"
-                      : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white hover:bg-[#2d2d4a] border border-[#2d2d4a] hover:border-[#6366f1]"
+                      ? "bg-accent text-white cursor-default"
+                      : "bg-bg-card text-text-secondary hover:text-white hover:bg-[#2d2d4a] border border-border hover:border-accent"
                   }`}
                 >
                   S{n}
@@ -595,7 +595,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
         {/* Season description */}
         {data.seasonOverview && data.seasonOverview !== data.overview && (
           <section className="mt-4">
-            <h2 className="text-md font-semibold text-[#9ca3af] mb-1">About This Season</h2>
+            <h2 className="text-md font-semibold text-text-secondary mb-1">About This Season</h2>
             <p className="text-sm text-[#d1d5db] leading-relaxed">{data.seasonOverview}</p>
           </section>
         )}
@@ -614,12 +614,12 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
               </h2>
               <div className="flex items-center gap-3">
                 {totalEpPages > 1 && (
-                  <span className="text-[11px] text-[#6b7280]">
+                  <span className="text-[11px] text-text-secondary">
                     {(currentPage - 1) * EPISODES_PER_PAGE + 1}–{Math.min(currentPage * EPISODES_PER_PAGE, data.episodes.length)}
                   </span>
                 )}
                 {watchedCount > 0 && (
-                  <span className="text-xs text-[#9ca3af]">
+                  <span className="text-xs text-text-secondary">
                     Watched {watchedCount}/{data.episodes.length}
                   </span>
                 )}
@@ -633,7 +633,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 return (
                 <div
                   key={ep.number}
-                  className={`flex gap-3 bg-[#1a1a2e] rounded-xl p-3 transition-all ${isWatched ? "opacity-50" : "hover:bg-[#25253a]"}`}
+                  className={`flex gap-3 bg-bg-card rounded-xl p-3 transition-all ${isWatched ? "opacity-50" : "hover:bg-bg-surface"}`}
                 >
                   {/* Checkbox */}
                   <button
@@ -641,8 +641,8 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                     disabled={isLoading}
                     className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all mt-2 ${
                       isWatched
-                        ? "bg-[#6366f1] border-[#6366f1]"
-                        : "border-[#3d3d5c] hover:border-[#6366f1]"
+                        ? "bg-accent border-accent"
+                        : "border-[#3d3d5c] hover:border-accent"
                     } ${isLoading ? "animate-pulse" : ""}`}
                   >
                     {isWatched && (
@@ -652,7 +652,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                     )}
                   </button>
                   {ep.still ? (
-                    <div className="flex-shrink-0 w-28 md:w-40 aspect-video rounded-lg overflow-hidden bg-[#0f0f1a] relative">
+                    <div className="flex-shrink-0 w-28 md:w-40 aspect-video rounded-lg overflow-hidden bg-bg-primary relative">
                       <PosterImage
                         src={ep.still}
                         alt={ep.name}
@@ -662,22 +662,22 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                       />
                     </div>
                   ) : (
-                    <div className="flex-shrink-0 w-28 md:w-40 aspect-video rounded-lg overflow-hidden bg-[#0f0f1a] flex items-center justify-center">
+                    <div className="flex-shrink-0 w-28 md:w-40 aspect-video rounded-lg overflow-hidden bg-bg-primary flex items-center justify-center">
                       <span className="text-2xl text-[#25253a] font-bold">{ep.number}</span>
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-semibold text-[#6366f1]">{ep.number}</span>
+                      <span className="text-[10px] font-semibold text-accent">{ep.number}</span>
                       <h3 className="text-sm font-medium text-white truncate">{ep.name}</h3>
                     </div>
-                    <div className="flex items-center gap-3 mt-1 text-[10px] text-[#6b7280]">
+                    <div className="flex items-center gap-3 mt-1 text-[10px] text-text-secondary">
                       {ep.runtime > 0 && <span>{formatRuntime(ep.runtime)}</span>}
                       {ep.airDate && <span>{ep.airDate}</span>}
-                      {ep.rating > 0 && <span className="text-[#f59e0b]">★ {ep.rating}</span>}
+                      {ep.rating > 0 && <span className="text-gold">★ {ep.rating}</span>}
                     </div>
                     {ep.overview && (
-                      <p className="mt-1 text-xs text-[#9ca3af] leading-relaxed line-clamp-2">
+                      <p className="mt-1 text-xs text-text-secondary leading-relaxed line-clamp-2">
                         {ep.overview}
                       </p>
                     )}
@@ -690,7 +690,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-2 py-1 text-xs rounded bg-[#1a1a2e] text-[#9ca3af] hover:text-white disabled:opacity-30 transition-colors"
+                  className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-white disabled:opacity-30 transition-colors"
                 >
                   ← Prev
                 </button>
@@ -703,15 +703,15 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                   }, [])
                   .map((item, i) =>
                     item === "..." ? (
-                      <span key={`dots-${i}`} className="px-1 text-[10px] text-[#6b7280]">…</span>
+                      <span key={`dots-${i}`} className="px-1 text-[10px] text-text-secondary">…</span>
                     ) : (
                       <button
                         key={item}
                         onClick={() => setCurrentPage(item as number)}
                         className={`w-7 h-7 text-xs rounded-full transition-colors ${
                           currentPage === item
-                            ? "bg-[#6366f1] text-white"
-                            : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white"
+                            ? "bg-accent text-white"
+                            : "bg-bg-card text-text-secondary hover:text-white"
                         }`}
                       >
                         {item}
@@ -721,7 +721,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalEpPages, p + 1))}
                   disabled={currentPage === totalEpPages}
-                  className="px-2 py-1 text-xs rounded bg-[#1a1a2e] text-[#9ca3af] hover:text-white disabled:opacity-30 transition-colors"
+                  className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-white disabled:opacity-30 transition-colors"
                 >
                   Next →
                 </button>
@@ -736,7 +736,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
             <h2 className="text-lg font-semibold text-white mb-3">🎬 Trailers</h2>
             <div className="space-y-3">
               {data.trailers.slice(0, 3).map((v) => (
-                <div key={v.key} className="aspect-video rounded-xl overflow-hidden bg-[#1a1a2e]">
+                <div key={v.key} className="aspect-video rounded-xl overflow-hidden bg-bg-card">
                   <iframe
                     src={`https://www.youtube.com/embed/${v.key}`}
                     title={v.name}
@@ -758,9 +758,9 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 <a
                   key={c.name}
                   href={`/person/${c.id}`}
-                  className="bg-[#1a1a2e] rounded-xl p-2 text-center hover:bg-[#25253a] transition-colors cursor-pointer"
+                  className="bg-bg-card rounded-xl p-2 text-center hover:bg-bg-surface transition-colors cursor-pointer"
                 >
-                  <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full overflow-hidden bg-[#25253a] mb-2 relative">
+                  <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full overflow-hidden bg-bg-surface mb-2 relative">
                     <PosterImage
                       src={c.photo}
                       alt={c.name}
@@ -770,14 +770,14 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                     />
                   </div>
                   <p className="text-xs font-medium text-white truncate">{c.name}</p>
-                  <p className="text-[10px] text-[#6b7280] truncate">{c.character}</p>
+                  <p className="text-[10px] text-text-secondary truncate">{c.character}</p>
                 </a>
               ))}
             </div>
             {data.cast.length > 6 && (
               <button
                 onClick={() => setShowAllCast(!showAllCast)}
-                className="mt-3 text-xs text-[#6366f1] hover:underline mx-auto block"
+                className="mt-3 text-xs text-accent hover:underline mx-auto block"
               >
                 {showAllCast ? "Show less" : `Show all ${data.cast.length} cast members`}
               </button>
@@ -806,14 +806,14 @@ function SimilarSection({ items }: { items: SimilarItem[] }) {
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold text-white">Recommended</h2>
         <div className="hidden md:flex gap-1">
-          <button onClick={() => scroll("left")} className="w-8 h-8 rounded-full bg-[#1a1a2e] hover:bg-[#25253a] flex items-center justify-center text-white text-sm transition-colors">←</button>
-          <button onClick={() => scroll("right")} className="w-8 h-8 rounded-full bg-[#1a1a2e] hover:bg-[#25253a] flex items-center justify-center text-white text-sm transition-colors">→</button>
+          <button onClick={() => scroll("left")} className="w-8 h-8 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-white text-sm transition-colors">←</button>
+          <button onClick={() => scroll("right")} className="w-8 h-8 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-white text-sm transition-colors">→</button>
         </div>
       </div>
       <div ref={ref} className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar scroll-smooth">
         {items.map((item) => (
           <a key={item.id} href={`/title/${item.id}?type=${item.type}`} className="flex-shrink-0 w-28 group">
-            <div className="aspect-[2/3] rounded-lg overflow-hidden bg-[#1a1a2e] group-hover:scale-105 transition-transform relative">
+            <div className="aspect-[2/3] rounded-lg overflow-hidden bg-bg-card group-hover:scale-105 transition-transform relative">
               <PosterImage
                 src={item.poster}
                 alt={item.title}
@@ -823,7 +823,7 @@ function SimilarSection({ items }: { items: SimilarItem[] }) {
               />
             </div>
             <p className="text-[11px] text-white mt-1 line-clamp-1">{item.title}</p>
-            <p className="text-[10px] text-[#6b7280]">★ {item.rating}</p>
+            <p className="text-[10px] text-text-secondary">★ {item.rating}</p>
           </a>
         ))}
       </div>

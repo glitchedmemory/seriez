@@ -38,8 +38,8 @@ function GenreChip({
       onClick={onClick}
       className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
         selected
-          ? "bg-[#6366f1] text-white scale-105"
-          : "bg-[#1a1a2e] text-[#9ca3af] hover:bg-[#25253a] hover:text-white"
+          ? "bg-accent text-white scale-105"
+          : "bg-bg-card text-text-secondary hover:bg-bg-surface hover:text-white"
       }`}
     >
       {name}
@@ -64,7 +64,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
           ★
         </button>
       ))}
-      {value > 0 && <span className="ml-1 text-xs text-[#9ca3af]">{value}/5</span>}
+      {value > 0 && <span className="ml-1 text-xs text-text-secondary">{value}/5</span>}
     </div>
   );
 }
@@ -199,7 +199,7 @@ export default function OnboardingPage() {
   const filledCount = watched.filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-[#0f0f1a] flex flex-col">
+    <div className="min-h-screen bg-bg-primary flex flex-col">
       {/* Progress bar */}
       <div className="px-4 pt-6">
         <div className="flex gap-1 mb-6">
@@ -207,7 +207,7 @@ export default function OnboardingPage() {
             <div
               key={i}
               className={`h-1 flex-1 rounded-full transition-all ${
-                i <= step ? "bg-[#6366f1]" : "bg-[#1a1a2e]"
+                i <= step ? "bg-accent" : "bg-bg-card"
               }`}
             />
           ))}
@@ -219,7 +219,7 @@ export default function OnboardingPage() {
         {step === STEP.GENRES && (
           <>
             <h1 className="text-2xl font-bold mb-2 text-center">What do you enjoy?</h1>
-            <p className="text-sm text-[#9ca3af] mb-8 text-center">
+            <p className="text-sm text-text-secondary mb-8 text-center">
               Pick your favorite genres — we&apos;ll tailor recommendations just for you
             </p>
             <div className="flex flex-wrap justify-center gap-2 mb-8 max-w-sm">
@@ -242,13 +242,13 @@ export default function OnboardingPage() {
             <div className="flex flex-col gap-3 w-full max-w-xs">
               <button
                 onClick={() => setStep(STEP.WATCHED)}
-                className="w-full py-3 bg-[#6366f1] hover:bg-[#5558e8] text-white font-semibold rounded-xl transition-colors"
+                className="w-full py-3 bg-accent hover:bg-[#5558e8] text-white font-semibold rounded-xl transition-colors"
               >
                 Continue
               </button>
               <button
                 onClick={() => setStep(STEP.WATCHED)}
-                className="w-full py-2 text-sm text-[#6b7280] hover:text-[#9ca3af] transition-colors"
+                className="w-full py-2 text-sm text-text-secondary hover:text-text-secondary transition-colors"
               >
                 Skip
               </button>
@@ -260,7 +260,7 @@ export default function OnboardingPage() {
         {step === STEP.WATCHED && (
           <>
             <h1 className="text-2xl font-bold mb-2 text-center">What have you watched?</h1>
-            <p className="text-sm text-[#9ca3af] mb-6 text-center">
+            <p className="text-sm text-text-secondary mb-6 text-center">
               Add up to 3 titles you&apos;ve seen recently and rate them
             </p>
 
@@ -270,7 +270,7 @@ export default function OnboardingPage() {
                 <div
                   key={i}
                   className={`rounded-xl p-3 flex items-center gap-3 ${
-                    w ? "bg-[#1a1a2e]" : "bg-[#1a1a2e]/40 border border-dashed border-[#25253a]"
+                    w ? "bg-bg-card" : "bg-bg-card/40 border border-dashed border-[#25253a]"
                   } min-h-[56px]`}
                 >
                   {w?.poster ? (
@@ -283,7 +283,7 @@ export default function OnboardingPage() {
                       sizes="40px"
                     />
                   ) : (
-                    <div className="w-10 h-14 rounded bg-[#25253a] flex-shrink-0 flex items-center justify-center text-[#6b7280] text-xs">
+                    <div className="w-10 h-14 rounded bg-bg-surface flex-shrink-0 flex items-center justify-center text-text-secondary text-xs">
                       {i + 1}
                     </div>
                   )}
@@ -291,7 +291,7 @@ export default function OnboardingPage() {
                     {w ? (
                       <>
                         <p className="text-sm font-medium text-white truncate">{w.title}</p>
-                        <p className="text-xs text-[#6b7280]">
+                        <p className="text-xs text-text-secondary">
                           {w.year} · {w.type === "movie" ? "Movie" : "TV"}
                         </p>
                         <div className="mt-1">
@@ -299,7 +299,7 @@ export default function OnboardingPage() {
                         </div>
                       </>
                     ) : (
-                      <p className="text-sm text-[#6b7280]">
+                      <p className="text-sm text-text-secondary">
                         Search and add a title...
                       </p>
                     )}
@@ -307,7 +307,7 @@ export default function OnboardingPage() {
                   {w && (
                     <button
                       onClick={() => removeWatched(i)}
-                      className="text-[#6b7280] hover:text-red-400 text-lg flex-shrink-0"
+                      className="text-text-secondary hover:text-red-400 text-lg flex-shrink-0"
                     >
                       ×
                     </button>
@@ -324,24 +324,24 @@ export default function OnboardingPage() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search movies or shows..."
-                  className="w-full bg-[#1a1a2e] text-white text-sm rounded-xl px-4 py-3 outline-none border border-transparent focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280]"
+                  className="w-full bg-bg-card text-white text-sm rounded-xl px-4 py-3 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary"
                 />
                 {loading && (
                   <div className="absolute right-4 top-3">
-                    <div className="w-4 h-4 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                   </div>
                 )}
 
                 {/* Dropdown */}
                 {results.length > 0 && (
-                  <div className="absolute top-full mt-1 w-full bg-[#1a1a2e] border border-[#25253a] rounded-xl overflow-hidden z-50 max-h-72 overflow-y-auto">
+                  <div className="absolute top-full mt-1 w-full bg-bg-card border border-[#25253a] rounded-xl overflow-hidden z-50 max-h-72 overflow-y-auto">
                     {results.map((r) => (
                       <button
                         key={r.id}
                         type="button"
                         onClick={() => addWatched(r)}
                         disabled={watched.some((w) => w?.id === r.id)}
-                        className="w-full flex items-center gap-3 p-2.5 hover:bg-[#25253a] transition-colors text-left disabled:opacity-30"
+                        className="w-full flex items-center gap-3 p-2.5 hover:bg-bg-surface transition-colors text-left disabled:opacity-30"
                       >
                         {r.poster ? (
                           <PosterImage
@@ -353,11 +353,11 @@ export default function OnboardingPage() {
                             sizes="32px"
                           />
                         ) : (
-                          <div className="w-8 h-12 rounded bg-[#25253a] flex-shrink-0" />
+                          <div className="w-8 h-12 rounded bg-bg-surface flex-shrink-0" />
                         )}
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-white truncate">{r.title}</p>
-                          <p className="text-xs text-[#6b7280]">
+                          <p className="text-xs text-text-secondary">
                             {r.year} · {r.type === "movie" ? "Movie" : "TV"}
                             {r.rating > 0 && ` · ★ ${r.rating}`}
                           </p>
@@ -374,13 +374,13 @@ export default function OnboardingPage() {
               <button
                 onClick={runCuration}
                 disabled={loadingCuration}
-                className="w-full py-3 bg-[#6366f1] hover:bg-[#5558e8] text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+                className="w-full py-3 bg-accent hover:bg-[#5558e8] text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
               >
                 {loadingCuration ? "Finding your match..." : "Show my recommendation"}
               </button>
               <button
                 onClick={runCuration}
-                className="w-full py-2 text-sm text-[#6b7280] hover:text-[#9ca3af] transition-colors"
+                className="w-full py-2 text-sm text-text-secondary hover:text-text-secondary transition-colors"
               >
                 Skip
               </button>
@@ -397,7 +397,7 @@ export default function OnboardingPage() {
             {/* Clean curation card — no overlays on image */}
             <div className="w-full max-w-[220px] mx-auto mb-6">
               {/* Poster with strong neon glow */}
-              <div className="rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(99,102,241,0.4),0_0_60px_rgba(168,85,247,0.2)] ring-2 ring-[#6366f1]/30 aspect-[2/3] relative">
+              <div className="rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(99,102,241,0.4),0_0_60px_rgba(168,85,247,0.2)] ring-2 ring-accent/30 aspect-[2/3] relative">
                 <PosterImage
                   src={curation.item.poster?.replace("w342", "w780") || ""}
                   alt={curation.item.title}
@@ -411,10 +411,10 @@ export default function OnboardingPage() {
               <div className="px-1 pt-4 space-y-3">
                 {/* Rating + year + type */}
                 <div className="flex items-center gap-3 text-sm">
-                  <span className="text-[#f59e0b] font-semibold">★ {curation.item.rating}</span>
-                  <span className="text-[#9ca3af]">{curation.item.year}</span>
-                  <span className="text-[#9ca3af]">·</span>
-                  <span className="text-[#9ca3af]">{curation.item.type === "movie" ? "Movie" : "TV"}</span>
+                  <span className="text-gold font-semibold">★ {curation.item.rating}</span>
+                  <span className="text-text-secondary">{curation.item.year}</span>
+                  <span className="text-text-secondary">·</span>
+                  <span className="text-text-secondary">{curation.item.type === "movie" ? "Movie" : "TV"}</span>
                 </div>
 
                 {/* Genre tags */}
@@ -423,7 +423,7 @@ export default function OnboardingPage() {
                     {curation.item.genres.map((g) => (
                       <span
                         key={g}
-                        className="px-2.5 py-0.5 bg-[#1a1a2e] text-[#9ca3af] text-xs rounded-full"
+                        className="px-2.5 py-0.5 bg-bg-card text-text-secondary text-xs rounded-full"
                       >
                         {g}
                       </span>
@@ -436,14 +436,14 @@ export default function OnboardingPage() {
 
                 {/* Synopsis */}
                 {curation.item.overview && (
-                  <p className="text-sm text-[#9ca3af] leading-relaxed line-clamp-4">
+                  <p className="text-sm text-text-secondary leading-relaxed line-clamp-4">
                     {curation.item.overview}
                   </p>
                 )}
               </div>
             </div>
 
-            <p className="text-sm text-[#9ca3af] mb-4 text-center">
+            <p className="text-sm text-text-secondary mb-4 text-center">
               Want more picks like this?
             </p>
             <button

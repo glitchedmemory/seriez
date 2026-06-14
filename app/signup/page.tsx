@@ -101,7 +101,7 @@ export default function SignupPage() {
   return (
     <div className="max-w-sm mx-auto px-4 pt-20 pb-32">
       <h1 className="text-2xl font-bold text-white mb-2">Create account</h1>
-      <p className="text-sm text-[#9ca3af] mb-6">Start tracking what you watch</p>
+      <p className="text-sm text-text-secondary mb-6">Start tracking what you watch</p>
 
       <form onSubmit={handleSignup}>
         <input
@@ -110,16 +110,16 @@ export default function SignupPage() {
           value={username}
           onChange={(e) => { setUsername(e.target.value); setUsernameStatus("idle"); }}
           onBlur={(e) => checkUsername(e.target.value)}
-          className={`w-full bg-[#1a1a2e] text-white rounded-xl px-4 py-3 outline-none border mb-1 ${
+          className={`w-full bg-bg-card text-white rounded-xl px-4 py-3 outline-none border mb-1 ${
             usernameStatus === "available" ? "border-emerald-500" :
             usernameStatus === "taken" || usernameStatus === "short" ? "border-red-500" :
-            "border-[#2d2d4a] focus:border-[#6366f1]"
+            "border-border focus:border-accent"
           }`}
           required
           maxLength={20}
         />
         <div className="h-4 mb-2">
-          {usernameStatus === "checking" && <p className="text-[10px] text-[#6b7280]">Checking...</p>}
+          {usernameStatus === "checking" && <p className="text-[10px] text-text-secondary">Checking...</p>}
           {usernameStatus === "available" && <p className="text-[10px] text-emerald-400">✓ Available</p>}
           {usernameStatus === "taken" && <p className="text-[10px] text-red-400">✗ Already taken</p>}
           {usernameStatus === "short" && <p className="text-[10px] text-red-400">Min 2 characters</p>}
@@ -129,7 +129,7 @@ export default function SignupPage() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full bg-[#1a1a2e] text-white rounded-xl px-4 py-3 outline-none border border-[#2d2d4a] focus:border-[#6366f1] mb-3"
+          className="w-full bg-bg-card text-white rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-3"
           required
         />
         <input
@@ -137,7 +137,7 @@ export default function SignupPage() {
           placeholder="Password (8+ chars, upper/lower/special)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full bg-[#1a1a2e] text-white rounded-xl px-4 py-3 outline-none border border-[#2d2d4a] focus:border-[#6366f1] mb-1"
+          className="w-full bg-bg-card text-white rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-1"
           required
           minLength={8}
         />
@@ -145,15 +145,15 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 rounded-xl bg-[#6366f1] text-white font-semibold hover:bg-[#818cf8] transition-colors disabled:opacity-50 mb-3"
+          className="w-full py-3 rounded-xl bg-accent text-white font-semibold hover:bg-[#818cf8] transition-colors disabled:opacity-50 mb-3"
         >
           Create account
         </button>
       </form>
 
-      <p className="text-center text-sm text-[#9ca3af]">
+      <p className="text-center text-sm text-text-secondary">
         Already have an account?{" "}
-        <a href="/login" className="text-[#6366f1] hover:underline">
+        <a href="/login" className="text-accent hover:underline">
           Sign in
         </a>
       </p>

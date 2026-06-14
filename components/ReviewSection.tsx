@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
  *  Max 3 siblings shown, rest behind "Show more replies" button.
  */
 const THREAD_COLORS = [
-  "border-[#6366f1]",   // depth 1
+  "border-accent",   // depth 1
   "border-[#a855f7]",   // depth 2
   "border-[#22c55e]",   // depth 3+
 ];
@@ -97,7 +97,7 @@ function CommentTree({
               )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-white hover:text-[#6366f1] cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
+                  <span className="text-xs font-medium text-white hover:text-accent cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
                   {c.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block" />}
                   {isAdmin && c.is_hidden && (
                     <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded">🚨 hidden</span>
@@ -108,7 +108,7 @@ function CommentTree({
                       className={`text-[11px] transition-colors disabled:opacity-50 ml-auto ${
                         (reportCounts?.[String(c.id)] || 0) > 0
                           ? "text-green-400"
-                          : "text-[#6b7280] hover:text-red-400"
+                          : "text-text-secondary hover:text-red-400"
                       }`}
                       title={reportCounts?.[String(c.id)] ? "Reported ✓" : "Report"}>
                       {reportCounts?.[String(c.id)] ? "✓ Reported" : (
@@ -122,11 +122,11 @@ function CommentTree({
                         <button onClick={() => { onDelete(c.id); setConfirmDelete(null); }}
                           className="text-[9px] px-1.5 py-0.5 bg-red-600 text-white rounded hover:bg-red-500">Del</button>
                         <button onClick={() => setConfirmDelete(null)}
-                          className="text-[9px] text-[#6b7280] hover:text-white">Cancel</button>
+                          className="text-[9px] text-text-secondary hover:text-white">Cancel</button>
                       </span>
                     ) : (
                       <button onClick={() => setConfirmDelete(c.id)}
-                        className="text-[10px] text-[#6b7280] hover:text-red-400 transition-colors ml-auto"
+                        className="text-[10px] text-text-secondary hover:text-red-400 transition-colors ml-auto"
                         title="Delete your comment">🗑️</button>
                     )
                   )}
@@ -139,7 +139,7 @@ function CommentTree({
                 <div className="flex items-center gap-2 mt-1">
                   <button onClick={() => onLike(c.id)}
                     className={`flex items-center gap-1 text-[10px] transition-colors ${
-                      c.liked ? "text-[#6366f1]" : "text-[#6b7280] hover:text-[#6366f1]"
+                      c.liked ? "text-accent" : "text-text-secondary hover:text-accent"
                     }`}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                       fill={c.liked ? "currentColor" : "none"} stroke="currentColor"
@@ -149,10 +149,10 @@ function CommentTree({
                     <span>{c.likes || 0}</span>
                   </button>
                   <button onClick={() => authUsername ? onToggleReply(c.id) : router.push("/login")}
-                    className="text-[10px] text-[#6b7280] hover:text-[#a855f7] transition-colors">💬 Reply</button>
+                    className="text-[10px] text-text-secondary hover:text-accent-light transition-colors">💬 Reply</button>
                   {hasChildren && (
                     <button onClick={() => onToggleThread(c.id)}
-                      className={`text-[10px] transition-colors ${childExpanded ? "text-[#a855f7]" : "text-[#6b7280] hover:text-[#a855f7]"}`}>
+                      className={`text-[10px] transition-colors ${childExpanded ? "text-accent-light" : "text-text-secondary hover:text-accent-light"}`}>
                       {childExpanded ? "▾ Hide replies" : `▸ ${replyCount} ${replyCount === 1 ? "reply" : "replies"}`}
                     </button>
                   )}
@@ -167,9 +167,9 @@ function CommentTree({
                   onChange={(e) => onReplyChange(c.id, e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onReply(c.id); }}}
                   maxLength={1000}
-                  className="flex-1 bg-[#25253a] text-white text-[10px] rounded-lg px-2 py-1.5 outline-none border border-transparent focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280]" />
+                  className="flex-1 bg-bg-surface text-white text-[10px] rounded-lg px-2 py-1.5 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary" />
                 <button onClick={() => onReply(c.id)} disabled={!replyInputs[String(c.id)]?.trim()}
-                  className="px-2 py-1 bg-[#6366f1] hover:bg-[#5558e6] disabled:opacity-40 text-white text-[10px] font-medium rounded-lg transition-colors flex-shrink-0">Post</button>
+                  className="px-2 py-1 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-white text-[10px] font-medium rounded-lg transition-colors flex-shrink-0">Post</button>
               </div>
             )}
             {/* Children: inline up to MAX_DEPTH, collapsed beyond */}
@@ -186,7 +186,7 @@ function CommentTree({
             {hasChildren && beyondDepth && (
               <div className="ml-7 mt-1">
                 <button onClick={() => onToggleThread(c.id)}
-                  className={`text-[10px] transition-colors ${childExpanded ? "text-[#a855f7]" : "text-[#6366f1] hover:text-[#818cf8]"}`}>
+                  className={`text-[10px] transition-colors ${childExpanded ? "text-accent-light" : "text-accent hover:text-[#818cf8]"}`}>
                   {childExpanded ? "▾ Hide thread" : `▸ Continue this thread → (${replyCount} ${replyCount === 1 ? "reply" : "replies"})`}
                 </button>
                 {childExpanded && (
@@ -207,7 +207,7 @@ function CommentTree({
       {showMore && (
         <button
           onClick={() => onToggleThread(parentId ?? "root")}
-          className="text-[10px] text-[#6366f1] hover:text-[#818cf8] transition-colors ml-7"
+          className="text-[10px] text-accent hover:text-[#818cf8] transition-colors ml-7"
         >
           ▸ Show more replies ({hidden})
         </button>
@@ -729,7 +729,7 @@ export function ReviewSection({
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold text-white">Reviews</h2>
         {stats && stats.total > 0 && (
-          <span className="text-xs text-[#9ca3af]">
+          <span className="text-xs text-text-secondary">
             {stats.total}
           </span>
         )}
@@ -746,7 +746,7 @@ export function ReviewSection({
       {authUser ? (
         <form
           onSubmit={handleSubmit}
-          className="bg-[#1a1a2e] rounded-xl p-4 mb-4 space-y-3"
+          className="bg-bg-card rounded-xl p-4 mb-4 space-y-3"
         >
           <textarea
             placeholder="Write your review..."
@@ -754,23 +754,23 @@ export function ReviewSection({
             onChange={(e) => setContent(e.target.value)}
             maxLength={2000}
             rows={3}
-            className="w-full bg-[#25253a] text-white text-sm rounded-lg px-3 py-2 outline-none border border-transparent focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280] resize-none"
+            className="w-full bg-bg-surface text-white text-sm rounded-lg px-3 py-2 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary resize-none"
           />
           {error && <p className="text-xs text-red-400">{error}</p>}
           <button
             type="submit"
             disabled={submitting}
-            className="px-4 py-1.5 bg-[#6366f1] hover:bg-[#5558e6] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+            className="px-4 py-1.5 bg-accent hover:bg-[#5558e6] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
           >
             {submitting ? "Submitting..." : "Submit Review"}
           </button>
         </form>
       ) : (
-        <div className="bg-[#1a1a2e] rounded-xl p-4 mb-4 text-center border border-[#2d2d4a]">
-          <p className="text-sm text-[#6b7280] mb-2">
-            <a href="/signup" className="text-[#6366f1] hover:underline">Sign in</a> to write a review
+        <div className="bg-bg-card rounded-xl p-4 mb-4 text-center border border-border">
+          <p className="text-sm text-text-secondary mb-2">
+            <a href="/signup" className="text-accent hover:underline">Sign in</a> to write a review
           </p>
-          <a href="/signup" className="inline-block px-4 py-1.5 bg-[#6366f1] text-white text-sm font-medium rounded-lg hover:bg-[#818cf8] transition-colors">
+          <a href="/signup" className="inline-block px-4 py-1.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-[#818cf8] transition-colors">
             Create account
           </a>
         </div>
@@ -778,12 +778,12 @@ export function ReviewSection({
 
       {/* Reviews list */}
       {loading ? (
-        <p className="text-xs text-[#6b7280]">Loading reviews...</p>
+        <p className="text-xs text-text-secondary">Loading reviews...</p>
       ) : reviews.length === 0 ? (
         <div className="flex flex-col items-center py-6 text-center">
           <span className="text-2xl mb-2">💬</span>
-          <p className="text-sm text-[#6b7280]">No reviews yet</p>
-          <p className="text-xs text-[#6b7280]/70 mt-0.5">Be the first to share your thoughts</p>
+          <p className="text-sm text-text-secondary">No reviews yet</p>
+          <p className="text-xs text-text-secondary/70 mt-0.5">Be the first to share your thoughts</p>
         </div>
       ) : (() => {
         // Pinned: top 2 by likes (only on page 1)
@@ -799,8 +799,8 @@ export function ReviewSection({
         const ReviewCard = ({ review, isPinned }: { review: Review; isPinned?: boolean }) => (
           <div key={review.id} className={`relative overflow-hidden rounded-2xl p-5 transition-all duration-300 ${
             isPinned
-              ? "bg-white/[0.03] backdrop-blur-xl border border-[#f59e0b]/45 shadow-[0_0_20px_rgba(245,158,11,0.08),0_0_60px_rgba(245,158,11,0.03)] hover:border-[#f59e0b]/65 hover:shadow-[0_0_30px_rgba(245,158,11,0.15),0_0_80px_rgba(245,158,11,0.05)]"
-              : "bg-white/[0.03] backdrop-blur-xl border border-[#6366f1]/10 hover:border-[#6366f1]/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#6366f1]/8"
+              ? "bg-white/[0.03] backdrop-blur-xl border border-gold/45 shadow-[0_0_20px_rgba(245,158,11,0.08),0_0_60px_rgba(245,158,11,0.03)] hover:border-gold/65 hover:shadow-[0_0_30px_rgba(245,158,11,0.15),0_0_80px_rgba(245,158,11,0.05)]"
+              : "bg-white/[0.03] backdrop-blur-xl border border-accent/10 hover:border-accent/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#6366f1]/8"
           }`}>
             {isPinned && (
               <div className="absolute top-0 left-0 right-0 h-full pointer-events-none"
@@ -821,7 +821,7 @@ export function ReviewSection({
                 {review.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block" />}
                 {renderStars(review.rating)}
               </div>
-              <span className="text-[11px] text-[#9ca3af]">
+              <span className="text-[11px] text-text-secondary">
                 {formatDate(review.createdAt)}
               </span>
             </div>
@@ -834,7 +834,7 @@ export function ReviewSection({
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-sm font-semibold transition-all duration-200 border ${
                   review.liked
                     ? "text-[#f472b6] bg-[#ec4899]/10 border-[#ec4899]/20"
-                    : "text-[#d1d5db] bg-transparent border-white/10 hover:bg-[#6366f1]/10 hover:border-[#6366f1]/20 hover:text-[#c7d2fe]"
+                    : "text-[#d1d5db] bg-transparent border-white/10 hover:bg-accent/10 hover:border-accent/20 hover:text-[#c7d2fe]"
                 }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
@@ -849,8 +849,8 @@ export function ReviewSection({
                 onClick={() => toggleComments(review.id, review.username)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-sm font-semibold transition-all duration-200 border ${
                   expandedComments.has(review.id)
-                    ? "text-[#c7d2fe] bg-[#6366f1]/10 border-[#6366f1]/20"
-                    : "text-[#d1d5db] bg-transparent border-white/10 hover:bg-[#6366f1]/10 hover:border-[#6366f1]/20 hover:text-[#c7d2fe]"
+                    ? "text-[#c7d2fe] bg-accent/10 border-accent/20"
+                    : "text-[#d1d5db] bg-transparent border-white/10 hover:bg-accent/10 hover:border-accent/20 hover:text-[#c7d2fe]"
                 }`}
               >
                 <span>💬</span>
@@ -864,7 +864,7 @@ export function ReviewSection({
                   className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
                     (reportCounts[review.id] || 0) > 0
                       ? "text-green-400"
-                      : "text-[#6b7280] hover:text-red-400"
+                      : "text-text-secondary hover:text-red-400"
                   }`}
                   title={reportCounts[review.id] ? "Reported ✓" : "Report this review"}
                 >
@@ -886,7 +886,7 @@ export function ReviewSection({
                     </button>
                     <button
                       onClick={() => setConfirmDeleteId(null)}
-                      className="text-[10px] text-[#6b7280] hover:text-white"
+                      className="text-[10px] text-text-secondary hover:text-white"
                     >
                       Cancel
                     </button>
@@ -894,7 +894,7 @@ export function ReviewSection({
                 ) : (
                   <button
                     onClick={() => setConfirmDeleteId(review.id)}
-                    className="flex items-center gap-1 text-xs text-[#6b7280] hover:text-red-400 transition-colors"
+                    className="flex items-center gap-1 text-xs text-text-secondary hover:text-red-400 transition-colors"
                     title="Delete your review"
                   >
                     🗑️
@@ -924,9 +924,9 @@ export function ReviewSection({
 
             {/* ── Comments Section ── */}
             {expandedComments.has(review.id) && (
-              <div className="mt-3 pt-3 border-t border-[#2d2d4a]">
+              <div className="mt-3 pt-3 border-t border-border">
                 {loadingComments.has(review.id) ? (
-                  <p className="text-xs text-[#6b7280]">Loading comments...</p>
+                  <p className="text-xs text-text-secondary">Loading comments...</p>
                 ) : (comments[review.id] || []).length > 0 ? (
                   <CommentTree
                     comments={comments[review.id] || []}
@@ -952,7 +952,7 @@ export function ReviewSection({
                     reportCounts={reportCounts}
                   />
                 ) : (
-                  <p className="text-xs text-[#6b7280] mb-3">No comments yet</p>
+                  <p className="text-xs text-text-secondary mb-3">No comments yet</p>
                 )}
 
                 {/* Comment input */}
@@ -970,19 +970,19 @@ export function ReviewSection({
                         }
                       }}
                       maxLength={1000}
-                      className="flex-1 bg-[#25253a] text-white text-xs rounded-lg px-3 py-2 outline-none border border-transparent focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280]"
+                      className="flex-1 bg-bg-surface text-white text-xs rounded-lg px-3 py-2 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary"
                     />
                     <button
                       onClick={() => submitComment(review.id, review.username, tmdbId, "")}
                       disabled={!commentInputs[review.id]?.trim()}
-                      className="px-3 py-1.5 bg-[#6366f1] hover:bg-[#5558e6] disabled:opacity-40 text-white text-xs font-medium rounded-lg transition-colors flex-shrink-0"
+                      className="px-3 py-1.5 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-white text-xs font-medium rounded-lg transition-colors flex-shrink-0"
                     >
                       Post
                     </button>
                   </div>
                 ) : (
-                  <p className="text-xs text-[#6b7280]">
-                    <a href="/signup" className="text-[#6366f1] hover:underline">Sign in</a> to comment
+                  <p className="text-xs text-text-secondary">
+                    <a href="/signup" className="text-accent hover:underline">Sign in</a> to comment
                   </p>
                 )}
               </div>
@@ -997,7 +997,7 @@ export function ReviewSection({
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-sm font-bold text-[#fbbf24]">📌 Top Review</span>
-                  <span className="text-[11px] text-[#9ca3af]">Most liked reviews</span>
+                  <span className="text-[11px] text-text-secondary">Most liked reviews</span>
                 </div>
                 <div className="space-y-3">
                   {pinnedReviews.map((review) => <ReviewCard key={"pinned-" + review.id} review={review} isPinned={true} />)}
@@ -1007,9 +1007,9 @@ export function ReviewSection({
 
             {/* All reviews — chronological */}
             {pinnedReviews.length > 0 && (
-              <div className="flex items-center gap-2 mb-2 mt-4 pt-4 border-t border-[#2d2d4a]">
+              <div className="flex items-center gap-2 mb-2 mt-4 pt-4 border-t border-border">
                 <span className="text-sm font-semibold text-[#d1d5db]">All Reviews</span>
-                <span className="text-[11px] text-[#9ca3af]">{totalReviews} total</span>
+                <span className="text-[11px] text-text-secondary">{totalReviews} total</span>
               </div>
             )}
             <div className="space-y-3">
@@ -1025,7 +1025,7 @@ export function ReviewSection({
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-2 py-1 text-xs rounded bg-[#1a1a2e] text-[#9ca3af] hover:text-white disabled:opacity-30 transition-colors"
+            className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-white disabled:opacity-30 transition-colors"
           >
             ← Prev
           </button>
@@ -1038,15 +1038,15 @@ export function ReviewSection({
             }, [])
             .map((item, i) =>
               item === "..." ? (
-                <span key={`dots-${i}`} className="px-1 text-[10px] text-[#6b7280]">…</span>
+                <span key={`dots-${i}`} className="px-1 text-[10px] text-text-secondary">…</span>
               ) : (
                 <button
                   key={item}
                   onClick={() => goToPage(item as number)}
                   className={`w-7 h-7 text-xs rounded-full transition-colors ${
                     currentPage === item
-                      ? "bg-[#6366f1] text-white"
-                      : "bg-[#1a1a2e] text-[#9ca3af] hover:text-white"
+                      ? "bg-accent text-white"
+                      : "bg-bg-card text-text-secondary hover:text-white"
                   }`}
                 >
                   {item}
@@ -1056,7 +1056,7 @@ export function ReviewSection({
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-2 py-1 text-xs rounded bg-[#1a1a2e] text-[#9ca3af] hover:text-white disabled:opacity-30 transition-colors"
+            className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-white disabled:opacity-30 transition-colors"
           >
             Next →
           </button>

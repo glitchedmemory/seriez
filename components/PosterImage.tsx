@@ -26,7 +26,7 @@ export default function PosterImage({
   if (!src) {
     return (
       <div
-        className={`flex items-center justify-center bg-[#1a1a2e] text-white/20 font-bold ${className}`}
+        className={`flex items-center justify-center bg-bg-card text-white/20 font-bold ${className}`}
         aria-label={alt}
       >
         {alt.slice(0, 2)}

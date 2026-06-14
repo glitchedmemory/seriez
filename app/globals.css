@@ -1,26 +1,59 @@
+/* ====== Color Variables (2-tier: :root=Dark, .light=Light) ====== */
+:root {
+  --bg-primary: #0f0f1a;
+  --bg-card: #1a1a2e;
+  --bg-surface: #25253a;
+  --accent: #6366f1;
+  --accent-light: #a855f7;
+  --gold: #f59e0b;
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --border-color: #2a2a45;
+  --shadow-color: rgba(0, 0, 0, 0.4);
+  --scrollbar-thumb: #3f3f5a;
+}
+
+.light {
+  --bg-primary: #f8f9fc;
+  --bg-card: #ffffff;
+  --bg-surface: #f0f1f5;
+  --accent: #4f46e5;
+  --accent-light: #7c3aed;
+  --gold: #d97706;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --shadow-color: rgba(0, 0, 0, 0.08);
+  --scrollbar-thumb: #d1d5db;
+}
+
+/* ====== Tailwind v4 @theme inline — bridges CSS vars to Tailwind tokens ====== */
 @import "tailwindcss";
 
 @theme inline {
-  --color-bg-primary: #0f0f1a;
-  --color-bg-card: #1a1a2e;
-  --color-bg-surface: #25253a;
-  --color-accent: #6366f1;
-  --color-accent-light: #a855f7;
-  --color-gold: #f59e0b;
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #9ca3af;
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-surface: var(--bg-surface);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-gold: var(--gold);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border: var(--border-color);
+  --color-shadow: var(--shadow-color);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* ====== Base Styles ====== */
 body {
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   font-family: var(--font-sans, system-ui);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbar styling */
+/* ====== Scrollbar ====== */
 ::-webkit-scrollbar {
   height: 4px;
   width: 4px;
@@ -29,7 +62,7 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3f3f5a;
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 

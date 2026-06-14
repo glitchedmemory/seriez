@@ -13,7 +13,7 @@ function StarRating({ rating }: { rating: number }) {
   const half = rating - full >= 0.5;
   const empty = 5 - full - (half ? 1 : 0);
   return (
-    <span className="text-[#f59e0b] text-sm">
+    <span className="text-gold text-sm">
       {"★".repeat(full)}{half && "½"}{"☆".repeat(empty)}
     </span>
   );
@@ -25,7 +25,7 @@ function SectionHeader({ emoji, title, subtitle }: { emoji: string; title: strin
       <span className="text-lg">{emoji}</span>
       <div>
         <h2 className="text-base font-semibold text-white">{title}</h2>
-        <p className="text-[11px] text-[#6b7280]">{subtitle}</p>
+        <p className="text-[11px] text-text-secondary">{subtitle}</p>
       </div>
     </div>
   );
@@ -43,7 +43,7 @@ function PosterGrid({ children }: { children: React.ReactNode }) {
 function CardWrapper({ item, reasonText, showCountdown }: { item: TmdbResult; reasonText?: string; showCountdown?: boolean }) {
   return (
     <a href={`/title/${item.id}?type=${item.type}`} className="flex-shrink-0 w-32 md:w-auto block snap-start">
-      <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-[#1a1a2e] group md:hover:scale-105 transition-transform">
+      <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card group md:hover:scale-105 transition-transform">
         <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl" sizes="(max-width: 768px) 128px, 200px" />
         {showCountdown && item.daysUntil && (
           <div className={`absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full text-[10px] font-bold text-white ${
@@ -53,18 +53,18 @@ function CardWrapper({ item, reasonText, showCountdown }: { item: TmdbResult; re
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-semibold text-[#f59e0b]">
+        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-semibold text-gold">
           ★ {item.rating || "—"}
         </div>
         <div className="absolute bottom-2 left-2 right-2">
           <p className="text-[11px] font-medium text-white leading-tight line-clamp-2">{item.title}</p>
         </div>
       </div>
-      <p className="mt-1 text-xs text-[#9ca3af]">
+      <p className="mt-1 text-xs text-text-secondary">
         {item.year} · {item.type === "movie" ? "Movie" : "TV"}
       </p>
       {reasonText && (
-        <p className="text-[10px] text-[#6366f1] mt-0.5 line-clamp-1">
+        <p className="text-[10px] text-accent mt-0.5 line-clamp-1">
           {reasonText}
         </p>
       )}
@@ -75,17 +75,17 @@ function CardWrapper({ item, reasonText, showCountdown }: { item: TmdbResult; re
 function BoxOfficeCard({ movie, rank }: { movie: TmdbResult; rank: number }) {
   return (
     <a href={`/title/${movie.id}?type=${movie.type}`} className="flex-shrink-0 w-36 md:w-40 block snap-start group">
-      <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-[#1a1a2e] md:group-hover:scale-105 transition-transform">
+      <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card md:group-hover:scale-105 transition-transform">
         <PosterImage src={movie.poster} alt={movie.title} fill className="rounded-xl" sizes="(max-width: 768px) 144px, 160px" />
         <div className={`absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-black text-white shadow-lg ${
-          rank === 1 ? "bg-[#f59e0b]" : rank === 2 ? "bg-[#9ca3af]" : rank === 3 ? "bg-amber-700" : "bg-[#2d2d4a] text-[#6b7280]"
+          rank === 1 ? "bg-gold" : rank === 2 ? "bg-[#9ca3af]" : rank === 3 ? "bg-amber-700" : "bg-[#2d2d4a] text-text-secondary"
         }`}>
           {rank}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent" />
         <div className="absolute bottom-2 left-2 right-2">
           <p className="text-[12px] font-semibold text-white leading-tight line-clamp-2">{movie.title}</p>
-          <p className="text-[10px] text-[#9ca3af] mt-0.5">{movie.year} · ★ {movie.rating}</p>
+          <p className="text-[10px] text-text-secondary mt-0.5">{movie.year} · ★ {movie.rating}</p>
         </div>
       </div>
     </a>
@@ -233,36 +233,36 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
 
   // Shared search results dropdown
   const searchDropdown = searchOpen && searchQuery.trim() ? (
-    <div className="absolute top-full left-0 right-0 mt-1 bg-[#0f0f1a] border border-[#2d2d4a] rounded-xl overflow-hidden z-50 max-h-80 overflow-y-auto shadow-2xl">
+    <div className="absolute top-full left-0 right-0 mt-1 bg-bg-primary border border-border rounded-xl overflow-hidden z-50 max-h-80 overflow-y-auto shadow-2xl">
       {searchLoading ? (
-        <div className="p-4 text-center text-sm text-[#6b7280]">Searching...</div>
+        <div className="p-4 text-center text-sm text-text-secondary">Searching...</div>
       ) : searchResults.length > 0 ? (
         searchResults.map((item) => (
           <a
             key={`${item.type}-${item.id}`}
             href={`/title/${item.id}?type=${item.type}`}
             onClick={closeSearch}
-            className="flex items-center gap-3 p-3 hover:bg-[#1a1a2e] transition-colors border-b border-[#1a1a2e] last:border-0"
+            className="flex items-center gap-3 p-3 hover:bg-bg-card transition-colors border-b border-[#1a1a2e] last:border-0"
           >
-            <div className="w-10 h-[60px] rounded-lg overflow-hidden bg-[#1a1a2e] flex-shrink-0 relative">
+            <div className="w-10 h-[60px] rounded-lg overflow-hidden bg-bg-card flex-shrink-0 relative">
               <PosterImage src={item.poster} alt="" fill className="rounded-lg" sizes="40px" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm text-white truncate">{item.title}</p>
-              <p className="text-xs text-[#6b7280]">
+              <p className="text-xs text-text-secondary">
                 {item.year} · {item.type === "movie" ? "Movie" : item.type === "tv" ? "TV" : "Anime"} · ★ {item.rating}
               </p>
               {item.genres?.length > 0 && (
-                <p className="text-[10px] text-[#6366f1]/70 mt-0.5">{item.genres.join(", ")}</p>
+                <p className="text-[10px] text-accent/70 mt-0.5">{item.genres.join(", ")}</p>
               )}
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-[#6b7280] flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-text-secondary flex-shrink-0">
               <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 010-1.06z" clipRule="evenodd" />
             </svg>
           </a>
         ))
       ) : (
-        <div className="p-4 text-center text-sm text-[#6b7280]">No results found</div>
+        <div className="p-4 text-center text-sm text-text-secondary">No results found</div>
       )}
     </div>
   ) : null;
@@ -270,12 +270,12 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
   return (
     <div className="max-w-lg md:max-w-none mx-auto min-h-screen">
       {/* ── Mobile header ── */}
-      <header className="md:hidden sticky top-0 z-40 bg-[#0f0f1a]/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-[#1a1a2e]">
+      <header className="md:hidden sticky top-0 z-40 bg-bg-primary/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-[#1a1a2e]">
         {searchOpen ? (
           <div className="flex-1 flex items-center gap-2 relative">
             <button
               onClick={closeSearch}
-              className="text-[#9ca3af] hover:text-white transition-colors flex-shrink-0"
+              className="text-text-secondary hover:text-white transition-colors flex-shrink-0"
               aria-label="Close search"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
@@ -289,7 +289,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder="Search movies, TV, anime..."
-                className="w-full bg-[#1a1a2e] text-white text-sm rounded-lg px-3 py-2 outline-none border border-[#2d2d4a] focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280]"
+                className="w-full bg-bg-card text-white text-sm rounded-lg px-3 py-2 outline-none border border-border focus:border-accent transition-colors placeholder:text-text-secondary"
                 autoFocus
               />
               {searchDropdown}
@@ -298,7 +298,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
         ) : (
           <>
             <h1 className="text-xl font-bold bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">Seriez</h1>
-            <button onClick={() => setSearchOpen(true)} className="text-[#9ca3af] hover:text-white transition-colors" aria-label="Search">
+            <button onClick={() => setSearchOpen(true)} className="text-text-secondary hover:text-white transition-colors" aria-label="Search">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                 <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
               </svg>
@@ -352,9 +352,9 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
 
           {/* ── AdSense Placeholder ── */}
           <div className="px-4 md:px-0 my-6">
-            <div className="w-full h-[100px] rounded-xl border-2 border-dashed border-[#6366f1]/40 bg-[#1a1a2e]/50 flex flex-col items-center justify-center text-[#6b7280] text-xs gap-1">
+            <div className="w-full h-[100px] rounded-xl border-2 border-dashed border-accent/40 bg-bg-card/50 flex flex-col items-center justify-center text-text-secondary text-xs gap-1">
               <span className="text-base">📢</span>
-              <span className="font-medium text-[#9ca3af]">AdSense Banner</span>
+              <span className="font-medium text-text-secondary">AdSense Banner</span>
               <span>320×100 / 300×250 responsive</span>
             </div>
           </div>
@@ -366,32 +366,32 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
                   <span className="text-lg">🔥</span>
                   <div>
                     <h2 className="text-base font-semibold text-white">Trending This Week</h2>
-                    <p className="text-[11px] text-[#6b7280]">Most popular {trendingMode === "movie" ? "movies" : trendingMode === "tv" ? "TV" : "anime"}</p>
+                    <p className="text-[11px] text-text-secondary">Most popular {trendingMode === "movie" ? "movies" : trendingMode === "tv" ? "TV" : "anime"}</p>
                   </div>
                 </div>
                 {/* 3-way Toggle Switch */}
-                <div className="ml-auto relative flex-shrink-0 w-[168px] h-8 rounded-full bg-[#1a1a2e] border border-[#2d2d4a] overflow-hidden">
-                  <div className={`absolute top-[3px] h-[26px] w-[52px] rounded-full bg-[#6366f1] transition-transform duration-300 ease-out pointer-events-none ${
+                <div className="ml-auto relative flex-shrink-0 w-[168px] h-8 rounded-full bg-bg-card border border-border overflow-hidden">
+                  <div className={`absolute top-[3px] h-[26px] w-[52px] rounded-full bg-accent transition-transform duration-300 ease-out pointer-events-none ${
                     trendingMode === "movie" ? "translate-x-[3px]" : trendingMode === "tv" ? "translate-x-[58px]" : "translate-x-[113px]"
                   }`} />
                   <button
                     onClick={() => switchTrendingMode("movie")}
                     className={`absolute left-0 top-0 w-[56px] h-full flex items-center justify-center text-[10px] font-semibold transition-colors duration-300 hover:bg-white/5 ${
-                      trendingMode === "movie" ? "text-white" : "text-[#6b7280]"
+                      trendingMode === "movie" ? "text-white" : "text-text-secondary"
                     }`}
                     aria-label="Show trending movies"
                   >🎬 Movies</button>
                   <button
                     onClick={() => switchTrendingMode("tv")}
                     className={`absolute left-[56px] top-0 w-[56px] h-full flex items-center justify-center text-[10px] font-semibold transition-colors duration-300 hover:bg-white/5 ${
-                      trendingMode === "tv" ? "text-white" : "text-[#6b7280]"
+                      trendingMode === "tv" ? "text-white" : "text-text-secondary"
                     }`}
                     aria-label="Show trending TV"
                   >📺 TV</button>
                   <button
                     onClick={() => switchTrendingMode("anime")}
                     className={`absolute left-[112px] top-0 w-[56px] h-full flex items-center justify-center text-[10px] font-semibold transition-colors duration-300 hover:bg-white/5 ${
-                      trendingMode === "anime" ? "text-white" : "text-[#6b7280]"
+                      trendingMode === "anime" ? "text-white" : "text-text-secondary"
                     }`}
                     aria-label="Show trending anime"
                   >🍿 Anime</button>
@@ -403,8 +403,8 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
                 <div className="flex gap-3 overflow-x-auto px-4 pb-2 hide-scrollbar">
                   {[...Array(5)].map((_, i) => (
                     <div key={i} className="flex-shrink-0 w-32">
-                      <div className="aspect-[2/3] rounded-xl bg-[#1a1a2e] animate-pulse" />
-                      <div className="mt-1 h-3 w-20 bg-[#1a1a2e] rounded animate-pulse" />
+                      <div className="aspect-[2/3] rounded-xl bg-bg-card animate-pulse" />
+                      <div className="mt-1 h-3 w-20 bg-bg-card rounded animate-pulse" />
                     </div>
                   ))}
                 </div>
@@ -447,9 +447,9 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
               onChange={(e) => { handleSearchChange(e.target.value); if (!searchOpen) setSearchOpen(true); }}
               onFocus={() => setSearchOpen(true)}
               placeholder="Search movies, TV, anime..."
-              className="w-full bg-[#1a1a2e] text-white text-sm rounded-xl px-4 py-2.5 pl-10 outline-none border border-[#2d2d4a] focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280]"
+              className="w-full bg-bg-card text-white text-sm rounded-xl px-4 py-2.5 pl-10 outline-none border border-border focus:border-accent transition-colors placeholder:text-text-secondary"
             />
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-[#6b7280] absolute left-3.5 top-3">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-text-secondary absolute left-3.5 top-3">
               <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
             </svg>
             {searchDropdown}

@@ -22,7 +22,7 @@ export default function ScrollToTop() {
           window.scrollTo({ top: 0, behavior: "smooth" });
         }
       }}
-      className={`hidden md:flex fixed bottom-24 right-6 z-[60] w-11 h-11 rounded-full bg-[#6366f1] text-white items-center justify-center shadow-lg hover:bg-[#818cf8] transition-all border-none cursor-pointer ${
+      className={`hidden md:flex fixed bottom-24 right-6 z-[60] w-11 h-11 rounded-full bg-accent text-white items-center justify-center shadow-lg hover:bg-[#818cf8] transition-all border-none cursor-pointer ${
         visible ? "opacity-100 scale-100" : "opacity-0 scale-75 pointer-events-none"
       }`}
       aria-label="Scroll to top"

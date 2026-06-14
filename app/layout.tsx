@@ -6,6 +6,7 @@ import "./globals.css";
 import TabBar, { Sidebar } from "@/components/TabBar";
 import ScrollToTop from "@/components/ScrollToTop";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { ThemeProvider } from "@/lib/theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -77,16 +78,40 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex bg-[#0f0f1a] text-white">
-        <Sidebar />
-        <main className="flex-1 min-w-0 md:pb-0 pb-16">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('theme');
+                  if (theme === 'light' || theme === 'dark') {
+                    document.documentElement.classList.toggle('light', theme === 'light');
+                  } else {
+                    document.documentElement.classList.toggle(
+                      'light',
+                      window.matchMedia('(prefers-color-scheme: light)').matches
+                    );
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex bg-bg-primary text-text-primary">
+        <ThemeProvider>
+          <Sidebar />
+          <main className="flex-1 min-w-0 md:pb-0 pb-16">
             <ErrorBoundary sectionName="App">
               {children}
             </ErrorBoundary>
           </main>
-        <TabBar />
-        <ScrollToTop />
+          <TabBar />
+          <ScrollToTop />
+        </ThemeProvider>
       </body>
     </html>
   );

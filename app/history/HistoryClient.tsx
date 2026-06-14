@@ -71,10 +71,10 @@ export default function HistoryClient() {
     return (
       <div className="max-w-lg md:max-w-4xl mx-auto pb-32 px-4 pt-6">
         <div className="space-y-4 animate-pulse">
-          <div className="h-8 w-40 bg-[#1a1a2e] rounded-lg" />
-          <div className="aspect-square bg-[#1a1a2e] rounded-2xl" />
-          <div className="h-10 bg-[#1a1a2e] rounded-xl" />
-          <div className="h-44 bg-[#1a1a2e] rounded-2xl" />
+          <div className="h-8 w-40 bg-bg-card rounded-lg" />
+          <div className="aspect-square bg-bg-card rounded-2xl" />
+          <div className="h-10 bg-bg-card rounded-xl" />
+          <div className="h-44 bg-bg-card rounded-2xl" />
         </div>
       </div>
     );
@@ -85,7 +85,7 @@ export default function HistoryClient() {
       <div className="max-w-lg md:max-w-4xl mx-auto pb-32 px-4 pt-20 text-center">
         <span className="text-4xl mb-4 block">📭</span>
         <h2 className="text-white text-lg font-bold mb-2">Error</h2>
-        <p className="text-[#6b7280] text-sm">{error}</p>
+        <p className="text-text-secondary text-sm">{error}</p>
       </div>
     );
   }
@@ -127,10 +127,10 @@ export default function HistoryClient() {
       <div className="pt-6 pb-2 px-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-white tracking-tight">Monthly Recap</h1>
-          <p className="text-[#6b7280] text-xs">Your viewing journal</p>
+          <p className="text-text-secondary text-xs">Your viewing journal</p>
         </div>
         {fetching && (
-          <div className="w-5 h-5 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
         )}
       </div>
 
@@ -159,13 +159,13 @@ export default function HistoryClient() {
       {/* ── Taste Profile ── */}
       <div className="px-4 mb-5">
         <h2 className="text-lg font-extrabold text-white tracking-tight mb-3">Taste Profile</h2>
-        <span className="inline-block bg-[#6366f1] text-white text-[11px] font-bold px-3 py-1 rounded-full mb-2 tracking-wide">
+        <span className="inline-block bg-accent text-white text-[11px] font-bold px-3 py-1 rounded-full mb-2 tracking-wide">
           #RatingSpread
         </span>
         <p className="text-[15px] font-bold text-[#e5e7eb] tracking-tight mb-1">
           You&apos;re a &apos;{personaLabel}&apos;
         </p>
-        <p className="text-[13px] text-[#9ca3af] leading-relaxed mb-5">
+        <p className="text-[13px] text-text-secondary leading-relaxed mb-5">
           {personaDesc}
         </p>
 
@@ -198,9 +198,9 @@ export default function HistoryClient() {
 
 function StatCard({ value, label }: { value: string; label: string }) {
   return (
-    <div className="bg-[#1a1a2e] rounded-xl p-3.5 text-center">
+    <div className="bg-bg-card rounded-xl p-3.5 text-center">
       <p className="text-[22px] font-extrabold text-white tracking-tight">{value}</p>
-      <p className="text-[11px] font-medium text-[#9ca3af] mt-0.5">{label}</p>
+      <p className="text-[11px] font-medium text-text-secondary mt-0.5">{label}</p>
     </div>
   );
 }

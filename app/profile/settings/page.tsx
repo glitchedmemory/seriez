@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { useTheme, type ThemeMode } from "@/lib/theme";
 
 const PW_RULES = {
   minLength: 8,
@@ -21,6 +22,7 @@ function validatePassword(pw: string): string | null {
 export default function SettingsPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { theme, setTheme } = useTheme();
 
   // Password change
   const [showPwForm, setShowPwForm] = useState(false);
@@ -143,7 +145,7 @@ export default function SettingsPage() {
         <div className="flex items-center gap-4 px-4 pt-6 pb-4">
           <button
             onClick={() => router.back()}
-            className="text-[#9ca3af] hover:text-white transition-colors"
+            className="text-text-secondary hover:text-white transition-colors"
           >
             ← Back
           </button>
@@ -154,30 +156,53 @@ export default function SettingsPage() {
           {/* ── Profile ── */}
           <button
             onClick={() => router.push("/profile/settings/change-profile")}
-            className="w-full flex items-center justify-between bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl px-4 py-3.5 hover:border-[#6366f1]/50 transition-colors group"
+            className="w-full flex items-center justify-between bg-bg-card border border-border rounded-xl px-4 py-3.5 hover:border-accent/50 transition-colors group"
           >
             <div className="flex items-center gap-3">
               <span className="text-lg">👤</span>
               <span className="text-sm text-white">Change Profile</span>
             </div>
-            <span className="text-xs text-[#4b5563] group-hover:text-[#9ca3af] transition-colors">
+            <span className="text-xs text-[#4b5563] group-hover:text-text-secondary transition-colors">
               Avatar · Background →
             </span>
           </button>
 
+          {/* ── Appearance ── */}
+          <div className="bg-bg-card border border-border rounded-xl px-4 py-3.5">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-lg">🎨</span>
+              <span className="text-sm text-white">Appearance</span>
+            </div>
+            <div className="flex gap-2">
+              {(["system", "dark", "light"] as ThemeMode[]).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setTheme(mode)}
+                  className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
+                    theme === mode
+                      ? "bg-accent text-white shadow-lg shadow-accent/30"
+                      : "bg-bg-primary text-text-secondary border border-border hover:border-accent/40"
+                  }`}
+                >
+                  {mode === "system" ? "🌓 System" : mode === "dark" ? "🌙 Dark" : "☀️ Light"}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* ── Email ── */}
-          <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl px-4 py-3.5 opacity-50">
+          <div className="bg-bg-card border border-border rounded-xl px-4 py-3.5 opacity-50">
             <div className="flex items-center gap-3">
               <span className="text-lg">✉️</span>
               <div>
                 <span className="text-sm text-white">Change Email</span>
-                <p className="text-[10px] text-[#f59e0b]">SMTP setup required</p>
+                <p className="text-[10px] text-gold">SMTP setup required</p>
               </div>
             </div>
           </div>
 
           {/* ── Password ── */}
-          <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl overflow-hidden">
+          <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
             <button
               onClick={() => setShowPwForm(!showPwForm)}
               className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.03] transition-colors"
@@ -186,31 +211,31 @@ export default function SettingsPage() {
                 <span className="text-lg">🔒</span>
                 <span className="text-sm text-white">Change Password</span>
               </div>
-              <span className="text-[#6b7280] text-xs transition-transform duration-200" style={{ transform: showPwForm ? "rotate(180deg)" : "rotate(0deg)" }}>
+              <span className="text-text-secondary text-xs transition-transform duration-200" style={{ transform: showPwForm ? "rotate(180deg)" : "rotate(0deg)" }}>
                 ▼
               </span>
             </button>
             {showPwForm && (
-              <div className="px-4 pb-4 space-y-3 border-t border-[#2d2d4a] pt-4">
+              <div className="px-4 pb-4 space-y-3 border-t border-border pt-4">
                 <div>
-                  <label className="text-[11px] text-[#9ca3af] block mb-1.5">Current password</label>
+                  <label className="text-[11px] text-text-secondary block mb-1.5">Current password</label>
                   <input
                     type="password"
                     value={currentPw}
                     onChange={(e) => setCurrentPw(e.target.value)}
-                    className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:border-[#6366f1]"
+                    className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-text-secondary focus:outline-none focus:border-accent"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] text-[#9ca3af] block mb-1.5">New password</label>
+                  <label className="text-[11px] text-text-secondary block mb-1.5">New password</label>
                   <input
                     type="password"
                     placeholder={PW_RULES.label}
                     value={newPw}
                     onChange={(e) => setNewPw(e.target.value)}
-                    className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:border-[#6366f1]"
+                    className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-text-secondary focus:outline-none focus:border-accent"
                   />
-                  <p className="text-[10px] text-[#6b7280] mt-1">{PW_RULES.label}</p>
+                  <p className="text-[10px] text-text-secondary mt-1">{PW_RULES.label}</p>
                 </div>
                 {pwMsg && (
                   <p className={`text-xs ${pwMsg.ok ? "text-emerald-400" : "text-red-400"}`}>{pwMsg.text}</p>
@@ -218,7 +243,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleChangePassword}
                   disabled={pwLoading}
-                  className="w-full py-2.5 bg-[#6366f1] hover:bg-[#818cf8] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="w-full py-2.5 bg-accent hover:bg-accent-light disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   {pwLoading ? "Changing..." : "Change Password"}
                 </button>
@@ -230,29 +255,29 @@ export default function SettingsPage() {
           <button
             onClick={handleLogout}
             disabled={logoutLoading}
-            className="w-full flex items-center gap-3 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl px-4 py-3.5 hover:border-red-500/40 transition-colors"
+            className="w-full flex items-center gap-3 bg-bg-card border border-border rounded-xl px-4 py-3.5 hover:border-red-500/40 transition-colors"
           >
             <span className="text-lg">🚪</span>
             <span className="text-sm text-red-400">{logoutLoading ? "Logging out..." : "Log Out"}</span>
           </button>
 
           {/* ── Reset Ratings ── */}
-          <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl overflow-hidden">
+          <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
             <button
               onClick={() => setShowResetConfirm(!showResetConfirm)}
               className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.03] transition-colors"
             >
               <div className="flex items-center gap-3">
                 <span className="text-lg">🔄</span>
-                <span className="text-sm text-[#f59e0b]">Reset Ratings & Reviews</span>
+                <span className="text-sm text-gold">Reset Ratings & Reviews</span>
               </div>
-              <span className="text-[#6b7280] text-xs transition-transform duration-200" style={{ transform: showResetConfirm ? "rotate(180deg)" : "rotate(0deg)" }}>
+              <span className="text-text-secondary text-xs transition-transform duration-200" style={{ transform: showResetConfirm ? "rotate(180deg)" : "rotate(0deg)" }}>
                 ▼
               </span>
             </button>
             {showResetConfirm && (
-              <div className="px-4 pb-4 space-y-3 border-t border-[#2d2d4a] pt-4">
-                <p className="text-xs text-[#9ca3af] leading-relaxed">
+              <div className="px-4 pb-4 space-y-3 border-t border-border pt-4">
+                <p className="text-xs text-text-secondary leading-relaxed">
                   This will permanently delete all your ratings and reviews. Type your username to confirm.
                 </p>
                 <input
@@ -260,7 +285,7 @@ export default function SettingsPage() {
                   placeholder="Enter username"
                   value={resetInput}
                   onChange={(e) => setResetInput(e.target.value)}
-                  className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:border-[#f59e0b]"
+                  className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-text-secondary focus:outline-none focus:border-gold"
                 />
                 {resetMsg && (
                   <p className={`text-xs ${resetMsg.includes("have been") ? "text-emerald-400" : "text-red-400"}`}>{resetMsg}</p>
@@ -268,7 +293,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleResetRatings}
                   disabled={resetLoading || !resetInput}
-                  className="w-full py-2.5 bg-[#f59e0b] hover:bg-[#fbbf24] disabled:opacity-50 text-black text-sm font-medium rounded-lg transition-colors"
+                  className="w-full py-2.5 bg-gold hover:bg-gold disabled:opacity-50 text-black text-sm font-medium rounded-lg transition-colors"
                 >
                   {resetLoading ? "Resetting..." : "Reset All Ratings"}
                 </button>
@@ -277,7 +302,7 @@ export default function SettingsPage() {
           </div>
 
           {/* ── Delete Account ── */}
-          <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl overflow-hidden">
+          <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
             <button
               onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
               className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.03] transition-colors"
@@ -286,32 +311,32 @@ export default function SettingsPage() {
                 <span className="text-lg">🗑️</span>
                 <span className="text-sm text-red-400">Delete Account</span>
               </div>
-              <span className="text-[#6b7280] text-xs transition-transform duration-200" style={{ transform: showDeleteConfirm ? "rotate(180deg)" : "rotate(0deg)" }}>
+              <span className="text-text-secondary text-xs transition-transform duration-200" style={{ transform: showDeleteConfirm ? "rotate(180deg)" : "rotate(0deg)" }}>
                 ▼
               </span>
             </button>
             {showDeleteConfirm && (
-              <div className="px-4 pb-4 space-y-3 border-t border-[#2d2d4a] pt-4">
-                <p className="text-xs text-[#9ca3af] leading-relaxed">
+              <div className="px-4 pb-4 space-y-3 border-t border-border pt-4">
+                <p className="text-xs text-text-secondary leading-relaxed">
                   Your account and all data will be permanently deleted. This cannot be undone.
                 </p>
                 <div>
-                  <label className="text-[11px] text-[#9ca3af] block mb-1.5">Password</label>
+                  <label className="text-[11px] text-text-secondary block mb-1.5">Password</label>
                   <input
                     type="password"
                     value={deletePw}
                     onChange={(e) => setDeletePw(e.target.value)}
-                    className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:border-red-500"
+                    className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-text-secondary focus:outline-none focus:border-red-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] text-[#9ca3af] block mb-1.5">Username</label>
+                  <label className="text-[11px] text-text-secondary block mb-1.5">Username</label>
                   <input
                     type="text"
                     placeholder="Enter your username"
                     value={deleteInput}
                     onChange={(e) => setDeleteInput(e.target.value)}
-                    className="w-full bg-[#0f0f1a] border border-[#2d2d4a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:border-red-500"
+                    className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-text-secondary focus:outline-none focus:border-red-500"
                   />
                 </div>
                 {deleteMsg && (
