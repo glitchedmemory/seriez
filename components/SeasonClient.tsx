@@ -393,7 +393,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
 
           {/* Info */}
           <div className="flex-1 min-w-0 text-center md:text-left">
-            <h1 className="text-2xl md:text-3xl font-bold text-white leading-tight">
+            <h1 className="text-2xl md:text-3xl font-bold text-text-primary leading-tight">
               {data.title}
             </h1>
             <p className="text-lg text-text-secondary mt-0.5">{data.seasonName}</p>
@@ -522,7 +522,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                           key={c.id}
                           onClick={() => { addToCollection(c.id, c.name); setShowCollDropdown(false); }}
                           disabled={addingCollId === c.id}
-                          className="w-full text-left px-3 py-2.5 text-xs text-white hover:bg-bg-surface flex justify-between items-center transition-colors disabled:opacity-50"
+                          className="w-full text-left px-3 py-2.5 text-xs text-text-primary hover:bg-bg-surface flex justify-between items-center transition-colors disabled:opacity-50"
                         >
                           <span>{c.name}</span>
                           <span className="text-[10px] text-text-secondary">{c.itemCount}</span>
@@ -561,7 +561,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
         {/* ─── Season Tabs ─── */}
         {data.totalSeasons > 1 && (
           <div className="mt-6">
-            <h2 className="text-lg font-semibold text-white mb-3">Seasons</h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-3">Seasons</h2>
             <div className="flex flex-wrap gap-2">
               {Array.from({ length: data.totalSeasons }, (_, i) => i + 1).map((n) => (
                 <button
@@ -587,7 +587,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
         {/* Overview */}
         {data.overview && (
           <section className="mt-6">
-            <h2 className="text-lg font-semibold text-white mb-2">Overview</h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-2">Overview</h2>
             <p className="text-sm text-[#d1d5db] leading-relaxed">{data.overview}</p>
           </section>
         )}
@@ -609,7 +609,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
         {data.episodes.length > 0 && (
           <section className="mt-6">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold text-text-primary">
                 Episodes · {data.episodes.length}
               </h2>
               <div className="flex items-center gap-3">
@@ -669,7 +669,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-semibold text-accent">{ep.number}</span>
-                      <h3 className="text-sm font-medium text-white truncate">{ep.name}</h3>
+                      <h3 className="text-sm font-medium text-text-primary truncate">{ep.name}</h3>
                     </div>
                     <div className="flex items-center gap-3 mt-1 text-[10px] text-text-secondary">
                       {ep.runtime > 0 && <span>{formatRuntime(ep.runtime)}</span>}
@@ -733,7 +733,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
         {/* Trailers */}
         {data.trailers.length > 0 && (
           <section id="trailers" className="mt-6">
-            <h2 className="text-lg font-semibold text-white mb-3">🎬 Trailers</h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-3">🎬 Trailers</h2>
             <div className="space-y-3">
               {data.trailers.slice(0, 3).map((v) => (
                 <div key={v.key} className="aspect-video rounded-xl overflow-hidden bg-bg-card">
@@ -752,7 +752,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
         {/* Cast */}
         {data.cast.length > 0 && (
           <section className="mt-6">
-            <h2 className="text-lg font-semibold text-white mb-3">Cast</h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-3">Cast</h2>
             <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
               {visibleCast.map((c) => (
                 <a
@@ -769,7 +769,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                       sizes="(max-width: 768px) 48px, 64px"
                     />
                   </div>
-                  <p className="text-xs font-medium text-white truncate">{c.name}</p>
+                  <p className="text-xs font-medium text-text-primary truncate">{c.name}</p>
                   <p className="text-[10px] text-text-secondary truncate">{c.character}</p>
                 </a>
               ))}
@@ -804,10 +804,10 @@ function SimilarSection({ items }: { items: SimilarItem[] }) {
   return (
     <section className="mt-6">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold text-white">Recommended</h2>
+        <h2 className="text-lg font-semibold text-text-primary">Recommended</h2>
         <div className="hidden md:flex gap-1">
-          <button onClick={() => scroll("left")} className="w-8 h-8 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-white text-sm transition-colors">←</button>
-          <button onClick={() => scroll("right")} className="w-8 h-8 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-white text-sm transition-colors">→</button>
+          <button onClick={() => scroll("left")} className="w-8 h-8 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-text-primary text-sm transition-colors">←</button>
+          <button onClick={() => scroll("right")} className="w-8 h-8 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-text-primary text-sm transition-colors">→</button>
         </div>
       </div>
       <div ref={ref} className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar scroll-smooth">
@@ -822,7 +822,7 @@ function SimilarSection({ items }: { items: SimilarItem[] }) {
                 sizes="112px"
               />
             </div>
-            <p className="text-[11px] text-white mt-1 line-clamp-1">{item.title}</p>
+            <p className="text-[11px] text-text-primary mt-1 line-clamp-1">{item.title}</p>
             <p className="text-[10px] text-text-secondary">★ {item.rating}</p>
           </a>
         ))}

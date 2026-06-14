@@ -149,7 +149,7 @@ export default function SettingsPage() {
           >
             ← Back
           </button>
-          <h1 className="text-xl font-bold text-white">Settings</h1>
+          <h1 className="text-xl font-bold text-text-primary">Settings</h1>
         </div>
 
         <div className="px-4 space-y-3 mt-1">
@@ -160,7 +160,7 @@ export default function SettingsPage() {
           >
             <div className="flex items-center gap-3">
               <span className="text-lg">👤</span>
-              <span className="text-sm text-white">Change Profile</span>
+              <span className="text-sm text-text-primary">Change Profile</span>
             </div>
             <span className="text-xs text-[#4b5563] group-hover:text-text-secondary transition-colors">
               Avatar · Background →
@@ -171,7 +171,7 @@ export default function SettingsPage() {
           <div className="bg-bg-card border border-border rounded-xl px-4 py-3.5">
             <div className="flex items-center gap-3 mb-3">
               <span className="text-lg">🎨</span>
-              <span className="text-sm text-white">Appearance</span>
+              <span className="text-sm text-text-primary">Appearance</span>
             </div>
             <div className="flex gap-2">
               {(["system", "dark", "light"] as ThemeMode[]).map((mode) => (
@@ -195,7 +195,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3">
               <span className="text-lg">✉️</span>
               <div>
-                <span className="text-sm text-white">Change Email</span>
+                <span className="text-sm text-text-primary">Change Email</span>
                 <p className="text-[10px] text-gold">SMTP setup required</p>
               </div>
             </div>
@@ -209,7 +209,7 @@ export default function SettingsPage() {
             >
               <div className="flex items-center gap-3">
                 <span className="text-lg">🔒</span>
-                <span className="text-sm text-white">Change Password</span>
+                <span className="text-sm text-text-primary">Change Password</span>
               </div>
               <span className="text-text-secondary text-xs transition-transform duration-200" style={{ transform: showPwForm ? "rotate(180deg)" : "rotate(0deg)" }}>
                 ▼
@@ -223,7 +223,7 @@ export default function SettingsPage() {
                     type="password"
                     value={currentPw}
                     onChange={(e) => setCurrentPw(e.target.value)}
-                    className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-text-secondary focus:outline-none focus:border-accent"
+                    className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent"
                   />
                 </div>
                 <div>
@@ -233,7 +233,7 @@ export default function SettingsPage() {
                     placeholder={PW_RULES.label}
                     value={newPw}
                     onChange={(e) => setNewPw(e.target.value)}
-                    className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-text-secondary focus:outline-none focus:border-accent"
+                    className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent"
                   />
                   <p className="text-[10px] text-text-secondary mt-1">{PW_RULES.label}</p>
                 </div>
@@ -243,7 +243,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleChangePassword}
                   disabled={pwLoading}
-                  className="w-full py-2.5 bg-accent hover:bg-accent-light disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="w-full py-2.5 bg-accent hover:bg-accent-light disabled:opacity-50 text-text-primary text-sm font-medium rounded-lg transition-colors"
                 >
                   {pwLoading ? "Changing..." : "Change Password"}
                 </button>
@@ -285,7 +285,7 @@ export default function SettingsPage() {
                   placeholder="Enter username"
                   value={resetInput}
                   onChange={(e) => setResetInput(e.target.value)}
-                  className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-text-secondary focus:outline-none focus:border-gold"
+                  className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-secondary focus:outline-none focus:border-gold"
                 />
                 {resetMsg && (
                   <p className={`text-xs ${resetMsg.includes("have been") ? "text-emerald-400" : "text-red-400"}`}>{resetMsg}</p>
@@ -326,7 +326,7 @@ export default function SettingsPage() {
                     type="password"
                     value={deletePw}
                     onChange={(e) => setDeletePw(e.target.value)}
-                    className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-text-secondary focus:outline-none focus:border-red-500"
+                    className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-secondary focus:outline-none focus:border-red-500"
                   />
                 </div>
                 <div>
@@ -336,7 +336,7 @@ export default function SettingsPage() {
                     placeholder="Enter your username"
                     value={deleteInput}
                     onChange={(e) => setDeleteInput(e.target.value)}
-                    className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-text-secondary focus:outline-none focus:border-red-500"
+                    className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-secondary focus:outline-none focus:border-red-500"
                   />
                 </div>
                 {deleteMsg && (
@@ -345,7 +345,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleDeleteAccount}
                   disabled={deleteLoading || !deletePw || !deleteInput}
-                  className="w-full py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="w-full py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-text-primary text-sm font-medium rounded-lg transition-colors"
                 >
                   {deleteLoading ? "Deleting..." : "Delete Account"}
                 </button>

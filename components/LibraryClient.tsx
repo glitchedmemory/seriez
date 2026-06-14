@@ -82,12 +82,12 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
         {sortedItems.map(item => (
         <a key={`${item.mediaType}-${item.tmdbId}`} href={`/title/${item.tmdbId}${item.mediaType === "tv" ? "/season/1" : `?type=${item.mediaType}`}`} className="block group">
           <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card">
-            {item.poster ? <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-white/20 text-2xl font-bold">{item.title.slice(0,2)}</div>}
+            {item.poster ? <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-text-primary/20 text-2xl font-bold">{item.title.slice(0,2)}</div>}
             <div className="absolute top-2 left-2"><span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${item.status==="completed"?"bg-green-500/20 text-green-400":item.status==="watching"?"bg-blue-500/20 text-blue-400":"bg-amber-500/20 text-amber-400"}`}>{item.status==="completed"?"Watched":item.status==="watching"?"Watching":"To Watch"}</span></div>
             {item.tmdbRating > 0 && <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-gold">★ {item.tmdbRating}</div>}
             {item.rating && <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-pink-400">★ {item.rating}</div>}
           </div>
-          <p className="mt-1.5 text-xs font-medium text-white leading-tight line-clamp-2 group-hover:text-accent transition-colors">{item.title}</p>
+          <p className="mt-1.5 text-xs font-medium text-text-primary leading-tight line-clamp-2 group-hover:text-accent transition-colors">{item.title}</p>
           <p className="text-[10px] text-text-secondary">{item.year || "—"} · {item.mediaType==="movie"?"Movie":"TV"}</p>
         </a>
       ))}
@@ -153,7 +153,7 @@ function CollectionsView() {
       <div className="px-4 mt-4">
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => setSelectedId(null)} className="text-text-secondary hover:text-white text-sm">← Back</button>
-          <h2 className="text-lg font-semibold text-white">{collection?.name}</h2>
+          <h2 className="text-lg font-semibold text-text-primary">{collection?.name}</h2>
           <span className="text-xs text-text-secondary">{items.length} items</span>
         </div>
         {itemsLoading ? <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" /></div>
@@ -163,11 +163,11 @@ function CollectionsView() {
             <div key={`${item.mediaType}-${item.tmdbId}`} className="relative group">
               <a href={`/title/${item.tmdbId}${item.mediaType==="tv"?"/season/1":`?type=${item.mediaType}`}`} className="block">
                 <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card">
-                  {item.poster ? <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-white/20 text-2xl font-bold">{item.title.slice(0,2)}</div>}
+                  {item.poster ? <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-text-primary/20 text-2xl font-bold">{item.title.slice(0,2)}</div>}
                   {item.rating > 0 && <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-gold">★ {item.rating}</div>}
-                  <button onClick={(e) => { e.preventDefault(); removeItem(selectedId, item.tmdbId, item.mediaType); }} className="absolute top-2 left-2 bg-red-500/80 hover:bg-red-500 rounded-full w-5 h-5 flex items-center justify-center text-white text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                  <button onClick={(e) => { e.preventDefault(); removeItem(selectedId, item.tmdbId, item.mediaType); }} className="absolute top-2 left-2 bg-red-500/80 hover:bg-red-500 rounded-full w-5 h-5 flex items-center justify-center text-text-primary text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
                 </div>
-                <p className="mt-1.5 text-xs font-medium text-white leading-tight line-clamp-2">{item.title}</p>
+                <p className="mt-1.5 text-xs font-medium text-text-primary leading-tight line-clamp-2">{item.title}</p>
                 <p className="text-[10px] text-text-secondary">{item.year||"—"} · {item.mediaType==="movie"?"Movie":"TV"}</p>
               </a>
             </div>
@@ -185,7 +185,7 @@ function CollectionsView() {
       <>
       <div className="flex gap-2 mb-4">
         <input value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key==="Enter" && createCollection()}
-          placeholder="New collection name..." className="flex-1 bg-bg-card text-white text-sm rounded-xl px-3 py-2 outline-none border border-border focus:border-accent placeholder:text-text-secondary" maxLength={50} />
+          placeholder="New collection name..." className="flex-1 bg-bg-card text-text-primary text-sm rounded-xl px-3 py-2 outline-none border border-border focus:border-accent placeholder:text-text-secondary" maxLength={50} />
         <button onClick={createCollection} disabled={creating || !newName.trim()}
           className="px-4 py-2 rounded-xl bg-accent text-white text-sm font-medium disabled:opacity-40 hover:bg-[#5558e7] transition-colors">Create</button>
       </div>
@@ -194,7 +194,7 @@ function CollectionsView() {
       : <div className="space-y-2">
         {collections.map(c => (
           <div key={c.id} className="flex items-center gap-3 bg-bg-card rounded-xl p-3 hover:bg-bg-surface transition-colors cursor-pointer group" onClick={() => { setSelectedId(c.id); fetchItems(c.id); }}>
-            <div className="flex-1 min-w-0"><p className="text-sm font-medium text-white truncate">{c.name}</p><p className="text-xs text-text-secondary">{c.itemCount} item{c.itemCount !== 1 ? "s" : ""}</p></div>
+            <div className="flex-1 min-w-0"><p className="text-sm font-medium text-text-primary truncate">{c.name}</p><p className="text-xs text-text-secondary">{c.itemCount} item{c.itemCount !== 1 ? "s" : ""}</p></div>
             <button onClick={e => { e.stopPropagation(); togglePublish(c.id); }} className={`text-[10px] font-medium px-2 py-1 rounded-lg transition-colors ${c.isPublished ? "bg-[#374151]/50 text-text-secondary hover:bg-[#374151]" : "bg-accent/10 text-[#818cf8] hover:bg-accent/20"}`}>{c.isPublished ? "혼자보기" : "발행하기"}</button>
             <button onClick={e => { e.stopPropagation(); deleteCollection(c.id); }} className="text-text-secondary hover:text-red-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity">🗑</button>
           </div>

@@ -242,7 +242,7 @@ export default function OnboardingPage() {
             <div className="flex flex-col gap-3 w-full max-w-xs">
               <button
                 onClick={() => setStep(STEP.WATCHED)}
-                className="w-full py-3 bg-accent hover:bg-[#5558e8] text-white font-semibold rounded-xl transition-colors"
+                className="w-full py-3 bg-accent hover:bg-[#5558e8] text-text-primary font-semibold rounded-xl transition-colors"
               >
                 Continue
               </button>
@@ -290,7 +290,7 @@ export default function OnboardingPage() {
                   <div className="flex-1 min-w-0">
                     {w ? (
                       <>
-                        <p className="text-sm font-medium text-white truncate">{w.title}</p>
+                        <p className="text-sm font-medium text-text-primary truncate">{w.title}</p>
                         <p className="text-xs text-text-secondary">
                           {w.year} · {w.type === "movie" ? "Movie" : "TV"}
                         </p>
@@ -324,7 +324,7 @@ export default function OnboardingPage() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search movies or shows..."
-                  className="w-full bg-bg-card text-white text-sm rounded-xl px-4 py-3 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary"
+                  className="w-full bg-bg-card text-text-primary text-sm rounded-xl px-4 py-3 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary"
                 />
                 {loading && (
                   <div className="absolute right-4 top-3">
@@ -356,7 +356,7 @@ export default function OnboardingPage() {
                           <div className="w-8 h-12 rounded bg-bg-surface flex-shrink-0" />
                         )}
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-white truncate">{r.title}</p>
+                          <p className="text-sm font-medium text-text-primary truncate">{r.title}</p>
                           <p className="text-xs text-text-secondary">
                             {r.year} · {r.type === "movie" ? "Movie" : "TV"}
                             {r.rating > 0 && ` · ★ ${r.rating}`}
@@ -374,7 +374,7 @@ export default function OnboardingPage() {
               <button
                 onClick={runCuration}
                 disabled={loadingCuration}
-                className="w-full py-3 bg-accent hover:bg-[#5558e8] text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+                className="w-full py-3 bg-accent hover:bg-[#5558e8] text-text-primary font-semibold rounded-xl transition-colors disabled:opacity-50"
               >
                 {loadingCuration ? "Finding your match..." : "Show my recommendation"}
               </button>
@@ -432,7 +432,7 @@ export default function OnboardingPage() {
                 )}
 
                 {/* Title */}
-                <h2 className="text-xl font-bold text-white">{curation.item.title}</h2>
+                <h2 className="text-xl font-bold text-text-primary">{curation.item.title}</h2>
 
                 {/* Synopsis */}
                 {curation.item.overview && (
@@ -450,7 +450,7 @@ export default function OnboardingPage() {
               onClick={() => {
                 window.location.href = "/";
               }}
-              className="w-full max-w-xs py-3 bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white font-semibold rounded-xl transition-all hover:scale-105"
+              className="w-full max-w-xs py-3 bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-text-primary font-semibold rounded-xl transition-all hover:scale-105"
             >
               Sign up
             </button>

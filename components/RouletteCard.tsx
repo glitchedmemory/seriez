@@ -66,7 +66,7 @@ export default function RouletteCard() {
           </div>
 
           {/* Title */}
-          <h3 className="text-lg font-bold text-white mb-1.5">
+          <h3 className="text-lg font-bold text-text-primary mb-1.5">
             Feeling Lucky?
           </h3>
 
@@ -79,7 +79,7 @@ export default function RouletteCard() {
           <button
             onClick={spin}
             disabled={spinning}
-            className="group relative px-10 py-3 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#818cf8] text-white text-sm font-bold transition-all duration-200 hover:from-[#5558e6] hover:to-[#6366f1] hover:shadow-xl hover:shadow-[#6366f1]/30 active:scale-[0.97] disabled:opacity-50 overflow-hidden"
+            className="group relative px-10 py-3 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#818cf8] text-text-primary text-sm font-bold transition-all duration-200 hover:from-[#5558e6] hover:to-[#6366f1] hover:shadow-xl hover:shadow-[#6366f1]/30 active:scale-[0.97] disabled:opacity-50 overflow-hidden"
           >
             <span className="relative z-10 flex items-center gap-2">
               <span className="text-base">🎰</span>
@@ -103,7 +103,7 @@ export default function RouletteCard() {
           <button
             onClick={spin}
             disabled={spinning}
-            className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#818cf8] text-white text-sm font-bold transition-all hover:shadow-lg hover:shadow-[#6366f1]/30 active:scale-[0.97]"
+            className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#818cf8] text-text-primary text-sm font-bold transition-all hover:shadow-lg hover:shadow-[#6366f1]/30 active:scale-[0.97]"
           >
             {spinning ? "SPINNING..." : "Try Again"}
           </button>
@@ -127,7 +127,7 @@ export default function RouletteCard() {
               e.stopPropagation();
               setResult(null);
             }}
-            className="absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white/70 hover:text-white text-sm transition-colors"
+            className="absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-text-primary/70 hover:text-white text-sm transition-colors"
           >
             ✕
           </button>
@@ -156,7 +156,7 @@ export default function RouletteCard() {
                   {TYPE_EMOJI[result!.spunType]}
                 </span>
               )}
-              <h3 className="text-lg font-bold text-white leading-tight">
+              <h3 className="text-lg font-bold text-text-primary leading-tight">
                 {result!.title}
               </h3>
             </div>

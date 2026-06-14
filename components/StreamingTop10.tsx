@@ -138,7 +138,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
     return (
       <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
         <div className="p-3 text-center">
-          <h3 className="text-xs font-semibold text-white mb-1">📺 Streaming Top 10</h3>
+          <h3 className="text-xs font-semibold text-text-primary mb-1">📺 Streaming Top 10</h3>
           <p className="text-[10px] text-text-secondary">Failed to load</p>
         </div>
       </div>
@@ -152,7 +152,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
       <div className="p-3">
         {/* Header row: title + Movies/TV Shows toggle */}
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-xs font-semibold text-white flex items-center gap-1.5">
+          <h3 className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
             <span>📺</span> Streaming Top 10
           </h3>
 
@@ -255,7 +255,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
                 <span className="text-[9px] text-[#4b5563]">—</span>
               </div>
 
-              <span className="text-[12px] text-white truncate">{item.title}</span>
+              <span className="text-[12px] text-text-primary truncate">{item.title}</span>
             </a>
           ))}
         </div>

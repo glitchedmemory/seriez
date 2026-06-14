@@ -7,7 +7,7 @@ export function PosterCard({ item, showReason }: { item: MediaItem; showReason?:
         className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-gradient-to-br ${item.gradient} group-hover:scale-105 transition-transform duration-300`}
       >
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl font-bold text-white/30 select-none">
+          <span className="text-2xl font-bold text-text-primary/30 select-none">
             {item.title.slice(0, 2).toUpperCase()}
           </span>
         </div>
@@ -16,7 +16,7 @@ export function PosterCard({ item, showReason }: { item: MediaItem; showReason?:
           ★ {item.rating}
         </div>
         <div className="absolute bottom-2 left-2 right-2">
-          <p className="text-[11px] font-medium text-white leading-tight line-clamp-2">
+          <p className="text-[11px] font-medium text-text-primary leading-tight line-clamp-2">
             {item.title}
           </p>
         </div>

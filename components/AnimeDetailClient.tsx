@@ -448,7 +448,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
 
           {/* Info */}
           <div className="flex-1 min-w-0 text-center md:text-left">
-            <h1 className="text-2xl md:text-3xl font-bold text-white leading-tight">
+            <h1 className="text-2xl md:text-3xl font-bold text-text-primary leading-tight">
               {detail.title}
             </h1>
             {detail.titleRomaji && detail.titleRomaji !== detail.title && (
@@ -583,7 +583,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                           key={c.id}
                           onClick={() => { addToCollection(c.id, c.name); setShowCollDropdown(false); }}
                           disabled={addingCollId === c.id}
-                          className="w-full text-left px-3 py-2.5 text-xs text-white hover:bg-bg-surface flex justify-between items-center transition-colors disabled:opacity-50"
+                          className="w-full text-left px-3 py-2.5 text-xs text-text-primary hover:bg-bg-surface flex justify-between items-center transition-colors disabled:opacity-50"
                         >
                           <span>{c.name}</span>
                           <span className="text-[10px] text-text-secondary">{c.itemCount}</span>
@@ -618,7 +618,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         {/* ─── Season Tabs ─── */}
         {seasonTabs.length > 1 && (
           <div className="mt-6">
-            <h2 className="text-lg font-semibold text-white mb-3">Seasons</h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-3">Seasons</h2>
             <div className="flex flex-wrap gap-2">
               {seasonTabs.map((tab) => (
                 <button
@@ -644,7 +644,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         {/* Overview */}
         {detail.overview && (
           <section className="mt-6">
-            <h2 className="text-lg font-semibold text-white mb-2">Overview</h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-2">Overview</h2>
             <p className="text-sm text-[#d1d5db] leading-relaxed">{detail.overview}</p>
           </section>
         )}
@@ -658,7 +658,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         {episodes.length > 0 ? (
           <section className="mt-6">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold text-text-primary">
                 Episodes · {episodes.length}
               </h2>
               <div className="flex items-center gap-3">
@@ -717,7 +717,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                       <span className="text-xs font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded">
                         {ep.number}
                       </span>
-                      <h3 className="text-sm font-medium text-white truncate">{ep.title}</h3>
+                      <h3 className="text-sm font-medium text-text-primary truncate">{ep.title}</h3>
                     </div>
                     {ep.titleJapanese && (
                       <p className="text-[11px] text-text-secondary mt-0.5 truncate">
@@ -787,7 +787,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           </section>
         ) : episodes.length === 0 && detail.episodes > 0 ? (
           <section className="mt-6">
-            <h2 className="text-lg font-semibold text-white mb-3">Episodes</h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-3">Episodes</h2>
             <div className="bg-bg-card rounded-xl p-4 text-center">
               <p className="text-sm text-text-secondary">Episode data not available for this title.</p>
               <p className="text-[11px] text-text-secondary mt-1">{detail.episodes} episodes total</p>
@@ -798,7 +798,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         {/* Trailer */}
         {detail.trailer && (
           <section className="mt-6">
-            <h2 className="text-lg font-semibold text-white mb-3">🎬 Trailer</h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-3">🎬 Trailer</h2>
             <div className="aspect-video rounded-xl overflow-hidden bg-bg-card">
               <iframe
                 src={`https://www.youtube.com/embed/${detail.trailer.id}`}
@@ -813,7 +813,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         {/* Characters + Voice Actors */}
         {detail.characters.length > 0 && (
           <section className="mt-6">
-            <h2 className="text-lg font-semibold text-white mb-3">Characters & Voice Actors</h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-3">Characters & Voice Actors</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {visibleCast.map((c) => (
                 <div key={c.name} className="bg-bg-card rounded-xl p-3 flex items-center gap-3">
@@ -821,7 +821,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                     <PosterImage src={c.image} alt={c.name} fill className="rounded-full" sizes="40px" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-white truncate">{c.name}</p>
+                    <p className="text-xs font-medium text-text-primary truncate">{c.name}</p>
                     <p className="text-[10px] text-accent truncate">{c.role}</p>
                     {c.voiceActor && (
                       <p className="text-[10px] text-text-secondary truncate">VA: {c.voiceActor}</p>
@@ -860,10 +860,10 @@ function AnimeRecSection({ items }: { items: AnimeRecItem[] }) {
   return (
     <section className="mt-6">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold text-white">Recommended</h2>
+        <h2 className="text-lg font-semibold text-text-primary">Recommended</h2>
         <div className="hidden md:flex gap-1">
-          <button onClick={() => scroll("left")} className="w-8 h-8 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-white text-sm transition-colors">←</button>
-          <button onClick={() => scroll("right")} className="w-8 h-8 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-white text-sm transition-colors">→</button>
+          <button onClick={() => scroll("left")} className="w-8 h-8 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-text-primary text-sm transition-colors">←</button>
+          <button onClick={() => scroll("right")} className="w-8 h-8 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-text-primary text-sm transition-colors">→</button>
         </div>
       </div>
       <div ref={ref} className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar scroll-smooth">
@@ -876,7 +876,7 @@ function AnimeRecSection({ items }: { items: AnimeRecItem[] }) {
                 ★ {item.rating || "—"}
               </div>
               <div className="absolute bottom-2 left-2 right-2">
-                <p className="text-[11px] font-medium text-white leading-tight line-clamp-2">{item.title}</p>
+                <p className="text-[11px] font-medium text-text-primary leading-tight line-clamp-2">{item.title}</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-1 mt-1.5">

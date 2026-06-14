@@ -65,12 +65,12 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-sm mx-auto px-4 pt-20 pb-32">
-      <h1 className="text-2xl font-bold text-white mb-2">Sign in</h1>
+      <h1 className="text-2xl font-bold text-text-primary mb-2">Sign in</h1>
       <p className="text-sm text-text-secondary mb-6">Save your watch data across devices</p>
 
       {sent ? (
         <div className="bg-bg-card border border-border rounded-xl p-5 text-center">
-          <p className="text-white font-medium mb-1">Magic link sent!</p>
+          <p className="text-text-primary font-medium mb-1">Magic link sent!</p>
           <p className="text-sm text-text-secondary">Check {email} for the sign-in link.</p>
         </div>
       ) : (
@@ -81,7 +81,7 @@ export default function LoginPage() {
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-bg-card text-white rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-3"
+              className="w-full bg-bg-card text-text-primary rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-3"
               required
             />
             <button
@@ -105,7 +105,7 @@ export default function LoginPage() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-bg-card text-white rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-3"
+              className="w-full bg-bg-card text-text-primary rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-3"
               required
             />
             <input
@@ -113,7 +113,7 @@ export default function LoginPage() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-bg-card text-white rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-1"
+              className="w-full bg-bg-card text-text-primary rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-1"
               required
             />
             {error && <p className="text-red-400 text-xs mb-3">{error}</p>}

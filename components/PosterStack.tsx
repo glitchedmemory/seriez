@@ -33,7 +33,7 @@ export default function PosterStack({ posters, day, count }: PosterStackProps) {
         ) : (
           <FallbackPoster title={posters[0].title} />
         )}
-        <span className="absolute bottom-0.5 right-1.5 text-[11px] font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] z-10">
+        <span className="absolute bottom-0.5 right-1.5 text-[11px] font-bold text-text-primary drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] z-10">
           {day}
         </span>
       </div>
@@ -87,13 +87,13 @@ export default function PosterStack({ posters, day, count }: PosterStackProps) {
 
       {/* Count badge */}
       {count > 1 && (
-        <span className="absolute top-1 right-1 bg-black/75 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full z-20">
+        <span className="absolute top-1 right-1 bg-black/75 text-text-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full z-20">
           {count}
         </span>
       )}
 
       {/* Day number */}
-      <span className="absolute bottom-0.5 right-1.5 text-[11px] font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] z-20">
+      <span className="absolute bottom-0.5 right-1.5 text-[11px] font-bold text-text-primary drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] z-20">
         {day}
       </span>
     </div>
@@ -110,7 +110,7 @@ function FallbackPoster({
   return (
     <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-800 flex items-center justify-center p-0.5">
       <span
-        className={`text-white/60 font-semibold text-center leading-tight ${
+        className={`text-text-primary/60 font-semibold text-center leading-tight ${
           small ? "text-[8px]" : "text-[10px]"
         }`}
       >

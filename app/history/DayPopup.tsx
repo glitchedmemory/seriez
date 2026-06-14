@@ -76,7 +76,7 @@ export default function DayPopup({ date, entries, onClose }: DayPopupProps) {
       <div className="relative w-full max-w-md bg-bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <h3 className="text-white font-semibold text-sm">
+          <h3 className="text-text-primary font-semibold text-sm">
             {formatDate(date)}
           </h3>
           <button
@@ -108,14 +108,14 @@ export default function DayPopup({ date, entries, onClose }: DayPopupProps) {
                     />
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-800 flex items-center justify-center p-1">
-                      <span className="text-white/60 text-[9px] font-semibold text-center leading-tight">
+                      <span className="text-text-primary/60 text-[9px] font-semibold text-center leading-tight">
                         {entry.title}
                       </span>
                     </div>
                   )}
                 </div>
                 <div className="text-center w-full">
-                  <p className="text-white text-[11px] font-medium truncate leading-tight max-w-[80px]">
+                  <p className="text-text-primary text-[11px] font-medium truncate leading-tight max-w-[80px]">
                     {entry.title}
                   </p>
                   {entry.rating > 0 && (
@@ -140,7 +140,7 @@ export default function DayPopup({ date, entries, onClose }: DayPopupProps) {
         <div className="px-5 py-3 border-t border-border bg-bg-primary/50">
           <div className="flex items-center justify-between text-sm">
             <span className="text-text-secondary">Total watch time</span>
-            <span className="text-white font-semibold">
+            <span className="text-text-primary font-semibold">
               {formatRuntime(totalMinutes)}
             </span>
           </div>

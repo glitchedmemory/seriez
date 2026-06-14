@@ -84,7 +84,7 @@ export default function HistoryClient() {
     return (
       <div className="max-w-lg md:max-w-4xl mx-auto pb-32 px-4 pt-20 text-center">
         <span className="text-4xl mb-4 block">📭</span>
-        <h2 className="text-white text-lg font-bold mb-2">Error</h2>
+        <h2 className="text-text-primary text-lg font-bold mb-2">Error</h2>
         <p className="text-text-secondary text-sm">{error}</p>
       </div>
     );
@@ -126,7 +126,7 @@ export default function HistoryClient() {
       {/* ── Header nav ── */}
       <div className="pt-6 pb-2 px-4 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-white tracking-tight">Monthly Recap</h1>
+          <h1 className="text-lg font-bold text-text-primary tracking-tight">Monthly Recap</h1>
           <p className="text-text-secondary text-xs">Your viewing journal</p>
         </div>
         {fetching && (
@@ -158,7 +158,7 @@ export default function HistoryClient() {
 
       {/* ── Taste Profile ── */}
       <div className="px-4 mb-5">
-        <h2 className="text-lg font-extrabold text-white tracking-tight mb-3">Taste Profile</h2>
+        <h2 className="text-lg font-extrabold text-text-primary tracking-tight mb-3">Taste Profile</h2>
         <span className="inline-block bg-accent text-white text-[11px] font-bold px-3 py-1 rounded-full mb-2 tracking-wide">
           #RatingSpread
         </span>
@@ -199,7 +199,7 @@ export default function HistoryClient() {
 function StatCard({ value, label }: { value: string; label: string }) {
   return (
     <div className="bg-bg-card rounded-xl p-3.5 text-center">
-      <p className="text-[22px] font-extrabold text-white tracking-tight">{value}</p>
+      <p className="text-[22px] font-extrabold text-text-primary tracking-tight">{value}</p>
       <p className="text-[11px] font-medium text-text-secondary mt-0.5">{label}</p>
     </div>
   );

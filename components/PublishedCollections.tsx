@@ -49,14 +49,14 @@ export default function PublishedCollections() {
         <div className="flex gap-1">
           <button
             onClick={() => scroll("left")}
-            className="w-6 h-6 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-white text-xs transition-colors"
+            className="w-6 h-6 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-text-primary text-xs transition-colors"
             aria-label="Scroll left"
           >
             ←
           </button>
           <button
             onClick={() => scroll("right")}
-            className="w-6 h-6 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-white text-xs transition-colors"
+            className="w-6 h-6 rounded-full bg-bg-card hover:bg-bg-surface flex items-center justify-center text-text-primary text-xs transition-colors"
             aria-label="Scroll right"
           >
             →
@@ -87,7 +87,7 @@ export default function PublishedCollections() {
                       sizes="90px"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/10 text-lg">
+                    <div className="w-full h-full flex items-center justify-center text-text-primary/10 text-lg">
                       🎬
                     </div>
                   )}
@@ -96,7 +96,7 @@ export default function PublishedCollections() {
             </div>
 
             {/* Info */}
-            <p className="text-xs font-medium text-white truncate">{c.name}</p>
+            <p className="text-xs font-medium text-text-primary truncate">{c.name}</p>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-[10px] text-[#f87171]">♥ {c.likesCount}</span>
               <span className="text-[10px] text-text-secondary">{c.itemCount} items</span>

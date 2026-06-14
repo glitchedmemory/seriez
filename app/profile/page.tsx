@@ -185,7 +185,7 @@ export default function ProfilePage() {
             >
               ← Back
             </button>
-            <h1 className="text-lg font-bold text-white">
+            <h1 className="text-lg font-bold text-text-primary">
               {effectiveUsername ? `@${effectiveUsername}` : ""} · {tabLabel}
             </h1>
           </div>
@@ -219,12 +219,12 @@ export default function ProfilePage() {
                     className="flex items-center gap-3 bg-bg-card border border-border rounded-xl p-3 hover:border-accent/50 transition-colors"
                   >
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0">
-                      <span className="text-base font-bold text-white">
+                      <span className="text-base font-bold text-text-primary">
                         {u.username[0]?.toUpperCase()}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white">@{u.username}</p>
+                      <p className="text-sm font-medium text-text-primary">@{u.username}</p>
                       <p className="text-[10px] text-text-secondary">
                         {u.ratingsCount || 0} ratings · {u.commentsCount || 0} comments
                       </p>
@@ -291,7 +291,7 @@ export default function ProfilePage() {
             {avatarUrl ? (
               <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-3xl font-bold text-white">{initial}</span>
+              <span className="text-3xl font-bold text-text-primary">{initial}</span>
             )}
           </div>
           <div className="flex-1" />
@@ -315,7 +315,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-white">@{displayName}</h1>
+          <h1 className="text-2xl font-bold text-text-primary">@{displayName}</h1>
           {(isOwn && user) && (
             <button
               onClick={() => router.push("/profile/settings")}
@@ -326,10 +326,10 @@ export default function ProfilePage() {
         </div>
         <div className="flex gap-5 mt-1 text-sm text-text-secondary">
           <button onClick={() => fetchFollowList("followers")} className="hover:text-white transition-colors">
-            <strong className="text-white">{followersCount}</strong> followers
+            <strong className="text-text-primary">{followersCount}</strong> followers
           </button>
           <button onClick={() => fetchFollowList("following")} className="hover:text-white transition-colors">
-            <strong className="text-white">{followingCount}</strong> following
+            <strong className="text-text-primary">{followingCount}</strong> following
           </button>
         </div>
       </div>
@@ -340,10 +340,10 @@ export default function ProfilePage() {
           {/* Match Rate — compact banner style */}
           <div className="flex items-center gap-3 px-1">
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#818cf8] to-[#a78bfa] flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-xs">♡</span>
+              <span className="text-text-primary text-xs">♡</span>
             </div>
             <span className="text-sm text-text-secondary">Taste Match</span>
-            <span className="text-2xl font-bold text-white ml-auto">{compareData.matchRate}%</span>
+            <span className="text-2xl font-bold text-text-primary ml-auto">{compareData.matchRate}%</span>
           </div>
 
           {/* ─── Ad Banner ─── */}
@@ -356,8 +356,8 @@ export default function ProfilePage() {
             </div>
             <div className="relative p-4 flex items-center justify-center text-center min-h-[150px]">
               <div>
-                <p className="text-[10px] text-white/50 font-medium uppercase tracking-[0.15em]">Advertisement</p>
-                <p className="text-sm font-bold text-white/70 mt-2">AD 300×150</p>
+                <p className="text-[10px] text-text-primary/50 font-medium uppercase tracking-[0.15em]">Advertisement</p>
+                <p className="text-sm font-bold text-text-primary/70 mt-2">AD 300×150</p>
               </div>
             </div>
           </div>
@@ -374,11 +374,11 @@ export default function ProfilePage() {
                       {item.poster ? (
                         <img src={item.poster} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/15 text-lg">🎬</div>
+                        <div className="w-full h-full flex items-center justify-center text-text-primary/15 text-lg">🎬</div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white font-medium truncate">{item.title}</p>
+                      <p className="text-sm text-text-primary font-medium truncate">{item.title}</p>
                       {item.year && <p className="text-[11px] text-text-secondary mt-0.5">{item.year}</p>}
                     </div>
                   </a>
@@ -399,11 +399,11 @@ export default function ProfilePage() {
                       {item.poster ? (
                         <img src={item.poster} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/15 text-lg">🎬</div>
+                        <div className="w-full h-full flex items-center justify-center text-text-primary/15 text-lg">🎬</div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white font-medium truncate">{item.title}</p>
+                      <p className="text-sm text-text-primary font-medium truncate">{item.title}</p>
                       <div className="flex items-center gap-4 mt-1.5">
                         <div className="flex items-center gap-1.5">
                           <span className="text-[10px] text-text-secondary w-8">You</span>
@@ -438,8 +438,8 @@ export default function ProfilePage() {
             className="block bg-gradient-to-r from-[#4c1d95] via-[#7c3aed] to-[#6366f1] rounded-2xl p-5 text-center hover:shadow-lg hover:shadow-[#7c3aed]/20 transition-shadow"
           >
             <span className="text-3xl block mb-2">🎬</span>
-            <h3 className="text-base font-bold text-white mb-1">Join Seriez</h3>
-            <p className="text-xs text-white/70 mb-4">
+            <h3 className="text-base font-bold text-text-primary mb-1">Join Seriez</h3>
+            <p className="text-xs text-text-primary/70 mb-4">
               Track what you watch, discover new favorites, and connect with friends
             </p>
             <span className="inline-block px-6 py-2.5 bg-white text-[#7c3aed] text-sm font-bold rounded-xl hover:bg-white/90 transition-colors">

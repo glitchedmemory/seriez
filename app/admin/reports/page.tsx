@@ -73,7 +73,7 @@ export default function AdminReportsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a1a] text-white p-6">
+    <div className="min-h-screen bg-[#0a0a1a] text-text-primary p-6">
       <h1 className="text-2xl font-bold mb-6">🚨 Hidden Content Reports</h1>
       {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 

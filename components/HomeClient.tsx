@@ -24,7 +24,7 @@ function SectionHeader({ emoji, title, subtitle }: { emoji: string; title: strin
     <div className="flex items-center gap-2 mb-3">
       <span className="text-lg">{emoji}</span>
       <div>
-        <h2 className="text-base font-semibold text-white">{title}</h2>
+        <h2 className="text-base font-semibold text-text-primary">{title}</h2>
         <p className="text-[11px] text-text-secondary">{subtitle}</p>
       </div>
     </div>
@@ -46,7 +46,7 @@ function CardWrapper({ item, reasonText, showCountdown }: { item: TmdbResult; re
       <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card group md:hover:scale-105 transition-transform">
         <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl" sizes="(max-width: 768px) 128px, 200px" />
         {showCountdown && item.daysUntil && (
-          <div className={`absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full text-[10px] font-bold text-white ${
+          <div className={`absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full text-[10px] font-bold text-text-primary ${
             item.daysUntil <= 7 ? "bg-red-500" : item.daysUntil <= 30 ? "bg-amber-500" : "bg-emerald-500"
           }`}>
             {item.daysUntil}d
@@ -57,7 +57,7 @@ function CardWrapper({ item, reasonText, showCountdown }: { item: TmdbResult; re
           ★ {item.rating || "—"}
         </div>
         <div className="absolute bottom-2 left-2 right-2">
-          <p className="text-[11px] font-medium text-white leading-tight line-clamp-2">{item.title}</p>
+          <p className="text-[11px] font-medium text-text-primary leading-tight line-clamp-2">{item.title}</p>
         </div>
       </div>
       <p className="mt-1 text-xs text-text-secondary">
@@ -77,14 +77,14 @@ function BoxOfficeCard({ movie, rank }: { movie: TmdbResult; rank: number }) {
     <a href={`/title/${movie.id}?type=${movie.type}`} className="flex-shrink-0 w-36 md:w-40 block snap-start group">
       <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card md:group-hover:scale-105 transition-transform">
         <PosterImage src={movie.poster} alt={movie.title} fill className="rounded-xl" sizes="(max-width: 768px) 144px, 160px" />
-        <div className={`absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-black text-white shadow-lg ${
+        <div className={`absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-black text-text-primary shadow-lg ${
           rank === 1 ? "bg-gold" : rank === 2 ? "bg-[#9ca3af]" : rank === 3 ? "bg-amber-700" : "bg-[#2d2d4a] text-text-secondary"
         }`}>
           {rank}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent" />
         <div className="absolute bottom-2 left-2 right-2">
-          <p className="text-[12px] font-semibold text-white leading-tight line-clamp-2">{movie.title}</p>
+          <p className="text-[12px] font-semibold text-text-primary leading-tight line-clamp-2">{movie.title}</p>
           <p className="text-[10px] text-text-secondary mt-0.5">{movie.year} · ★ {movie.rating}</p>
         </div>
       </div>
@@ -248,7 +248,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
               <PosterImage src={item.poster} alt="" fill className="rounded-lg" sizes="40px" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm text-white truncate">{item.title}</p>
+              <p className="text-sm text-text-primary truncate">{item.title}</p>
               <p className="text-xs text-text-secondary">
                 {item.year} · {item.type === "movie" ? "Movie" : item.type === "tv" ? "TV" : "Anime"} · ★ {item.rating}
               </p>
@@ -289,7 +289,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder="Search movies, TV, anime..."
-                className="w-full bg-bg-card text-white text-sm rounded-lg px-3 py-2 outline-none border border-border focus:border-accent transition-colors placeholder:text-text-secondary"
+                className="w-full bg-bg-card text-text-primary text-sm rounded-lg px-3 py-2 outline-none border border-border focus:border-accent transition-colors placeholder:text-text-secondary"
                 autoFocus
               />
               {searchDropdown}
@@ -365,7 +365,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
                 <div className="flex items-center gap-2">
                   <span className="text-lg">🔥</span>
                   <div>
-                    <h2 className="text-base font-semibold text-white">Trending This Week</h2>
+                    <h2 className="text-base font-semibold text-text-primary">Trending This Week</h2>
                     <p className="text-[11px] text-text-secondary">Most popular {trendingMode === "movie" ? "movies" : trendingMode === "tv" ? "TV" : "anime"}</p>
                   </div>
                 </div>
@@ -377,21 +377,21 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
                   <button
                     onClick={() => switchTrendingMode("movie")}
                     className={`absolute left-0 top-0 w-[56px] h-full flex items-center justify-center text-[10px] font-semibold transition-colors duration-300 hover:bg-white/5 ${
-                      trendingMode === "movie" ? "text-white" : "text-text-secondary"
+                      trendingMode === "movie" ? "text-text-primary" : "text-text-secondary"
                     }`}
                     aria-label="Show trending movies"
                   >🎬 Movies</button>
                   <button
                     onClick={() => switchTrendingMode("tv")}
                     className={`absolute left-[56px] top-0 w-[56px] h-full flex items-center justify-center text-[10px] font-semibold transition-colors duration-300 hover:bg-white/5 ${
-                      trendingMode === "tv" ? "text-white" : "text-text-secondary"
+                      trendingMode === "tv" ? "text-text-primary" : "text-text-secondary"
                     }`}
                     aria-label="Show trending TV"
                   >📺 TV</button>
                   <button
                     onClick={() => switchTrendingMode("anime")}
                     className={`absolute left-[112px] top-0 w-[56px] h-full flex items-center justify-center text-[10px] font-semibold transition-colors duration-300 hover:bg-white/5 ${
-                      trendingMode === "anime" ? "text-white" : "text-text-secondary"
+                      trendingMode === "anime" ? "text-text-primary" : "text-text-secondary"
                     }`}
                     aria-label="Show trending anime"
                   >🍿 Anime</button>
@@ -447,7 +447,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
               onChange={(e) => { handleSearchChange(e.target.value); if (!searchOpen) setSearchOpen(true); }}
               onFocus={() => setSearchOpen(true)}
               placeholder="Search movies, TV, anime..."
-              className="w-full bg-bg-card text-white text-sm rounded-xl px-4 py-2.5 pl-10 outline-none border border-border focus:border-accent transition-colors placeholder:text-text-secondary"
+              className="w-full bg-bg-card text-text-primary text-sm rounded-xl px-4 py-2.5 pl-10 outline-none border border-border focus:border-accent transition-colors placeholder:text-text-secondary"
             />
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-text-secondary absolute left-3.5 top-3">
               <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />

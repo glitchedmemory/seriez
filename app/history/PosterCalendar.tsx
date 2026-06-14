@@ -49,7 +49,7 @@ export default function PosterCalendar({
         <button onClick={onPrevMonth} className="text-accent text-lg font-light px-1 hover:text-[#818cf8] transition-colors" aria-label="Previous month">
           ‹
         </button>
-        <h2 className="text-lg font-bold text-white tracking-tight">
+        <h2 className="text-lg font-bold text-text-primary tracking-tight">
           {MONTHS[month - 1]} {year}
         </h2>
         <button onClick={onNextMonth} className="text-accent text-lg font-light px-1 hover:text-[#818cf8] transition-colors" aria-label="Next month">
@@ -128,14 +128,14 @@ export default function PosterCalendar({
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-800 flex items-center justify-center min-h-[56px]">
-                      <span className="text-white/60 text-[10px] font-semibold text-center px-1 leading-tight">
+                      <span className="text-text-primary/60 text-[10px] font-semibold text-center px-1 leading-tight">
                         {firstEntry.title.slice(0, 10)}
                       </span>
                     </div>
                   )}
                   {/* Title overlay */}
                   <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5">
-                    <p className="text-[9px] font-bold text-white truncate leading-tight text-center">
+                    <p className="text-[9px] font-bold text-text-primary truncate leading-tight text-center">
                       {firstEntry.title.length > 12
                         ? firstEntry.title.slice(0, 12) + "…"
                         : firstEntry.title}

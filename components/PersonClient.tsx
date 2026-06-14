@@ -19,7 +19,7 @@ function CreditCard({ item, type }: { item: { id: number; title: string; charact
         />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-white truncate">{item.title}</p>
+        <p className="text-sm font-medium text-text-primary truncate">{item.title}</p>
         <p className="text-xs text-text-secondary">{item.year}</p>
         <p className="text-[11px] text-accent-light truncate">{item.character}</p>
       </div>
@@ -48,7 +48,7 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
 
         {/* Info */}
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-2xl md:text-3xl font-bold text-white">
+          <h1 className="text-2xl md:text-3xl font-bold text-text-primary">
             {person.name}
           </h1>
           <p className="text-sm text-accent mt-1">{person.knownFor}</p>
@@ -70,7 +70,7 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
       {/* Biography */}
       {person.biography && (
         <section className="mt-6">
-          <h2 className="text-lg font-semibold text-white mb-2">Biography</h2>
+          <h2 className="text-lg font-semibold text-text-primary mb-2">Biography</h2>
           <p className="text-sm text-[#d1d5db] leading-relaxed">{person.biography}</p>
         </section>
       )}
@@ -78,7 +78,7 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
       {/* Movies */}
       {person.movieCredits.length > 0 && (
         <section className="mt-6">
-          <h2 className="text-lg font-semibold text-white mb-3">
+          <h2 className="text-lg font-semibold text-text-primary mb-3">
             🎬 Movies ({person.movieCredits.length})
           </h2>
           <div className="space-y-2">
@@ -92,7 +92,7 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
       {/* TV Shows */}
       {person.tvCredits.length > 0 && (
         <section className="mt-6">
-          <h2 className="text-lg font-semibold text-white mb-3">
+          <h2 className="text-lg font-semibold text-text-primary mb-3">
             📺 TV Shows ({person.tvCredits.length})
           </h2>
           <div className="space-y-2">
