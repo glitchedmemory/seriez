@@ -58,7 +58,7 @@ export default function PosterCalendar({
       </div>
 
       {/* Day headers */}
-      <div className="grid grid-cols-7 text-center border-b border-[#1a1a2e] pb-2 mb-1.5">
+      <div className="grid grid-cols-7 text-center border-b border-border pb-2 mb-1.5">
         {DAYS_OF_WEEK.map((d, i) => (
           <div
             key={d}
@@ -106,7 +106,7 @@ export default function PosterCalendar({
                     ? "text-[#ef4444]"
                     : i % 7 === 6
                     ? "text-accent"
-                    : "text-[#d1d5db]"
+                    : "text-text-secondary"
                 } ${!isEmpty ? "cursor-pointer hover:bg-bg-card" : ""}`}
               >
                 {day}

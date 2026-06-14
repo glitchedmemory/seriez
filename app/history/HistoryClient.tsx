@@ -145,7 +145,7 @@ export default function HistoryClient() {
       </div>
 
       {/* ── Divider ── */}
-      <div className="h-2 bg-[#0a0a14] mb-5" />
+      <div className="h-2 bg-border mb-5" />
 
       {/* Watch time overview */}
       <div className="px-4 mb-5">
@@ -162,7 +162,7 @@ export default function HistoryClient() {
         <span className="inline-block bg-accent text-white text-[11px] font-bold px-3 py-1 rounded-full mb-2 tracking-wide">
           #RatingSpread
         </span>
-        <p className="text-[15px] font-bold text-[#e5e7eb] tracking-tight mb-1">
+        <p className="text-[15px] font-bold text-text-primary tracking-tight mb-1">
           You&apos;re a &apos;{personaLabel}&apos;
         </p>
         <p className="text-[13px] text-text-secondary leading-relaxed mb-5">

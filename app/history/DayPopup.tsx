@@ -81,7 +81,7 @@ export default function DayPopup({ date, entries, onClose }: DayPopupProps) {
           </h3>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-[#2d2d4a] text-text-secondary hover:bg-[#3d3d5a] hover:text-white transition-colors text-sm"
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-bg-card-hover text-text-secondary hover:bg-bg-surface hover:text-text-primary transition-colors text-sm"
           >
             ✕
           </button>
