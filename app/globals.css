@@ -9,6 +9,7 @@
 @theme inline {
   --color-bg-primary: var(--bg-primary);
   --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
   --color-bg-surface: var(--bg-surface);
   --color-accent: var(--accent);
   --color-accent-light: var(--accent-light);

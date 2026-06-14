@@ -106,7 +106,7 @@ export default function SearchPage() {
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
             >
               ✕
             </button>
@@ -135,7 +135,7 @@ export default function SearchPage() {
                     <button
                       key={item.id}
                       onClick={() => { setQuery(item.title); logSearch(item.title); }}
-                      className="px-3 py-1.5 rounded-full bg-bg-card hover:bg-[#2d2d4a] text-xs text-[#d1d5db] transition-colors border border-border hover:border-accent"
+                      className="px-3 py-1.5 rounded-full bg-bg-card hover:bg-bg-card-hover text-xs text-text-primary transition-colors border border-border hover:border-accent"
                     >
                       {item.title}
                     </button>
@@ -203,7 +203,7 @@ export default function SearchPage() {
 
                 {/* Arrow */}
                 <svg
-                  className="w-4 h-4 text-[#4b5563] flex-shrink-0"
+                  className="w-4 h-4 text-text-secondary flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
