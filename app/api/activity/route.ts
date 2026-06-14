@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
   // 4. Combine and deduplicate into activity feed
   interface Activity {
     id: string;
-    type: "review" | "rated" | "watched" | "watching" | "plan_to_watch";
+    type: "review" | "rated" | "watched" | "watching" | "plan_to_watch" | "collection";
     username: string;
     tmdbId: number;
     mediaType: string;
@@ -79,6 +79,8 @@ export async function GET(req: NextRequest) {
     year: string | null;
     rating?: number;
     content?: string;
+    collectionName?: string;
+    itemCount?: number;
     createdAt: string;
   }
 
@@ -143,6 +145,46 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  // Collections: published by followed users
+  const { data: collections } = await supabase
+    .from("user_lists")
+    .select("id, user_id, name, published_at")
+    .in("user_id", followingIds)
+    .eq("is_published", true)
+    .order("published_at", { ascending: false })
+    .limit(20);
+
+  if (collections?.length) {
+    // Count items per collection
+    const listIds = collections.map((c: any) => c.id);
+    const { data: itemCounts } = await supabase
+      .from("list_items")
+      .select("list_id")
+      .in("list_id", listIds);
+    const countMap: Record<string, number> = {};
+    for (const li of (itemCounts || [])) {
+      countMap[li.list_id] = (countMap[li.list_id] || 0) + 1;
+    }
+
+    for (const c of collections) {
+      const resolvedUsername = idToUsername[c.user_id];
+      if (!resolvedUsername) continue;
+      activities.push({
+        id: `col-${c.id}`,
+        type: "collection",
+        username: resolvedUsername,
+        tmdbId: 0,
+        mediaType: "",
+        title: "",
+        poster: null,
+        year: null,
+        collectionName: c.name,
+        itemCount: countMap[c.id] || 0,
+        createdAt: c.published_at,
+      });
+    }
+  }
+
   // Sort by most recent, deduplicate by (username, tmdbId, type), limit
   activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
@@ -155,9 +197,10 @@ export async function GET(req: NextRequest) {
     return true;
   }).slice(0, 20);
 
-  // 5. Enrich with TMDB data in parallel
+  // 5. Enrich with TMDB data in parallel (skip collections)
   const enriched = await Promise.all(
     unique.map(async (a) => {
+      if (a.type === "collection" || a.tmdbId === 0) return a;
       try {
         const res = await fetch(
           `${TMDB_API}/${a.mediaType}/${a.tmdbId}?api_key=${TMDB_KEY}`

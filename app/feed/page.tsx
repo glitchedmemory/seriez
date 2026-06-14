@@ -6,7 +6,7 @@ import PosterImage from "@/components/PosterImage";
 
 interface Activity {
   id: string;
-  type: "review" | "rated" | "watched" | "watching" | "plan_to_watch";
+  type: "review" | "rated" | "watched" | "watching" | "plan_to_watch" | "collection";
   username: string;
   tmdbId: number;
   mediaType: string;
@@ -15,6 +15,8 @@ interface Activity {
   year: string | null;
   rating?: number;
   content?: string;
+  collectionName?: string;
+  itemCount?: number;
   createdAt: string;
 }
 
@@ -24,6 +26,7 @@ const TYPE_ICON: Record<string, string> = {
   watched: "✅",
   watching: "👁️",
   plan_to_watch: "📌",
+  collection: "📁",
 };
 
 const TYPE_TEXT: Record<string, string> = {
@@ -32,6 +35,7 @@ const TYPE_TEXT: Record<string, string> = {
   watched: "watched",
   watching: "is watching",
   plan_to_watch: "plans to watch",
+  collection: "published a collection",
 };
 
 function timeAgo(dateStr: string): string {
@@ -88,22 +92,34 @@ export default function FeedPage() {
         </div>
       ) : (
         <div className="px-4 mt-4 space-y-1">
-          {activities.map((a) => (
+          {activities.map((a) => {
+            const isCollection = a.type === "collection";
+            const href = isCollection
+              ? `/collections/${a.id.replace("col-", "")}`
+              : `/title/${a.tmdbId}?type=${a.mediaType}`;
+
+            return (
             <Link
               key={a.id}
-              href={`/title/${a.tmdbId}?type=${a.mediaType}`}
+              href={href}
               className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#1a1a2e] transition-colors group"
             >
-              {/* Poster */}
-              <div className="w-10 h-[60px] rounded-lg overflow-hidden bg-[#1a1a2e] flex-shrink-0 relative">
-                {a.poster ? (
-                  <PosterImage src={a.poster} alt="" fill className="rounded-lg" sizes="40px" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/10 text-lg font-bold">
-                    {a.title.slice(0, 1)}
-                  </div>
-                )}
-              </div>
+              {/* Poster / Collection icon */}
+              {isCollection ? (
+                <div className="w-10 h-[60px] rounded-lg bg-[#1a1a2e] flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl">📁</span>
+                </div>
+              ) : (
+                <div className="w-10 h-[60px] rounded-lg overflow-hidden bg-[#1a1a2e] flex-shrink-0 relative">
+                  {a.poster ? (
+                    <PosterImage src={a.poster} alt="" fill className="rounded-lg" sizes="40px" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-white/10 text-lg font-bold">
+                      {a.title.slice(0, 1)}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Content */}
               <div className="min-w-0 flex-1">
@@ -113,20 +129,25 @@ export default function FeedPage() {
                     <span className="font-semibold text-[#a855f7]">{a.username}</span>{" "}
                     <span className="text-[#9ca3af]">{TYPE_TEXT[a.type] || "tracked"}</span>{" "}
                     <span className="font-medium group-hover:text-[#6366f1] transition-colors">
-                      {a.title}
+                      {isCollection ? a.collectionName : a.title}
                     </span>
                   </p>
                 </div>
 
-                {/* Rating badge */}
+                {/* Badge row */}
                 <div className="flex items-center gap-2 mt-0.5">
-                  {a.rating && a.rating > 0 && (
+                  {!isCollection && a.rating && a.rating > 0 && (
                     <span className="text-[11px] text-[#f59e0b] font-medium">
                       ★ {a.rating}
                     </span>
                   )}
-                  {a.year && (
+                  {!isCollection && a.year && (
                     <span className="text-[11px] text-[#6b7280]">{a.year}</span>
+                  )}
+                  {isCollection && a.itemCount !== undefined && (
+                    <span className="text-[11px] text-[#6b7280]">
+                      {a.itemCount} item{a.itemCount !== 1 ? "s" : ""}
+                    </span>
                   )}
                   <span className="text-[11px] text-[#4b5563]">{timeAgo(a.createdAt)}</span>
                 </div>
@@ -153,7 +174,8 @@ export default function FeedPage() {
                 />
               </svg>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
