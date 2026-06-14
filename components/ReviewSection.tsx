@@ -785,187 +785,239 @@ export function ReviewSection({
           <p className="text-sm text-[#6b7280]">No reviews yet</p>
           <p className="text-xs text-[#6b7280]/70 mt-0.5">Be the first to share your thoughts</p>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {reviews.map((review) => (
-            <div key={review.id} className="bg-[#1a1a2e] rounded-xl p-4">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1">
-                  {avatarUrls[review.username] ? (
-                    <img src={avatarUrls[review.username]!} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
-                      {review.username[0].toUpperCase()}
-                    </div>
-                  )}
-                  <span className="text-sm font-medium text-white hover:text-[#6366f1] cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${review.username}`)}>
-                    {review.username}
-                  </span>
-                  {review.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block" />}
-                  {renderStars(review.rating)}
-                </div>
-                <span className="text-[10px] text-[#6b7280]">
-                  {formatDate(review.createdAt)}
+      ) : (() => {
+        // Pinned: top 2 by likes (only on page 1)
+        const pinnedReviews = currentPage === 1
+          ? [...reviews].sort((a, b) => b.likes - a.likes).slice(0, 2).filter(r => r.likes > 0)
+          : [];
+        const pinnedIds = new Set(pinnedReviews.map(r => r.id));
+        // All reviews sorted chronologically (newest first)
+        const allByTime = [...reviews].sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+
+        const ReviewCard = ({ review, isPinned }: { review: Review; isPinned?: boolean }) => (
+          <div key={review.id} className={`relative overflow-hidden rounded-2xl p-5 transition-all duration-300 ${
+            isPinned
+              ? "bg-white/[0.03] backdrop-blur-xl border border-[#f59e0b]/45 shadow-[0_0_20px_rgba(245,158,11,0.08),0_0_60px_rgba(245,158,11,0.03)] hover:border-[#f59e0b]/65 hover:shadow-[0_0_30px_rgba(245,158,11,0.15),0_0_80px_rgba(245,158,11,0.05)]"
+              : "bg-white/[0.03] backdrop-blur-xl border border-[#6366f1]/10 hover:border-[#6366f1]/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#6366f1]/8"
+          }`}>
+            {isPinned && (
+              <div className="absolute top-0 left-0 right-0 h-full pointer-events-none"
+                style={{background: "radial-gradient(ellipse at 30% 10%, rgba(245,158,11,0.06) 0%, transparent 60%)"}} />
+            )}
+            <div className="flex items-center justify-between mb-2 relative z-[1]">
+              <div className="flex items-center gap-2">
+                {avatarUrls[review.username] ? (
+                  <img src={avatarUrls[review.username]!} alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center text-base font-bold text-white flex-shrink-0 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
+                    {review.username[0].toUpperCase()}
+                  </div>
+                )}
+                <span className="text-sm font-semibold text-white hover:text-[#a5b4fc] cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${review.username}`)}>
+                  {review.username}
                 </span>
+                {review.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block" />}
+                {renderStars(review.rating)}
               </div>
-              <p className="text-sm text-[#d1d5db] leading-relaxed whitespace-pre-wrap">
-                {review.content}
-              </p>
-              <div className="flex items-center gap-3 mt-2">
+              <span className="text-[11px] text-[#9ca3af]">
+                {formatDate(review.createdAt)}
+              </span>
+            </div>
+            <p className="text-sm text-[#e0e0e0] leading-relaxed whitespace-pre-wrap relative z-[1]">
+              {review.content}
+            </p>
+            <div className="flex items-center gap-2 mt-3 relative z-[1]">
+              <button
+                onClick={() => handleLike(review.id)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-sm font-semibold transition-all duration-200 border ${
+                  review.liked
+                    ? "text-[#f472b6] bg-[#ec4899]/10 border-[#ec4899]/20"
+                    : "text-[#d1d5db] bg-transparent border-white/10 hover:bg-[#6366f1]/10 hover:border-[#6366f1]/20 hover:text-[#c7d2fe]"
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                  fill={review.liked ? "#f472b6" : "none"}
+                  stroke={review.liked ? "#f472b6" : "#d1d5db"}
+                  strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78l1.06-1.06a5.5 5.5 0 0 0 0-7.78"/>
+                </svg>
+                <span>{review.likes || 0}</span>
+              </button>
+              <button
+                onClick={() => toggleComments(review.id, review.username)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-sm font-semibold transition-all duration-200 border ${
+                  expandedComments.has(review.id)
+                    ? "text-[#c7d2fe] bg-[#6366f1]/10 border-[#6366f1]/20"
+                    : "text-[#d1d5db] bg-transparent border-white/10 hover:bg-[#6366f1]/10 hover:border-[#6366f1]/20 hover:text-[#c7d2fe]"
+                }`}
+              >
+                <span>💬</span>
+                <span>{review.commentCount || "Comment"}</span>
+              </button>
+              {/* Report button */}
+              {authUser?.user_metadata?.username !== review.username && (
                 <button
-                  onClick={() => handleLike(review.id)}
-                  className={`flex items-center gap-1 text-xs transition-colors ${
-                    review.liked ? "text-[#6366f1]" : "text-[#6b7280] hover:text-[#6366f1]"
+                  onClick={() => authUser ? handleReport("review", review.id) : router.push("/login")}
+                  disabled={reportingReview.has(review.id)}
+                  className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
+                    (reportCounts[review.id] || 0) > 0
+                      ? "text-green-400"
+                      : "text-[#6b7280] hover:text-red-400"
                   }`}
+                  title={reportCounts[review.id] ? "Reported ✓" : "Report this review"}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                    fill={review.liked ? "currentColor" : "none"} stroke="currentColor"
-                    strokeWidth={review.liked ? "0" : "1.5"} className="w-3.5 h-3.5">
-                    <path d="M1 8.25a1.25 1.25 0 112.5 0v7.5a1.25 1.25 0 11-2.5 0v-7.5zM11 3V1.7c0-.268-.14-.526-.292-.712A2.02 2.02 0 009.22.51L6.843 2.889A5.939 5.939 0 004.5 6.988V17.5h8.365a2.254 2.254 0 002.202-1.722l1.385-5.5A2.25 2.25 0 0014.25 7.5h-3.795l.612-3.16A8.13 8.13 0 0011 3z" />
-                  </svg>
-                  <span>{review.likes || 0}</span>
+                  {reportCounts[review.id] ? "✓ Reported" : (
+                    <img src="/report-button.png" alt="Report" className="h-6 w-auto" />
+                  )}
                 </button>
-                <button
-                  onClick={() => toggleComments(review.id, review.username)}
-                  className={`flex items-center gap-1 text-xs transition-colors ${
-                    expandedComments.has(review.id) ? "text-[#a855f7]" : "text-[#6b7280] hover:text-[#a855f7]"
-                  }`}
-                >
-                  <span>💬</span>
-                  <span>{review.commentCount || "Comment"}</span>
-                </button>
-                {/* Report button */}
-                {authUser?.user_metadata?.username !== review.username && (
-                  <button
-                    onClick={() => authUser ? handleReport("review", review.id) : router.push("/login")}
-                    disabled={reportingReview.has(review.id)}
-                    className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
-                      (reportCounts[review.id] || 0) > 0
-                        ? "text-green-400"
-                        : "text-[#6b7280] hover:text-red-400"
-                    }`}
-                    title={reportCounts[review.id] ? "Reported ✓" : "Report this review"}
-                  >
-                    {reportCounts[review.id] ? "✓ Reported" : (
-                      <img src="/report-button.png" alt="Report" className="h-6 w-auto" />
-                    )}
-                  </button>
-                )}
-                {/* Delete own review */}
-                {authUser?.user_metadata?.username === review.username && (
-                  confirmDeleteId === review.id ? (
-                    <span className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleDeleteReview(review.id)}
-                        disabled={deletingId === review.id}
-                        className="text-[10px] px-2 py-0.5 bg-red-600 text-white rounded hover:bg-red-500 transition-colors"
-                      >
-                        {deletingId === review.id ? "⏳" : "Confirm"}
-                      </button>
-                      <button
-                        onClick={() => setConfirmDeleteId(null)}
-                        className="text-[10px] text-[#6b7280] hover:text-white"
-                      >
-                        Cancel
-                      </button>
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => setConfirmDeleteId(review.id)}
-                      className="flex items-center gap-1 text-xs text-[#6b7280] hover:text-red-400 transition-colors"
-                      title="Delete your review"
-                    >
-                      🗑️
-                    </button>
-                  )
-                )}
-                {/* Admin: delete hidden review */}
-                {isAdmin && review.isHidden && (
-                  <button
-                    onClick={() => handleDeleteReview(review.id)}
-                    className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors"
-                  >
-                    <span>🗑️</span>
-                    <span>Delete</span>
-                  </button>
-                )}
-              </div>
-              {/* Hidden indicator for admin */}
-              {isAdmin && review.isHidden && (
-                <div className="mt-2 px-2 py-1 bg-red-900/30 border border-red-800/50 rounded text-[10px] text-red-300">
-                  🚨 Hidden
-                </div>
               )}
-
-              {/* ── Comments Section ── */}
-              {expandedComments.has(review.id) && (
-                <div className="mt-3 pt-3 border-t border-[#2d2d4a]">
-                  {loadingComments.has(review.id) ? (
-                    <p className="text-xs text-[#6b7280]">Loading comments...</p>
-                  ) : (comments[review.id] || []).length > 0 ? (
-                    <CommentTree
-                      comments={comments[review.id] || []}
-                      depth={0}
-                      isAdmin={isAdmin}
-                      onReport={handleReportComment(review.id)}
-                      onDelete={handleDeleteCommentWrapper(review.id)}
-                      onReply={submitReply(review.id, review.username, tmdbId, "")}
-                      onToggleReply={toggleReply(review.id)}
-                      onReplyChange={handleReplyChange(review.id)}
-                      reportingComments={reportingComments}
-                      replyInputs={replyInputs}
-                      replyingTo={replyingTo}
-                      expandedThreads={expandedThreads}
-                      onToggleThread={toggleThread}
-                      onLike={handleCommentLike(review.id)}
-                      reviewId={review.id}
-                      reviewTmdbId={tmdbId}
-                      reviewAuthor={review.username}
-                      titleName=""
-                      authUsername={authUser?.user_metadata?.username}
-                      avatarUrls={avatarUrls}
-                      reportCounts={reportCounts}
-                    />
-                  ) : (
-                    <p className="text-xs text-[#6b7280] mb-3">No comments yet</p>
-                  )}
-
-                  {/* Comment input */}
-                  {authUser ? (
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Add a comment..."
-                        value={commentInputs[review.id] || ""}
-                        onChange={(e) => setCommentInputs((prev) => ({ ...prev, [review.id]: e.target.value }))}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            submitComment(review.id, review.username, tmdbId, "");
-                          }
-                        }}
-                        maxLength={1000}
-                        className="flex-1 bg-[#25253a] text-white text-xs rounded-lg px-3 py-2 outline-none border border-transparent focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280]"
-                      />
-                      <button
-                        onClick={() => submitComment(review.id, review.username, tmdbId, "")}
-                        disabled={!commentInputs[review.id]?.trim()}
-                        className="px-3 py-1.5 bg-[#6366f1] hover:bg-[#5558e6] disabled:opacity-40 text-white text-xs font-medium rounded-lg transition-colors flex-shrink-0"
-                      >
-                        Post
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-[#6b7280]">
-                      <a href="/signup" className="text-[#6366f1] hover:underline">Sign in</a> to comment
-                    </p>
-                  )}
-                </div>
+              {/* Delete own review */}
+              {authUser?.user_metadata?.username === review.username && (
+                confirmDeleteId === review.id ? (
+                  <span className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleDeleteReview(review.id)}
+                      disabled={deletingId === review.id}
+                      className="text-[10px] px-2 py-0.5 bg-red-600 text-white rounded hover:bg-red-500 transition-colors"
+                    >
+                      {deletingId === review.id ? "⏳" : "Confirm"}
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="text-[10px] text-[#6b7280] hover:text-white"
+                    >
+                      Cancel
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDeleteId(review.id)}
+                    className="flex items-center gap-1 text-xs text-[#6b7280] hover:text-red-400 transition-colors"
+                    title="Delete your review"
+                  >
+                    🗑️
+                  </button>
+                )
+              )}
+              {/* Admin: delete hidden review */}
+              {isAdmin && review.isHidden && (
+                <button
+                  onClick={() => handleDeleteReview(review.id)}
+                  className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors"
+                >
+                  <span>🗑️</span>
+                  <span>Delete</span>
+                </button>
+              )}
+              {isPinned && (
+                <span className="ml-auto text-[11px] font-semibold text-[#fbbf24] flex items-center gap-1">📌 Top Review</span>
               )}
             </div>
-          ))}
-        </div>
-      )}
+            {/* Hidden indicator for admin */}
+            {isAdmin && review.isHidden && (
+              <div className="mt-2 px-2 py-1 bg-red-900/30 border border-red-800/50 rounded text-[10px] text-red-300">
+                🚨 Hidden
+              </div>
+            )}
+
+            {/* ── Comments Section ── */}
+            {expandedComments.has(review.id) && (
+              <div className="mt-3 pt-3 border-t border-[#2d2d4a]">
+                {loadingComments.has(review.id) ? (
+                  <p className="text-xs text-[#6b7280]">Loading comments...</p>
+                ) : (comments[review.id] || []).length > 0 ? (
+                  <CommentTree
+                    comments={comments[review.id] || []}
+                    depth={0}
+                    isAdmin={isAdmin}
+                    onReport={handleReportComment(review.id)}
+                    onDelete={handleDeleteCommentWrapper(review.id)}
+                    onReply={submitReply(review.id, review.username, tmdbId, "")}
+                    onToggleReply={toggleReply(review.id)}
+                    onReplyChange={handleReplyChange(review.id)}
+                    reportingComments={reportingComments}
+                    replyInputs={replyInputs}
+                    replyingTo={replyingTo}
+                    expandedThreads={expandedThreads}
+                    onToggleThread={toggleThread}
+                    onLike={handleCommentLike(review.id)}
+                    reviewId={review.id}
+                    reviewTmdbId={tmdbId}
+                    reviewAuthor={review.username}
+                    titleName=""
+                    authUsername={authUser?.user_metadata?.username}
+                    avatarUrls={avatarUrls}
+                    reportCounts={reportCounts}
+                  />
+                ) : (
+                  <p className="text-xs text-[#6b7280] mb-3">No comments yet</p>
+                )}
+
+                {/* Comment input */}
+                {authUser ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Add a comment..."
+                      value={commentInputs[review.id] || ""}
+                      onChange={(e) => setCommentInputs((prev) => ({ ...prev, [review.id]: e.target.value }))}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          submitComment(review.id, review.username, tmdbId, "");
+                        }
+                      }}
+                      maxLength={1000}
+                      className="flex-1 bg-[#25253a] text-white text-xs rounded-lg px-3 py-2 outline-none border border-transparent focus:border-[#6366f1] transition-colors placeholder:text-[#6b7280]"
+                    />
+                    <button
+                      onClick={() => submitComment(review.id, review.username, tmdbId, "")}
+                      disabled={!commentInputs[review.id]?.trim()}
+                      className="px-3 py-1.5 bg-[#6366f1] hover:bg-[#5558e6] disabled:opacity-40 text-white text-xs font-medium rounded-lg transition-colors flex-shrink-0"
+                    >
+                      Post
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-[#6b7280]">
+                    <a href="/signup" className="text-[#6366f1] hover:underline">Sign in</a> to comment
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        );
+
+        return (
+          <>
+            {/* Top Review section — page 1 only */}
+            {pinnedReviews.length > 0 && (
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-sm font-bold text-[#fbbf24]">📌 Top Review</span>
+                  <span className="text-[11px] text-[#9ca3af]">Most liked reviews</span>
+                </div>
+                <div className="space-y-3">
+                  {pinnedReviews.map((review) => <ReviewCard key={"pinned-" + review.id} review={review} isPinned={true} />)}
+                </div>
+              </div>
+            )}
+
+            {/* All reviews — chronological */}
+            {pinnedReviews.length > 0 && (
+              <div className="flex items-center gap-2 mb-2 mt-4 pt-4 border-t border-[#2d2d4a]">
+                <span className="text-sm font-semibold text-[#d1d5db]">All Reviews</span>
+                <span className="text-[11px] text-[#9ca3af]">{totalReviews} total</span>
+              </div>
+            )}
+            <div className="space-y-3">
+              {allByTime.map((review) => <ReviewCard key={review.id} review={review} />)}
+            </div>
+          </>
+        );
+      })()}
 
       {/* Pagination */}
       {totalPages > 1 && (

@@ -1,22 +1,35 @@
 #!/home/ava/.local/invisible_playwright/bin/python3
 """Scrape FlixPatrol Top 10 for Netflix, Disney+, Amazon Prime — Movies + TV Shows + Posters.
 Uses Invisible Playwright to extract both text rankings and poster images.
+Enriches each title with TMDB ID for clickable links.
 With retry logic: up to 3 attempts with exponential backoff."""
+import os
 import re
 import sys
 import time
 import json
 from datetime import datetime, timezone
+from urllib.request import urlopen, Request
+from urllib.parse import quote
 
 FLIXPATROL_BASE = "https://flixpatrol.com"
 PLATFORM_MAP = {"Netflix": "netflix", "Disney+": "disney", "Amazon Prime": "amazon"}
 OUTPUT_PATH = "/home/ava/workspace/seriez-2026-06-09/data/streaming-top10.json"
 MAX_RETRIES = 3
 BASE_DELAY = 10
+TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "")
 
 HEADER_RE = re.compile(r'TOP (Movies|TV Shows) on (.+?) on \w+ \d+, \d+')
 ITEM_RE = re.compile(r'^(\d+)\.\t\n(.+?)\n\t(\d+)', re.MULTILINE)
 IMG_RE = re.compile(r'<img[^>]+src="([^"]+)"[^>]*>')
+
+# Known title disambiguation: FlixPatrol title → correct TMDB ID
+# Titles that are ambiguous or have remakes need manual mapping
+TMDB_OVERRIDES = {
+    # (title_lower, media_type) → tmdbId
+    ("toy story", "movie"): 862,           # Original Toy Story (1995) — FlixPatrol often lists classic when trending
+    ("toy story 5", "movie"): None,         # Not yet in TMDB — skip, will search
+}
 
 
 def fetch_page():
@@ -102,6 +115,96 @@ def is_valid(output):
     return True
 
 
+def tmdb_request(path, params=None):
+    """Call TMDB API. Returns parsed JSON or None on failure."""
+    if not TMDB_API_KEY:
+        return None
+    qs = f"api_key={TMDB_API_KEY}"
+    if params:
+        for k, v in params.items():
+            qs += f"&{k}={quote(str(v))}"
+    url = f"https://api.themoviedb.org/3{path}?{qs}"
+    req = Request(url, headers={"User-Agent": "Seriez/1.0", "Accept": "application/json"})
+    try:
+        with urlopen(req, timeout=10) as resp:
+            return json.loads(resp.read())
+    except Exception as e:
+        print(f"  TMDB API error: {e}", file=sys.stderr)
+        return None
+
+
+def find_tmdb(title, media_type):
+    """Search TMDB for a title. Returns (tmdbId, mediaType) or (None, None)."""
+    title_lower = title.strip().lower()
+
+    # Check manual overrides first
+    override = TMDB_OVERRIDES.get((title_lower, media_type))
+    if override is not None:
+        print(f"    ✓ override: {title} → tmdb:{override}")
+        return override, media_type
+
+    # Try exact TMDB search
+    if media_type == "movie":
+        result = tmdb_request("/search/movie", {"query": title, "language": "en-US", "page": 1})
+        results_key = "results"
+    else:
+        result = tmdb_request("/search/tv", {"query": title, "language": "en-US", "page": 1})
+        results_key = "results"
+
+    if not result or not result.get(results_key):
+        return None, None
+
+    candidates = result[results_key]
+    if not candidates:
+        return None, None
+
+    # Match: exact title match, or starts-with, or contains
+    best = None
+    for item in candidates:
+        item_title = (item.get("title") or item.get("name") or "").strip().lower()
+        if item_title == title_lower:
+            best = item
+            break
+    if not best:
+        for item in candidates:
+            item_title = (item.get("title") or item.get("name") or "").strip().lower()
+            if item_title.startswith(title_lower) or title_lower.startswith(item_title):
+                best = item
+                break
+    if not best:
+        best = candidates[0]  # fallback to first result
+
+    tmdb_id = best["id"]
+    resolved_type = "movie" if best.get("title") else "tv"
+    print(f"    ✓ TMDB match: {title} → tmdb:{tmdb_id} ({resolved_type})")
+    return tmdb_id, resolved_type
+
+
+def enrich_with_tmdb(output):
+    """Add tmdbId and mediaType to every item in the output."""
+    total_items = sum(
+        len(output[p][c])
+        for p in PLATFORM_MAP.values()
+        for c in ("movies", "tv")
+    )
+    print(f"\nEnriching {total_items} items with TMDB IDs...")
+    enriched = 0
+    for platform in PLATFORM_MAP.values():
+        for category in ("movies", "tv"):
+            items = output[platform][category]
+            for item in items:
+                title = item["title"]
+                media_type = "movie" if category == "movies" else "tv"
+                tmdb_id, mt = find_tmdb(title, media_type)
+                if tmdb_id:
+                    item["tmdbId"] = tmdb_id
+                    item["mediaType"] = mt
+                    enriched += 1
+                time.sleep(0.3)  # TMDB rate limit: ~40 req/10s
+
+    print(f"  Enriched {enriched}/{total_items} items with TMDB IDs")
+
+
 # Main with retry logic
 for attempt in range(1, MAX_RETRIES + 1):
     print(f"Attempt {attempt}/{MAX_RETRIES}...")
@@ -117,6 +220,9 @@ for attempt in range(1, MAX_RETRIES + 1):
     output = parse_items(text, html)
 
     if is_valid(output):
+        # Enrich with TMDB IDs so titles are clickable
+        enrich_with_tmdb(output)
+
         with open(OUTPUT_PATH, "w") as f:
             json.dump({
                 "updated_at": datetime.now(timezone.utc).isoformat(),
