@@ -20,7 +20,7 @@ function getVirtualActivities(): Activity[] {
   return [
     {
       id: "v-review-1", type: "review",
-      username: "cinephile_jane", tmdbId: 930600, mediaType: "movie",
+      username: "cinephile_jane", tmdbId: 1390300, mediaType: "movie",
       title: "", poster: null, year: null,
       rating: 4, content: "Darkly hilarious. A cabin-in-the-woods setup where both leads are secretly trying to kill each other. The comedic timing is flawless and the third act twist genuinely surprised me.",
       createdAt: h(2),
@@ -54,7 +54,7 @@ function getVirtualActivities(): Activity[] {
     },
     {
       id: "v-plan-1", type: "plan_to_watch",
-      username: "cinephile_jane", tmdbId: 1084736, mediaType: "movie",
+      username: "cinephile_jane", tmdbId: 454639, mediaType: "movie",
       title: "", poster: null, year: null,
       createdAt: h(4),
     },
@@ -118,7 +118,7 @@ function getVirtualActivities(): Activity[] {
     },
     {
       id: "v-watching-3", type: "watching",
-      username: "film_critic_sam", tmdbId: 136315, mediaType: "tv",
+      username: "film_critic_sam", tmdbId: 126308, mediaType: "tv",
       title: "", poster: null, year: null,
       createdAt: h(3),
     },
