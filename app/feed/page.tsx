@@ -20,23 +20,29 @@ interface Activity {
   createdAt: string;
 }
 
-const TYPE_ICON: Record<string, string> = {
-  review: "📝",
-  rated: "⭐",
-  watched: "✅",
-  watching: "👁️",
-  plan_to_watch: "📌",
-  collection: "📁",
+const TYPE_CONFIG: Record<string, { emoji: string; text: string; badge: string; color: string; badgeClass: string }> = {
+  review:      { emoji: "📝", text: "reviewed",         badge: "REVIEW",   color: "#a855f7", badgeClass: "bg-[#a855f7]/15 text-[#c084fc]" },
+  rated:       { emoji: "⭐", text: "rated",             badge: "RATED",    color: "#f59e0b", badgeClass: "bg-[#f59e0b]/15 text-[#fbbf24]" },
+  watched:     { emoji: "✅", text: "watched",            badge: "WATCHED",  color: "#22c55e", badgeClass: "bg-[#22c55e]/15 text-[#4ade80]" },
+  watching:    { emoji: "👁️", text: "is watching",       badge: "WATCHING", color: "#3b82f6", badgeClass: "bg-[#3b82f6]/15 text-[#60a5fa]" },
+  plan_to_watch:{ emoji: "📌", text: "plans to watch",  badge: "PLAN",     color: "#6b7280", badgeClass: "bg-[#6b7280]/15 text-[#9ca3af]" },
+  collection:  { emoji: "📁", text: "published a collection", badge: "", color: "#ec4899", badgeClass: "" },
 };
 
-const TYPE_TEXT: Record<string, string> = {
-  review: "reviewed",
-  rated: "rated",
-  watched: "watched",
-  watching: "is watching",
-  plan_to_watch: "plans to watch",
-  collection: "published a collection",
-};
+const AVATAR_COLORS = [
+  "from-[#7c3aed] to-[#a855f7]",
+  "from-[#ea580c] to-[#f59e0b]",
+  "from-[#059669] to-[#22c55e]",
+  "from-[#2563eb] to-[#6366f1]",
+  "from-[#db2777] to-[#ec4899]",
+  "from-[#0891b2] to-[#06b6d4]",
+];
+
+function getAvatarColor(username: string): string {
+  let hash = 0;
+  for (let i = 0; i < username.length; i++) hash = username.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -47,6 +53,18 @@ function timeAgo(dateStr: string): string {
   const days = Math.floor(hr / 24);
   if (days < 7) return `${days}d ago`;
   return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function RatingStars({ rating }: { rating: number }) {
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5;
+  const stars = [];
+  for (let i = 0; i < 5; i++) {
+    if (i < full) stars.push("★");
+    else if (i === full && half) stars.push("★");
+    else stars.push("☆");
+  }
+  return <span className="text-[#f59e0b] text-[13px] tracking-tight">{stars.join(" ")}</span>;
 }
 
 export default function FeedPage() {
@@ -91,26 +109,84 @@ export default function FeedPage() {
           </p>
         </div>
       ) : (
-        <div className="px-4 mt-4 space-y-1">
+        <div className="divide-y divide-[#1a1a2e]">
           {activities.map((a) => {
+            const cfg = TYPE_CONFIG[a.type] || TYPE_CONFIG.plan_to_watch;
             const isCollection = a.type === "collection";
+            const hasReview = a.type === "review" && a.content;
             const href = isCollection
-              ? `/collections/${a.id.replace("col-", "")}`
+              ? `/collections/${a.id.replace("col-", "").replace("v-", "")}`
               : `/title/${a.tmdbId}?type=${a.mediaType}`;
+            const avatarGradient = getAvatarColor(a.username);
 
             return (
             <Link
               key={a.id}
               href={href}
-              className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#1a1a2e] transition-colors group"
+              className="flex items-start gap-3 px-4 py-3.5 hover:bg-[#0f0f1a] transition-colors group relative"
             >
-              {/* Poster / Collection icon */}
+              {/* Left color bar */}
+              <div
+                className="absolute left-0 top-0 bottom-0 w-[3px] rounded-r"
+                style={{ backgroundColor: cfg.color }}
+              />
+
+              {/* Avatar */}
+              <div
+                className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center flex-shrink-0 mt-0.5`}
+              >
+                <span className="text-xs font-bold text-white">
+                  {a.username.slice(0, 1).toUpperCase()}
+                </span>
+              </div>
+
+              {/* Content */}
+              <div className="min-w-0 flex-1">
+                {/* Top row: username + action + title + badge */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[13px] font-bold text-[#a78bfa]">{a.username}</span>
+                  <span className="text-[13px] text-[#9ca3af]">{cfg.text}</span>
+                  <span className="text-[13px] font-semibold text-[#e5e7eb] group-hover:text-[#6366f1] transition-colors truncate max-w-[200px]">
+                    {isCollection ? a.collectionName : a.title}
+                  </span>
+                  {cfg.badge && (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${cfg.badgeClass}`}>
+                      {cfg.badge}
+                    </span>
+                  )}
+                </div>
+
+                {/* Meta row: stars + year + time */}
+                <div className="flex items-center gap-2 mt-1">
+                  {a.rating && a.rating > 0 && !isCollection && (
+                    <RatingStars rating={a.rating} />
+                  )}
+                  {!isCollection && a.year && (
+                    <span className="text-[11px] text-[#6b7280]">{a.year}</span>
+                  )}
+                  {isCollection && a.itemCount !== undefined && (
+                    <span className="text-[11px] text-[#ec4899]">
+                      📁 {a.itemCount} item{a.itemCount !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                  <span className="text-[11px] text-[#4b5563]">{timeAgo(a.createdAt)}</span>
+                </div>
+
+                {/* Review snippet */}
+                {hasReview && (
+                  <div className="mt-2 text-[11px] text-[#6b7280] leading-relaxed italic bg-[#12121f] border-l-2 border-[#a855f7] rounded-r-md px-2.5 py-2">
+                    &ldquo;{a.content}&rdquo;
+                  </div>
+                )}
+              </div>
+
+              {/* Poster or collection icon */}
               {isCollection ? (
-                <div className="w-10 h-[60px] rounded-lg bg-[#1a1a2e] flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl">📁</span>
+                <div className="w-10 h-[56px] rounded-lg bg-[#1a1a2e] flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl">📁</span>
                 </div>
               ) : (
-                <div className="w-10 h-[60px] rounded-lg overflow-hidden bg-[#1a1a2e] flex-shrink-0 relative">
+                <div className="w-10 h-[56px] rounded-lg overflow-hidden bg-[#1a1a2e] flex-shrink-0 relative">
                   {a.poster ? (
                     <PosterImage src={a.poster} alt="" fill className="rounded-lg" sizes="40px" />
                   ) : (
@@ -120,59 +196,6 @@ export default function FeedPage() {
                   )}
                 </div>
               )}
-
-              {/* Content */}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs">{TYPE_ICON[a.type] || "📌"}</span>
-                  <p className="text-[13px] text-white leading-tight truncate">
-                    <span className="font-semibold text-[#a855f7]">{a.username}</span>{" "}
-                    <span className="text-[#9ca3af]">{TYPE_TEXT[a.type] || "tracked"}</span>{" "}
-                    <span className="font-medium group-hover:text-[#6366f1] transition-colors">
-                      {isCollection ? a.collectionName : a.title}
-                    </span>
-                  </p>
-                </div>
-
-                {/* Badge row */}
-                <div className="flex items-center gap-2 mt-0.5">
-                  {!isCollection && a.rating && a.rating > 0 && (
-                    <span className="text-[11px] text-[#f59e0b] font-medium">
-                      ★ {a.rating}
-                    </span>
-                  )}
-                  {!isCollection && a.year && (
-                    <span className="text-[11px] text-[#6b7280]">{a.year}</span>
-                  )}
-                  {isCollection && a.itemCount !== undefined && (
-                    <span className="text-[11px] text-[#6b7280]">
-                      {a.itemCount} item{a.itemCount !== 1 ? "s" : ""}
-                    </span>
-                  )}
-                  <span className="text-[11px] text-[#4b5563]">{timeAgo(a.createdAt)}</span>
-                </div>
-
-                {/* Review snippet */}
-                {a.content && (
-                  <p className="text-[11px] text-[#6b7280] mt-1 line-clamp-2 italic">
-                    &ldquo;{a.content}&rdquo;
-                  </p>
-                )}
-              </div>
-
-              {/* Arrow */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-4 h-4 text-[#2d2d4a] group-hover:text-[#6366f1] flex-shrink-0 transition-colors"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.22 5.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 010-1.06z"
-                  clipRule="evenodd"
-                />
-              </svg>
             </Link>
             );
           })}
