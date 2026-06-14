@@ -14,7 +14,6 @@ const TMDB_KEY = process.env.TMDB_API_KEY;
 // Virtual activity data — shows full features when no real follows exist
 function getVirtualActivities(): Activity[] {
   const now = Date.now();
-  const m = (min: number) => new Date(now - min * 60000).toISOString();
   const h = (hr: number) => new Date(now - hr * 3600000).toISOString();
   const d = (days: number) => new Date(now - days * 86400000).toISOString();
 
@@ -22,41 +21,41 @@ function getVirtualActivities(): Activity[] {
     {
       id: "v-review-1", type: "review",
       username: "cinephile_jane", tmdbId: 930600, mediaType: "movie",
-      title: "Over Your Dead Body", poster: TMDB_IMAGE_BASE + "/z5Ohj6sNRJ8mBEbqrm1DxW2wOZJ.jpg", year: "2026",
+      title: "", poster: null, year: null,
       rating: 8, content: "Darkly hilarious. A cabin-in-the-woods setup where both leads are secretly trying to kill each other. The comedic timing is flawless and the third act twist genuinely surprised me.",
       createdAt: h(2),
     },
     {
       id: "v-rated-1", type: "rated",
       username: "moviefan92", tmdbId: 533535, mediaType: "movie",
-      title: "Deadpool & Wolverine", poster: TMDB_IMAGE_BASE + "/8cdWjvZQUExUUTzpxoHhVdM2hZc.jpg", year: "2024",
+      title: "", poster: null, year: null,
       rating: 9,
       createdAt: h(3),
     },
     {
       id: "v-watched-1", type: "watched",
       username: "series_tracker", tmdbId: 1399, mediaType: "tv",
-      title: "Game of Thrones", poster: TMDB_IMAGE_BASE + "/7WUHnWGx40DImiUV9Ceci2Nb1iU.jpg", year: "2011",
+      title: "", poster: null, year: null,
       rating: 9,
       createdAt: h(5),
     },
     {
       id: "v-watching-1", type: "watching",
       username: "anime_lover", tmdbId: 95479, mediaType: "tv",
-      title: "Jujutsu Kaisen", poster: TMDB_IMAGE_BASE + "/fHpKWz1bfb5OySi4kzR6mghRp5k.jpg", year: "2020",
+      title: "", poster: null, year: null,
       createdAt: h(1),
     },
     {
       id: "v-review-2", type: "review",
       username: "film_critic_sam", tmdbId: 845781, mediaType: "movie",
-      title: "Red One", poster: TMDB_IMAGE_BASE + "/cdqLnri3GKEGQKU4T8MJsVqFfDr.jpg", year: "2024",
+      title: "", poster: null, year: null,
       rating: 6, content: "A fun holiday romp with great chemistry between the leads. Santa as a buff action hero works better than expected.",
       createdAt: h(8),
     },
     {
       id: "v-plan-1", type: "plan_to_watch",
       username: "cinephile_jane", tmdbId: 1084736, mediaType: "movie",
-      title: "Masters of the Universe", poster: TMDB_IMAGE_BASE + "/kYK34oXI0gFclOB3Z3ksgz0AKFH.jpg", year: "2026",
+      title: "", poster: null, year: null,
       createdAt: h(4),
     },
     {
@@ -71,20 +70,20 @@ function getVirtualActivities(): Activity[] {
     {
       id: "v-review-3", type: "review",
       username: "anime_lover", tmdbId: 37854, mediaType: "tv",
-      title: "One Piece", poster: TMDB_IMAGE_BASE + "/cMD9wCohKGcJHQRzeXFJaoNkUO2.jpg", year: "1999",
+      title: "", poster: null, year: null,
       rating: 10, content: "After 1000+ episodes I can confidently say this is the greatest adventure story ever told. The world-building is unmatched.",
       createdAt: d(2),
     },
     {
       id: "v-watching-2", type: "watching",
       username: "series_tracker", tmdbId: 222766, mediaType: "tv",
-      title: "The Last of Us", poster: TMDB_IMAGE_BASE + "/uKAKOFBjGvMRBtHVGdMKBslkxj4.jpg", year: "2023",
+      title: "", poster: null, year: null,
       createdAt: h(6),
     },
     {
       id: "v-rated-2", type: "rated",
       username: "film_critic_sam", tmdbId: 872585, mediaType: "movie",
-      title: "Oppenheimer", poster: TMDB_IMAGE_BASE + "/8Gxv8gSFCU0XGDykEGBEszodOM6.jpg", year: "2023",
+      title: "", poster: null, year: null,
       rating: 10,
       createdAt: d(1),
     },
@@ -100,27 +99,27 @@ function getVirtualActivities(): Activity[] {
     {
       id: "v-watched-2", type: "watched",
       username: "moviefan92", tmdbId: 693134, mediaType: "movie",
-      title: "Dune: Part Two", poster: TMDB_IMAGE_BASE + "/1pdfLQkLwgmmWSNxsFfOq4DiMv2.jpg", year: "2024",
+      title: "", poster: null, year: null,
       rating: 9,
       createdAt: d(2),
     },
     {
       id: "v-plan-2", type: "plan_to_watch",
       username: "anime_lover", tmdbId: 130392, mediaType: "tv",
-      title: "The Dangers in My Heart", poster: TMDB_IMAGE_BASE + "/sJGRgXKQAeA2L5EJ7IFi5rDgfnE.jpg", year: "2023",
+      title: "", poster: null, year: null,
       createdAt: h(12),
     },
     {
       id: "v-review-4", type: "review",
       username: "series_tracker", tmdbId: 94605, mediaType: "tv",
-      title: "Arcane", poster: TMDB_IMAGE_BASE + "/fqldf2kBFAT4lH8Yl0Q4KBDJj4I.jpg", year: "2021",
+      title: "", poster: null, year: null,
       rating: 10, content: "Visually stunning with a story that hits every emotional beat. Best video game adaptation ever made — and one of the best shows period.",
       createdAt: d(4),
     },
     {
       id: "v-watching-3", type: "watching",
       username: "film_critic_sam", tmdbId: 136315, mediaType: "tv",
-      title: "Shōgun", poster: TMDB_IMAGE_BASE + "/8yk1dmeFA88YhNgM33Y4DzEQLVm.jpg", year: "2024",
+      title: "", poster: null, year: null,
       createdAt: h(3),
     },
   ];
@@ -297,12 +296,10 @@ export async function GET(req: NextRequest) {
     return true;
   }).slice(0, 20);
 
-  // 5. Enrich with TMDB data in parallel (skip collections and virtual entries with real titles)
+  // 5. Enrich with TMDB data in parallel (skip collections)
   const enriched = await Promise.all(
     unique.map(async (a) => {
       if (a.type === "collection" || a.tmdbId === 0) return a;
-      // Virtual entries already have TMDB data
-      if (a.id.startsWith("v-") && a.title && a.poster) return a;
       try {
         const res = await fetch(
           `${TMDB_API}/${a.mediaType}/${a.tmdbId}?api_key=${TMDB_KEY}`
