@@ -112,12 +112,7 @@ function CommentTree({
                       }`}
                       title={reportCounts?.[String(c.id)] ? "Reported ✓" : "Report"}>
                       {reportCounts?.[String(c.id)] ? "✓ Reported" : (
-                        <span className="light:bg-red-50 light:rounded light:p-0.5">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-auto opacity-70 hover:opacity-100 text-red-400">
-                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-                            <line x1="4" y1="22" x2="4" y2="15"/>
-                          </svg>
-                        </span>
+                        <span className="light:bg-red-50 light:rounded light:p-0.5"><img src="/report-button.png" alt="Report" className="h-5 w-auto opacity-70 hover:opacity-100" /></span>
                       )}
                     </button>
                   )}
@@ -874,12 +869,7 @@ export function ReviewSection({
                   title={reportCounts[review.id] ? "Reported ✓" : "Report this review"}
                 >
                   {reportCounts[review.id] ? "✓ Reported" : (
-                    <span className="light:bg-red-50 light:rounded light:p-0.5">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-auto text-red-400">
-                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-                        <line x1="4" y1="22" x2="4" y2="15"/>
-                      </svg>
-                    </span>
+                    <span className="light:bg-red-50 light:rounded light:p-0.5"><img src="/report-button.png" alt="Report" className="h-6 w-auto" /></span>
                   )}
                 </button>
               )}
