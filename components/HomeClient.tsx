@@ -313,13 +313,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
 
           <section>
             <div className="px-4 md:px-0 mb-3">
-              <SectionHeader emoji="🎯" title="For You" subtitle={
-                forYouLoading
-                  ? "Loading..."
-                  : forYouGenres.length > 0
-                  ? `Because you like ${forYouGenres.join(", ")}`
-                  : forYouReason || "Based on your ratings"
-              } />
+              <SectionHeader emoji="🎯" title="For You" subtitle={"Based on what you liked"} />
             </div>
             <PosterGrid>
               {forYouLoading ? (
@@ -333,7 +327,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
                   ? forYouItems.slice(0, 14)
                   : trending.slice(0, 14)
                 ).map((item) => (
-                  <CardWrapper key={item.id} item={item} reasonText={forYouReasons[item.id]} />
+                  <CardWrapper key={item.id} item={item} />
                 ))
               )}
             </PosterGrid>

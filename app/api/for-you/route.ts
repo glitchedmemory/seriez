@@ -377,7 +377,7 @@ export async function GET(req: NextRequest) {
   // Source B: Recommendations (weight 2x)
   const recPromises = topTitles.slice(0, 5).map(async (t) => {
     const { items } = await fetchRecommendations(t.tmdbId, t.mediaType);
-    const reason = t.title ? `Recommended based on ${t.title}` : `Recommended for you`;
+    const reason = "Recommended for you";
     return { items, reason };
   });
   const recResults = await Promise.all(recPromises);
