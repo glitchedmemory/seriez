@@ -295,7 +295,7 @@ export function ReviewSection({
   const [totalReviews, setTotalReviews] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const REVIEWS_PER_PAGE = 10;
+  const REVIEWS_PER_PAGE = 7;
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -1008,7 +1008,7 @@ export function ReviewSection({
             {/* All reviews — chronological */}
             {pinnedReviews.length > 0 && (
               <div className="flex items-center gap-2 mb-2 mt-4 pt-4 border-t border-border">
-                <span className="text-sm font-semibold text-[#d1d5db]">All Reviews</span>
+                <span className="text-sm font-semibold text-[#d1d5db] light:text-text-primary">All Reviews</span>
                 <span className="text-[11px] text-text-secondary">{totalReviews} total</span>
               </div>
             )}
