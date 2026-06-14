@@ -5,6 +5,9 @@
 /* ====== Tailwind ====== */
 @import "tailwindcss";
 
+/* ====== Custom Variants ====== */
+@custom-variant light (&:where(.light, .light *));
+
 /* ====== Tailwind v4 @theme inline — bridges CSS vars to Tailwind tokens ====== */
 @theme inline {
   --color-bg-primary: var(--bg-primary);
