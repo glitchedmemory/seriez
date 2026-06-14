@@ -1,0 +1,16 @@
+/* ====== Seriez Light Theme — "Cinematic Pearl" ====== */
+/* Warm, brand-coherent light palette that echoes Dark theme's DNA */
+
+.light {
+  --bg-primary: #f9f7f5;
+  --bg-card: #ffffff;
+  --bg-surface: #f3f0ed;
+  --accent: #5952e8;
+  --accent-light: #8455f0;
+  --gold: #e07b00;
+  --text-primary: #1a1a2e;
+  --text-secondary: #6b5e7a;
+  --border-color: #e8e3de;
+  --shadow-color: rgba(0, 0, 0, 0.06);
+  --scrollbar-thumb: #d5cfca;
+}
