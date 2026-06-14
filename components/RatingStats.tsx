@@ -13,14 +13,14 @@ export function RatingStats({ stats }: { stats: RatingStatsData }) {
   return (
     <div className="px-4 py-3">
       {/* Average rating */}
-      <p className="text-[13px] font-medium text-[#1a1a1a]">평균 별점</p>
-      <p className="text-[34px] font-bold text-[#1a1a1a] leading-tight">
+      <p className="text-[13px] font-medium text-[var(--text-primary)]">평균 별점</p>
+      <p className="text-[34px] font-bold text-[var(--text-primary)] leading-tight">
         {stats.average > 0 ? stats.average.toFixed(1) : "—"}
       </p>
 
       {/* Total ratings */}
-      <p className="text-[11px] text-[#8e8e8e] mt-1">전체 평가 수</p>
-      <p className="text-[13px] font-semibold text-[#1a1a1a]">
+      <p className="text-[11px] text-[var(--text-secondary)] mt-1">전체 평가 수</p>
+      <p className="text-[13px] font-semibold text-[var(--text-primary)]">
         {stats.total >= 10000
           ? `${(stats.total / 10000).toFixed(1)}만`
           : stats.total >= 1000
@@ -43,7 +43,7 @@ export function RatingStats({ stats }: { stats: RatingStatsData }) {
           const count = stats.distribution[star] || 0;
           const heightPercent = count > 0 ? (count / maxCount) * 100 : 0;
           const barColor =
-            star <= Math.round(stats.average) ? "#ff2f6e" : "#e0e0e0";
+            star <= Math.round(stats.average) ? "#ff2f6e" : "var(--border-color)";
           return (
             <div
               key={`bar-${star}`}
@@ -73,7 +73,7 @@ export function RatingStats({ stats }: { stats: RatingStatsData }) {
           return (
             <span
               key={`cnt-${star}`}
-              className="text-[10px] text-[#8e8e8e] text-center"
+              className="text-[10px] text-[var(--text-secondary)] text-center"
             >
               {count > 0 ? count : ""}
             </span>
@@ -83,7 +83,7 @@ export function RatingStats({ stats }: { stats: RatingStatsData }) {
         {stars.map((star) => (
           <span
             key={`lbl-${star}`}
-            className="text-[12px] font-medium text-[#8e8e8e] text-center"
+            className="text-[12px] font-medium text-[var(--text-secondary)] text-center"
           >
             {star}
           </span>

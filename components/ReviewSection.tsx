@@ -135,7 +135,7 @@ function CommentTree({
                       className="text-[10px] text-red-400 hover:text-red-300 ml-1">🗑️</button>
                   )}
                 </div>
-                <span className="text-xs text-[#d1d5db] whitespace-pre-wrap">{c.content}</span>
+                <span className="text-xs text-text-primary/85 whitespace-pre-wrap">{c.content}</span>
                 <div className="flex items-center gap-2 mt-1">
                   <button onClick={() => onLike(c.id)}
                     className={`flex items-center gap-1 text-[10px] transition-colors ${
@@ -169,7 +169,7 @@ function CommentTree({
                   maxLength={1000}
                   className="flex-1 bg-bg-surface text-text-primary text-[10px] rounded-lg px-2 py-1.5 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary" />
                 <button onClick={() => onReply(c.id)} disabled={!replyInputs[String(c.id)]?.trim()}
-                  className="px-2 py-1 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-text-primary text-[10px] font-medium rounded-lg transition-colors flex-shrink-0">Post</button>
+                  className="px-2 py-1 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-white text-[10px] font-medium rounded-lg transition-colors flex-shrink-0">Post</button>
               </div>
             )}
             {/* Children: inline up to MAX_DEPTH, collapsed beyond */}
@@ -229,7 +229,7 @@ function renderStars(rating: number) {
     const fill = rating >= i ? 100 : rating >= i - 0.5 ? 50 : 0;
     if (fill === 100) {
       stars.push(
-        <span key={i} style={{ color: "#f59e0b", fontSize: 14 }}>★</span>
+        <span key={i} style={{ color: "var(--gold)", fontSize: 14 }}>★</span>
       );
     } else if (fill === 50) {
       stars.push(
@@ -237,7 +237,7 @@ function renderStars(rating: number) {
           key={i}
           style={{
             fontSize: 14,
-            backgroundImage: "linear-gradient(to right, #f59e0b 50%, #4b5563 50%)",
+            backgroundImage: "linear-gradient(to right, var(--gold) 50%, var(--text-secondary) 50%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -249,7 +249,7 @@ function renderStars(rating: number) {
       );
     } else {
       stars.push(
-        <span key={i} style={{ color: "#4b5563", fontSize: 14 }}>★</span>
+        <span key={i} style={{ color: "var(--text-secondary)", fontSize: 14 }}>★</span>
       );
     }
   }
@@ -760,7 +760,7 @@ export function ReviewSection({
           <button
             type="submit"
             disabled={submitting}
-            className="px-4 py-1.5 bg-accent hover:bg-[#5558e6] disabled:opacity-50 text-text-primary text-sm font-medium rounded-lg transition-colors"
+            className="px-4 py-1.5 bg-accent hover:bg-[#5558e6] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
           >
             {submitting ? "Submitting..." : "Submit Review"}
           </button>
@@ -799,8 +799,8 @@ export function ReviewSection({
         const ReviewCard = ({ review, isPinned }: { review: Review; isPinned?: boolean }) => (
           <div key={review.id} className={`relative overflow-hidden rounded-2xl p-5 transition-all duration-300 ${
             isPinned
-              ? "bg-white/[0.03] backdrop-blur-xl border border-gold/45 shadow-[0_0_20px_rgba(245,158,11,0.08),0_0_60px_rgba(245,158,11,0.03)] hover:border-gold/65 hover:shadow-[0_0_30px_rgba(245,158,11,0.15),0_0_80px_rgba(245,158,11,0.05)]"
-              : "bg-white/[0.03] backdrop-blur-xl border border-accent/10 hover:border-accent/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#6366f1]/8"
+              ? "bg-bg-card backdrop-blur-xl border border-gold/45 shadow-[0_0_20px_rgba(245,158,11,0.08),0_0_60px_rgba(245,158,11,0.03)] hover:border-gold/65 hover:shadow-[0_0_30px_rgba(245,158,11,0.15),0_0_80px_rgba(245,158,11,0.05)]"
+              : "bg-bg-card backdrop-blur-xl border border-border hover:border-accent/30 hover:-translate-y-0.5 hover:shadow-lg"
           }`}>
             {isPinned && (
               <div className="absolute top-0 left-0 right-0 h-full pointer-events-none"
@@ -815,7 +815,7 @@ export function ReviewSection({
                     {review.username[0].toUpperCase()}
                   </div>
                 )}
-                <span className="text-sm font-semibold text-text-primary hover:text-[#a5b4fc] cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${review.username}`)}>
+                <span className="text-sm font-semibold text-text-primary hover:text-accent cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${review.username}`)}>
                   {review.username}
                 </span>
                 {review.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block" />}
@@ -825,7 +825,7 @@ export function ReviewSection({
                 {formatDate(review.createdAt)}
               </span>
             </div>
-            <p className="text-sm text-[#e0e0e0] leading-relaxed whitespace-pre-wrap relative z-[1]">
+            <p className="text-sm text-text-primary leading-relaxed whitespace-pre-wrap relative z-[1]">
               {review.content}
             </p>
             <div className="flex items-center gap-2 mt-3 relative z-[1]">
@@ -834,12 +834,12 @@ export function ReviewSection({
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-sm font-semibold transition-all duration-200 border ${
                   review.liked
                     ? "text-[#f472b6] bg-[#ec4899]/10 border-[#ec4899]/20"
-                    : "text-[#d1d5db] bg-transparent border-white/10 hover:bg-accent/10 hover:border-accent/20 hover:text-[#c7d2fe]"
+                    : "text-text-primary/85 bg-transparent border-border hover:bg-accent/10 hover:border-accent/20 hover:text-accent"
                 }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                   fill={review.liked ? "#f472b6" : "none"}
-                  stroke={review.liked ? "#f472b6" : "#d1d5db"}
+                  stroke={review.liked ? "#f472b6" : "var(--text-secondary)"}
                   strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78l1.06-1.06a5.5 5.5 0 0 0 0-7.78"/>
                 </svg>
@@ -850,7 +850,7 @@ export function ReviewSection({
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-sm font-semibold transition-all duration-200 border ${
                   expandedComments.has(review.id)
                     ? "text-[#c7d2fe] bg-accent/10 border-accent/20"
-                    : "text-[#d1d5db] bg-transparent border-white/10 hover:bg-accent/10 hover:border-accent/20 hover:text-[#c7d2fe]"
+                    : "text-text-primary/85 bg-transparent border-border hover:bg-accent/10 hover:border-accent/20 hover:text-accent"
                 }`}
               >
                 <span>💬</span>
@@ -975,7 +975,7 @@ export function ReviewSection({
                     <button
                       onClick={() => submitComment(review.id, review.username, tmdbId, "")}
                       disabled={!commentInputs[review.id]?.trim()}
-                      className="px-3 py-1.5 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-text-primary text-xs font-medium rounded-lg transition-colors flex-shrink-0"
+                      className="px-3 py-1.5 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-white text-xs font-medium rounded-lg transition-colors flex-shrink-0"
                     >
                       Post
                     </button>
@@ -1008,7 +1008,7 @@ export function ReviewSection({
             {/* All reviews — chronological */}
             {pinnedReviews.length > 0 && (
               <div className="flex items-center gap-2 mb-2 mt-4 pt-4 border-t border-border">
-                <span className="text-sm font-semibold text-[#d1d5db]">All Reviews</span>
+                <span className="text-sm font-semibold text-text-primary/85">All Reviews</span>
                 <span className="text-[11px] text-text-secondary">{totalReviews} total</span>
               </div>
             )}
@@ -1092,14 +1092,14 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
   return (
     <div style={{ padding: "12px 16px" }}>
       {/* Average rating */}
-      <p style={{ fontSize: 13, fontWeight: 500, color: "#d1d5db", margin: 0 }}>Rating</p>
-      <p style={{ fontSize: 34, fontWeight: 700, color: "#fff", lineHeight: 1.1, margin: 0 }}>
+      <p style={{ fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", margin: 0 }}>Rating</p>
+      <p style={{ fontSize: 34, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.1, margin: 0 }}>
         {average > 0 ? average.toFixed(1) : "—"}
       </p>
 
       {/* Total reviews */}
-      <p style={{ fontSize: 11, color: "#6b7280", marginTop: 4, marginBottom: 0 }}>Total reviews</p>
-      <p style={{ fontSize: 13, fontWeight: 600, color: "#fff", margin: 0 }}>
+      <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4, marginBottom: 0 }}>Total reviews</p>
+      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", margin: 0 }}>
         {total >= 10000 ? `${(total / 10000).toFixed(1)}만` : total >= 1000 ? `${(total / 1000).toFixed(1)}k` : String(total)}
       </p>
 
@@ -1140,7 +1140,7 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
       <div style={{ display: "flex", gap: BAR_GAP, marginTop: 6 }}>
         {buckets.map((star) => (
           <div key={`lbl-${star}`} style={{ width: BAR_WIDTH, textAlign: "center" }}>
-            <span style={{ fontSize: 10, color: "#6b7280" }}>
+            <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>
               {star % 1 === 0 ? star : ""}
             </span>
           </div>
