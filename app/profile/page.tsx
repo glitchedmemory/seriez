@@ -345,11 +345,18 @@ export default function ProfilePage() {
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold text-text-primary">@{displayName}</h1>
           {(isOwn && user) && (
+            <>
             <button
               onClick={() => router.push("/profile/settings")}
               className="text-text-secondary hover:text-text-primary transition-colors"
               title="Settings"
             >⚙️</button>
+            <button
+              onClick={async () => { const sb = createClient(); await sb.auth.signOut(); localStorage.removeItem("seriez-username"); router.push("/"); router.refresh(); }}
+              className="text-text-secondary hover:text-red-400 transition-colors text-sm ml-1"
+              title="Sign out"
+            >🚪</button>
+            </>
           )}
         </div>
         <div className="flex gap-5 mt-1 text-sm text-text-secondary">
