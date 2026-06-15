@@ -261,7 +261,7 @@ export default function CollectionClient() {
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleComment(); }}}
               placeholder="Write a comment..."
               maxLength={200}
-              className="flex-1 bg-bg-card text-text-primary text-xs rounded-lg px-3 py-2 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary"
+              className="flex-1 bg-bg-card text-text-primary text-xs rounded-lg px-3 py-2 outline-none border border-border focus:border-accent transition-colors placeholder:text-text-secondary"
             />
             <button
               onClick={handleComment}
@@ -305,7 +305,7 @@ export default function CollectionClient() {
                         }`}
                         title={reportCounts[String(c.id)] ? "Reported ✓" : "Report"}>
                         {reportCounts[String(c.id)] ? "✓ Reported" : (
-                          <span className="light:bg-red-50 light:rounded light:p-0.5"><img src="/report-button.png?v=2" alt="Report" className="h-5 w-auto opacity-70 hover:opacity-100" /></span>
+                          <span className="light:bg-red-50 light:rounded light:p-0.5"><img src="/report-button.png?v=2" alt="Report" className="md:h-6 h-5 w-auto opacity-70 hover:opacity-100" /></span>
                         )}
                       </button>
                     )}
