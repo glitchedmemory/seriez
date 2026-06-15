@@ -4,17 +4,155 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-/** Reddit-style comment tree:
- *  Max 2 depth inline, deeper levels collapsed into "Continue this thread →".
- *  Max 3 siblings shown, rest behind "Show more replies" button.
+/** Card-style comment tree (Instagram + Discord blend):
+ *  - Each comment is a distinct card (rounded, subtle background).
+ *  - Max 1-depth nesting (reply to comment only, no reply-to-reply).
+ *  - Consecutive same-author comments: avatar+name shown once, subsequent content compact.
+ *  - All replies always visible (no "show more" / "continue thread" toggles).
  */
-const THREAD_COLORS = [
-  "border-accent",   // depth 1
-  "border-[#a855f7]",   // depth 2
-  "border-[#22c55e]",   // depth 3+
-];
-const MAX_SIBLINGS = 3;  // max siblings shown inline per parent
-const MAX_DEPTH = 2;      // depth 0,1,2 inline; 3+ collapsed
+const MAX_DEPTH = 1;
+
+function CommentCard({
+  c,
+  isAdmin,
+  onReport,
+  onDelete,
+  onReply,
+  onToggleReply,
+  onReplyChange,
+  reportingComments,
+  replyInputs,
+  replyingTo,
+  onLike,
+  reviewId,
+  reviewTmdbId,
+  reviewAuthor,
+  titleName,
+  authUsername,
+  avatarUrls,
+  reportCounts,
+  compact,
+}: {
+  c: any;
+  isAdmin: boolean;
+  onReport: (commentId: number) => void;
+  onDelete: (commentId: number) => void;
+  onReply: (commentId: number) => void;
+  onToggleReply: (commentId: number) => void;
+  onReplyChange: (commentId: number, text: string) => void;
+  reportingComments: Set<string>;
+  replyInputs: Record<string, string>;
+  replyingTo: Record<string, string | null>;
+  onLike: (commentId: number) => void;
+  reviewId: string;
+  reviewTmdbId: number;
+  reviewAuthor: string;
+  titleName: string;
+  authUsername?: string;
+  avatarUrls?: Record<string, string | null>;
+  reportCounts?: Record<string, number>;
+  compact: boolean;
+}) {
+  const router = useRouter();
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+
+  return (
+    <div>
+      {/* Header row (avatar + username + actions) — hidden in compact mode */}
+      {!compact && (
+        <div className="flex items-center gap-2 mb-1.5">
+          {avatarUrls?.[c.username] ? (
+            <img src={avatarUrls[c.username]!} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+          ) : (
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-text-primary flex-shrink-0 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
+              {c.username[0]?.toUpperCase()}
+            </div>
+          )}
+          <div className="flex-1 flex items-center gap-1 min-w-0">
+            <span className="text-xs font-medium text-text-primary hover:text-accent cursor-pointer transition-colors truncate" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
+            {c.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block flex-shrink-0" />}
+            {isAdmin && c.is_hidden && (
+              <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded flex-shrink-0">🚨 hidden</span>
+            )}
+            <span className="text-[10px] text-text-secondary/60 ml-1">{formatDate(c.created_at)}</span>
+            {/* actions pushed right */}
+            <div className="ml-auto flex items-center gap-1">
+              {authUsername !== c.username && (
+                <button onClick={() => authUsername ? onReport(c.id) : router.push("/login")}
+                  disabled={reportingComments.has(String(c.id)) && !!authUsername}
+                  className={`text-[11px] transition-colors disabled:opacity-50 ${
+                    (reportCounts?.[String(c.id)] || 0) > 0
+                      ? "text-green-400"
+                      : "text-text-secondary hover:text-red-400"
+                  }`}
+                  title={reportCounts?.[String(c.id)] ? "Reported ✓" : "Report"}>
+                  {reportCounts?.[String(c.id)] ? "✓ Reported" : (
+                    <span><img src="/report-button.png?v=2" alt="Report" className="h-5 w-auto opacity-70 hover:opacity-100" /></span>
+                  )}
+                </button>
+              )}
+              {authUsername === c.username && (
+                confirmDelete === c.id ? (
+                  <span className="flex items-center gap-1">
+                    <button onClick={() => { onDelete(c.id); setConfirmDelete(null); }}
+                      className="text-[9px] px-1.5 py-0.5 bg-red-600 text-white rounded hover:bg-red-500">Del</button>
+                    <button onClick={() => setConfirmDelete(null)}
+                      className="text-[9px] text-text-secondary hover:text-white">Cancel</button>
+                  </span>
+                ) : (
+                  <button onClick={() => setConfirmDelete(c.id)}
+                    className="text-[10px] text-text-secondary hover:text-red-400 transition-colors"
+                    title="Delete your comment">🗑️</button>
+                )
+              )}
+              {isAdmin && c.is_hidden && (
+                <button onClick={() => onDelete(c.id)}
+                  className="text-[10px] text-red-400 hover:text-red-300">🗑️</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Content */}
+      <span className={`text-xs text-[#d1d5db] light:text-text-primary/85 whitespace-pre-wrap ${compact ? "" : ""}`}>{c.content}</span>
+
+      {/* Actions row */}
+      <div className={`flex items-center gap-2 ${compact ? "mt-0.5" : "mt-1.5"}`}>
+        <button onClick={() => onLike(c.id)}
+          className={`flex items-center gap-1 text-[10px] transition-colors ${
+            c.liked ? "text-accent" : "text-text-secondary hover:text-accent"
+          }`}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+            fill={c.liked ? "currentColor" : "none"} stroke="currentColor"
+            strokeWidth={c.liked ? "0" : "1.5"} className="w-3 h-3">
+            <path d="M1 8.25a1.25 1.25 0 112.5 0v7.5a1.25 1.25 0 11-2.5 0v-7.5zM11 3V1.7c0-.268-.14-.526-.292-.712A2.02 2.02 0 009.22.51L6.843 2.889A5.939 5.939 0 004.5 6.988V17.5h8.365a2.254 2.254 0 002.202-1.722l1.385-5.5A2.25 2.25 0 0014.25 7.5h-3.795l.612-3.16A8.13 8.13 0 0011 3z" />
+          </svg>
+          <span>{c.likes || 0}</span>
+        </button>
+        <button onClick={() => authUsername ? onToggleReply(c.id) : router.push("/login")}
+          className="text-[10px] text-text-secondary hover:text-accent-light transition-colors">💬 Reply</button>
+        {compact && (
+          <span className="text-[10px] text-text-secondary/50 ml-auto">{formatDate(c.created_at)}</span>
+        )}
+      </div>
+
+      {/* Reply input */}
+      {replyingTo[String(c.id)] != null && (
+        <div className="flex gap-2 mt-2">
+          <input type="text" placeholder="Write a reply..."
+            value={replyInputs[String(c.id)] || ""}
+            onChange={(e) => onReplyChange(c.id, e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onReply(c.id); }}}
+            maxLength={1000}
+            className="flex-1 bg-bg-surface text-text-primary text-[10px] rounded-lg px-2 py-1.5 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary" />
+          <button onClick={() => onReply(c.id)} disabled={!replyInputs[String(c.id)]?.trim()}
+            className="px-2 py-1 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-text-primary light:text-white text-[10px] font-medium rounded-lg transition-colors flex-shrink-0">Post</button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function CommentTree({
   comments,
@@ -63,155 +201,63 @@ function CommentTree({
   avatarUrls?: Record<string, string | null>;
   reportCounts?: Record<string, number>;
 }) {
-  const router = useRouter();
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const nodes = parentId != null
     ? comments.filter((c: any) => c.parent_id === parentId)
     : comments.filter((c: any) => c.parent_id == null);
 
   if (nodes.length === 0) return null;
 
-  // Sort: most recent first
+  // Sort newest first
   const sorted = [...nodes].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-  const isExpanded = expandedThreads.has(String(parentId ?? "root"));
-  const visible = isExpanded ? sorted : sorted.slice(0, MAX_SIBLINGS);
-  const hidden = sorted.length - visible.length;
-  const showMore = hidden > 0 && !isExpanded;
-  const beyondDepth = depth >= MAX_DEPTH;
+  const isTopLevel = depth === 0;
+  const allowNestedReply = depth < MAX_DEPTH;
+
+  const sharedProps = {
+    isAdmin, onReport, onDelete, onReply, onToggleReply, onReplyChange,
+    reportingComments, replyInputs, replyingTo, onLike,
+    reviewId, reviewTmdbId, reviewAuthor, titleName,
+    authUsername, avatarUrls, reportCounts,
+  };
 
   return (
-    <div className={depth === 0 ? "space-y-1 mb-3" : `border-l-2 ${THREAD_COLORS[Math.min(depth - 1, 2)]} ml-2 pl-3 space-y-1`}>
-      {visible.map((c: any) => {
+    <div className={isTopLevel ? "space-y-2 mb-3" : "ml-6 mt-1.5 space-y-1.5"}>
+      {sorted.map((c: any, idx: number) => {
+        // Consecutive same-author detection
+        const prevAuthor = idx > 0 ? sorted[idx - 1].username : null;
+        const sameAuthor = prevAuthor === c.username;
+
         const replyCount = comments.filter((cc: any) => cc.parent_id === c.id).length;
-        const hasChildren = replyCount > 0;
-        const childExpanded = expandedThreads.has(String(c.id));
+        const hasReplies = replyCount > 0;
+
         return (
           <div key={c.id}>
-            <div className="flex gap-2">
-              {avatarUrls?.[c.username] ? (
-                <img src={avatarUrls[c.username]!} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-0.5" />
-              ) : (
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-text-primary flex-shrink-0 mt-0.5 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
-                  {c.username[0]?.toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-text-primary hover:text-accent cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
-                  {c.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block" />}
-                  {isAdmin && c.is_hidden && (
-                    <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded">🚨 hidden</span>
-                  )}
-                  {authUsername !== c.username && (
-                    <button onClick={() => authUsername ? onReport(c.id) : router.push("/login")}
-                      disabled={reportingComments.has(String(c.id)) && !!authUsername}
-                      className={`text-[11px] transition-colors disabled:opacity-50 ml-auto ${
-                        (reportCounts?.[String(c.id)] || 0) > 0
-                          ? "text-green-400"
-                          : "text-text-secondary hover:text-red-400"
-                      }`}
-                      title={reportCounts?.[String(c.id)] ? "Reported ✓" : "Report"}>
-                      {reportCounts?.[String(c.id)] ? "✓ Reported" : (
-                        <span><img src="/report-button.png?v=2" alt="Report" className="h-5 w-auto opacity-70 hover:opacity-100" /></span>
-                      )}
-                    </button>
-                  )}
-                  {authUsername === c.username && (
-                    confirmDelete === c.id ? (
-                      <span className="flex items-center gap-1 ml-auto">
-                        <button onClick={() => { onDelete(c.id); setConfirmDelete(null); }}
-                          className="text-[9px] px-1.5 py-0.5 bg-red-600 text-white rounded hover:bg-red-500">Del</button>
-                        <button onClick={() => setConfirmDelete(null)}
-                          className="text-[9px] text-text-secondary hover:text-white">Cancel</button>
-                      </span>
-                    ) : (
-                      <button onClick={() => setConfirmDelete(c.id)}
-                        className="text-[10px] text-text-secondary hover:text-red-400 transition-colors ml-auto"
-                        title="Delete your comment">🗑️</button>
-                    )
-                  )}
-                  {isAdmin && c.is_hidden && (
-                    <button onClick={() => onDelete(c.id)}
-                      className="text-[10px] text-red-400 hover:text-red-300 ml-1">🗑️</button>
-                  )}
-                </div>
-                <span className="text-xs text-[#d1d5db] light:text-text-primary/85 whitespace-pre-wrap">{c.content}</span>
-                <div className="flex items-center gap-2 mt-1">
-                  <button onClick={() => onLike(c.id)}
-                    className={`flex items-center gap-1 text-[10px] transition-colors ${
-                      c.liked ? "text-accent" : "text-text-secondary hover:text-accent"
-                    }`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                      fill={c.liked ? "currentColor" : "none"} stroke="currentColor"
-                      strokeWidth={c.liked ? "0" : "1.5"} className="w-3 h-3">
-                      <path d="M1 8.25a1.25 1.25 0 112.5 0v7.5a1.25 1.25 0 11-2.5 0v-7.5zM11 3V1.7c0-.268-.14-.526-.292-.712A2.02 2.02 0 009.22.51L6.843 2.889A5.939 5.939 0 004.5 6.988V17.5h8.365a2.254 2.254 0 002.202-1.722l1.385-5.5A2.25 2.25 0 0014.25 7.5h-3.795l.612-3.16A8.13 8.13 0 0011 3z" />
-                    </svg>
-                    <span>{c.likes || 0}</span>
-                  </button>
-                  <button onClick={() => authUsername ? onToggleReply(c.id) : router.push("/login")}
-                    className="text-[10px] text-text-secondary hover:text-accent-light transition-colors">💬 Reply</button>
-                  {hasChildren && (
-                    <button onClick={() => onToggleThread(c.id)}
-                      className={`text-[10px] transition-colors ${childExpanded ? "text-accent-light" : "text-text-secondary hover:text-accent-light"}`}>
-                      {childExpanded ? "▾ Hide replies" : `▸ ${replyCount} ${replyCount === 1 ? "reply" : "replies"}`}
-                    </button>
-                  )}
-                </div>
-              </div>
+            {/* Card wrapper */}
+            <div className={
+              isTopLevel
+                ? "bg-bg-surface rounded-xl p-3"
+                : `bg-bg-card rounded-lg p-2.5 ${sameAuthor ? "pt-1.5" : ""}`
+            }>
+              <CommentCard
+                c={c}
+                {...sharedProps}
+                compact={sameAuthor}
+              />
+
+              {/* Reply input (shown when replying to this comment) */}
+              {/* (already inside CommentCard) */}
             </div>
-            {/* Reply input */}
-            {replyingTo[String(c.id)] != null && (
-              <div className="flex gap-2 mt-1 ml-7">
-                <input type="text" placeholder="Write a reply..."
-                  value={replyInputs[String(c.id)] || ""}
-                  onChange={(e) => onReplyChange(c.id, e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onReply(c.id); }}}
-                  maxLength={1000}
-                  className="flex-1 bg-bg-surface text-text-primary text-[10px] rounded-lg px-2 py-1.5 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary" />
-                <button onClick={() => onReply(c.id)} disabled={!replyInputs[String(c.id)]?.trim()}
-                  className="px-2 py-1 bg-accent hover:bg-[#5558e6] disabled:opacity-40 text-text-primary light:text-white text-[10px] font-medium rounded-lg transition-colors flex-shrink-0">Post</button>
-              </div>
-            )}
-            {/* Children: inline up to MAX_DEPTH, collapsed beyond */}
-            {hasChildren && childExpanded && !beyondDepth && (
-              <CommentTree comments={comments} depth={depth + 1} parentId={c.id}
-                isAdmin={isAdmin} onReport={onReport} onDelete={onDelete}
-                onReply={onReply} onToggleReply={onToggleReply} onReplyChange={onReplyChange}
-                reportingComments={reportingComments} replyInputs={replyInputs} replyingTo={replyingTo}
-                expandedThreads={expandedThreads} onToggleThread={onToggleThread} onLike={onLike}
-                reviewId={reviewId} reviewTmdbId={reviewTmdbId} reviewAuthor={reviewAuthor}
-                titleName={titleName} authUsername={authUsername} avatarUrls={avatarUrls} reportCounts={reportCounts} />
-            )}
-            {/* Deep thread: "Continue this thread" */}
-            {hasChildren && beyondDepth && (
-              <div className="ml-7 mt-1">
-                <button onClick={() => onToggleThread(c.id)}
-                  className={`text-[10px] transition-colors ${childExpanded ? "text-accent-light" : "text-accent hover:text-[#818cf8]"}`}>
-                  {childExpanded ? "▾ Hide thread" : `▸ Continue this thread → (${replyCount} ${replyCount === 1 ? "reply" : "replies"})`}
-                </button>
-                {childExpanded && (
-                  <CommentTree comments={comments} depth={depth + 1} parentId={c.id}
-                    isAdmin={isAdmin} onReport={onReport} onDelete={onDelete}
-                    onReply={onReply} onToggleReply={onToggleReply} onReplyChange={onReplyChange}
-                    reportingComments={reportingComments} replyInputs={replyInputs} replyingTo={replyingTo}
-                    expandedThreads={expandedThreads} onToggleThread={onToggleThread} onLike={onLike}
-                    reviewId={reviewId} reviewTmdbId={reviewTmdbId} reviewAuthor={reviewAuthor}
-                    titleName={titleName} authUsername={authUsername} avatarUrls={avatarUrls} reportCounts={reportCounts} />
-                )}
-              </div>
+
+            {/* Nested replies (1 level only) */}
+            {allowNestedReply && hasReplies && (
+              <CommentTree
+                comments={comments} depth={depth + 1} parentId={c.id}
+                {...sharedProps}
+                expandedThreads={expandedThreads} onToggleThread={onToggleThread}
+              />
             )}
           </div>
         );
       })}
-      {/* Show more button for hidden siblings */}
-      {showMore && (
-        <button
-          onClick={() => onToggleThread(parentId ?? "root")}
-          className="text-[10px] text-accent hover:text-[#818cf8] transition-colors ml-7"
-        >
-          ▸ Show more replies ({hidden})
-        </button>
-      )}
     </div>
   );
 }
