@@ -62,6 +62,7 @@ export default function ProfilePage() {
   const [stats, setStats] = useState<ProfileStats | null>(null);
   const [selectedMediaType, setSelectedMediaType] = useState<"movie" | "tv" | "anime">("movie");
   const [isPremium, setIsPremium] = useState(false);
+  const [reviewsMap, setReviewsMap] = useState<Record<string, string>>({});
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -116,6 +117,21 @@ export default function ProfilePage() {
     } catch {}
   }, [effectiveUsername, isOwn]);
 
+  const fetchReviewsMap = useCallback(async () => {
+    if (!effectiveUsername) return;
+    try {
+      const res = await fetch(`/api/users/${encodeURIComponent(effectiveUsername)}/reviews`).then(r => r.json());
+      if (res.reviews) {
+        const map: Record<string, string> = {};
+        for (const r of res.reviews) {
+          const key = `${r.tmdb_id}-${r.media_type}`;
+          if (!map[key]) map[key] = r.content?.split("\n")[0] || "";
+        }
+        setReviewsMap(map);
+      }
+    } catch {}
+  }, [effectiveUsername]);
+
   const fetchStats = useCallback(async (mt?: string) => {
     if (!effectiveUsername) return;
     try {
@@ -168,8 +184,9 @@ export default function ProfilePage() {
       fetchLibrary();
       fetchProfileData();
       fetchStats();
+      fetchReviewsMap();
     }
-  }, [mounted, fetchFollowData, fetchFollowStatus, fetchLibrary, fetchProfileData, fetchStats]);
+  }, [mounted, fetchFollowData, fetchFollowStatus, fetchLibrary, fetchProfileData, fetchStats, fetchReviewsMap]);
 
   useEffect(() => {
     if (mounted && effectiveUsername) fetchCompare();
@@ -657,13 +674,11 @@ export default function ProfilePage() {
               topGenreCount={stats.genres?.[0]?.count || 0}
               allGenres={stats.genres || []}
               topActors={stats.topActors || []}
-              topDirectors={stats.topDirectors || []}
-              monthlyWatch={stats.monthlyWatch || []}
-              ratingDistribution={stats.rating.distribution || []}
-              completionRate={stats.completion?.rate || 0}
-              completionStarted={stats.completion?.started || 0}
-              completionCompleted={stats.completion?.completed || 0}
               displayName={displayName}
+              mediaBreakdown={stats.mediaBreakdown}
+              mediaHours={stats.mediaHours || { movie: 0, tv: 0, anime: 0 }}
+              library={library}
+              reviewsMap={reviewsMap}
             />
           )}
 
