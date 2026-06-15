@@ -116,13 +116,21 @@ function CollectionsView() {
   const [items, setItems] = useState<CollectionItem[]>([]);
   const [itemsLoading, setItemsLoading] = useState(false);
   const [authUser, setAuthUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
   const supabase = createClient();
   const username = typeof window !== "undefined" ? localStorage.getItem("seriez-username") || "" : "";
 
   const fetchCollections = () => {
     setLoading(true);
-    fetch(`/api/collections?username=${encodeURIComponent(username)}`)
-      .then(r => r.json()).then(d => { setCollections(d.collections || []); setLoading(false); }).catch(() => setLoading(false));
+    Promise.all([
+      fetch(`/api/collections?username=${encodeURIComponent(username)}`).then(r => r.json()),
+      fetch(`/api/profile?username=${encodeURIComponent(username)}`).then(r => r.json()),
+    ])
+      .then(([collData, profileData]) => {
+        setCollections(collData.collections || []);
+        setIsPremium(profileData.is_premium || false);
+        setLoading(false);
+      }).catch(() => setLoading(false));
   };
 
   useEffect(() => { fetchCollections(); supabase.auth.getSession().then(({ data: { session } }) => setAuthUser(session?.user ?? null)).catch(() => {}); }, []);
@@ -193,12 +201,24 @@ function CollectionsView() {
         <EmptyState icon="🔐" title="Sign in to create collections" description="Create an account to make custom collections and share them." action={{ label: "Create account", href: "/signup" }} />
       ) : (
       <>
-      <div className="flex gap-2 mb-4">
-        <input value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key==="Enter" && createCollection()}
-          placeholder="New collection name..." className="flex-1 bg-bg-card text-text-primary text-sm rounded-xl px-3 py-2 outline-none border border-border focus:border-accent placeholder:text-text-secondary" maxLength={50} />
-        <button onClick={createCollection} disabled={creating || !newName.trim()}
-          className="px-4 py-2 rounded-xl bg-accent text-white text-sm font-medium disabled:opacity-40 hover:bg-[#5558e7] transition-colors">Create</button>
-      </div>
+      {(() => {
+        const atLimit = !isPremium && collections.length >= 3;
+        return (
+          <div className="mb-4">
+            <div className="flex gap-2">
+              <input value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key==="Enter" && createCollection()}
+                placeholder={atLimit ? "Collection limit reached" : "New collection name..."}
+                disabled={atLimit}
+                className="flex-1 bg-bg-card text-text-primary text-sm rounded-xl px-3 py-2 outline-none border border-border focus:border-accent placeholder:text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed" maxLength={50} />
+              <button onClick={createCollection} disabled={creating || !newName.trim() || atLimit}
+                className="px-4 py-2 rounded-xl bg-accent text-white text-sm font-medium disabled:opacity-40 hover:bg-[#5558e7] transition-colors">Create</button>
+            </div>
+            {atLimit && (
+              <p className="mt-2 text-xs text-amber-400">Free plan limited to 3 collections. <a href="/profile/settings" className="underline hover:text-amber-300">Upgrade to Pro</a> for unlimited.</p>
+            )}
+          </div>
+        );
+      })()}
       {loading ? <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" /></div>
       : collections.length === 0 ? <EmptyState icon="🗂️" title="No collections yet" description="Create your first collection to organize your favorite titles." />
       : <div className="space-y-2">
