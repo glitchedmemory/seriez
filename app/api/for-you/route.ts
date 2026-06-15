@@ -24,7 +24,7 @@ query($id: Int) {
         mediaRecommendation {
           id
           title { romaji english }
-          coverImage { large }
+          coverImage { extraLarge }
           bannerImage
           averageScore
           seasonYear
@@ -51,7 +51,7 @@ async function fetchAnimeRecs(anilistId: number): Promise<TmdbResult[]> {
       return {
         id: m.id,
         title: m.title?.english || m.title?.romaji || "Unknown",
-        poster: m.coverImage?.large || null,
+        poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
         backdrop: m.bannerImage || null,
         rating: Math.round((m.averageScore / 10) * 10) / 10 || 0,
         year: m.seasonYear || 0,

@@ -113,7 +113,7 @@ query($id: Int) {
         mediaRecommendation {
           id
           title { romaji english }
-          coverImage { large }
+          coverImage { extraLarge }
           averageScore
           seasonYear
           genres
@@ -219,7 +219,7 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
         return {
           id: r.id,
           title: r.title?.english || r.title?.romaji || "Unknown",
-          poster: r.coverImage?.large || null,
+          poster: r.coverImage?.extraLarge || r.coverImage?.large || null,
           rating: Math.round((r.averageScore / 10) * 10) / 10 || 0,
           year: r.seasonYear || 0,
           genres: (r.genres || []).slice(0, 4),

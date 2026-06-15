@@ -11,7 +11,7 @@ query($search: String) {
       id
       title { romaji english native }
       startDate { year }
-      coverImage { medium }
+      coverImage { extraLarge }
       averageScore
     }
   }
@@ -40,7 +40,7 @@ async function searchAniList(query: string) {
         title: m.title.english || m.title.romaji || "Unknown",
         year: m.startDate?.year?.toString() || "",
         type: "anime",
-        poster: m.coverImage?.medium || null,
+        poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
         rating: (m.averageScore || 0) / 10,
         // For dedup matching
         _aliases: [romaji, english, native].filter(Boolean),
