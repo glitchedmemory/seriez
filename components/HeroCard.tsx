@@ -99,9 +99,9 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
         />
         </div>
 
-        {/* Dark overlay gradient — always dark for text readability on any backdrop */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f1a]/95 via-[#0f0f1a]/60 to-[#0f0f1a]/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f1a]/90 via-transparent to-transparent" />
+        {/* Dark overlay gradient - left side darker for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-bg-primary/95 via-[#0f0f1a]/60 to-bg-primary/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-bg-primary/90 via-transparent to-transparent" />
         </div>
 
         {/* Top badges */}
@@ -116,24 +116,24 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
           {/* Rating */}
           <div className="flex items-center gap-2 mb-2">
             <span className="text-gold text-sm">★ {item.rating}</span>
-            <span className="text-text-secondary text-xs">
+            <span className="text-white/60 text-xs">
               {item.year} · {item.type === "movie" ? "Movie" : item.type === "anime" ? "Anime" : "TV"}
             </span>
             {item.genres.slice(0, 3).map((g) => (
-              <span key={g} className="text-[11px] px-1.5 py-0.5 rounded-full bg-white/10 text-text-primary/80">
+              <span key={g} className="text-[11px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/80">
                 {g}
               </span>
             ))}
           </div>
 
           {/* Title */}
-          <h2 className="text-3xl md:text-4xl font-bold text-text-primary leading-tight mb-2">
+          <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-2">
             {item.title}
           </h2>
 
           {/* Synopsis */}
           {item.overview && (
-            <p className="text-sm text-text-primary/70 leading-relaxed mb-4 max-w-lg line-clamp-2">
+            <p className="text-sm text-white/70 leading-relaxed mb-4 max-w-lg line-clamp-2">
               {item.overview}
             </p>
           )}
