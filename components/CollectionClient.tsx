@@ -305,7 +305,7 @@ export default function CollectionClient() {
                         }`}
                         title={reportCounts[String(c.id)] ? "Reported ✓" : "Report"}>
                         {reportCounts[String(c.id)] ? "✓ Reported" : (
-                          <span className="light:bg-red-50 light:rounded light:p-0.5"><img src="/report-button.png?v=2" alt="Report" className="md:h-6 h-5 w-auto opacity-70 hover:opacity-100" /></span>
+                          <span><img src="/report-button.png?v=2" alt="Report" className="md:h-6 h-5 w-auto opacity-70 hover:opacity-100" /></span>
                         )}
                       </button>
                     )}
