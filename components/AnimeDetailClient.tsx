@@ -433,7 +433,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       {(detail.backdrop || detail.poster) && (
         <div className="relative w-full h-48 md:h-72 overflow-hidden">
           <PosterImage src={detail.backdrop || detail.poster} alt="" fill priority unoptimized className={!detail.backdrop ? "blur-2xl scale-125 opacity-50" : ""} />
-          <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f1a] via-[#0f0f1a]/60 to-transparent" />
         </div>
       )}
 
