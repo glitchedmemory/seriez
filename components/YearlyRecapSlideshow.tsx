@@ -92,12 +92,35 @@ export default function YearlyRecapSlideshow({
   const highestReview = highestRated ? reviewsMap[`${highestRated.tmdb_id}-${highestRated.media_type}`] || null : null;
   const lowestReview = lowestRated ? reviewsMap[`${lowestRated.tmdb_id}-${lowestRated.media_type}`] || null : null;
 
-  // Posters for background collages per media type
-  const getPostersForType = (mediaType: MediaType): string[] =>
-    library
+  // Fetch popular posters from TMDB for background collages
+  const [popularPosters, setPopularPosters] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    const fetchPosters = async () => {
+      try {
+        const [movieRes, tvRes] = await Promise.all([
+          fetch(`/api/tmdb/year-posters?year=${year}&type=movie`).then(r => r.json()),
+          fetch(`/api/tmdb/year-posters?year=${year}&type=tv`).then(r => r.json()),
+        ]);
+        setPopularPosters({
+          movie: movieRes.posters || [],
+          tv: tvRes.posters || [],
+        });
+      } catch {}
+    };
+    fetchPosters();
+  }, [year]);
+
+  // Posters for background collages per media type (library fallback → TMDB popular)
+  const getPostersForType = (mediaType: MediaType): string[] => {
+    const libPosters = library
       .filter(l => l.media_type === mediaType && l.poster)
       .slice(0, 6)
       .map(l => l.poster!);
+    const tmdbPosters = popularPosters[mediaType] || [];
+    // Use TMDB popular if available, fallback to library
+    return tmdbPosters.length > 0 ? tmdbPosters : libPosters;
+  };
 
   const moviePosters = getPostersForType("movie");
   const tvPosters = getPostersForType("tv");
