@@ -441,24 +441,24 @@ export default function ProfilePage() {
             return (
               <div>
                 <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Favorites</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-4 gap-2">
                   {favs.map((item) => (
                     <a key={item.id} href={`/title/${item.tmdb_id}?type=${item.media_type}`}
-                      className="bg-bg-card border border-border rounded-xl overflow-hidden hover:border-accent/40 transition-colors group">
-                      <div className="aspect-[3/4] bg-bg-surface relative">
+                      className="bg-bg-card border border-border rounded-lg overflow-hidden hover:border-accent/40 transition-colors group">
+                      <div className="aspect-[2/3] bg-bg-surface relative">
                         {item.poster ? (
                           <img src={item.poster} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-4xl">🎬</div>
+                          <div className="w-full h-full flex items-center justify-center text-2xl">🎬</div>
                         )}
-                        <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm rounded-lg px-2 py-0.5 flex items-center gap-1">
-                          <span className="text-yellow-400 text-xs">★</span>
-                          <span className="text-white text-xs font-bold">{item.rating}</span>
+                        <div className="absolute top-1 right-1 bg-black/70 backdrop-blur-sm rounded-md px-1.5 py-0.5 flex items-center gap-0.5">
+                          <span className="text-yellow-400 text-[10px]">★</span>
+                          <span className="text-white text-[10px] font-bold">{item.rating}</span>
                         </div>
                       </div>
-                      <div className="p-2">
-                        <p className="text-xs text-text-primary font-medium truncate">{item.title}</p>
-                        {item.year && <p className="text-[10px] text-text-secondary mt-0.5">{item.year}</p>}
+                      <div className="p-1.5">
+                        <p className="text-[10px] text-text-primary font-medium truncate">{item.title}</p>
+                        {item.year && <p className="text-[9px] text-text-secondary mt-0.5">{item.year}</p>}
                       </div>
                     </a>
                   ))}
