@@ -6,11 +6,12 @@ import { createClient } from "@/lib/supabase/client";
 
 /** Card-style comment tree (Instagram + Discord blend):
  *  - Each comment is a distinct card (rounded, subtle background).
- *  - Max 1-depth nesting (reply to comment only, no reply-to-reply).
+ *  - Max 2-depth nesting (reply to reply allowed).
+ *  - 3+ replies collapsed behind "Show N more replies" toggle (clean preview).
  *  - Consecutive same-author comments: avatar+name shown once, subsequent content compact.
- *  - All replies always visible (no "show more" / "continue thread" toggles).
  */
-const MAX_DEPTH = 1;
+const MAX_DEPTH = 2;
+const MAX_VISIBLE_REPLIES = 2;
 
 function CommentCard({
   c,
@@ -214,6 +215,13 @@ function CommentTree({
   const isTopLevel = depth === 0;
   const allowNestedReply = depth < MAX_DEPTH;
 
+  // For replies (depth>0), collapse beyond MAX_VISIBLE_REPLIES
+  const threadKey = String(parentId ?? "root");
+  const isExpanded = expandedThreads.has(threadKey);
+  const visible = isTopLevel ? sorted : (isExpanded ? sorted : sorted.slice(0, MAX_VISIBLE_REPLIES));
+  const hiddenCount = sorted.length - visible.length;
+  const showMore = hiddenCount > 0 && !isExpanded;
+
   const sharedProps = {
     isAdmin, onReport, onDelete, onReply, onToggleReply, onReplyChange,
     reportingComments, replyInputs, replyingTo, onLike,
@@ -223,9 +231,9 @@ function CommentTree({
 
   return (
     <div className={isTopLevel ? "space-y-2 mb-3" : "ml-6 mt-1.5 space-y-1.5"}>
-      {sorted.map((c: any, idx: number) => {
+      {visible.map((c: any, idx: number) => {
         // Consecutive same-author detection
-        const prevAuthor = idx > 0 ? sorted[idx - 1].username : null;
+        const prevAuthor = idx > 0 ? visible[idx - 1].username : null;
         const sameAuthor = prevAuthor === c.username;
 
         const replyCount = comments.filter((cc: any) => cc.parent_id === c.id).length;
@@ -250,7 +258,7 @@ function CommentTree({
               {/* (already inside CommentCard) */}
             </div>
 
-            {/* Nested replies (1 level only) */}
+            {/* Nested replies */}
             {allowNestedReply && hasReplies && (
               <CommentTree
                 comments={comments} depth={depth + 1} parentId={c.id}
@@ -261,6 +269,15 @@ function CommentTree({
           </div>
         );
       })}
+      {/* Show N more replies toggle (replies only, not top-level) */}
+      {showMore && (
+        <button
+          onClick={() => onToggleThread(threadKey)}
+          className="text-[10px] text-accent hover:text-[#818cf8] transition-colors ml-6 mt-1"
+        >
+          ▸ Show {hiddenCount} more {hiddenCount === 1 ? "reply" : "replies"}
+        </button>
+      )}
     </div>
   );
 }
