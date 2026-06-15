@@ -99,9 +99,9 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
         />
         </div>
 
-        {/* Dark overlay gradient - left side darker for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-bg-primary/95 via-[#0f0f1a]/60 to-bg-primary/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-bg-primary/90 via-transparent to-transparent" />
+        {/* Dark overlay gradient — always dark for text readability on any backdrop */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f1a]/95 via-[#0f0f1a]/60 to-[#0f0f1a]/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f1a]/90 via-transparent to-transparent" />
         </div>
 
         {/* Top badges */}

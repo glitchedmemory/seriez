@@ -372,7 +372,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
             unoptimized
             className={(!data.backdropPath && !data.anilistBanner) ? "blur-2xl scale-125 opacity-50" : ""}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f1a] via-[#0f0f1a]/60 to-transparent" />
         </div>
       )}
 
