@@ -302,7 +302,7 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
 
     // TMDB backdrop fallback when AniList bannerImage is null
     if (!result.backdrop && result.year) {
-      result.backdrop = (await fetchTMDBBackdrop(result.title, result.year)) || \"\";
+      result.backdrop = (await fetchTMDBBackdrop(result.title, result.year)) || "";
     }
 
     // Validate trailer (if AnyList has one) or search YouTube (if not)
