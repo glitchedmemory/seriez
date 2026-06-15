@@ -43,11 +43,12 @@ export default function YearlyRecapSlideshow({
   };
 
   const handleShare = async () => {
-    const text = `🎬 My ${year} on Seriez\n${hours}h · ${titles} titles · ★${ratingAvg || "—"}\nTop genre: ${topGenre}\n@${displayName}`;
+    const profileUrl = `https://seriez.app/profile?username=${encodeURIComponent(displayName)}`;
+    const text = `🎬 My ${year} on Seriez\n${hours}h · ${titles} titles · ★${ratingAvg || "—"}\nTop genre: ${topGenre}\n\n${profileUrl}`;
     if (navigator.share) {
-      try { await navigator.share({ title: `My ${year} Seriez Recap`, text }); } catch {}
+      try { await navigator.share({ title: `My ${year} Seriez Recap`, text, url: profileUrl }); } catch {}
     } else {
-      try { await navigator.clipboard.writeText(text); alert("Copied to clipboard!"); } catch {}
+      try { await navigator.clipboard.writeText(text); alert("Profile link copied to clipboard!"); } catch {}
     }
   };
 
