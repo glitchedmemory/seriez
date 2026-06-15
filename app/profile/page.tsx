@@ -645,45 +645,151 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Yearly Recap */}
-          {stats.yearlyRecap && stats.yearlyRecap.titles > 0 && (
-            <div>
-              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">
-                {new Date().getFullYear()} Recap
+          {/* Yearly Recap — Cinematic Slideshow */}
+          {stats.yearlyRecap && stats.yearlyRecap.titles > 0 && (() => {
+            const year = new Date().getFullYear();
+            const topGenre = stats.genres?.[0]?.name || "Film";
+            const genreColors: Record<string, [string, string]> = {
+              Drama: ["#1e1b4b", "#312e81"], Action: ["#450a0a", "#991b1b"],
+              Comedy: ["#422006", "#854d0e"], Thriller: ["#0f172a", "#1e293b"],
+              Horror: ["#1a0000", "#330000"], "Sci-Fi": ["#1a0a2e", "#3b0764"],
+              Romance: ["#4a0519", "#9d174d"], Mystery: ["#0a1628", "#172554"],
+              Animation: ["#1a2e0a", "#3b6310"],
+            };
+            const [gc1, gc2] = genreColors[topGenre] || ["#1e1b4b", "#3730a3"];
+            const visibleDots = 6;
+            return (
+            <div className="mt-5">
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3 px-4">
+                {year} Recap
               </h3>
-              <div className="bg-bg-card border border-border rounded-xl p-4">
-                <div className="grid grid-cols-3 gap-3 mb-3">
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-accent">{stats.yearlyRecap.hours}h</p>
-                    <p className="text-[9px] text-text-secondary uppercase">Hours</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-text-primary">{stats.yearlyRecap.titles}</p>
-                    <p className="text-[9px] text-text-secondary uppercase">Titles</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-yellow-400">
-                      {stats.yearlyRecap.topRated.length > 0 ? stats.yearlyRecap.topRated[0].rating : "—"}
-                    </p>
-                    <p className="text-[9px] text-text-secondary uppercase">Top ★</p>
+              <div
+                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4"
+                style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
+              >
+                {/* Slide 1 — Title */}
+                <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center bg-black min-h-[360px]">
+                  <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)" }} />
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 mb-3 relative z-10">A Year in Watching</p>
+                  <h2 className="text-4xl font-black text-white leading-tight mb-2 relative z-10">{year}</h2>
+                  <p className="text-sm text-white/40 italic mb-4 relative z-10">A Film by</p>
+                  <p className="text-xl font-bold text-accent relative z-10">@{displayName}</p>
+                  <div className="absolute bottom-6 left-6 right-6">
+                    <div className="border-t border-white/10 pt-3 text-[9px] text-white/30 uppercase tracking-[0.2em]">
+                      Swipe →
+                    </div>
                   </div>
                 </div>
-                {stats.yearlyRecap.topRated.length > 0 && (
-                  <div className="border-t border-border pt-3">
-                    <p className="text-[10px] text-text-secondary mb-2">Highest Rated This Year</p>
-                    {stats.yearlyRecap.topRated.map((tr, i) => (
-                      <div key={i} className="flex items-center gap-2 mb-1 last:mb-0">
-                        <span className="text-yellow-400 text-sm">★ {tr.rating}</span>
-                        <a href={`/title/${tr.tmdb_id}?type=${tr.media_type}`} className="text-xs text-text-primary hover:text-accent truncate">
-                          View →
-                        </a>
-                      </div>
-                    ))}
+
+                {/* Slide 2 — Hours */}
+                <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[360px]" style={{ background: `linear-gradient(135deg, ${gc1}, ${gc2})` }}>
+                  <div className="absolute inset-0 bg-black/20" />
+                  <div className="relative z-10">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/60 mb-4">Total Watch Time</p>
+                    <span className="text-7xl font-black text-white tabular-nums">{stats.yearlyRecap.hours}</span>
+                    <p className="text-2xl text-white/80 mt-1 font-light">HOURS</p>
+                    <p className="text-xs text-white/50 mt-4 max-w-[240px]">
+                      {stats.yearlyRecap.hours >= 2000 ? "That's over 83 full days. More than many film school students." :
+                       stats.yearlyRecap.hours >= 1000 ? "Over 40 days. A serious commitment to the screen." :
+                       stats.yearlyRecap.hours >= 500 ? "20+ full days. Cinema is clearly your second home." :
+                       "Every hour well spent. Quality over quantity."}
+                    </p>
+                    <p className="text-xs text-white/40 mt-3">
+                      Across {stats.yearlyRecap.titles} titles
+                    </p>
                   </div>
-                )}
+                </div>
+
+                {/* Slide 3 — Genres */}
+                <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[360px]" style={{ background: `linear-gradient(135deg, ${gc1}, ${gc2})` }}>
+                  <div className="absolute inset-0 bg-black/20" />
+                  <div className="relative z-10 px-4">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-3">Top Genre</p>
+                    <span className="text-4xl font-black text-white tracking-tight">{topGenre}</span>
+                    <p className="text-white/60 text-sm mt-1">{stats.genres?.[0]?.count || 0} titles</p>
+                    {stats.genres && stats.genres[1] && (
+                      <div className="flex gap-2 justify-center mt-4">
+                        <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-[10px]">{stats.genres[1].name} · {stats.genres[1].count}</span>
+                        {stats.genres[2] && <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-[10px]">{stats.genres[2].name} · {stats.genres[2].count}</span>}
+                      </div>
+                    )}
+                    <p className="text-white/40 text-[10px] italic mt-5 max-w-[220px]">
+                      {topGenre === "Drama" ? "You live for emotional depth and powerful performances." :
+                       topGenre === "Action" ? "Adrenaline is your preferred viewing fuel." :
+                       topGenre === "Comedy" ? "Laughter is the best medicine — and you know it." :
+                       topGenre === "Thriller" ? "You chase suspense like a seasoned detective." :
+                       topGenre === "Horror" ? "Fear is your comfort zone." :
+                       topGenre === "Sci-Fi" ? "The future fascinates you more than the present." :
+                       `\"${topGenre}\" defined your ${year}.`}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Slide 4 — The Cast */}
+                <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[360px] bg-[#0a0a0a]">
+                  <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.8) 100%)" }} />
+                  <div className="relative z-10 w-full px-6">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-5">Starring</p>
+                    <div className="space-y-2">
+                      {(stats.topActors || []).slice(0, 5).map((a, i) => (
+                        <p key={a.name} className="text-white font-medium tracking-wide text-base" style={{ opacity: 1 - i * 0.15 }}>
+                          {a.name}
+                        </p>
+                      ))}
+                    </div>
+                    <p className="text-white/30 text-[9px] tracking-[0.15em] uppercase mt-6">and many more</p>
+                  </div>
+                  <div className="absolute bottom-4 right-4 text-white/10 text-[8px] uppercase tracking-[0.2em]">Top Actors</div>
+                </div>
+
+                {/* Slide 5 — The Awards */}
+                <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[360px]" style={{ background: "linear-gradient(135deg, #1a1400, #3d2e00)" }}>
+                  <div className="relative z-10">
+                    <span className="text-5xl mb-3 block">🏆</span>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-yellow-400/60 mb-2">Critical Consensus</p>
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="text-5xl font-black text-yellow-400">★</span>
+                      <span className="text-5xl font-black text-white">{stats.rating.average || "—"}</span>
+                    </div>
+                    <p className="text-white/60 text-xs mt-2">{stats.totals.rated} titles rated</p>
+                    <p className="text-yellow-400/50 text-[10px] italic mt-4 max-w-[220px]">
+                      {stats.rating.average >= 4.0 ? "A true connoisseur with impeccable taste." :
+                       stats.rating.average >= 3.5 ? "A balanced viewer who knows a good story when they see one." :
+                       stats.rating.average >= 3.0 ? "Selective and honest — you don't hand out stars lightly." :
+                       "You save your highest praise for the truly deserving."}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Slide 6 — Recap Summary */}
+                <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[360px]" style={{ background: "linear-gradient(135deg, #0f0f1a, #1a0a2e, #3b0764)" }}>
+                  <div className="relative z-10 px-4" data-summary-card>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">{year}</p>
+                    <p className="text-4xl font-black text-white">{stats.yearlyRecap.hours}h</p>
+                    <p className="text-xs text-white/50 mt-1">across {stats.yearlyRecap.titles} titles</p>
+                    <div className="flex items-center justify-center gap-2 mt-3">
+                      <span className="text-yellow-400">★{stats.rating.average || "—"}</span>
+                      <span className="text-white/20">·</span>
+                      <span className="text-accent text-sm">{topGenre}</span>
+                      <span className="text-white/20">·</span>
+                      <span className="text-white/40 text-xs">@{displayName}</span>
+                    </div>
+                    <div className="border-t border-white/10 mt-4 pt-4 w-full text-center">
+                      <p className="text-white/30 text-[9px]">Discover more on Seriez</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dots */}
+              <div className="flex justify-center gap-1.5 mt-3">
+                {Array.from({ length: visibleDots }).map((_, i) => (
+                  <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === 0 ? "bg-accent" : "bg-border"}`} />
+                ))}
               </div>
             </div>
-          )}
+            );
+          })()}
 
           {/* Genre Distribution */}
           {stats.genres && stats.genres.length > 0 && (
