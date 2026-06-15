@@ -112,7 +112,7 @@ function CommentTree({
                       }`}
                       title={reportCounts?.[String(c.id)] ? "Reported ✓" : "Report"}>
                       {reportCounts?.[String(c.id)] ? "✓ Reported" : (
-                        <span className="light:bg-red-50 light:rounded light:p-0.5"><img src="/report-button.png?v=2" alt="Report" className="h-5 w-auto opacity-70 hover:opacity-100" /></span>
+                        <span><img src="/report-button.png?v=2" alt="Report" className="h-5 w-auto opacity-70 hover:opacity-100" /></span>
                       )}
                     </button>
                   )}
@@ -869,7 +869,7 @@ export function ReviewSection({
                   title={reportCounts[review.id] ? "Reported ✓" : "Report this review"}
                 >
                   {reportCounts[review.id] ? "✓ Reported" : (
-                    <span className="light:bg-red-50 light:rounded light:p-0.5"><img src="/report-button.png?v=2" alt="Report" className="h-6 w-auto" /></span>
+                    <span><img src="/report-button.png?v=2" alt="Report" className="h-6 w-auto" /></span>
                   )}
                 </button>
               )}
