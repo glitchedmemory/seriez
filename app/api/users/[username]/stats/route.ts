@@ -5,6 +5,7 @@ import { GENRE_MAP } from "@/lib/tmdb";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE = "https://api.themoviedb.org/3";
@@ -58,7 +59,7 @@ export async function GET(
     const userId = userData.id;
 
     // ── 2. Fetch all tracking data ──
-    let trackingQuery = supabase
+    let trackingQuery = supabaseAdmin
       .from("media_trackings")
       .select("tmdb_id, media_type, status, rating, progress, watched_at, updated_at")
       .eq("username", userId);
