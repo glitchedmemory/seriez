@@ -18,6 +18,8 @@ export async function GET(req: NextRequest) {
       url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&language=en-US&sort_by=popularity.desc&primary_release_year=${year}&vote_count.gte=100&page=1`;
     } else if (type === "tv") {
       url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&language=en-US&sort_by=popularity.desc&first_air_date_year=${year}&vote_count.gte=50&page=1`;
+    } else if (type === "anime") {
+      url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&language=en-US&sort_by=popularity.desc&primary_release_year=${year}&with_genres=16&vote_count.gte=50&page=1`;
     } else {
       url = `${TMDB_BASE}/trending/all/week?api_key=${TMDB_KEY}&language=en-US`;
     }
