@@ -135,7 +135,7 @@ export default function PosterCalendar({
                   )}
                   {/* Title overlay */}
                   <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5">
-                    <p className="text-[9px] font-bold text-text-primary truncate leading-tight text-center">
+                    <p className="text-[9px] font-bold text-white truncate leading-tight text-center">
                       {firstEntry.title.length > 12
                         ? firstEntry.title.slice(0, 12) + "…"
                         : firstEntry.title}

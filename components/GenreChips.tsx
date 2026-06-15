@@ -15,7 +15,7 @@ export function GenreChip({
       className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
         active
           ? "bg-accent text-white shadow-lg shadow-[#6366f1]/25"
-          : "bg-bg-card text-text-secondary hover:text-white hover:bg-bg-surface"
+          : "bg-bg-card text-text-secondary hover:text-white light:hover:text-accent hover:bg-bg-surface"
       }`}
     >
       {genre}

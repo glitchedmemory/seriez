@@ -145,7 +145,7 @@ export default function SettingsPage() {
         <div className="flex items-center gap-4 px-4 pt-6 pb-4">
           <button
             onClick={() => router.back()}
-            className="text-text-secondary hover:text-white transition-colors"
+            className="text-text-secondary hover:text-white light:hover:text-accent transition-colors"
           >
             ← Back
           </button>

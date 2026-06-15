@@ -39,7 +39,7 @@ function GenreChip({
       className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
         selected
           ? "bg-accent text-white scale-105"
-          : "bg-bg-card text-text-secondary hover:bg-bg-surface hover:text-white"
+          : "bg-bg-card text-text-secondary hover:bg-bg-surface hover:text-white light:hover:text-accent"
       }`}
     >
       {name}
