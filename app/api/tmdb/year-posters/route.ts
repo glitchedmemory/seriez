@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
-const TMDB_TOKEN = process.env.TMDB_ACCESS_TOKEN || process.env.TMDB_API_KEY || "";
+const TMDB_TOKEN = process.env.TMDB_ACCESS_TOKEN || "";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -14,14 +14,6 @@ export async function GET(req: NextRequest) {
 
   try {
     let url: string;
-    const headers: Record<string, string> = {};
-
-    if (TMDB_TOKEN.startsWith("eyJ")) {
-      headers["Authorization"] = `Bearer ${TMDB_TOKEN}`;
-    } else {
-      url += `&api_key=${TMDB_TOKEN}`;
-    }
-
     if (type === "movie") {
       url = `${TMDB_BASE}/discover/movie?language=en-US&sort_by=popularity.desc&primary_release_year=${year}&vote_count.gte=100&page=1`;
     } else if (type === "tv") {
@@ -30,9 +22,9 @@ export async function GET(req: NextRequest) {
       url = `${TMDB_BASE}/trending/all/week?language=en-US`;
     }
 
-    if (!TMDB_TOKEN.startsWith("eyJ")) {
-      url += `&api_key=${TMDB_TOKEN}`;
-    }
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${TMDB_TOKEN}`,
+    };
 
     const res = await fetch(url, { headers });
     const data = await res.json();
