@@ -166,59 +166,7 @@ function formatSeason(season: string | null): string {
   return map[season] || season;
 }
 
-// ─── TMDB backdrop fallback for anime missing bannerImage ───
-
-const TMDB_SEARCH = "https://api.themoviedb.org/3/search/movie";
-const TMDB_IMAGE = "https://image.tmdb.org/t/p/w1280";
-
-async function fetchTMDBBackdrop(title: string, year: number, titleRomaji?: string): Promise<string | null> {
-  if (!process.env.TMDB_API_KEY) return null;
-  try {
-    // Build search candidates: subtitle first → exact → main → romaji
-    const parts = title.split(":");
-    const main = parts[0].trim();
-    const subtitle = parts.slice(1).join(":").trim();
-    const candidates = [
-      { query: title, year },
-      { query: title },
-    ];
-    // Subtitle-only often matches better than main title on TMDB
-    if (subtitle) {
-      candidates.push({ query: subtitle, year });
-      candidates.push({ query: subtitle });
-    }
-    // Main title as last resort
-    candidates.push({ query: main, year });
-    candidates.push({ query: main });
-    if (titleRomaji) {
-      const romajiParts = titleRomaji.split(":");
-      const mainRomaji = romajiParts[0].trim();
-      const subRomaji = romajiParts.slice(1).join(":").trim();
-      if (subRomaji && subRomaji !== subtitle) {
-        candidates.push({ query: subRomaji, year });
-      }
-      candidates.push({ query: mainRomaji, year });
-    }
-    for (const c of candidates) {
-      const params = new URLSearchParams({
-        api_key: process.env.TMDB_API_KEY!,
-        query: c.query,
-      });
-      if (c.year) params.set("year", String(c.year));
-      const url = `${TMDB_SEARCH}?${params}`;
-      const res = await fetch(url, { next: { revalidate: 86400 } });
-      if (!res.ok) continue;
-      const data = await res.json();
-      const match = data.results?.[0];
-      if (match?.backdrop_path) {
-        return `${TMDB_IMAGE}${match.backdrop_path}`;
-      }
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
+// ─── Main fetch ───
 
 export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
   try {
@@ -330,12 +278,6 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
       trailer: null as { id: string; site: string } | null,
       relations,
     };
-
-    // TMDB backdrop fallback when AniList bannerImage is null
-    if (!result.backdrop && result.year) {
-      result.backdrop = (await fetchTMDBBackdrop(result.title, result.year, result.titleRomaji)) || "";
-    }
-
     // Validate trailer (if AnyList has one) or search YouTube (if not)
     const animeTitle = m.title?.english || m.title?.romaji || "";
     const validated = await validateAndReplaceTrailers(
