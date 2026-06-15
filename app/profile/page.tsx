@@ -582,14 +582,7 @@ export default function ProfilePage() {
           {stats.genres && stats.genres.length > 0 && (
             <div className="relative">
               <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Genre Taste</h3>
-              {!isPremium && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg-floor/60 backdrop-blur-[2px] rounded-xl">
-                  <a href="/pro" className="bg-accent hover:bg-[#818cf8] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shadow-lg">
-                    Unlock with Pro ✨
-                  </a>
-                </div>
-              )}
-              <div className="space-y-1.5" style={!isPremium ? { filter: "blur(4px)" } : undefined}>
+              <div className="space-y-1.5">
                 {stats.genres.slice(0, 6).map((g, i) => {
                   const maxCount = stats.genres[0]?.count || 1;
                   const pct = Math.round((g.count / maxCount) * 100);
@@ -611,14 +604,7 @@ export default function ProfilePage() {
           {stats.topActors && stats.topActors.length > 0 && (
             <div className="relative">
               <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Actors</h3>
-              {!isPremium && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg-floor/60 backdrop-blur-[2px] rounded-xl">
-                  <a href="/pro" className="bg-accent hover:bg-[#818cf8] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shadow-lg">
-                    Unlock with Pro ✨
-                  </a>
-                </div>
-              )}
-              <div className="flex flex-wrap gap-2" style={!isPremium ? { filter: "blur(4px)" } : undefined}>
+              <div className="flex flex-wrap gap-2">
                 {stats.topActors.slice(0, 5).map((a) => (
                   <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-body">
                     {a.name} <span className="text-text-muted">{a.count}</span>
@@ -632,14 +618,7 @@ export default function ProfilePage() {
           {stats.topDirectors && stats.topDirectors.length > 0 && (
             <div className="relative">
               <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Directors</h3>
-              {!isPremium && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg-floor/60 backdrop-blur-[2px] rounded-xl">
-                  <a href="/pro" className="bg-accent hover:bg-[#818cf8] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shadow-lg">
-                    Unlock with Pro ✨
-                  </a>
-                </div>
-              )}
-              <div className="flex flex-wrap gap-2" style={!isPremium ? { filter: "blur(4px)" } : undefined}>
+              <div className="flex flex-wrap gap-2">
                 {stats.topDirectors.slice(0, 5).map((d) => (
                   <span key={d.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-body">
                     {d.name} <span className="text-text-muted">{d.count}</span>
