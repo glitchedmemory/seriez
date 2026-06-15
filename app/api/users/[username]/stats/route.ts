@@ -26,7 +26,7 @@ const ANILIST_API = "https://graphql.anilist.co";
 // ─── Rating conversion (DB stores mixed scales: ×10 int or 0–10 int) ───
 const FROM_DB = (v: number) => v > 10 ? v / 10 : v > 5 ? v / 2 : v;
 
-// ─── TMDB runtime batch fetcher (1 unit = 1 movie-minute or 1 tv-episode-minute) ───
+// ─── TMDB runtime batch fetcher (with free fallbacks: Wikidata + AniList) ───
 async function fetchRuntimes(
   tracking: { tmdb_id: number; media_type: string }[]
 ): Promise<Map<number, number>> {
@@ -36,7 +36,8 @@ async function fetchRuntimes(
 
   const BATCH = 8;
 
-  // Movies: GET /movie/{id} → runtime (minutes)
+  // ── Source 1: TMDB (primary) ──
+  // Movies → runtime
   for (let i = 0; i < movieIds.length; i += BATCH) {
     const batch = movieIds.slice(i, i + BATCH);
     const results = await Promise.allSettled(
@@ -53,7 +54,7 @@ async function fetchRuntimes(
     }
   }
 
-  // TV: GET /tv/{id} → episode_run_time[] → average episode length
+  // TV → episode_run_time average
   for (let i = 0; i < tvIds.length; i += BATCH) {
     const batch = tvIds.slice(i, i + BATCH);
     const results = await Promise.allSettled(
@@ -71,6 +72,54 @@ async function fetchRuntimes(
         ? Math.round(runtimes.reduce((a: number, b: number) => a + b, 0) / runtimes.length)
         : 0;
       if (avg > 0) map.set(batch[j], avg);
+    }
+  }
+
+  // ── Source 2: Wikidata (free, no key) for movies missing runtime ──
+  const missingMovies = movieIds.filter(id => !map.has(id));
+  if (missingMovies.length > 0) {
+    const wdRes = await Promise.allSettled(
+      missingMovies.map(async (tmdbId) => {
+        const query = `SELECT ?runtime WHERE { ?item wdt:P4947 "${tmdbId}". ?item wdt:P2047 ?runtime. } LIMIT 1`;
+        const url = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(query)}`;
+        try {
+          const r = await fetch(url, { headers: { "User-Agent": "Seriez/1.0" } });
+          if (!r.ok) return { tmdbId, runtime: 0 };
+          const j = await r.json();
+          const val = j?.results?.bindings?.[0]?.runtime?.value;
+          const mins = val ? parseFloat(val) : 0;
+          return { tmdbId, runtime: mins > 0 ? Math.round(mins) : 0 };
+        } catch { return { tmdbId, runtime: 0 }; }
+      })
+    );
+    for (const res of wdRes) {
+      if (res.status === "fulfilled" && res.value.runtime > 0) {
+        map.set(res.value.tmdbId, res.value.runtime);
+      }
+    }
+  }
+
+  // ── Source 3: Wikidata (free, no key) for TV missing episode length ──
+  const missingTV = tvIds.filter(id => !map.has(id));
+  if (missingTV.length > 0) {
+    const wdRes = await Promise.allSettled(
+      missingTV.map(async (tmdbId) => {
+        const query = `SELECT ?runtime WHERE { ?item wdt:P4983 "${tmdbId}". ?item wdt:P2047 ?runtime. } LIMIT 1`;
+        const url = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(query)}`;
+        try {
+          const r = await fetch(url, { headers: { "User-Agent": "Seriez/1.0" } });
+          if (!r.ok) return { tmdbId, runtime: 0 };
+          const j = await r.json();
+          const val = j?.results?.bindings?.[0]?.runtime?.value;
+          const mins = val ? parseFloat(val) : 0;
+          return { tmdbId, runtime: mins > 0 ? Math.round(mins) : 0 };
+        } catch { return { tmdbId, runtime: 0 }; }
+      })
+    );
+    for (const res of wdRes) {
+      if (res.status === "fulfilled" && res.value.runtime > 0) {
+        map.set(res.value.tmdbId, res.value.runtime);
+      }
     }
   }
 
@@ -173,28 +222,25 @@ export async function GET(
       else if (t.media_type === "anime") mediaBreakdown.anime++;
     }
 
-    // ── 6. Watch time using actual TMDB runtime ──
+    // ── 6. Watch time using actual runtime (no fallback — missing = excluded) ──
     let totalMinutes = 0;
     let mediaMinutes: Record<string, number> = { movie: 0, tv: 0, anime: 0 };
 
     for (const t of watched) {
       const runtime = runtimeMap.get(t.tmdb_id);
+      if (!runtime || runtime <= 0) continue; // skip if no real data
+
       if (t.media_type === "movie") {
-        const mins = runtime && runtime > 0 ? runtime : 120; // fallback 2h
-        totalMinutes += mins;
-        mediaMinutes.movie += mins;
+        totalMinutes += runtime;
+        mediaMinutes.movie += runtime;
       } else if (t.media_type === "tv") {
-        const epMins = runtime && runtime > 0 ? runtime : 45; // fallback 45min
         const episodes = t.progress || 10;
-        const mins = epMins * episodes;
-        totalMinutes += mins;
-        mediaMinutes.tv += mins;
+        totalMinutes += runtime * episodes;
+        mediaMinutes.tv += runtime * episodes;
       } else if (t.media_type === "anime") {
-        const epMins = runtime && runtime > 0 ? runtime : 24; // fallback 24min
         const episodes = t.progress || 12;
-        const mins = epMins * episodes;
-        totalMinutes += mins;
-        mediaMinutes.anime += mins;
+        totalMinutes += runtime * episodes;
+        mediaMinutes.anime += runtime * episodes;
       }
     }
     const totalHours = Math.round(totalMinutes / 60);
@@ -231,7 +277,7 @@ export async function GET(
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              query: `query($id:Int){Media(id:$id){genres}}`,
+              query: `query($id:Int){Media(id:$id){genres duration}}`,
               variables: { id: anilistId },
             }),
           });
@@ -313,14 +359,13 @@ export async function GET(
     let yearlyHours = 0;
     for (const t of thisYearWatched) {
       const runtime = runtimeMap.get(t.tmdb_id);
+      if (!runtime || runtime <= 0) continue;
       if (t.media_type === "movie") {
-        yearlyHours += (runtime && runtime > 0 ? runtime : 120);
+        yearlyHours += runtime;
       } else if (t.media_type === "tv") {
-        const epMins = runtime && runtime > 0 ? runtime : 45;
-        yearlyHours += epMins * (t.progress || 10);
+        yearlyHours += runtime * (t.progress || 10);
       } else if (t.media_type === "anime") {
-        const epMins = runtime && runtime > 0 ? runtime : 24;
-        yearlyHours += epMins * (t.progress || 12);
+        yearlyHours += runtime * (t.progress || 12);
       }
     }
     yearlyHours = Math.round(yearlyHours / 60);
