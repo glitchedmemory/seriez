@@ -22,14 +22,17 @@ async function tmdbGet(endpoint: string) {
 // ─── AniList helpers ───
 const ANILIST_API = "https://graphql.anilist.co";
 
+// ─── Rating conversion (DB stores rating * 10 as integer) ───
+const FROM_DB = (v: number) => v >= 10 ? v / 10 : v;
+
 // ─── Rating description ───
 function ratingPersonality(avg: number, count: number): string {
-  if (count < 5) return "아직 평가가 적어요. 더 많은 작품에 별점을 남겨보세요!";
-  if (avg >= 4.0) return "작품의 장점을 발견하는 눈을 가진 '긍정 리뷰어'";
-  if (avg >= 3.5) return "균형 잡힌 시선으로 작품을 바라보는 '조화로운 감상가'";
-  if (avg >= 3.0) return "남들보다 진지하고 비판적으로 보는 '지성파'";
-  if (avg >= 2.5) return "까다롭지만 공정한 '엄격한 평론가'";
-  return "오직 마음에 드는 작품에만 별을 주는 '소울메이트 헌터'";
+  if (count < 5) return "Not enough ratings yet. Rate more titles to reveal your taste!";
+  if (avg >= 4.0) return "A 'Positive Reviewer' with an eye for great storytelling";
+  if (avg >= 3.5) return "A 'Balanced Viewer' who sees the best in every genre";
+  if (avg >= 3.0) return "A 'Thoughtful Critic' who watches with depth and sincerity";
+  if (avg >= 2.5) return "A 'Strict Judge' — tough but fair";
+  return "A 'Soulmate Hunter' who saves their stars for true favorites";
 }
 
 export async function GET(
@@ -77,7 +80,7 @@ export async function GET(
     if (reviews) {
       for (const r of reviews) {
         if (!ratedMap.has(r.tmdb_id) && r.rating && r.rating > 0) {
-          ratedMap.set(r.tmdb_id, { rating: r.rating, mediaType: r.media_type });
+          ratedMap.set(r.tmdb_id, { rating: FROM_DB(r.rating), mediaType: r.media_type });
         }
       }
     }
@@ -224,19 +227,19 @@ export async function GET(
     
     // Genre-based tags
     const genreTagMap: Record<string, string[]> = {
-      "Action": ["강렬한", "블록버스터", "아드레날린"],
-      "Drama": ["감성적인", "몰입감", "연기력"],
-      "Comedy": ["웃긴", "유쾌한", "힐링"],
-      "Thriller": ["스릴있는", "긴장감", "반전"],
-      "Horror": ["공포", "으스스한", "서늘한"],
-      "Romance": ["사랑", "로맨틱", "설렘"],
-      "Science Fiction": ["SF", "미래적인", "상상력"],
-      "Animation": ["애니메이션", "화려한", "색감"],
-      "Adventure": ["모험", "스케일", "짜릿한"],
-      "Fantasy": ["판타지", "마법같은", "동화적인"],
-      "Mystery": ["미스터리", "추리", "복선"],
-      "Crime": ["범죄", "어두운", "긴장되는"],
-      "Documentary": ["다큐멘터리", "지식", "통찰"],
+      "Action": ["Intense", "Blockbuster", "Adrenaline"],
+      "Drama": ["Emotional", "Immersive", "Powerful Performances"],
+      "Comedy": ["Funny", "Lighthearted", "Feel-Good"],
+      "Thriller": ["Thrilling", "Suspenseful", "Twists"],
+      "Horror": ["Scary", "Creepy", "Chilling"],
+      "Romance": ["Romantic", "Heartfelt", "Sweet"],
+      "Science Fiction": ["Sci-Fi", "Futuristic", "Imaginative"],
+      "Animation": ["Animated", "Colorful", "Vibrant"],
+      "Adventure": ["Adventurous", "Epic", "Exciting"],
+      "Fantasy": ["Fantasy", "Magical", "Whimsical"],
+      "Mystery": ["Mysterious", "Investigative", "Intriguing"],
+      "Crime": ["Gritty", "Dark", "Tense"],
+      "Documentary": ["Documentary", "Insightful", "Informative"],
     };
 
     for (const genre of topGenreNames) {
@@ -247,10 +250,10 @@ export async function GET(
     }
     
     // Additional behavior-based tags
-    if (watched.length > 100) tags.push("헤비시청자");
-    if (avgRating >= 4.0) tags.push("호평러");
-    if (planned.length > watched.length) tags.push("찜러");
-    if (watching.length >= 5) tags.push("동시시청러");
+    if (watched.length > 100) tags.push("Binge Watcher");
+    if (avgRating >= 4.0) tags.push("High Rater");
+    if (planned.length > watched.length) tags.push("Collector");
+    if (watching.length >= 5) tags.push("Multi-Watcher");
 
     const slicedTags = tags.slice(0, 12);
 
