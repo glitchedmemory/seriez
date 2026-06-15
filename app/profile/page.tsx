@@ -575,6 +575,82 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {/* ── Premium: Genre Taste + Top Actors/Directors ── */}
+      {stats && user && (
+        <div className="px-4 mt-6 space-y-5">
+          {/* Genre Distribution */}
+          {stats.genres && stats.genres.length > 0 && (
+            <div className="relative">
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Genre Taste</h3>
+              {!isPremium && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg-floor/60 backdrop-blur-[2px] rounded-xl">
+                  <a href="/pro" className="bg-accent hover:bg-[#818cf8] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shadow-lg">
+                    Unlock with Pro ✨
+                  </a>
+                </div>
+              )}
+              <div className="space-y-1.5" style={!isPremium ? { filter: "blur(4px)" } : undefined}>
+                {stats.genres.slice(0, 6).map((g, i) => {
+                  const maxCount = stats.genres[0]?.count || 1;
+                  const pct = Math.round((g.count / maxCount) * 100);
+                  return (
+                    <div key={g.name} className="flex items-center gap-2">
+                      <span className="text-xs text-text-body w-20 truncate">{g.name}</span>
+                      <div className="flex-1 h-3 bg-bg-surface rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-[#818cf8] to-[#a78bfa] rounded-full" style={{ width: `${Math.max(pct, 10)}%` }} />
+                      </div>
+                      <span className="text-[10px] text-text-muted w-8 text-right">{g.count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Top Actors */}
+          {stats.topActors && stats.topActors.length > 0 && (
+            <div className="relative">
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Actors</h3>
+              {!isPremium && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg-floor/60 backdrop-blur-[2px] rounded-xl">
+                  <a href="/pro" className="bg-accent hover:bg-[#818cf8] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shadow-lg">
+                    Unlock with Pro ✨
+                  </a>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2" style={!isPremium ? { filter: "blur(4px)" } : undefined}>
+                {stats.topActors.slice(0, 5).map((a) => (
+                  <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-body">
+                    {a.name} <span className="text-text-muted">{a.count}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top Directors */}
+          {stats.topDirectors && stats.topDirectors.length > 0 && (
+            <div className="relative">
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Directors</h3>
+              {!isPremium && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg-floor/60 backdrop-blur-[2px] rounded-xl">
+                  <a href="/pro" className="bg-accent hover:bg-[#818cf8] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shadow-lg">
+                    Unlock with Pro ✨
+                  </a>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2" style={!isPremium ? { filter: "blur(4px)" } : undefined}>
+                {stats.topDirectors.slice(0, 5).map((d) => (
+                  <span key={d.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-body">
+                    {d.name} <span className="text-text-muted">{d.count}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Sign-in prompt for guests */}
       {!user && (
         <div className="px-4 mt-6">
