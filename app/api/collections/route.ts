@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       const { count } = await supabase
         .from("user_lists").select("id", { count: "exact", head: true }).eq("user_id", userId);
       if ((count || 0) >= 3) {
-        return NextResponse.json({ error: "Free plan limited to 3 collections. Upgrade to Pro for unlimited." }, { status: 402 });
+        return NextResponse.json({ error: "Free plan limited to 3 collections. Upgrade to Golden Ticket for unlimited." }, { status: 402 });
       }
     }
     // ─── end limit check ───
