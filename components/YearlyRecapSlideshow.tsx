@@ -85,10 +85,43 @@ export default function YearlyRecapSlideshow({
     }
   };
 
-  // Derive highest/lowest rated from library
+  // Simple deterministic hash for seeding "random" picks
+  const simpleHash = (str: string): number => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash);
+  };
+
+  // Pick item from the dominant media type among a pool — deterministic random
+  const pickFromDominantType = (pool: typeof library, seed: string) => {
+    if (pool.length === 0) return null;
+    // Count by media type
+    const counts: Record<string, number> = {};
+    pool.forEach(item => { counts[item.media_type] = (counts[item.media_type] || 0) + 1; });
+    // Find dominant type (most items)
+    let dominantType = pool[0].media_type;
+    let maxCount = 0;
+    for (const [type, count] of Object.entries(counts)) {
+      if (count > maxCount) { maxCount = count; dominantType = type; }
+    }
+    const candidates = pool.filter(i => i.media_type === dominantType);
+    return candidates[simpleHash(seed + dominantType) % candidates.length];
+  };
+
+  // Derive highest/lowest rated from library — dominant media type logic
   const ratedItems = library.filter(l => l.rating && l.rating > 0).sort((a, b) => (b.rating || 0) - (a.rating || 0));
-  const highestRated = ratedItems[0] || null;
-  const lowestRated = ratedItems[ratedItems.length - 1] || null;
+  // High-rated pool: rating >= 4, fallback to top 25% if too few
+  const highRated = ratedItems.filter(i => (i.rating || 0) >= 4);
+  const highPool = highRated.length >= 2 ? highRated : ratedItems.slice(0, Math.max(1, Math.ceil(ratedItems.length * 0.25)));
+  // Low-rated pool: rating <= 2, fallback to bottom 25% if too few
+  const lowRated = ratedItems.filter(i => (i.rating || 0) <= 2);
+  const lowPool = lowRated.length >= 2 ? lowRated : ratedItems.slice(-Math.max(1, Math.ceil(ratedItems.length * 0.25)));
+  const seed = displayName + String(new Date().getFullYear());
+  const highestRated = pickFromDominantType(highPool, seed + "high") || ratedItems[0] || null;
+  const lowestRated = pickFromDominantType(lowPool, seed + "low") || ratedItems[ratedItems.length - 1] || null;
   const highestReview = highestRated ? reviewsMap[`${highestRated.tmdb_id}-${highestRated.media_type}`] || null : null;
   const lowestReview = lowestRated ? reviewsMap[`${lowestRated.tmdb_id}-${lowestRated.media_type}`] || null : null;
 
