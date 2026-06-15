@@ -58,3 +58,28 @@ export async function POST(
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ comment });
 }
+
+// ─── DELETE: remove a comment (owner only) ───
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const username = await resolveUsername(req);
+  if (!username) {
+    return NextResponse.json({ error: "Sign in to delete" }, { status: 401 });
+  }
+
+  const { id: collectionId } = await params;
+  const commentId = new URL(req.url).searchParams.get("commentId");
+  if (!commentId) return NextResponse.json({ error: "Missing commentId" }, { status: 400 });
+
+  const { error } = await supabase
+    .from("collection_comments")
+    .delete()
+    .eq("id", commentId)
+    .eq("collection_id", collectionId)
+    .eq("username", username);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
+}

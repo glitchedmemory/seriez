@@ -124,6 +124,28 @@ export default function CollectionClient() {
     setSubmitting(false);
   };
 
+  // Delete comment (owner only)
+  const handleDelete = async (commentId: number) => {
+    if (!authUser) return;
+    const res = await fetch(`/api/collections/${id}/comments?commentId=${commentId}`, { method: "DELETE" });
+    if (res.ok) setComments((prev) => prev.filter((c) => c.id !== commentId));
+  };
+
+  // Report comment
+  const handleReport = async (commentId: number) => {
+    if (!authUser) return;
+    const res = await fetch(`/api/collections/${id}/comments/report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ commentId }),
+    });
+    if (res.ok) alert("Reported. Thank you.");
+    else {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Failed to report");
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto min-h-screen px-4 py-6 pb-24">
@@ -268,6 +290,12 @@ export default function CollectionClient() {
                     <span className="text-[10px] text-text-secondary">
                       {new Date(c.created_at).toLocaleDateString()}
                     </span>
+                    {authUser && c.username === authUser && (
+                      <button onClick={() => handleDelete(c.id)} className="text-[10px] text-red-400/70 hover:text-red-400 transition-colors ml-auto" title="Delete">🗑</button>
+                    )}
+                    {authUser && c.username !== authUser && (
+                      <button onClick={() => handleReport(c.id)} className="text-[10px] text-text-secondary/50 hover:text-red-400 transition-colors ml-auto" title="Report">🚩</button>
+                    )}
                   </div>
                   <p className="text-xs text-[#d1d5db] light:text-text-primary mt-0.5">{c.content}</p>
                 </div>
