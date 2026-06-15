@@ -61,6 +61,9 @@ export default function ProfilePage() {
   const [stats, setStats] = useState<ProfileStats | null>(null);
   const [selectedMediaType, setSelectedMediaType] = useState<"movie" | "tv" | "anime">("movie");
   const [isPremium, setIsPremium] = useState(false);
+  const [recapActiveSlide, setRecapActiveSlide] = useState(0);
+  const [recapDotsMounted, setRecapDotsMounted] = useState(false);
+  const recapScrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -657,15 +660,13 @@ export default function ProfilePage() {
               Animation: ["#1a2e0a", "#3b6310"],
             };
             const [gc1, gc2] = genreColors[topGenre] || ["#1e1b4b", "#3730a3"];
-            const [activeSlide, setActiveSlide] = useState(0);
-            const scrollRef = useRef<HTMLDivElement>(null);
             const totalSlides = 6;
 
             const handleScroll = () => {
-              const el = scrollRef.current;
+              const el = recapScrollRef.current;
               if (!el) return;
               const idx = Math.round(el.scrollLeft / el.clientWidth);
-              setActiveSlide(idx);
+              setRecapActiveSlide(idx);
             };
 
             const handleShare = async () => {
@@ -677,9 +678,8 @@ export default function ProfilePage() {
               }
             };
 
-            // Track mounted to safely use refs/effects
-            const [dotsMounted, setDotsMounted] = useState(false);
-            useEffect(() => { setDotsMounted(true); }, []);
+            // Mount effect for dots
+            useEffect(() => { setRecapDotsMounted(true); }, []);
 
             return (
             <div className="mt-5">
@@ -687,7 +687,7 @@ export default function ProfilePage() {
                 {year} Recap
               </h3>
               <div
-                ref={scrollRef}
+                ref={recapScrollRef}
                 onScroll={handleScroll}
                 className="flex overflow-x-auto snap-x snap-mandatory -mx-4 px-4"
                 style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
@@ -814,13 +814,13 @@ export default function ProfilePage() {
               </div>
 
               {/* Dots */}
-              {dotsMounted && (
+              {recapDotsMounted && (
               <div className="flex justify-center gap-1.5 mt-3">
                 {Array.from({ length: totalSlides }).map((_, i) => (
                   <button
                     key={i}
-                    onClick={() => { scrollRef.current?.scrollTo({ left: scrollRef.current.clientWidth * i, behavior: "smooth" }); }}
-                    className={`w-2 h-2 rounded-full transition-all ${i === activeSlide ? "bg-accent w-4" : "bg-border hover:bg-text-secondary"}`}
+                    onClick={() => { recapScrollRef.current?.scrollTo({ left: recapScrollRef.current.clientWidth * i, behavior: "smooth" }); }}
+                    className={`w-2 h-2 rounded-full transition-all ${i === recapActiveSlide ? "bg-accent w-4" : "bg-border hover:bg-text-secondary"}`}
                   />
                 ))}
               </div>
