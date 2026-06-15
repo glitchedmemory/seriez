@@ -461,31 +461,6 @@ export default function ProfilePage() {
               <p className="text-[10px] text-text-secondary mt-1.5">{stats.completion.completed} completed of {stats.completion.started} series started</p>
             </div>
           )}
-
-          {/* ── Media Breakdown ── */}
-          <div className="mt-4 bg-bg-card border border-border rounded-xl p-4">
-            <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Media Breakdown</h3>
-            {(["movie", "tv", "anime"] as const).map((type, idx) => {
-              const colors = ["bg-accent", "bg-[#0d9488]", "bg-[#ec4899]"];
-              const icons = ["🎥", "📺", "🌸"];
-              const names = ["Movie", "TV Shows", "Anime"];
-              const max = Math.max(stats.mediaBreakdown.movie, stats.mediaBreakdown.tv, stats.mediaBreakdown.anime, 1);
-              const pct = Math.round((stats.mediaBreakdown[type] / max) * 100);
-              const hours = stats.mediaHours?.[type] || 0;
-              return (
-                <div key={type} className="mb-2 last:mb-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm">{icons[idx]}</span>
-                    <span className="text-xs text-text-primary font-medium">{names[idx]}</span>
-                    <span className="text-[10px] text-text-secondary ml-auto">{stats.mediaBreakdown[type]} titles · {hours}h</span>
-                  </div>
-                  <div className="h-2 bg-bg-surface rounded-full overflow-hidden">
-                    <div className={`h-full ${colors[idx]} rounded-full transition-all duration-700`} style={{ width: `${Math.max(pct, 5)}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         </div>
       )}
 
@@ -680,28 +655,6 @@ export default function ProfilePage() {
               library={library}
               reviewsMap={reviewsMap}
             />
-          )}
-
-          {/* Genre Distribution */}
-          {stats.genres && stats.genres.length > 0 && (
-            <div className="relative">
-              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Genre Taste</h3>
-              <div className="space-y-1.5">
-                {stats.genres.slice(0, 6).map((g, i) => {
-                  const maxCount = stats.genres[0]?.count || 1;
-                  const pct = Math.round((g.count / maxCount) * 100);
-                  return (
-                    <div key={g.name} className="flex items-center gap-2">
-                      <span className="text-xs text-text-primary w-20 truncate">{g.name}</span>
-                      <div className="flex-1 h-3 bg-bg-surface rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-accent to-[#a855f7] rounded-full" style={{ width: `${Math.max(pct, 10)}%` }} />
-                      </div>
-                      <span className="text-[10px] text-text-secondary w-8 text-right">{g.count}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
           )}
 
           {/* Top Actors */}
