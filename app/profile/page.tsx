@@ -450,7 +450,7 @@ export default function ProfilePage() {
                 <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Favorites</h3>
                 <div className="grid grid-cols-4 gap-2">
                   {favs.map((item) => (
-                    <a key={item.id} href={`/title/${item.tmdb_id}?type=${item.media_type}`}
+                    <a key={(item as any).tmdbId} href={`/title/${(item as any).tmdbId}?type=${(item as any).mediaType}`}
                       className="bg-bg-card border border-border rounded-lg overflow-hidden hover:border-accent/40 transition-colors group">
                       <div className="aspect-[2/3] bg-bg-surface relative">
                         {item.poster ? (
