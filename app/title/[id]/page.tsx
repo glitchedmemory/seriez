@@ -1,4 +1,4 @@
-import { getMovieDetail } from "@/lib/tmdb";
+import { getMovieDetail, isAnimeTV } from "@/lib/tmdb";
 import DetailClient from "@/components/DetailClient";
 import { getAnimeDetail, getAnimeEpisodes, enrichAnimeRelations } from "@/lib/anilist";
 import AnimeDetailClient from "@/components/AnimeDetailClient";
@@ -31,8 +31,12 @@ export default async function TitlePage({ params, searchParams }: Props) {
   const numId = parseInt(id);
   if (isNaN(numId)) notFound();
 
-  // TV shows have no main page — redirect to latest season
+  // TV shows — check if actually anime first
   if (type === "tv") {
+    // If this TV show is Japanese anime, redirect to anime page
+    if (await isAnimeTV(numId)) {
+      redirect(`/title/${numId}?type=anime`);
+    }
     const latestSeason = await getTVSeasonCount(numId);
     if (latestSeason) {
       redirect(`/title/${numId}/season/${latestSeason}`);
