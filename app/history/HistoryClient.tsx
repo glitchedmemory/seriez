@@ -149,11 +149,7 @@ export default function HistoryClient() {
 
       {/* Watch time overview */}
       <div className="px-4 mb-5">
-        <div className="grid grid-cols-3 gap-3">
-          <StatCard value={`${data.stats.weeklyHours}h`} label="This Week" />
-          <StatCard value={`${data.stats.totalHours}h`} label="This Month" />
-          <StatCard value={`${data.stats.allTimeHours}h`} label="All Time" />
-        </div>
+        <StatCard value={`${data.stats.weeklyHours}h`} label="This Week" />
       </div>
 
       {/* ── Taste Profile ── */}
