@@ -38,6 +38,9 @@ export default function CollectionClient() {
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [avatarUrls, setAvatarUrls] = useState<Record<string, string | null>>({});
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [reportingComments, setReportingComments] = useState<Set<string>>(new Set());
+  const [reportCounts, setReportCounts] = useState<Record<string, number>>({});
 
   // Detect auth
   useEffect(() => {
@@ -124,9 +127,10 @@ export default function CollectionClient() {
     setSubmitting(false);
   };
 
-  // Delete comment (owner only)
+  // Delete comment (owner only — confirm first)
   const handleDelete = async (commentId: number) => {
     if (!authUser) return;
+    setConfirmDelete(null);
     const res = await fetch(`/api/collections/${id}/comments?commentId=${commentId}`, { method: "DELETE" });
     if (res.ok) setComments((prev) => prev.filter((c) => c.id !== commentId));
   };
@@ -134,15 +138,16 @@ export default function CollectionClient() {
   // Report comment
   const handleReport = async (commentId: number) => {
     if (!authUser) return;
+    const key = String(commentId);
+    setReportingComments((prev) => new Set(prev).add(key));
     const res = await fetch(`/api/collections/${id}/comments/report`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ commentId }),
     });
-    if (res.ok) alert("Reported. Thank you.");
-    else {
-      const data = await res.json().catch(() => ({}));
-      alert(data.error || "Failed to report");
+    setReportingComments((prev) => { const n = new Set(prev); n.delete(key); return n; });
+    if (res.ok) {
+      setReportCounts((prev) => ({ ...prev, [key]: (prev[key] || 0) + 1 }));
     }
   };
 
@@ -290,11 +295,33 @@ export default function CollectionClient() {
                     <span className="text-[10px] text-text-secondary">
                       {new Date(c.created_at).toLocaleDateString()}
                     </span>
-                    {authUser && c.username === authUser && (
-                      <button onClick={() => handleDelete(c.id)} className="text-[10px] text-red-400/70 hover:text-red-400 transition-colors ml-auto" title="Delete">🗑</button>
-                    )}
                     {authUser && c.username !== authUser && (
-                      <button onClick={() => handleReport(c.id)} className="text-[10px] text-text-secondary/50 hover:text-red-400 transition-colors ml-auto" title="Report">🚩</button>
+                      <button onClick={() => authUser ? handleReport(c.id) : router.push("/login")}
+                        disabled={reportingComments.has(String(c.id)) && !!authUser}
+                        className={`text-[11px] transition-colors disabled:opacity-50 ml-auto ${
+                          (reportCounts[String(c.id)] || 0) > 0
+                            ? "text-green-400"
+                            : "text-text-secondary hover:text-red-400"
+                        }`}
+                        title={reportCounts[String(c.id)] ? "Reported ✓" : "Report"}>
+                        {reportCounts[String(c.id)] ? "✓ Reported" : (
+                          <span className="light:bg-red-50 light:rounded light:p-0.5"><img src="/report-button.png?v=2" alt="Report" className="h-5 w-auto opacity-70 hover:opacity-100" /></span>
+                        )}
+                      </button>
+                    )}
+                    {authUser && c.username === authUser && (
+                      confirmDelete === c.id ? (
+                        <span className="flex items-center gap-1 ml-auto">
+                          <button onClick={() => handleDelete(c.id)}
+                            className="text-[9px] px-1.5 py-0.5 bg-red-600 text-white rounded hover:bg-red-500">Del</button>
+                          <button onClick={() => setConfirmDelete(null)}
+                            className="text-[9px] text-text-secondary hover:text-white">Cancel</button>
+                        </span>
+                      ) : (
+                        <button onClick={() => setConfirmDelete(c.id)}
+                          className="text-[10px] text-text-secondary hover:text-red-400 transition-colors ml-auto"
+                        >✕</button>
+                      )
                     )}
                   </div>
                   <p className="text-xs text-[#d1d5db] light:text-text-primary mt-0.5">{c.content}</p>
