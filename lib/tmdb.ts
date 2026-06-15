@@ -712,3 +712,22 @@ export async function getPersonDetail(id: number): Promise<PersonDetail | null> 
     return null;
   }
 }
+
+// ── Anime TV detection ──
+const animeTVCache = new Map<number, boolean>();
+
+/** Check if a TMDB TV show is actually Japanese anime (Animation genre 16 + JP origin) */
+export async function isAnimeTV(tmdbId: number): Promise<boolean> {
+  if (animeTVCache.has(tmdbId)) return animeTVCache.get(tmdbId)!;
+  try {
+    const detail = await get(`/tv/${tmdbId}`);
+    const genres: number[] = (detail.genres || []).map((g: any) => g.id);
+    const countries: string[] = detail.origin_country || [];
+    const isAnime = genres.includes(16) && countries.includes("JP");
+    animeTVCache.set(tmdbId, isAnime);
+    return isAnime;
+  } catch {
+    animeTVCache.set(tmdbId, false);
+    return false;
+  }
+}
