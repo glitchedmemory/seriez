@@ -187,8 +187,8 @@ async function fetchKitsuBackdrop(title: string, year: number, titleRomaji?: str
       if (!res.ok) continue;
       const data = await res.json();
       const results = data.data || [];
-      // Find best match: prefer same-year
-      let best = results[0];
+      // Find best match: prefer same-year, skip if no year match
+      let best = null;
       for (const r of results) {
         const startDate = r.attributes?.startDate;
         if (startDate && year && startDate.startsWith(String(year))) {
@@ -196,7 +196,7 @@ async function fetchKitsuBackdrop(title: string, year: number, titleRomaji?: str
           break;
         }
       }
-      if (!best) continue;
+      if (!best) continue; // require year match
       const coverImage = best.attributes?.coverImage;
       if (coverImage?.original) return coverImage.original;
       if (coverImage?.large) return coverImage.large;
