@@ -29,11 +29,15 @@ interface LibraryItem {
 
 interface ProfileStats {
   totals: { watched: number; watching: number; planned: number; rated: number; reviewed: number; hours: number };
-  rating: { average: number; mostGiven: number; personality: string };
+  completion: { rate: number; started: number; completed: number };
+  rating: { average: number; distribution: { score: number; count: number }[] };
   mediaBreakdown: { movie: number; tv: number; anime: number };
+  mediaHours: { movie: number; tv: number; anime: number };
   genres: { name: string; count: number }[];
   topActors: { name: string; count: number }[];
   topDirectors: { name: string; count: number }[];
+  monthlyWatch: { month: string; count: number }[];
+  yearlyRecap: { hours: number; titles: number; topRated: { tmdb_id: number; media_type: string; rating: number }[] };
 }
 
 export default function ProfilePage() {
@@ -363,7 +367,7 @@ export default function ProfilePage() {
         <div className="px-4 mt-5">
           {/* Segmented Media Type Toggle */}
           <div className="flex justify-center mb-4">
-            <div className="inline-flex bg-white/5 dark:bg-white/5 bg-gray-100 rounded-full p-0.5">
+            <div className="inline-flex bg-bg-card rounded-full p-0.5 border border-border">
               {(["movie", "tv", "anime"] as const).map((type) => {
                 const labels: Record<string, string> = { movie: "Movie", tv: "TV", anime: "Anime" };
                 const isActive = selectedMediaType === type;
@@ -373,8 +377,8 @@ export default function ProfilePage() {
                     onClick={() => { setSelectedMediaType(type); fetchStats(type); }}
                     className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all ${
                       isActive
-                        ? "bg-[#818cf8] text-white shadow-sm dark:bg-[#818cf8] dark:text-white bg-[#6366f1]"
-                        : "text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:text-white text-gray-500 hover:text-gray-700"
+                        ? "bg-accent text-white shadow-sm"
+                        : "text-text-secondary hover:text-text-primary"
                     }`}
                   >
                     {labels[type]}
@@ -400,6 +404,45 @@ export default function ProfilePage() {
               <p className="text-2xl font-bold text-text-primary">{stats.totals.rated}</p>
               <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">Rated</p>
             </div>
+          </div>
+
+          {/* ── Completion Rate ── */}
+          {stats.completion && stats.completion.started > 0 && (
+            <div className="mt-4 bg-bg-card border border-border rounded-xl p-4">
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-2">Completion Rate</h3>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-3 bg-bg-surface rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-accent to-[#a855f7] rounded-full transition-all duration-700" style={{ width: `${stats.completion.rate}%` }} />
+                </div>
+                <span className="text-sm font-bold text-text-primary">{stats.completion.rate}%</span>
+              </div>
+              <p className="text-[10px] text-text-secondary mt-1.5">{stats.completion.completed} completed of {stats.completion.started} series started</p>
+            </div>
+          )}
+
+          {/* ── Media Breakdown ── */}
+          <div className="mt-4 bg-bg-card border border-border rounded-xl p-4">
+            <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Media Breakdown</h3>
+            {(["movie", "tv", "anime"] as const).map((type, idx) => {
+              const colors = ["bg-accent", "bg-[#0d9488]", "bg-[#ec4899]"];
+              const icons = ["🎥", "📺", "🌸"];
+              const names = ["Movie", "TV Shows", "Anime"];
+              const max = Math.max(stats.mediaBreakdown.movie, stats.mediaBreakdown.tv, stats.mediaBreakdown.anime, 1);
+              const pct = Math.round((stats.mediaBreakdown[type] / max) * 100);
+              const hours = stats.mediaHours?.[type] || 0;
+              return (
+                <div key={type} className="mb-2 last:mb-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm">{icons[idx]}</span>
+                    <span className="text-xs text-text-primary font-medium">{names[idx]}</span>
+                    <span className="text-[10px] text-text-secondary ml-auto">{stats.mediaBreakdown[type]} titles · {hours}h</span>
+                  </div>
+                  <div className="h-2 bg-bg-surface rounded-full overflow-hidden">
+                    <div className={`h-full ${colors[idx]} rounded-full transition-all duration-700`} style={{ width: `${Math.max(pct, 5)}%` }} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -545,9 +588,79 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* ── Premium: Genre Taste + Top Actors/Directors ── */}
+      {/* ── Premium: Taste Profile ── */}
       {stats && user && (
         <div className="px-4 mt-6 space-y-5">
+          {/* Monthly Activity (12 months) */}
+          {stats.monthlyWatch && stats.monthlyWatch.length > 0 && (
+            <div>
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Monthly Activity</h3>
+              <div className="bg-bg-card border border-border rounded-xl p-4">
+                <div className="grid grid-cols-6 gap-1.5">
+                  {stats.monthlyWatch.map((m) => {
+                    const maxCount = Math.max(...stats.monthlyWatch.map(x => x.count), 1);
+                    const intensity = Math.max(m.count / maxCount, 0.08);
+                    const monthLabel = m.month.slice(5); // "06"
+                    return (
+                      <div key={m.month} className="text-center">
+                        <div
+                          className="w-full aspect-square rounded-md flex items-center justify-center transition-colors"
+                          style={{
+                            backgroundColor: `rgba(99, 102, 241, ${intensity.toFixed(2)})`,
+                            color: intensity > 0.5 ? '#fff' : undefined
+                          }}
+                        >
+                          <span className="text-[10px] font-medium">{m.count}</span>
+                        </div>
+                        <span className="text-[9px] text-text-secondary mt-0.5 block">{monthLabel}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Yearly Recap */}
+          {stats.yearlyRecap && stats.yearlyRecap.titles > 0 && (
+            <div>
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">
+                {new Date().getFullYear()} Recap
+              </h3>
+              <div className="bg-bg-card border border-border rounded-xl p-4">
+                <div className="grid grid-cols-3 gap-3 mb-3">
+                  <div className="text-center">
+                    <p className="text-xl font-bold text-accent">{stats.yearlyRecap.hours}h</p>
+                    <p className="text-[9px] text-text-secondary uppercase">Hours</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xl font-bold text-text-primary">{stats.yearlyRecap.titles}</p>
+                    <p className="text-[9px] text-text-secondary uppercase">Titles</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xl font-bold text-yellow-400">
+                      {stats.yearlyRecap.topRated.length > 0 ? stats.yearlyRecap.topRated[0].rating : "—"}
+                    </p>
+                    <p className="text-[9px] text-text-secondary uppercase">Top ★</p>
+                  </div>
+                </div>
+                {stats.yearlyRecap.topRated.length > 0 && (
+                  <div className="border-t border-border pt-3">
+                    <p className="text-[10px] text-text-secondary mb-2">Highest Rated This Year</p>
+                    {stats.yearlyRecap.topRated.map((tr, i) => (
+                      <div key={i} className="flex items-center gap-2 mb-1 last:mb-0">
+                        <span className="text-yellow-400 text-sm">★ {tr.rating}</span>
+                        <a href={`/title/${tr.tmdb_id}?type=${tr.media_type}`} className="text-xs text-text-primary hover:text-accent truncate">
+                          View →
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Genre Distribution */}
           {stats.genres && stats.genres.length > 0 && (
             <div className="relative">
@@ -558,11 +671,11 @@ export default function ProfilePage() {
                   const pct = Math.round((g.count / maxCount) * 100);
                   return (
                     <div key={g.name} className="flex items-center gap-2">
-                      <span className="text-xs text-text-body w-20 truncate">{g.name}</span>
+                      <span className="text-xs text-text-primary w-20 truncate">{g.name}</span>
                       <div className="flex-1 h-3 bg-bg-surface rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-[#818cf8] to-[#a78bfa] rounded-full" style={{ width: `${Math.max(pct, 10)}%` }} />
+                        <div className="h-full bg-gradient-to-r from-accent to-[#a855f7] rounded-full" style={{ width: `${Math.max(pct, 10)}%` }} />
                       </div>
-                      <span className="text-[10px] text-text-muted w-8 text-right">{g.count}</span>
+                      <span className="text-[10px] text-text-secondary w-8 text-right">{g.count}</span>
                     </div>
                   );
                 })}
@@ -576,7 +689,7 @@ export default function ProfilePage() {
               <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Actors</h3>
               <div className="flex flex-wrap gap-2">
                 {stats.topActors.slice(0, 5).map((a) => (
-                  <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-body">
+                  <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">
                     {a.name}
                   </span>
                 ))}
@@ -590,7 +703,7 @@ export default function ProfilePage() {
               <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Directors</h3>
               <div className="flex flex-wrap gap-2">
                 {stats.topDirectors.slice(0, 5).map((d) => (
-                  <span key={d.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-body">
+                  <span key={d.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">
                     {d.name}
                   </span>
                 ))}

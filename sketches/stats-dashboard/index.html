@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seriez — Taste Profile</title>
+<style>
+  :root {
+    --bg-primary: #0f0f1a;
+    --bg-card: #141428;
+    --bg-surface: #1a1a30;
+    --border: #1e1e3a;
+    --accent: #6366f1;
+    --accent-teal: #0d9488;
+    --accent-pink: #ec4899;
+    --gold: #f59e0b;
+    --text: #e0e0e0;
+    --text-muted: #6b7280;
+    --green: #10b981;
+    --blue: #3b82f6;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 16px 80px;
+  }
+
+  /* ── Header ── */
+  .page-header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--bg-primary);
+    padding: 14px 0 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .page-title {
+    font-size: 22px; font-weight: 700;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .page-sub {
+    font-size: 12px; color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* ── Section ── */
+  .section { margin-bottom: 20px; }
+  .section-title {
+    font-size: 13px; font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ── Overview Cards ── */
+  .overview-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  }
+  .overview-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .overview-card .val { font-size: 24px; font-weight: 700; }
+  .overview-card .val.gold { color: var(--gold); }
+  .overview-card .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+
+  /* ── Genre Bars ── */
+  .genre-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  }
+  .genre-name {
+    width: 90px; font-size: 11px; color: var(--text);
+    text-align: right; flex-shrink: 0;
+  }
+  .genre-bar-wrap { flex: 1; height: 20px; background: var(--bg-surface); border-radius: 4px; overflow: hidden; }
+  .genre-bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .genre-count { width: 28px; font-size: 10px; color: var(--text-muted); text-align: left; flex-shrink: 0; }
+
+  /* ── Rating distribution ── */
+  .rating-dist {
+    display: flex; align-items: flex-end; gap: 3px;
+    height: 100px; padding-top: 4px;
+  }
+  .rating-col {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .rating-bar {
+    width: 100%; border-radius: 4px 4px 0 0; transition: height 0.6s ease;
+  }
+  .rating-label {
+    font-size: 9px; color: var(--text-muted);
+  }
+  .rating-count-label {
+    font-size: 9px; color: var(--text-muted);
+  }
+
+  /* ── Media breakdown ── */
+  .media-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  }
+  .media-icon { font-size: 18px; width: 24px; text-align: center; }
+  .media-info { flex: 1; }
+  .media-name { font-size: 13px; font-weight: 500; }
+  .media-meta { font-size: 11px; color: var(--text-muted); }
+  .media-count { font-size: 16px; font-weight: 700; }
+
+  /* ── Monthly Heatmap ── */
+  .heatmap-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
+  }
+  .heat-cell {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 9px;
+  }
+
+  /* ── Actor/Director pills ── */
+  .pill-row {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .pill {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 11px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .pill .count {
+    font-size: 10px; color: var(--text-muted);
+    background: var(--bg-card); padding: 1px 6px; border-radius: 10px;
+  }
+
+  /* ── Tags ── */
+  .tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--accent); opacity: 0.15;
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 11px; font-weight: 500;
+    color: #a5b4fc;
+  }
+
+  /* ── Personality ── */
+  .personality-card {
+    background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.1));
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+  }
+  .personality-card .emoji { font-size: 32px; margin-bottom: 6px; }
+  .personality-card .title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .personality-card .desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ── Pro badge ── */
+  .pro-badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: white; font-size: 10px; font-weight: 600;
+    padding: 2px 8px; border-radius: 10px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<div class="page-header">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span class="page-title">Taste Profile</span>
+    <span class="pro-badge">PRO</span>
+  </div>
+  <p class="page-sub">Your watching DNA, decoded</p>
+</div>
+
+<!-- ═══════════ OVERVIEW ═══════════ -->
+<div class="section">
+  <div class="section-title">📊 Overview</div>
+  <div class="overview-grid">
+    <div class="overview-card">
+      <div class="val">247</div>
+      <div class="lbl">Watched</div>
+    </div>
+    <div class="overview-card">
+      <div class="val">3,482h</div>
+      <div class="lbl">Hours</div>
+    </div>
+    <div class="overview-card">
+      <div class="val gold">3.8</div>
+      <div class="lbl">Avg ★</div>
+    </div>
+    <div class="overview-card">
+      <div class="val">189</div>
+      <div class="lbl">Rated</div>
+    </div>
+  </div>
+  <div style="margin-top:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+    <div class="overview-card"><div class="val" style="font-size:18px;">18</div><div class="lbl">Watching</div></div>
+    <div class="overview-card"><div class="val" style="font-size:18px;">42</div><div class="lbl">To Watch</div></div>
+    <div class="overview-card"><div class="val" style="font-size:18px;color:var(--accent-pink)">53</div><div class="lbl">Reviews</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ MEDIA BREAKDOWN ═══════════ -->
+<div class="section">
+  <div class="section-title">🎬 Media Breakdown</div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;">
+    <div class="media-row">
+      <div class="media-icon">🎥</div>
+      <div class="media-info"><div class="media-name">Movies</div><div class="media-meta">~152h · avg 1.8h each</div></div>
+      <div class="media-count">84</div>
+    </div>
+    <div style="height:4px;background:var(--bg-surface);border-radius:2px;margin-bottom:10px;">
+      <div style="height:100%;width:34%;background:var(--accent);border-radius:2px;"></div>
+    </div>
+    <div class="media-row">
+      <div class="media-icon">📺</div>
+      <div class="media-info"><div class="media-name">TV Shows</div><div class="media-meta">~1,895h · 18.4 ep avg</div></div>
+      <div class="media-count">103</div>
+    </div>
+    <div style="height:4px;background:var(--bg-surface);border-radius:2px;margin-bottom:10px;">
+      <div style="height:100%;width:42%;background:var(--accent-teal);border-radius:2px;"></div>
+    </div>
+    <div class="media-row">
+      <div class="media-icon">🌸</div>
+      <div class="media-info"><div class="media-name">Anime</div><div class="media-meta">~1,435h · 24.7 ep avg</div></div>
+      <div class="media-count">60</div>
+    </div>
+    <div style="height:4px;background:var(--bg-surface);border-radius:2px;">
+      <div style="height:100%;width:24%;background:var(--accent-pink);border-radius:2px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ TOP GENRES ═══════════ -->
+<div class="section">
+  <div class="section-title">🎭 Top Genres</div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;">
+    <div class="genre-row">
+      <span class="genre-name">Drama</span>
+      <div class="genre-bar-wrap"><div class="genre-bar" style="width:100%;background:var(--accent);"></div></div>
+      <span class="genre-count">78</span>
+    </div>
+    <div class="genre-row">
+      <span class="genre-name">Thriller</span>
+      <div class="genre-bar-wrap"><div class="genre-bar" style="width:83%;background:var(--accent-teal);"></div></div>
+      <span class="genre-count">65</span>
+    </div>
+    <div class="genre-row">
+      <span class="genre-name">Action</span>
+      <div class="genre-bar-wrap"><div class="genre-bar" style="width:69%;background:var(--blue);"></div></div>
+      <span class="genre-count">54</span>
+    </div>
+    <div class="genre-row">
+      <span class="genre-name">Comedy</span>
+      <div class="genre-bar-wrap"><div class="genre-bar" style="width:62%;background:var(--green);"></div></div>
+      <span class="genre-count">48</span>
+    </div>
+    <div class="genre-row">
+      <span class="genre-name">Sci-Fi</span>
+      <div class="genre-bar-wrap"><div class="genre-bar" style="width:49%;background:var(--accent-pink);"></div></div>
+      <span class="genre-count">38</span>
+    </div>
+    <div class="genre-row">
+      <span class="genre-name">Mystery</span>
+      <div class="genre-bar-wrap"><div class="genre-bar" style="width:40%;background:var(--gold);"></div></div>
+      <span class="genre-count">31</span>
+    </div>
+    <div class="genre-row">
+      <span class="genre-name">Horror</span>
+      <div class="genre-bar-wrap"><div class="genre-bar" style="width:27%;background:#ef4444;"></div></div>
+      <span class="genre-count">21</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ RATING DISTRIBUTION ═══════════ -->
+<div class="section">
+  <div class="section-title">⭐ Rating Distribution</div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;">
+    <div class="rating-dist">
+      <div class="rating-col"><span class="rating-count-label">0</span><div class="rating-bar" style="height:6px;background:var(--text-muted);"></div><span class="rating-label">½</span></div>
+      <div class="rating-col"><span class="rating-count-label">2</span><div class="rating-bar" style="height:14px;background:var(--text-muted);"></div><span class="rating-label">1</span></div>
+      <div class="rating-col"><span class="rating-count-label">5</span><div class="rating-bar" style="height:22px;background:var(--text-muted);"></div><span class="rating-label">1½</span></div>
+      <div class="rating-col"><span class="rating-count-label">12</span><div class="rating-bar" style="height:34px;background:var(--blue);"></div><span class="rating-label">2</span></div>
+      <div class="rating-col"><span class="rating-count-label">19</span><div class="rating-bar" style="height:44px;background:var(--blue);"></div><span class="rating-label">2½</span></div>
+      <div class="rating-col"><span class="rating-count-label">34</span><div class="rating-bar" style="height:62px;background:var(--accent-teal);"></div><span class="rating-label">3</span></div>
+      <div class="rating-col"><span class="rating-count-label">42</span><div class="rating-bar" style="height:76px;background:var(--accent-teal);"></div><span class="rating-label">3½</span></div>
+      <div class="rating-col"><span class="rating-count-label" style="color:var(--gold);font-weight:700;">48</span><div class="rating-bar" style="height:88px;background:var(--gold);"></div><span class="rating-label" style="color:var(--gold);font-weight:600;">4</span></div>
+      <div class="rating-col"><span class="rating-count-label">21</span><div class="rating-bar" style="height:48px;background:var(--gold);"></div><span class="rating-label">4½</span></div>
+      <div class="rating-col"><span class="rating-count-label">8</span><div class="rating-bar" style="height:26px;background:var(--green);"></div><span class="rating-label">5</span></div>
+    </div>
+    <p style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:8px;">
+      Most given: ★ 4.0 (48 times) · Avg: 3.8
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════ MONTHLY HEATMAP ═══════════ -->
+<div class="section">
+  <div class="section-title">📅 Monthly Activity</div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;">
+    <div class="heatmap-grid">
+      <div class="heat-cell" style="background:rgba(99,102,241,0.08);"><span style="font-size:9px;color:var(--text-muted)">Jun</span><span style="color:var(--text-muted)">6</span></div>
+      <div class="heat-cell" style="background:rgba(99,102,241,0.12);"><span style="font-size:9px;color:var(--text-muted)">May</span><span style="color:var(--text)">14</span></div>
+      <div class="heat-cell" style="background:rgba(99,102,241,0.18);"><span style="font-size:9px;color:var(--text-muted)">Apr</span><span style="color:var(--text)">18</span></div>
+      <div class="heat-cell" style="background:rgba(99,102,241,0.22);"><span style="font-size:9px;color:var(--text-muted)">Mar</span><span style="color:var(--text)">21</span></div>
+      <div class="heat-cell" style="background:rgba(99,102,241,0.28);"><span style="font-size:9px;color:var(--text-muted)">Feb</span><span style="color:var(--text)">26</span></div>
+      <div class="heat-cell" style="background:rgba(99,102,241,0.35);"><span style="font-size:9px;color:var(--text-muted)">Jan</span><span style="color:white;font-weight:600">31</span></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text-muted);">
+      <span>Last 6 months</span>
+      <span>Total: 116 titles</span>
+    </div>
+    <p style="font-size:10px;color:var(--accent-teal);text-align:center;margin-top:4px;">
+      🔥 Best streak: 9 titles in one week (Jan 12–18)
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════ TOP ACTORS & DIRECTORS ═══════════ -->
+<div class="section">
+  <div class="section-title">🎭 Top Actors</div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;">
+    <div class="pill-row">
+      <span class="pill">Leonardo DiCaprio <span class="count">7</span></span>
+      <span class="pill">Cillian Murphy <span class="count">6</span></span>
+      <span class="pill">Florence Pugh <span class="count">5</span></span>
+      <span class="pill">Oscar Isaac <span class="count">5</span></span>
+      <span class="pill">Tilda Swinton <span class="count">4</span></span>
+      <span class="pill">Robert Pattinson <span class="count">4</span></span>
+      <span class="pill">Song Kang-ho <span class="count">4</span></span>
+      <span class="pill">Saoirse Ronan <span class="count">3</span></span>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">🎬 Top Directors</div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;">
+    <div class="pill-row">
+      <span class="pill">Christopher Nolan <span class="count">6</span></span>
+      <span class="pill">Denis Villeneuve <span class="count">5</span></span>
+      <span class="pill">Bong Joon-ho <span class="count">4</span></span>
+      <span class="pill">Greta Gerwig <span class="count">3</span></span>
+      <span class="pill">Hayao Miyazaki <span class="count">3</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ TASTE TAGS ═══════════ -->
+<div class="section">
+  <div class="section-title">🏷️ Taste Tags</div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;flex-wrap:wrap;gap:6px;">
+    <span class="tag">🔮 Intense</span>
+    <span class="tag">🧠 Psychological</span>
+    <span class="tag">🌆 Gritty</span>
+    <span class="tag">🎭 Character-Driven</span>
+    <span class="tag">🌀 Mind-Bending</span>
+    <span class="tag">🏙️ Dystopian</span>
+    <span class="tag">🕵️ Twists</span>
+    <span class="tag">📚 Binge Watcher</span>
+    <span class="tag">⭐ High Rater</span>
+    <span class="tag">🌸 Anime Fan</span>
+  </div>
+</div>
+
+<!-- ═══════════ PERSONALITY ═══════════ -->
+<div class="section">
+  <div class="section-title">🧬 Personality</div>
+  <div class="personality-card">
+    <div class="emoji">🎯</div>
+    <div class="title">A 'Balanced Viewer'</div>
+    <div class="desc">
+      You watch with an open mind — equally at home with prestige drama, popcorn action, and introspective anime. Your 3.8 average suggests you pick winners without being overly generous. You've seen the greats (Nolan, Villeneuve, Miyazaki) but still make room for hidden gems.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
