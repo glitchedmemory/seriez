@@ -89,12 +89,13 @@ export default function RootLayout({
                   var theme = localStorage.getItem('theme');
                   if (theme === 'light' || theme === 'dark') {
                     document.documentElement.classList.toggle('light', theme === 'light');
-                  } else {
+                  } else if (theme === 'system') {
                     document.documentElement.classList.toggle(
                       'light',
                       window.matchMedia('(prefers-color-scheme: light)').matches
                     );
                   }
+                  // else: no theme stored → default to dark (no 'light' class)
                 } catch (e) {}
               })();
             `,
