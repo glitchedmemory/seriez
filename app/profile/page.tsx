@@ -577,7 +577,7 @@ export default function ProfilePage() {
               <div className="flex flex-wrap gap-2">
                 {stats.topActors.slice(0, 5).map((a) => (
                   <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-body">
-                    {a.name} <span className="text-text-muted">{a.count}</span>
+                    {a.name}
                   </span>
                 ))}
               </div>
@@ -591,7 +591,7 @@ export default function ProfilePage() {
               <div className="flex flex-wrap gap-2">
                 {stats.topDirectors.slice(0, 5).map((d) => (
                   <span key={d.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-body">
-                    {d.name} <span className="text-text-muted">{d.count}</span>
+                    {d.name}
                   </span>
                 ))}
               </div>
