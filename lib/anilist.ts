@@ -166,6 +166,39 @@ function formatSeason(season: string | null): string {
   return map[season] || season;
 }
 
+// ─── Kitsu backdrop fallback for anime missing AniList bannerImage ───
+
+async function fetchKitsuBackdrop(title: string, year: number): Promise<string | null> {
+  try {
+    const searchUrl = `https://kitsu.io/api/edge/anime?filter[text]=${encodeURIComponent(title)}&page[limit]=5`;
+    const res = await fetch(searchUrl, {
+      headers: { "Accept": "application/vnd.api+json" },
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const results = data.data || [];
+
+    // Find best match: prefer same-year, then first result
+    let best = results[0];
+    for (const r of results) {
+      const startDate = r.attributes?.startDate;
+      if (startDate && year && startDate.startsWith(String(year))) {
+        best = r;
+        break;
+      }
+    }
+    if (!best) return null;
+
+    const coverImage = best.attributes?.coverImage;
+    if (coverImage?.original) return coverImage.original;
+    if (coverImage?.large) return coverImage.large;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 // ─── Main fetch ───
 
 export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
@@ -278,6 +311,10 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
       trailer: null as { id: string; site: string } | null,
       relations,
     };
+    // Kitsu backdrop fallback when AniList bannerImage is null
+    if (!result.backdrop && result.year) {
+      result.backdrop = (await fetchKitsuBackdrop(result.title, result.year)) || "";
+    }
     // Validate trailer (if AnyList has one) or search YouTube (if not)
     const animeTitle = m.title?.english || m.title?.romaji || "";
     const validated = await validateAndReplaceTrailers(
