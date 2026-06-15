@@ -132,36 +132,18 @@ export default function YearlyRecapSlideshow({
         <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center bg-gradient-to-br from-[#0f0f1a] via-[#1a0a2e] to-[#0f172a] min-h-[340px]">
           <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.4) 0%, transparent 50%), radial-gradient(circle at 70% 80%, rgba(168,85,247,0.3) 0%, transparent 50%)" }} />
           <div className="relative z-10 px-4">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 mb-3">
-              Your {year} in Frames
+            <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-6">
+              Your Year in Frames
             </p>
-            <h2 className="text-4xl font-black text-white mb-2">
+            <p className="text-7xl font-black text-white mb-3 tracking-tight">{year}</p>
+            <p className="text-2xl font-bold bg-gradient-to-r from-accent to-[#a855f7] bg-clip-text text-transparent">
               @{displayName}
-            </h2>
-            <div className="flex items-center justify-center gap-3 my-4">
-              <div className="text-center">
-                <p className="text-3xl font-black text-white tabular-nums">{daysWatched}</p>
-                <p className="text-[10px] text-white/50">days watched</p>
-              </div>
-              <div className="w-px h-8 bg-white/15" />
-              <div className="text-center">
-                <p className="text-3xl font-black text-white tabular-nums">{totalTitles}</p>
-                <p className="text-[10px] text-white/50">titles</p>
-              </div>
-              <div className="w-px h-8 bg-white/15" />
-              <div className="text-center">
-                <p className="text-3xl font-black text-yellow-400 tabular-nums">{ratingAvg || "—"}</p>
-                <p className="text-[10px] text-white/50">avg ★</p>
-              </div>
-            </div>
-            <p className="text-sm text-white/60 italic">
-              {daysWatched > 30 ? "You practically lived in front of the screen. Respect." :
-               daysWatched > 15 ? "That's over two weeks of pure cinematic dedication." :
-               daysWatched > 7 ? "A full week of watching. Time well spent." :
-               "Every frame counts. Let's see what your year looked like."}
             </p>
-            <div className="mt-5 pt-4 border-t border-white/10">
-              <p className="text-[10px] text-white/40 uppercase tracking-[0.2em]">Swipe →</p>
+            <p className="text-sm text-white/40 mt-5 max-w-[240px] leading-relaxed">
+              A year of stories, emotions, and unforgettable moments. Let's look back.
+            </p>
+            <div className="mt-8 pt-5 border-t border-white/10">
+              <p className="text-[10px] text-white/30 uppercase tracking-[0.2em]">Swipe →</p>
             </div>
           </div>
         </div>
