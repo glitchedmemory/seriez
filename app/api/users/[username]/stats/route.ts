@@ -22,8 +22,8 @@ async function tmdbGet(endpoint: string) {
 // ─── AniList helpers ───
 const ANILIST_API = "https://graphql.anilist.co";
 
-// ─── Rating conversion (DB stores rating * 10 as integer) ───
-const FROM_DB = (v: number) => v >= 10 ? v / 10 : v;
+// ─── Rating conversion (DB stores mixed scales: ×10 int or 0–10 int) ───
+const FROM_DB = (v: number) => v > 10 ? v / 10 : v > 5 ? v / 2 : v;
 
 // ─── Rating description ───
 function ratingPersonality(avg: number, count: number): string {
