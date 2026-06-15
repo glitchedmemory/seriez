@@ -16,6 +16,7 @@ interface HistoryData {
   topGenres: { name: string; avgRating: number; count: number }[];
   watchList: WatchListItem[];
   persona: { label: string; desc: string; tier: number } | null;
+  isPremium: boolean;
 }
 
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -135,9 +136,25 @@ export default function HistoryClient() {
       {/* Streaming Top 10 */}
       <StreamingTop10 variant="page" />
 
-      {/* 🎰 Roulette */}
+      {/* 🎰 Roulette — Premium only */}
       <div className="mt-8">
-        <RouletteCard />
+        {data.isPremium ? (
+          <RouletteCard />
+        ) : (
+          <div className="bg-gradient-to-br from-accent/5 to-[#a855f7]/5 border border-border rounded-2xl p-6 text-center">
+            <span className="text-4xl block mb-3">🎰</span>
+            <h3 className="text-lg font-bold text-text-primary mb-1">Roulette Pick</h3>
+            <p className="text-sm text-text-secondary mb-4 leading-relaxed">
+              Spin the wheel for a surprise recommendation matched to your taste.
+            </p>
+            <a
+              href="/pro"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold hover:bg-[#818cf8] transition-colors"
+            >
+              Upgrade to Pro
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Popup */}
