@@ -16,6 +16,7 @@ interface HistoryData {
   monthlyGraph: { month: string; count: number }[];
   topGenres: { name: string; avgRating: number; count: number }[];
   watchList: WatchListItem[];
+  persona: { label: string; desc: string; tier: number } | null;
 }
 
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -103,23 +104,8 @@ export default function HistoryClient() {
   const sortedDays = Object.entries(dayCounts).sort((a, b) => b[1] - a[1]);
   const activeDays = Object.keys(data.calendar).length;
 
-  // Personality label
-  const avgRating = data.stats.avgRating;
-  let personaLabel: string;
-  let personaDesc: string;
-  if (avgRating >= 4.5) {
-    personaLabel = "Generous Critic";
-    personaDesc = "You hand out high ratings freely — you find joy in almost everything you watch.";
-  } else if (avgRating >= 3.5) {
-    personaLabel = "Immersive Viewer";
-    personaDesc = "You dive deep into every title and don't hold back on high ratings. Quality picks with heart.";
-  } else if (avgRating >= 2.5) {
-    personaLabel = "Balanced Judge";
-    personaDesc = "You keep it fair — not too harsh, not too easy. A true cinephile's balance.";
-  } else {
-    personaLabel = "Sharp Critic";
-    personaDesc = "You watch with a critical eye and only the best earn your stars. Standards high, taste refined.";
-  }
+  // Persona from API (AI-analyzed watch patterns)
+  const persona = data.persona;
 
   return (
     <div className="max-w-lg md:max-w-4xl mx-auto pb-32">
@@ -154,10 +140,10 @@ export default function HistoryClient() {
           #RatingSpread
         </span>
         <p className="text-[15px] font-bold text-text-primary tracking-tight mb-1">
-          You&apos;re a &apos;{personaLabel}&apos;
+          You&apos;re a &apos;{persona?.label ?? "Movie Fan"}&apos;
         </p>
         <p className="text-[13px] text-text-secondary leading-relaxed mb-5">
-          {personaDesc}
+          {persona?.desc ?? "Watch more to discover your taste profile."}
         </p>
 
         {/* Top Genres (moved from below) */}
