@@ -98,13 +98,15 @@ export default function YearlyRecapSlideshow({
   useEffect(() => {
     const fetchPosters = async () => {
       try {
-        const [movieRes, tvRes] = await Promise.all([
+        const [movieRes, tvRes, animeRes] = await Promise.all([
           fetch(`/api/tmdb/year-posters?year=${year}&type=movie`).then(r => r.json()),
           fetch(`/api/tmdb/year-posters?year=${year}&type=tv`).then(r => r.json()),
+          fetch(`/api/tmdb/year-posters?year=${year}&type=anime`).then(r => r.json()),
         ]);
         setPopularPosters({
           movie: movieRes.posters || [],
           tv: tvRes.posters || [],
+          anime: animeRes.posters || [],
         });
       } catch {}
     };
@@ -178,10 +180,10 @@ export default function YearlyRecapSlideshow({
           >
             {/* Poster collage background */}
             {m.posters.length > 0 && (
-              <div className="absolute inset-0 opacity-20">
-                <div className="grid grid-cols-3 gap-1 p-4 h-full">
+              <div className="absolute inset-0 opacity-50">
+                <div className="grid grid-cols-3 gap-1 p-3 h-full">
                   {m.posters.map((url, i) => (
-                    <div key={i} className="rounded-md overflow-hidden bg-black/30">
+                    <div key={i} className="rounded-md overflow-hidden">
                       <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
                     </div>
                   ))}
@@ -189,7 +191,7 @@ export default function YearlyRecapSlideshow({
               </div>
             )}
             {/* Dark overlay for readability */}
-            <div className="absolute inset-0 bg-black/60" />
+            <div className="absolute inset-0 bg-black/45" />
 
             <div className="relative z-10 px-4">
               <span className="text-5xl block mb-3">{m.style.emoji}</span>
