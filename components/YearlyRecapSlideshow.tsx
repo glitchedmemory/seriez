@@ -130,38 +130,38 @@ export default function YearlyRecapSlideshow({
       >
         {/* ══════ Slide 1 — Intro ══════ */}
         <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center bg-gradient-to-br from-[#0f0f1a] via-[#1a0a2e] to-[#0f172a] min-h-[340px]">
-          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.4) 0%, transparent 50%), radial-gradient(circle at 70% 80%, rgba(168,85,247,0.3) 0%, transparent 50%)" }} />
+          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.4) 0%, transparent 50%), radial-gradient(circle at 70% 80%, rgba(168,85,247,0.3) 0%, transparent 50%)" }} />
           <div className="relative z-10 px-4">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-text-secondary mb-3">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 mb-3">
               Your {year} in Frames
             </p>
-            <h2 className="text-4xl font-black text-text-primary mb-2">
+            <h2 className="text-4xl font-black text-white mb-2">
               @{displayName}
             </h2>
             <div className="flex items-center justify-center gap-3 my-4">
               <div className="text-center">
-                <p className="text-xl font-bold text-accent tabular-nums">{daysWatched}</p>
-                <p className="text-[9px] text-text-secondary">days watched</p>
+                <p className="text-3xl font-black text-white tabular-nums">{daysWatched}</p>
+                <p className="text-[10px] text-white/50">days watched</p>
               </div>
-              <div className="w-px h-8 bg-border" />
+              <div className="w-px h-8 bg-white/15" />
               <div className="text-center">
-                <p className="text-xl font-bold text-text-primary tabular-nums">{totalTitles}</p>
-                <p className="text-[9px] text-text-secondary">titles</p>
+                <p className="text-3xl font-black text-white tabular-nums">{totalTitles}</p>
+                <p className="text-[10px] text-white/50">titles</p>
               </div>
-              <div className="w-px h-8 bg-border" />
+              <div className="w-px h-8 bg-white/15" />
               <div className="text-center">
-                <p className="text-xl font-bold text-yellow-400 tabular-nums">{ratingAvg || "—"}</p>
-                <p className="text-[9px] text-text-secondary">avg ★</p>
+                <p className="text-3xl font-black text-yellow-400 tabular-nums">{ratingAvg || "—"}</p>
+                <p className="text-[10px] text-white/50">avg ★</p>
               </div>
             </div>
-            <p className="text-xs text-text-secondary italic">
+            <p className="text-sm text-white/60 italic">
               {daysWatched > 30 ? "You practically lived in front of the screen. Respect." :
                daysWatched > 15 ? "That's over two weeks of pure cinematic dedication." :
                daysWatched > 7 ? "A full week of watching. Time well spent." :
                "Every frame counts. Let's see what your year looked like."}
             </p>
-            <div className="mt-5 pt-4 border-t border-border">
-              <p className="text-[10px] text-text-secondary uppercase tracking-[0.2em]">Swipe →</p>
+            <div className="mt-5 pt-4 border-t border-white/10">
+              <p className="text-[10px] text-white/40 uppercase tracking-[0.2em]">Swipe →</p>
             </div>
           </div>
         </div>
