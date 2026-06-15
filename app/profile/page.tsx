@@ -638,8 +638,9 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Yearly Recap */}
+          {/* Yearly Recap — Premium only */}
           {stats.yearlyRecap && stats.yearlyRecap.titles > 0 && (
+            isPremium ? (
             <YearlyRecapSlideshow
               hours={stats.yearlyRecap.hours}
               titles={stats.yearlyRecap.titles}
@@ -655,6 +656,21 @@ export default function ProfilePage() {
               library={library}
               reviewsMap={reviewsMap}
             />
+            ) : (
+            <div className="bg-gradient-to-br from-accent/5 to-[#a855f7]/5 border border-border rounded-2xl p-6 text-center">
+              <span className="text-4xl block mb-3">📊</span>
+              <h3 className="text-lg font-bold text-text-primary mb-1">Year in Review</h3>
+              <p className="text-sm text-text-secondary mb-4 leading-relaxed">
+                Unlock your personalized yearly recap — top genres, crown jewels, and your unique watching style.
+              </p>
+              <a
+                href="/pro"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold hover:bg-[#818cf8] transition-colors"
+              >
+                Upgrade to Pro
+              </a>
+            </div>
+            )
           )}
 
           {/* Top Actors */}
