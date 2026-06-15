@@ -436,7 +436,7 @@ export default function ProfilePage() {
 
           {/* Favorites 4 — top rated items */}
           {(() => {
-            const favs = library.filter(l => l.rating && l.rating >= 4).sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 4);
+            const favs = library.filter(l => l.rating && l.rating >= 4 && l.media_type === selectedMediaType).sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 4);
             if (favs.length < 2) return null;
             return (
               <div>
