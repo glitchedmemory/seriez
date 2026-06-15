@@ -298,7 +298,7 @@ export default function CollectionClient() {
                     {authUser && c.username !== authUser && (
                       <button onClick={() => authUser ? handleReport(c.id) : router.push("/login")}
                         disabled={reportingComments.has(String(c.id)) && !!authUser}
-                        className={`text-[11px] transition-colors disabled:opacity-50 ml-auto ${
+                        className={`text-[11px] transition-colors disabled:opacity-50 ${
                           (reportCounts[String(c.id)] || 0) > 0
                             ? "text-green-400"
                             : "text-text-secondary hover:text-red-400"
