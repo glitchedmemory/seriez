@@ -369,6 +369,10 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* ── Content wrapper (for guest blur overlay) ── */}
+      <div className="relative">
+        <div className={!user ? "blur-lg pointer-events-none select-none opacity-60" : ""}>
+
       {/* ── Stats Dashboard (FREE) ── */}
       {stats && (
         <div className="px-4 mt-5">
@@ -722,22 +726,17 @@ export default function ProfilePage() {
 
       {/* Sign-in prompt for guests */}
       {!user && (
-        <div className="px-4 mt-6">
-          <a
-            href="/login"
-            className="block bg-gradient-to-r from-[#4c1d95] via-[#7c3aed] to-[#6366f1] rounded-2xl p-5 text-center hover:shadow-lg hover:shadow-[#7c3aed]/20 transition-shadow"
-          >
-            <span className="text-3xl block mb-2">🎬</span>
-            <h3 className="text-base font-bold text-white mb-1">Join Seriez</h3>
-            <p className="text-xs text-white/70 mb-4">
-              Track what you watch, discover new favorites, and connect with friends
-            </p>
-            <span className="inline-block px-6 py-2.5 bg-white text-[#7c3aed] text-sm font-bold rounded-xl hover:bg-white/90 transition-colors">
-              Sign In / Sign Up
-            </span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-8 z-10">
+          <p className="text-lg font-bold text-text-primary mb-2 text-center">Sign in to see full profile</p>
+          <p className="text-xs text-text-secondary mb-5 text-center">Track what you watch, discover new favorites, and connect with friends</p>
+          <a href="/login" className="px-6 py-2.5 bg-accent text-white text-sm font-bold rounded-xl hover:bg-[#818cf8] transition-colors">
+            Sign In / Sign Up
           </a>
         </div>
       )}
+
+        </div>
+      </div>
 
       {/* History — only for logged-in users */}
       {user && (
