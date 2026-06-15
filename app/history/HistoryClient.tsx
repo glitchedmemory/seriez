@@ -147,11 +147,6 @@ export default function HistoryClient() {
       {/* ── Divider ── */}
       <div className="h-2 bg-border light:bg-text-secondary/15 mb-5" />
 
-      {/* Watch time overview */}
-      <div className="px-4 mb-5">
-        <StatCard value={`${data.stats.weeklyHours}h`} label="This Week" />
-      </div>
-
       {/* ── Taste Profile ── */}
       <div className="px-4 mb-5">
         <h2 className="text-lg font-extrabold text-text-primary tracking-tight mb-3">Taste Profile</h2>
