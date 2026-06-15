@@ -287,12 +287,12 @@ export default function YearlyRecapSlideshow({
         {/* ══════ Slide 7 — Your Style ══════ */}
         <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[340px]"
              style={{ background: `linear-gradient(135deg, ${styleProfile.color}22, ${styleProfile.color}11, #0f0f1a)` }}>
-          {/* AI-generated cinematic background image */}
-          <div className="absolute inset-0 opacity-40" style={{
-            backgroundImage: "url(/recap-genre-bg.webp)",
+          {/* Genre-specific background image */}
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url(/recap-${topGenre.toLowerCase().replace(/[^a-z0-9]/g, "")}-bg.webp), url(/recap-genre-bg.webp)`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            mixBlendMode: "screen" as any,
+            opacity: 0.45,
           }} />
           <div className="absolute inset-0 flex items-center justify-center opacity-10">
             <span className="text-[12rem]">{styleProfile.emoji}</span>
