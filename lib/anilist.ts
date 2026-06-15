@@ -174,29 +174,30 @@ const TMDB_IMAGE = "https://image.tmdb.org/t/p/w1280";
 async function fetchTMDBBackdrop(title: string, year: number, titleRomaji?: string): Promise<string | null> {
   if (!process.env.TMDB_API_KEY) return null;
   try {
-    // Build search candidates: exact → without year → main title only → romaji → subtitles
+    // Build search candidates: subtitle first → exact → main → romaji
     const parts = title.split(":");
     const main = parts[0].trim();
     const subtitle = parts.slice(1).join(":").trim();
     const candidates = [
       { query: title, year },
       { query: title },
-      { query: main, year },
-      { query: main },
     ];
+    // Subtitle-only often matches better than main title on TMDB
     if (subtitle) {
       candidates.push({ query: subtitle, year });
       candidates.push({ query: subtitle });
     }
+    // Main title as last resort
+    candidates.push({ query: main, year });
+    candidates.push({ query: main });
     if (titleRomaji) {
       const romajiParts = titleRomaji.split(":");
       const mainRomaji = romajiParts[0].trim();
       const subRomaji = romajiParts.slice(1).join(":").trim();
-      candidates.push({ query: titleRomaji, year });
-      candidates.push({ query: mainRomaji, year });
       if (subRomaji && subRomaji !== subtitle) {
         candidates.push({ query: subRomaji, year });
       }
+      candidates.push({ query: mainRomaji, year });
     }
     for (const c of candidates) {
       const params = new URLSearchParams({
