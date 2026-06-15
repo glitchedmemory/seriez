@@ -37,6 +37,9 @@ async function fetchRuntimes(
   const BATCH = 8;
 
   // ── Source 1: TMDB (primary) ──
+  // Also capture titles for downstream fallback searches
+  const titleMap = new Map<number, string>();
+
   // Movies → runtime
   for (let i = 0; i < movieIds.length; i += BATCH) {
     const batch = movieIds.slice(i, i + BATCH);
@@ -51,10 +54,11 @@ async function fetchRuntimes(
       const result = results[j];
       const data = result.status === "fulfilled" ? (result as PromiseFulfilledResult<any>).value : null;
       if (data?.runtime && data.runtime > 0) map.set(batch[j], data.runtime);
+      if (data?.title) titleMap.set(batch[j], data.title);
     }
   }
 
-  // TV → episode_run_time average
+  // TV → episode_run_time average + capture name
   for (let i = 0; i < tvIds.length; i += BATCH) {
     const batch = tvIds.slice(i, i + BATCH);
     const results = await Promise.allSettled(
@@ -67,6 +71,7 @@ async function fetchRuntimes(
     for (let j = 0; j < batch.length; j++) {
       const result = results[j];
       const data = result.status === "fulfilled" ? (result as PromiseFulfilledResult<any>).value : null;
+      if (data?.name) titleMap.set(batch[j], data.name);
       const runtimes: number[] = data?.episode_run_time || [];
       const avg = runtimes.length > 0
         ? Math.round(runtimes.reduce((a: number, b: number) => a + b, 0) / runtimes.length)
@@ -180,6 +185,112 @@ async function fetchRuntimes(
         if (res.status === "fulfilled" && res.value.runtime > 0) {
           map.set(res.value.tmdbId, res.value.runtime);
         }
+      }
+    }
+  }
+
+  // ── Source 6: Jikan v4 (MyAnimeList, free, no key) for remaining anime ──
+  const stillMissingTV = tvIds.filter(id => !map.has(id) && titleMap.has(id));
+  if (stillMissingTV.length > 0) {
+    const jikanRes = await Promise.allSettled(
+      stillMissingTV.map(async (tmdbId) => {
+        const title = titleMap.get(tmdbId)!;
+        try {
+          const r = await fetch(
+            `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(title)}&limit=1`,
+            { headers: { "User-Agent": "Seriez/1.0" } }
+          );
+          if (!r.ok) return { tmdbId, runtime: 0 };
+          const j = await r.json();
+          const dur = j?.data?.[0]?.duration || "";
+          const m = dur.match(/(\d+)\s*min/);
+          return { tmdbId, runtime: m ? parseInt(m[1]) : 0 };
+        } catch { return { tmdbId, runtime: 0 }; }
+      })
+    );
+    for (const res of jikanRes) {
+      if (res.status === "fulfilled" && res.value.runtime > 0) {
+        map.set(res.value.tmdbId, res.value.runtime);
+      }
+    }
+  }
+
+  // ── Source 7: Syoboi Calendar (Japanese, free, no key) ──
+  const stillMissingAnime = tvIds.filter(id => !map.has(id) && titleMap.has(id));
+  if (stillMissingAnime.length > 0) {
+    const syoRes = await Promise.allSettled(
+      stillMissingAnime.map(async (tmdbId) => {
+        const title = titleMap.get(tmdbId)!;
+        try {
+          const r = await fetch(
+            `https://cal.syoboi.jp/json.php?Req=TitleSearch&Search=${encodeURIComponent(title)}`,
+            { headers: { "User-Agent": "Seriez/1.0" } }
+          );
+          if (!r.ok) return { tmdbId, runtime: 0 };
+          const j = await r.json();
+          const titles = j?.Titles || {};
+          const first = Object.values(titles)[0] as any;
+          // Syoboi returns TID; we can get program detail from db.php
+          if (!first?.TID) return { tmdbId, runtime: 0 };
+          const d2 = await fetch(
+            `https://cal.syoboi.jp/db.php?Command=ProgLookup&TID=${first.TID}&ChID=`,
+            { headers: { "User-Agent": "Seriez/1.0" } }
+          );
+          if (!d2.ok) return { tmdbId, runtime: 0 };
+          const j2 = await d2.json();
+          const progs = j2?.ProgItems || [];
+          // Get median of StTime/EdTime differences in seconds → minutes
+          const diffs = progs
+            .map((p: any) => (parseInt(p.EdTime || "0") - parseInt(p.StTime || "0")) / 60)
+            .filter((d: number) => d > 0 && d < 60);
+          const median = diffs.length > 0
+            ? Math.round(diffs.sort((a: number, b: number) => a - b)[Math.floor(diffs.length / 2)])
+            : 0;
+          return { tmdbId, runtime: median > 0 ? median : 0 };
+        } catch { return { tmdbId, runtime: 0 }; }
+      })
+    );
+    for (const res of syoRes) {
+      if (res.status === "fulfilled" && res.value.runtime > 0) {
+        map.set(res.value.tmdbId, res.value.runtime);
+      }
+    }
+  }
+
+  // ── Source 8: Wikipedia JA infobox (Japanese, free, no key) ──
+  const finalMissing = tvIds.filter(id => !map.has(id) && titleMap.has(id));
+  if (finalMissing.length > 0) {
+    const jawpRes = await Promise.allSettled(
+      finalMissing.map(async (tmdbId) => {
+        const title = titleMap.get(tmdbId)!;
+        try {
+          const sr = await fetch(
+            `https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(title)}&format=json`,
+            { headers: { "User-Agent": "Seriez/1.0" } }
+          );
+          if (!sr.ok) return { tmdbId, runtime: 0 };
+          const sj = await sr.json();
+          const pageTitle = sj?.query?.search?.[0]?.title;
+          if (!pageTitle) return { tmdbId, runtime: 0 };
+          const pr = await fetch(
+            `https://ja.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(pageTitle)}&prop=text&section=0&format=json`,
+            { headers: { "User-Agent": "Seriez/1.0" } }
+          );
+          if (!pr.ok) return { tmdbId, runtime: 0 };
+          const pj = await pr.json();
+          const html: string = pj?.parse?.text?.["*"] || "";
+          // Japanese infobox: 話数, 放送時間, or plain "分" (minutes)
+          const m1 = html.match(/(\d+)\s*分/);
+          const m2 = html.match(/(\d+)\s*min/);
+          const mins = m1 ? parseInt(m1[1]) : m2 ? parseInt(m2[1]) : 0;
+          // Filter realistic episode lengths (10-60 min)
+          return { tmdbId, runtime: mins >= 10 && mins <= 60 ? mins : 0 };
+        } catch { return { tmdbId, runtime: 0 }; }
+      })
+    );
+    for (const res of jawpRes) {
+      if (res.status === "fulfilled" && res.value.runtime > 0) {
+        map.set(res.value.tmdbId, res.value.runtime);
       }
     }
   }
