@@ -5,7 +5,6 @@ import PosterCalendar from "./PosterCalendar";
 import DayPopup from "./DayPopup";
 import type { DayEntry } from "./DayPopup";
 import WatchGraph from "./WatchGraph";
-import { StreamingTop10 } from "@/components/StreamingTop10";
 import RouletteCard from "@/components/RouletteCard";
 import type { WatchListItem } from "./WatchList";
 
@@ -132,9 +131,6 @@ export default function HistoryClient() {
 
       {/* ── Divider ── */}
       <div className="h-2 bg-border light:bg-text-secondary/15 mb-5" />
-
-      {/* Streaming Top 10 */}
-      <StreamingTop10 variant="page" />
 
       {/* 🎰 Roulette — Premium only */}
       <div className="mt-8">
