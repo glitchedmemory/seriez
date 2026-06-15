@@ -166,7 +166,28 @@ function formatSeason(season: string | null): string {
   return map[season] || season;
 }
 
-// ─── Main fetch ───
+// ─── TMDB backdrop fallback for anime missing bannerImage ───
+
+const TMDB_SEARCH = "https://api.themoviedb.org/3/search/movie";
+const TMDB_IMAGE = "https://image.tmdb.org/t/p/w1280";
+
+async function fetchTMDBBackdrop(title: string, year: number): Promise<string | null> {
+  if (!process.env.TMDB_API_KEY) return null;
+  try {
+    const query = encodeURIComponent(title);
+    const url = `${TMDB_SEARCH}?api_key=${process.env.TMDB_API_KEY}&query=${query}&year=${year}`;
+    const res = await fetch(url, { next: { revalidate: 86400 } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const match = data.results?.[0];
+    if (match?.backdrop_path) {
+      return `${TMDB_IMAGE}${match.backdrop_path}`;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
   try {
@@ -278,6 +299,11 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
       trailer: null as { id: string; site: string } | null,
       relations,
     };
+
+    // TMDB backdrop fallback when AniList bannerImage is null
+    if (!result.backdrop && result.year) {
+      result.backdrop = (await fetchTMDBBackdrop(result.title, result.year)) || \"\";
+    }
 
     // Validate trailer (if AnyList has one) or search YouTube (if not)
     const animeTitle = m.title?.english || m.title?.romaji || "";
