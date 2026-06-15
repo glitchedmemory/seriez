@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
     try {
       if (t.media_type === "anime") {
         // AniList IDs — use AniList GraphQL
-        const gql = { query: `query($id:Int){Media(id:$id){title{romaji english}coverImage{medium}startDate{year}}}` , variables: { id: t.tmdb_id } };
+        const gql = { query: `query($id:Int){Media(id:$id){title{romaji english}coverImage{extraLarge}startDate{year}}}` , variables: { id: t.tmdb_id } };
         const alRes = await fetch("https://graphql.anilist.co", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify(gql),
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
           progress: t.progress,
           updatedAt: t.updated_at,
           title: m.title?.english || m.title?.romaji || "Unknown",
-          poster: m.coverImage?.large || m.coverImage?.medium || null,
+          poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
           year: m.startDate?.year?.toString() || null,
           tmdbRating: null,
         });

@@ -8,7 +8,7 @@ query TrendingAnime($page: Int, $perPage: Int) {
     media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
       id
       title { romaji english }
-      coverImage { large }
+      coverImage { extraLarge }
       bannerImage
       averageScore
       seasonYear
@@ -41,7 +41,7 @@ export async function GET() {
     const results = media.map((m: any) => ({
       id: m.id,
       title: m.title?.english || m.title?.romaji || "Unknown",
-      poster: m.coverImage?.large || null,
+      poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
       backdrop: m.bannerImage || null,
       rating: Math.round((m.averageScore / 10) * 10) / 10 || 0,
       year: m.seasonYear || 0,
