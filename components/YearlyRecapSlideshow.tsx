@@ -287,14 +287,21 @@ export default function YearlyRecapSlideshow({
         {/* ══════ Slide 7 — Your Style ══════ */}
         <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[340px]"
              style={{ background: `linear-gradient(135deg, ${styleProfile.color}22, ${styleProfile.color}11, #0f0f1a)` }}>
+          {/* AI-generated cinematic background image */}
+          <div className="absolute inset-0 opacity-40" style={{
+            backgroundImage: "url(/recap-genre-bg.webp)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            mixBlendMode: "screen" as any,
+          }} />
           <div className="absolute inset-0 flex items-center justify-center opacity-10">
             <span className="text-[12rem]">{styleProfile.emoji}</span>
           </div>
           <div className="relative z-10 px-4">
             <span className="text-6xl block mb-4">{styleProfile.emoji}</span>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-text-secondary mb-2">Your {year} Style</p>
-            <h3 className="text-3xl font-black text-text-primary mb-3">{styleProfile.label}</h3>
-            <p className="text-sm text-text-secondary max-w-[260px] leading-relaxed">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">Your {year} Style</p>
+            <h3 className="text-3xl font-black text-white mb-3">{styleProfile.label}</h3>
+            <p className="text-sm text-white/70 max-w-[260px] leading-relaxed">
               {styleProfile.desc}
             </p>
             <div className="flex items-center justify-center gap-2 mt-5">
