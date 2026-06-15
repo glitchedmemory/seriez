@@ -404,36 +404,9 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* ── Favorites 4 + Media Breakdown (FREE) ── */}
+      {/* ── Favorites 4 ── */}
       {stats && library.length > 0 && (
         <div className="px-4 mt-5 space-y-5">
-          {/* Media Type Breakdown */}
-          {stats.mediaBreakdown && (stats.mediaBreakdown.movie + stats.mediaBreakdown.tv + stats.mediaBreakdown.anime > 0) && (
-            <div>
-              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Watch Breakdown</h3>
-              <div className="space-y-2">
-                {(["movie", "tv", "anime"] as const).map(type => {
-                  const total = stats.mediaBreakdown.movie + stats.mediaBreakdown.tv + stats.mediaBreakdown.anime || 1;
-                  const count = stats.mediaBreakdown[type];
-                  const pct = Math.round((count / total) * 100);
-                  const labels = { movie: "Movie", tv: "TV Show", anime: "Anime" };
-                  const emojis = { movie: "🎬", tv: "📺", anime: "🌸" };
-                  const colors = { movie: "bg-[#818cf8]", tv: "bg-[#34d399]", anime: "bg-[#f472b6]" };
-                  return (
-                    <div key={type} className="flex items-center gap-3">
-                      <span className="text-sm w-8 text-right">{emojis[type]}</span>
-                      <span className="text-xs text-text-secondary w-14">{labels[type]}</span>
-                      <span className="text-xs font-semibold text-text-primary w-8">{pct}%</span>
-                      <div className="flex-1 h-2 bg-bg-surface rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${colors[type]}`} style={{ width: `${Math.max(pct, 3)}%` }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           {/* Favorites 4 — top rated items */}
           {(() => {
             const favs = library.filter(l => l.rating && l.rating >= 4 && (l as any).mediaType === selectedMediaType).sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 4);
