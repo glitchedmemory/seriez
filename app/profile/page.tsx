@@ -27,6 +27,15 @@ interface LibraryItem {
   updated_at: string;
 }
 
+interface ProfileStats {
+  totals: { watched: number; watching: number; planned: number; rated: number; reviewed: number; hours: number };
+  rating: { average: number; mostGiven: number; personality: string };
+  mediaBreakdown: { movie: number; tv: number; anime: number };
+  genres: { name: string; count: number }[];
+  topActors: { name: string; count: number }[];
+  topDirectors: { name: string; count: number }[];
+}
+
 export default function ProfilePage() {
   const [user, setUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +54,8 @@ export default function ProfilePage() {
   const [bgScale, setBgScale] = useState(100);
   const [bgPositionX, setBgPositionX] = useState(50);
   const [bgPositionY, setBgPositionY] = useState(50);
+  const [stats, setStats] = useState<ProfileStats | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -90,6 +101,7 @@ export default function ProfilePage() {
       const res = await fetch(`/api/profile?username=${encodeURIComponent(effectiveUsername)}`).then(r => r.json());
       setAvatarUrl(res.avatar_url || null);
       setBackgroundUrl(res.background_url || null);
+      setIsPremium(res.is_premium || false);
       if (isOwn) {
         setBgScale(res.background_scale ?? 100);
         setBgPositionX(res.background_position_x ?? 50);
@@ -97,6 +109,14 @@ export default function ProfilePage() {
       }
     } catch {}
   }, [effectiveUsername, isOwn]);
+
+  const fetchStats = useCallback(async () => {
+    if (!effectiveUsername) return;
+    try {
+      const res = await fetch(`/api/users/${encodeURIComponent(effectiveUsername)}/stats`).then(r => r.json());
+      if (!res.error) setStats(res);
+    } catch {}
+  }, [effectiveUsername]);
 
   const fetchCompare = useCallback(async () => {
     if (!effectiveUsername || isOwn || !ownUsername) { setCompareData(null); return; }
@@ -139,8 +159,9 @@ export default function ProfilePage() {
       fetchFollowStatus();
       fetchLibrary();
       fetchProfileData();
+      fetchStats();
     }
-  }, [mounted, fetchFollowData, fetchFollowStatus, fetchLibrary, fetchProfileData]);
+  }, [mounted, fetchFollowData, fetchFollowStatus, fetchLibrary, fetchProfileData, fetchStats]);
 
   useEffect(() => {
     if (mounted && effectiveUsername) fetchCompare();
@@ -334,6 +355,95 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* ── Stats Dashboard (FREE) ── */}
+      {stats && (
+        <div className="px-4 mt-5">
+          <div className="grid grid-cols-4 gap-3">
+            <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-text-primary">{stats.totals.watched}</p>
+              <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">Watched</p>
+            </div>
+            <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-text-primary">{stats.totals.hours}h</p>
+              <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">Hours</p>
+            </div>
+            <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-yellow-400">{stats.rating.average || "—"}</p>
+              <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">Avg ★</p>
+            </div>
+            <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-text-primary">{stats.totals.rated}</p>
+              <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">Rated</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Favorites 4 + Media Breakdown (FREE) ── */}
+      {stats && library.length > 0 && (
+        <div className="px-4 mt-5 space-y-5">
+          {/* Media Type Breakdown */}
+          {stats.mediaBreakdown && (stats.mediaBreakdown.movie + stats.mediaBreakdown.tv + stats.mediaBreakdown.anime > 0) && (
+            <div>
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Watch Breakdown</h3>
+              <div className="space-y-2">
+                {(["movie", "tv", "anime"] as const).map(type => {
+                  const total = stats.mediaBreakdown.movie + stats.mediaBreakdown.tv + stats.mediaBreakdown.anime || 1;
+                  const count = stats.mediaBreakdown[type];
+                  const pct = Math.round((count / total) * 100);
+                  const labels = { movie: "Movie", tv: "TV Show", anime: "Anime" };
+                  const emojis = { movie: "🎬", tv: "📺", anime: "🌸" };
+                  const colors = { movie: "bg-[#818cf8]", tv: "bg-[#34d399]", anime: "bg-[#f472b6]" };
+                  return (
+                    <div key={type} className="flex items-center gap-3">
+                      <span className="text-sm w-8 text-right">{emojis[type]}</span>
+                      <span className="text-xs text-text-secondary w-14">{labels[type]}</span>
+                      <span className="text-xs font-semibold text-text-primary w-8">{pct}%</span>
+                      <div className="flex-1 h-2 bg-bg-surface rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${colors[type]}`} style={{ width: `${Math.max(pct, 3)}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Favorites 4 — top rated items */}
+          {(() => {
+            const favs = library.filter(l => l.rating && l.rating >= 4).sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 4);
+            if (favs.length < 2) return null;
+            return (
+              <div>
+                <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Favorites</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {favs.map((item) => (
+                    <a key={item.id} href={`/title/${item.tmdb_id}?type=${item.media_type}`}
+                      className="bg-bg-card border border-border rounded-xl overflow-hidden hover:border-accent/40 transition-colors group">
+                      <div className="aspect-[3/4] bg-bg-surface relative">
+                        {item.poster ? (
+                          <img src={item.poster} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-4xl">🎬</div>
+                        )}
+                        <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm rounded-lg px-2 py-0.5 flex items-center gap-1">
+                          <span className="text-yellow-400 text-xs">★</span>
+                          <span className="text-white text-xs font-bold">{item.rating}</span>
+                        </div>
+                      </div>
+                      <div className="p-2">
+                        <p className="text-xs text-text-primary font-medium truncate">{item.title}</p>
+                        {item.year && <p className="text-[10px] text-text-secondary mt-0.5">{item.year}</p>}
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
       {/* ── AdSense ── */}
       <div className="px-4 mt-6">
         <div className="bg-bg-card border border-dashed border-border rounded-xl flex items-center justify-center" style={{ minHeight: 80 }}>
@@ -433,6 +543,82 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Premium: Genre Taste + Top Actors/Directors ── */}
+      {stats && user && (
+        <div className="px-4 mt-6 space-y-5">
+          {/* Genre Distribution */}
+          {stats.genres && stats.genres.length > 0 && (
+            <div className="relative">
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Genre Taste</h3>
+              {!isPremium && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg-floor/60 backdrop-blur-[2px] rounded-xl">
+                  <a href="/pro" className="bg-accent hover:bg-[#818cf8] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shadow-lg">
+                    Unlock with Pro ✨
+                  </a>
+                </div>
+              )}
+              <div className="space-y-1.5" style={!isPremium ? { filter: "blur(4px)" } : undefined}>
+                {stats.genres.slice(0, 6).map((g, i) => {
+                  const maxCount = stats.genres[0]?.count || 1;
+                  const pct = Math.round((g.count / maxCount) * 100);
+                  return (
+                    <div key={g.name} className="flex items-center gap-2">
+                      <span className="text-xs text-text-body w-20 truncate">{g.name}</span>
+                      <div className="flex-1 h-3 bg-bg-surface rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-[#818cf8] to-[#a78bfa] rounded-full" style={{ width: `${Math.max(pct, 10)}%` }} />
+                      </div>
+                      <span className="text-[10px] text-text-muted w-8 text-right">{g.count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Top Actors */}
+          {stats.topActors && stats.topActors.length > 0 && (
+            <div className="relative">
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Actors</h3>
+              {!isPremium && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg-floor/60 backdrop-blur-[2px] rounded-xl">
+                  <a href="/pro" className="bg-accent hover:bg-[#818cf8] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shadow-lg">
+                    Unlock with Pro ✨
+                  </a>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2" style={!isPremium ? { filter: "blur(4px)" } : undefined}>
+                {stats.topActors.slice(0, 5).map((a) => (
+                  <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-body">
+                    {a.name} <span className="text-text-muted">{a.count}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top Directors */}
+          {stats.topDirectors && stats.topDirectors.length > 0 && (
+            <div className="relative">
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Directors</h3>
+              {!isPremium && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg-floor/60 backdrop-blur-[2px] rounded-xl">
+                  <a href="/pro" className="bg-accent hover:bg-[#818cf8] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shadow-lg">
+                    Unlock with Pro ✨
+                  </a>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2" style={!isPremium ? { filter: "blur(4px)" } : undefined}>
+                {stats.topDirectors.slice(0, 5).map((d) => (
+                  <span key={d.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-body">
+                    {d.name} <span className="text-text-muted">{d.count}</span>
+                  </span>
                 ))}
               </div>
             </div>
