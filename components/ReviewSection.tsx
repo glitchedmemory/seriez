@@ -32,6 +32,7 @@ function CommentCard({
   avatarUrls,
   reportCounts,
   compact,
+  replyCount,
 }: {
   c: any;
   isAdmin: boolean;
@@ -52,6 +53,7 @@ function CommentCard({
   avatarUrls?: Record<string, string | null>;
   reportCounts?: Record<string, number>;
   compact: boolean;
+  replyCount: number;
 }) {
   const router = useRouter();
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
@@ -131,7 +133,7 @@ function CommentCard({
           <span>{c.likes || 0}</span>
         </button>
         <button onClick={() => authUsername ? onToggleReply(c.id) : router.push("/login")}
-          className="text-[10px] text-text-secondary hover:text-accent-light transition-colors">💬 Reply</button>
+          className="text-[10px] text-text-secondary hover:text-accent-light transition-colors">💬 {replyCount || "Reply"}</button>
         {compact && (
           <span className="text-[10px] text-text-secondary/50 ml-auto">{formatDate(c.created_at)}</span>
         )}
@@ -241,6 +243,7 @@ function CommentTree({
                 c={c}
                 {...sharedProps}
                 compact={sameAuthor}
+                replyCount={replyCount}
               />
 
               {/* Reply input (shown when replying to this comment) */}

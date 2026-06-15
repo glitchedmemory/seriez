@@ -248,7 +248,7 @@ export default function CollectionClient() {
       {/* Comments Section */}
       <section>
         <h2 className="text-sm font-semibold text-text-primary mb-3">
-          💬 Comments {comments.length > 0 && `(${comments.length})`}
+          💬 {comments.length || "Comment"}
         </h2>
 
         {/* Comment Input */}
