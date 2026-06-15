@@ -147,9 +147,9 @@ export default function HistoryClient() {
       {/* ── Divider ── */}
       <div className="h-2 bg-border light:bg-text-secondary/15 mb-5" />
 
-      {/* ── Taste Profile ── */}
+      {/* ── Your Taste Profile ── */}
       <div className="px-4 mb-5">
-        <h2 className="text-lg font-extrabold text-text-primary tracking-tight mb-3">Taste Profile</h2>
+        <h2 className="text-lg font-extrabold text-text-primary tracking-tight mb-3">Your Taste Profile</h2>
         <span className="inline-block bg-accent text-white text-[11px] font-bold px-3 py-1 rounded-full mb-2 tracking-wide">
           #RatingSpread
         </span>
@@ -159,13 +159,6 @@ export default function HistoryClient() {
         <p className="text-[13px] text-text-secondary leading-relaxed mb-5">
           {personaDesc}
         </p>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <StatCard value={data.stats.totalTitles.toString()} label="Titles" />
-          <StatCard value={`${data.stats.totalHours}h`} label="Watch Time" />
-          <StatCard value={data.stats.avgRating.toString()} label="Avg Rating" />
-        </div>
 
         {/* Top Genres (moved from below) */}
         {data.watchList.length > 0 && (
@@ -183,15 +176,6 @@ export default function HistoryClient() {
 
       {/* Popup */}
       {popup && <DayPopup date={popup.date} entries={popup.entries} onClose={() => setPopup(null)} />}
-    </div>
-  );
-}
-
-function StatCard({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="bg-bg-card rounded-xl p-3.5 text-center">
-      <p className="text-[22px] font-extrabold text-text-primary tracking-tight">{value}</p>
-      <p className="text-[11px] font-medium text-text-secondary mt-0.5">{label}</p>
     </div>
   );
 }
