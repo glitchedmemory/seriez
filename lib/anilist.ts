@@ -168,31 +168,39 @@ function formatSeason(season: string | null): string {
 
 // ─── Kitsu backdrop fallback for anime missing AniList bannerImage ───
 
-async function fetchKitsuBackdrop(title: string, year: number): Promise<string | null> {
+async function fetchKitsuBackdrop(title: string, year: number, titleRomaji?: string): Promise<string | null> {
   try {
-    const searchUrl = `https://kitsu.io/api/edge/anime?filter[text]=${encodeURIComponent(title)}&page[limit]=5`;
-    const res = await fetch(searchUrl, {
-      headers: { "Accept": "application/vnd.api+json" },
-      next: { revalidate: 86400 },
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const results = data.data || [];
-
-    // Find best match: prefer same-year, then first result
-    let best = results[0];
-    for (const r of results) {
-      const startDate = r.attributes?.startDate;
-      if (startDate && year && startDate.startsWith(String(year))) {
-        best = r;
-        break;
-      }
+    // Try English title first, then romaji
+    const queries = [title];
+    if (titleRomaji && titleRomaji !== title) {
+      // Use first part of romaji (before colon) for better matching
+      const mainRomaji = titleRomaji.split(":")[0].trim();
+      queries.push(titleRomaji);
+      if (mainRomaji !== titleRomaji) queries.push(mainRomaji);
     }
-    if (!best) return null;
-
-    const coverImage = best.attributes?.coverImage;
-    if (coverImage?.original) return coverImage.original;
-    if (coverImage?.large) return coverImage.large;
+    for (const q of queries) {
+      const searchUrl = `https://kitsu.io/api/edge/anime?filter[text]=${encodeURIComponent(q)}&page[limit]=5`;
+      const res = await fetch(searchUrl, {
+        headers: { "Accept": "application/vnd.api+json" },
+        next: { revalidate: 86400 },
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const results = data.data || [];
+      // Find best match: prefer same-year
+      let best = results[0];
+      for (const r of results) {
+        const startDate = r.attributes?.startDate;
+        if (startDate && year && startDate.startsWith(String(year))) {
+          best = r;
+          break;
+        }
+      }
+      if (!best) continue;
+      const coverImage = best.attributes?.coverImage;
+      if (coverImage?.original) return coverImage.original;
+      if (coverImage?.large) return coverImage.large;
+    }
     return null;
   } catch {
     return null;
@@ -313,7 +321,7 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
     };
     // Kitsu backdrop fallback when AniList bannerImage is null
     if (!result.backdrop && result.year) {
-      result.backdrop = (await fetchKitsuBackdrop(result.title, result.year)) || "";
+      result.backdrop = (await fetchKitsuBackdrop(result.title, result.year, result.titleRomaji)) || "";
     }
     // Validate trailer (if AnyList has one) or search YouTube (if not)
     const animeTitle = m.title?.english || m.title?.romaji || "";
