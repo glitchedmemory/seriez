@@ -281,7 +281,7 @@ export default function CollectionClient() {
         {comments.length > 0 ? (
           <div className="space-y-3">
             {comments.map((c) => (
-              <div key={c.id} className="flex gap-2">
+              <div key={c.id} className="flex gap-2 bg-bg-card border border-border rounded-xl p-3">
                 {avatarUrls[c.username] ? (
                   <img src={avatarUrls[c.username]!} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-0.5" />
                 ) : (
