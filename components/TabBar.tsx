@@ -146,6 +146,7 @@ export function Sidebar() {
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0" />
           </div>
         ) : user ? (
+          <>
           <a href="/profile" className="flex items-center gap-3 px-1.5 py-2 min-w-max">
             {avatarUrl ? (
               <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
@@ -159,6 +160,14 @@ export function Sidebar() {
               <p className="text-xs text-text-secondary">Profile →</p>
             </div>
           </a>
+          <button
+            onClick={async () => { await supabase.auth.signOut(); localStorage.removeItem("seriez-username"); window.location.href = "/"; }}
+            className="flex items-center gap-3 px-1.5 py-1.5 rounded-lg text-xs text-text-secondary hover:text-red-400 transition-colors min-w-max"
+          >
+            <span className="text-sm flex-shrink-0">🚪</span>
+            <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Sign out</span>
+          </button>
+          </>
         ) : (
           <a href="/login" className="flex items-center gap-3 px-1.5 py-2 min-w-max">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0">
