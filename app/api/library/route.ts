@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
           progress: t.progress,
           updatedAt: t.updated_at,
           title: m.title?.english || m.title?.romaji || "Unknown",
-          poster: m.coverImage?.medium || null,
+          poster: m.coverImage?.large || m.coverImage?.medium || null,
           year: m.startDate?.year?.toString() || null,
           tmdbRating: null,
         });
