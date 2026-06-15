@@ -360,12 +360,25 @@ export default function ProfilePage() {
           )}
         </div>
         <div className="flex gap-5 mt-1 text-sm text-text-secondary">
-          <button onClick={() => fetchFollowList("followers")} className="hover:text-text-primary transition-colors">
-            <strong className="text-text-primary">{followersCount}</strong> followers
-          </button>
-          <button onClick={() => fetchFollowList("following")} className="hover:text-text-primary transition-colors">
-            <strong className="text-text-primary">{followingCount}</strong> following
-          </button>
+          {user ? (
+            <>
+            <button onClick={() => fetchFollowList("followers")} className="hover:text-text-primary transition-colors">
+              <strong className="text-text-primary">{followersCount}</strong> followers
+            </button>
+            <button onClick={() => fetchFollowList("following")} className="hover:text-text-primary transition-colors">
+              <strong className="text-text-primary">{followingCount}</strong> following
+            </button>
+            </>
+          ) : (
+            <>
+            <span className="pointer-events-none">
+              <strong className="text-text-primary">—</strong> followers
+            </span>
+            <span className="pointer-events-none">
+              <strong className="text-text-primary">—</strong> following
+            </span>
+            </>
+          )}
         </div>
       </div>
 
