@@ -73,7 +73,7 @@ function CommentCard({
           )}
           <div className="flex-1 flex items-center gap-1 min-w-0">
             <span className="text-xs font-medium text-text-primary hover:text-accent cursor-pointer transition-colors truncate" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
-            {c.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block flex-shrink-0" />}
+            {c.isPremium && <img src="/icons/premium-badge-20.png" alt="Golden Ticket" className="w-4 h-2.5 inline-block flex-shrink-0" />}
             {isAdmin && c.is_hidden && (
               <span className="text-[10px] text-red-400 bg-red-900/30 px-1 rounded flex-shrink-0">🚨 hidden</span>
             )}
@@ -884,7 +884,7 @@ export function ReviewSection({
                 <span className="text-sm font-semibold text-text-primary hover:text-[#a5b4fc] cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${review.username}`)}>
                   {review.username}
                 </span>
-                {review.isPremium && <img src="/icons/premium-badge-20.png" alt="Premium" className="w-4 h-2.5 inline-block" />}
+                {review.isPremium && <img src="/icons/premium-badge-20.png" alt="Golden Ticket" className="w-4 h-2.5 inline-block" />}
                 {renderStars(review.rating)}
               </div>
               <span className="text-[11px] text-text-secondary">

@@ -151,7 +151,7 @@ export default function HistoryClient() {
               href="/pro"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold hover:bg-[#818cf8] transition-colors"
             >
-              Upgrade to Pro
+              Upgrade to Golden Ticket
             </a>
           </div>
         )}
