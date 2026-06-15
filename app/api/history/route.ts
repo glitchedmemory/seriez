@@ -89,37 +89,51 @@ function getPersona(allRatings: RatingEntry[], genreRatings: Record<string, { to
   let label: string, desc: string;
 
   if (avg >= 4.5) {
-    if (isAnimeFan) { label = "Otaku Spirit"; desc = "Anime is your world and you love almost everything you start. A passionate weeb who finds joy in every series."; }
+    if (isAnimeFan && isDiverse) { label = "Otaku Spirit"; desc = "Anime is your world and you love almost everything you start. A passionate weeb who finds joy in every series."; }
+    else if (isAnimeFan && isFocused) { label = "Manga Reader"; desc = "You read the source first and the anime never disappoints. Seeing your favorite panels animated is pure bliss."; }
+    else if (isAnimeFan) { label = "Isekai Addict"; desc = "Another world, another 5 stars. You've watched every isekai this season and you're not stopping."; }
     else if (likesFun) { label = "Joy Finder"; desc = "You watch to feel good — and almost everything delivers. A happiness-first viewer who finds gems everywhere."; }
     else if (isDiverse) { label = "Generous Spirit"; desc = "Your open mind spans genres, and your high ratings reflect genuine appreciation for the craft."; }
     else { label = "Easy to Please"; desc = "You don't overthink it — if it entertains, it earns your stars. Pure, unfiltered enjoyment."; }
   } else if (avg >= 4.0) {
-    if (isAnimeFan) { label = "Seasonal Binger"; desc = "You follow the seasonal calendar religiously. Every new OP is a promise — and it rarely disappoints."; }
+    if (isAnimeFan && isFocused) { label = "Shonen Faithful"; desc = "Training arcs, power-ups, tournament finals — the formula works and you know it."; }
+    else if (isAnimeFan && isVaried) { label = "Waifu Collector"; desc = "Every season brings a new best girl, and you're here for all of them. Emotional attachment guaranteed."; }
+    else if (isAnimeFan) { label = "Seasonal Binger"; desc = "You follow the seasonal calendar religiously. Every new OP is a promise — and it rarely disappoints."; }
     else if (likesAction) { label = "Hype Chaser"; desc = "You live for the rush — blockbusters, explosions, and high-stakes thrills are your happy place."; }
     else if (isFocused) { label = "Passionate Admirer"; desc = "You know what you love and you stick to it. Deep appreciation for your chosen lane."; }
     else { label = "Enthusiastic Fan"; desc = "You lean positive, celebrate what works, and rarely walk away disappointed."; }
   } else if (avg >= 3.5) {
-    if (isAnimeFan) { label = "Subtitle Devotee"; desc = "You live in the subtitles. Japanese VAs, seasonal drops, and emotional EDs — this is your native language."; }
+    if (isAnimeFan && isFocused) { label = "Slice of Life Enjoyer"; desc = "You find beauty in the mundane. A quiet episode about making coffee can earn a solid 4."; }
+    else if (isAnimeFan && isVaried) { label = "OP/ED Critic"; desc = "You judge openings as hard as the show itself. A banger OP buys goodwill, a bad one loses it."; }
+    else if (isAnimeFan) { label = "Subtitle Devotee"; desc = "You live in the subtitles. Japanese VAs, seasonal drops, and emotional EDs — this is your native language."; }
     else if (isDiverse) { label = "Silver Lining Seeker"; desc = "Genre-hopping optimist who finds something to appreciate in every story."; }
     else if (isVaried) { label = "Warm Viewer"; desc = "Your ratings swing with your mood, but you always find warmth in what you watch."; }
     else { label = "Glass Half Full"; desc = "Steady, positive, and reliable — you see the good without ignoring the flaws."; }
   } else if (avg >= 3.0) {
-    if (isAnimeFan) { label = "Adaptation Purist"; desc = "You've read the source material and you judge accordingly. The anime must earn its stars."; }
+    if (isAnimeFan && isFocused) { label = "Adaptation Purist"; desc = "You've read the source material and you judge accordingly. The anime must earn its stars."; }
+    else if (isAnimeFan && isVaried) { label = "Pacing Police"; desc = "Filler arcs and dragged-out episodes cost stars. You value tight storytelling above all."; }
+    else if (isAnimeFan) { label = "Genre Explorer"; desc = "Isekai, shonen, romance, mecha — you sample everything with measured judgment."; }
     else if (likesDrama) { label = "Middle Ground"; desc = "You weigh emotion carefully — not too harsh, not too soft. A true dramatic balance."; }
     else if (isDiverse) { label = "Fair-Minded Critic"; desc = "Your wide taste comes with measured judgment. Fair scores across the board."; }
     else { label = "Balanced Judge"; desc = "You keep it even — your ratings reflect thoughtful, unhurried consideration."; }
   } else if (avg >= 2.5) {
-    if (isAnimeFan) { label = "MAL Veteran"; desc = "Your MyAnimeList standards are legendary. 7 means good, 8 means great, and 10 is almost myth."; }
+    if (isAnimeFan && isDiverse) { label = "Hidden Gem Hunter"; desc = "You skip the mainstream hits and dig for overlooked masterpieces. Popularity is not a criteria."; }
+    else if (isAnimeFan && isFocused) { label = "Connoisseur"; desc = "Your taste in anime is refined. Mass appeal means nothing to you."; }
+    else if (isAnimeFan) { label = "Seasonal Dropper"; desc = "You start 10 shows per season and finish 3. Life's too short for mediocre anime."; }
     else if (likesDark) { label = "Quality Filter"; desc = "Dark themes demand high standards. You don't hand out stars to just anything."; }
     else if (isFocused) { label = "Taste Curator"; desc = "You curate with precision. Only titles that truly match your taste make the cut."; }
     else { label = "Selective Critic"; desc = "You know what works and what doesn't — and you're not afraid to say so."; }
   } else if (avg >= 2.0) {
-    if (isAnimeFan) { label = "Studio Loyalist"; desc = "You follow studios, not hype. KyoAni, MAPPA, Ufotable — you know who delivers and who doesn't."; }
+    if (isAnimeFan && isFocused) { label = "Studio Loyalist"; desc = "You follow studios, not hype. KyoAni, MAPPA, Ufotable — you know who delivers and who doesn't."; }
+    else if (isAnimeFan && !isVaried) { label = "Director Follower"; desc = "You track directors across projects. Naoko Yamada's touch is unmistakable to your trained eye."; }
+    else if (isAnimeFan) { label = "Animation Purist"; desc = "CGI dragons and low frame rates are instant dealbreakers. Hand-drawn excellence or nothing."; }
     else if (likesAction) { label = "Hard to Impress"; desc = "Explosions and car chases alone won't win you over. You demand substance behind the spectacle."; }
     else if (isVaried) { label = "Discerning Viewer"; desc = "Your taste is exacting and your standards high. Only the best earns recognition."; }
     else { label = "Sharp Eye"; desc = "You spot flaws others miss. A critical gaze that keeps quality in check."; }
   } else {
-    if (isAnimeFan) { label = "Sakuga Purist"; desc = "You judge by key frames and animation quality. Only visual masterpieces with flawless sakuga earn your stars."; }
+    if (isAnimeFan && isFocused) { label = "Source Snob"; desc = "The anime is always worse than the LN. Your stars are reserved for adaptations that surpass the original."; }
+    else if (isAnimeFan && isDiverse) { label = "Sakuga Purist"; desc = "You judge by key frames and animation quality. Only visual masterpieces with flawless sakuga earn your stars."; }
+    else if (isAnimeFan) { label = "Golden Age Keeper"; desc = "Nothing made after 2010 impresses you. The golden era has passed and you're gatekeeping what remains."; }
     else if (likesDark) { label = "Tough Crowd"; desc = "Horror, crime, darkness — even then you're stingy with stars. Only truly exceptional work impresses."; }
     else if (isFocused) { label = "Strict Purist"; desc = "You know your genre inside out, and the bar is set high. Mediocrity won't pass."; }
     else { label = "Rare Praiser"; desc = "Stars are earned, not given. When you rate highly, people pay attention."; }
