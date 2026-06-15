@@ -55,6 +55,7 @@ export default function ProfilePage() {
   const [bgPositionX, setBgPositionX] = useState(50);
   const [bgPositionY, setBgPositionY] = useState(50);
   const [stats, setStats] = useState<ProfileStats | null>(null);
+  const [selectedMediaType, setSelectedMediaType] = useState<"movie" | "tv" | "anime">("movie");
   const [isPremium, setIsPremium] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -110,10 +111,12 @@ export default function ProfilePage() {
     } catch {}
   }, [effectiveUsername, isOwn]);
 
-  const fetchStats = useCallback(async () => {
+  const fetchStats = useCallback(async (mt?: string) => {
     if (!effectiveUsername) return;
     try {
-      const res = await fetch(`/api/users/${encodeURIComponent(effectiveUsername)}/stats`).then(r => r.json());
+      const mediaType = mt ?? "movie";
+      const params = `?mediaType=${mediaType}`;
+      const res = await fetch(`/api/users/${encodeURIComponent(effectiveUsername)}/stats${params}`).then(r => r.json());
       if (!res.error) setStats(res);
     } catch {}
   }, [effectiveUsername]);
@@ -358,6 +361,28 @@ export default function ProfilePage() {
       {/* ── Stats Dashboard (FREE) ── */}
       {stats && (
         <div className="px-4 mt-5">
+          {/* Segmented Media Type Toggle */}
+          <div className="flex justify-center mb-4">
+            <div className="inline-flex bg-white/5 dark:bg-white/5 bg-gray-100 rounded-full p-0.5">
+              {(["movie", "tv", "anime"] as const).map((type) => {
+                const labels: Record<string, string> = { movie: "Movie", tv: "TV", anime: "Anime" };
+                const isActive = selectedMediaType === type;
+                return (
+                  <button
+                    key={type}
+                    onClick={() => { setSelectedMediaType(type); fetchStats(type); }}
+                    className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all ${
+                      isActive
+                        ? "bg-[#818cf8] text-white shadow-sm dark:bg-[#818cf8] dark:text-white bg-[#6366f1]"
+                        : "text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:text-white text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    {labels[type]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <div className="grid grid-cols-4 gap-3">
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-text-primary">{stats.totals.watched}</p>
