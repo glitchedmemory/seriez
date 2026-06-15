@@ -36,10 +36,12 @@ function ratingPersonality(avg: number, count: number): string {
 }
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ username: string }> }
 ) {
   const { username } = await params;
+  const { searchParams } = new URL(req.url);
+  const mediaType = searchParams.get("mediaType"); // movie | tv | anime | null
 
   try {
     // ── 1. Get user_id ──
@@ -56,16 +58,20 @@ export async function GET(
     const userId = userData.id;
 
     // ── 2. Fetch all tracking data ──
-    const { data: tracking } = await supabase
+    let trackingQuery = supabase
       .from("media_trackings")
       .select("tmdb_id, media_type, status, rating, progress, watched_at, updated_at")
       .eq("username", userId);
+    if (mediaType) trackingQuery = trackingQuery.eq("media_type", mediaType);
+    const { data: tracking } = await trackingQuery;
 
     // ── 3. Fetch all reviews ──
-    const { data: reviews } = await supabase
+    let reviewsQuery = supabase
       .from("reviews")
       .select("tmdb_id, media_type, rating")
       .eq("username", username);
+    if (mediaType) reviewsQuery = reviewsQuery.eq("media_type", mediaType);
+    const { data: reviews } = await reviewsQuery;
 
     // ── Merge tracking + reviews for rated items ──
     const ratedMap = new Map<number, { rating: number; mediaType: string }>();
@@ -91,7 +97,7 @@ export async function GET(
     const planned = (tracking || []).filter(t => t.status === "plan_to_watch");
     const rated = Array.from(ratedMap.values());
     const reviewedItems = (reviews || []).filter(r => r.rating && r.rating > 0);
-    const allRated = [...rated, ...reviewedItems.filter(r => !ratedMap.has(r.tmdb_id)).map(r => ({ rating: r.rating, mediaType: r.media_type }))];
+    const allRated = [...rated, ...reviewedItems.filter(r => !ratedMap.has(r.tmdb_id)).map(r => ({ rating: FROM_DB(r.rating), mediaType: r.media_type }))];
 
     // Rating distribution
     const ratingBuckets: Record<string, number> = {};
