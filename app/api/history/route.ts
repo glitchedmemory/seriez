@@ -157,13 +157,16 @@ export async function GET(req: NextRequest) {
 
   const graphStart = new Date(targetYear, targetMonth - 12, 1).toISOString().split("T")[0];
 
-  const [watchesRes, trackingRes] = await Promise.all([
+  const [watchesRes, trackingRes, userRes] = await Promise.all([
     supabaseAdmin.from("episode_watches")
       .select("tmdb_id, season_number, episode_number, watched_at")
       .eq("username", userId).gte("watched_at", graphStart).order("watched_at", { ascending: false }),
     supabaseAdmin.from("media_trackings")
       .select("tmdb_id, media_type, status, rating, updated_at")
       .eq("username", userId),
+    supabaseAdmin.from("users")
+      .select("is_premium")
+      .eq("username", queryUsername.trim().slice(0, 20)).maybeSingle(),
   ]);
 
   const watches = watchesRes.data;
@@ -295,5 +298,6 @@ export async function GET(req: NextRequest) {
     calendar,
     stats: { weeklyHours: Math.round(weeklyMin/6)/10, totalHours: Math.round(totalMin/6)/10, allTimeHours: Math.round(allTimeMin/6)/10, avgRating, totalTitles: titles.size, totalEpisodes: totalEps },
     monthlyGraph, topGenres, watchList, persona: getPersona(allRatings, genreRatings),
+    isPremium: userRes?.data?.is_premium === true,
   });
 }
