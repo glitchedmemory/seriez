@@ -87,7 +87,7 @@ export default function PosterStack({ posters, day, count }: PosterStackProps) {
 
       {/* Count badge */}
       {count > 1 && (
-        <span className="absolute top-1 right-1 bg-black/75 text-text-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full z-20">
+        <span className="absolute top-1 right-1 bg-black/75 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full z-20">
           {count}
         </span>
       )}

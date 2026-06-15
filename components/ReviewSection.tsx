@@ -100,7 +100,7 @@ function CommentCard({
                     <button onClick={() => { onDelete(c.id); setConfirmDelete(null); }}
                       className="text-[9px] px-1.5 py-0.5 bg-red-600 text-white rounded hover:bg-red-500">Del</button>
                     <button onClick={() => setConfirmDelete(null)}
-                      className="text-[9px] text-text-secondary hover:text-white">Cancel</button>
+                      className="text-[9px] text-text-secondary hover:text-white light:hover:text-accent">Cancel</button>
                   </span>
                 ) : (
                   <button onClick={() => setConfirmDelete(c.id)}
@@ -952,7 +952,7 @@ export function ReviewSection({
                     </button>
                     <button
                       onClick={() => setConfirmDeleteId(null)}
-                      className="text-[10px] text-text-secondary hover:text-white"
+                      className="text-[10px] text-text-secondary hover:text-white light:hover:text-accent"
                     >
                       Cancel
                     </button>
@@ -1091,7 +1091,7 @@ export function ReviewSection({
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-white disabled:opacity-30 transition-colors"
+            className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-white light:hover:text-accent disabled:opacity-30 transition-colors"
           >
             ← Prev
           </button>
@@ -1112,7 +1112,7 @@ export function ReviewSection({
                   className={`w-7 h-7 text-xs rounded-full transition-colors ${
                     currentPage === item
                       ? "bg-accent text-white"
-                      : "bg-bg-card text-text-secondary hover:text-white"
+                      : "bg-bg-card text-text-secondary hover:text-white light:hover:text-accent"
                   }`}
                 >
                   {item}
@@ -1122,7 +1122,7 @@ export function ReviewSection({
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-white disabled:opacity-30 transition-colors"
+            className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-white light:hover:text-accent disabled:opacity-30 transition-colors"
           >
             Next →
           </button>

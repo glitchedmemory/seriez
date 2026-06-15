@@ -181,7 +181,7 @@ export default function CollectionClient() {
   return (
     <div className="max-w-2xl mx-auto min-h-screen px-4 py-6 pb-24">
       {/* Header */}
-      <button onClick={() => router.push("/search")} className="text-xs text-text-secondary hover:text-white mb-3 inline-block">
+      <button onClick={() => router.push("/search")} className="text-xs text-text-secondary hover:text-white light:hover:text-accent mb-3 inline-block">
         ← Back to Search
       </button>
 
@@ -315,7 +315,7 @@ export default function CollectionClient() {
                           <button onClick={() => handleDelete(c.id)}
                             className="text-[9px] px-1.5 py-0.5 bg-red-600 text-white rounded hover:bg-red-500">Del</button>
                           <button onClick={() => setConfirmDelete(null)}
-                            className="text-[9px] text-text-secondary hover:text-white">Cancel</button>
+                            className="text-[9px] text-text-secondary hover:text-white light:hover:text-accent">Cancel</button>
                         </span>
                       ) : (
                         <button onClick={() => setConfirmDelete(c.id)}

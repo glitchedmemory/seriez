@@ -43,7 +43,7 @@ export default function TabBar() {
               aria-label={tab.name}
               aria-current={active ? "page" : undefined}
               className={`flex flex-col items-center gap-1 px-3 py-2 text-xs transition-colors ${
-                active ? "text-accent-light" : "text-text-secondary hover:text-white"
+                active ? "text-accent-light" : "text-text-secondary hover:text-white light:hover:text-accent"
               }`}
             >
               <span className={`text-xl ${active ? "[&>img]:filter [&>img]:brightness-0 [&>img]:saturate-100 [&>img]:invert-[33%] [&>img]:sepia-[54%] [&>img]:saturate-[2050%] [&>img]:hue-rotate-[245deg] [&>img]:brightness-[.95] [&>img]:contrast-[.93]" : ""}`}>
@@ -130,7 +130,7 @@ export function Sidebar() {
               className={`flex items-center gap-3 px-1.5 py-2.5 rounded-lg text-sm font-medium transition-all min-w-max ${
                 active
                   ? "bg-accent/10 text-text-primary"
-                  : "text-text-secondary hover:text-white hover:bg-bg-card"
+                  : "text-text-secondary hover:text-white light:hover:text-accent hover:bg-bg-card"
               }`}
             >
               <span className="text-lg flex-shrink-0">{tab.icon}</span>

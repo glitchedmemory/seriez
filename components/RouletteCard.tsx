@@ -127,7 +127,7 @@ export default function RouletteCard() {
               e.stopPropagation();
               setResult(null);
             }}
-            className="absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-text-primary/70 hover:text-white text-sm transition-colors"
+            className="absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white/70 hover:text-white text-sm transition-colors"
           >
             ✕
           </button>
