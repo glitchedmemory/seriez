@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProfileSkeleton } from "@/components/Skeletons";
@@ -657,25 +657,50 @@ export default function ProfilePage() {
               Animation: ["#1a2e0a", "#3b6310"],
             };
             const [gc1, gc2] = genreColors[topGenre] || ["#1e1b4b", "#3730a3"];
-            const visibleDots = 6;
+            const [activeSlide, setActiveSlide] = useState(0);
+            const scrollRef = useRef<HTMLDivElement>(null);
+            const totalSlides = 6;
+
+            const handleScroll = () => {
+              const el = scrollRef.current;
+              if (!el) return;
+              const idx = Math.round(el.scrollLeft / el.clientWidth);
+              setActiveSlide(idx);
+            };
+
+            const handleShare = async () => {
+              const text = `🎬 My ${year} on Seriez\n${stats.yearlyRecap.hours}h · ${stats.yearlyRecap.titles} titles · ★${stats.rating.average || "—"}\nTop genre: ${topGenre}\n@${displayName}`;
+              if (navigator.share) {
+                try { await navigator.share({ title: `My ${year} Seriez Recap`, text }); } catch {}
+              } else {
+                try { await navigator.clipboard.writeText(text); alert("Copied to clipboard!"); } catch {}
+              }
+            };
+
+            // Track mounted to safely use refs/effects
+            const [dotsMounted, setDotsMounted] = useState(false);
+            useEffect(() => { setDotsMounted(true); }, []);
+
             return (
             <div className="mt-5">
               <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3 px-4">
                 {year} Recap
               </h3>
               <div
-                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4"
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className="flex overflow-x-auto snap-x snap-mandatory -mx-4 px-4"
                 style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
               >
                 {/* Slide 1 — Title */}
                 <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center bg-black min-h-[360px]">
                   <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)" }} />
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 mb-3 relative z-10">A Year in Watching</p>
-                  <h2 className="text-4xl font-black text-white leading-tight mb-2 relative z-10">{year}</h2>
-                  <p className="text-sm text-white/40 italic mb-4 relative z-10">A Film by</p>
-                  <p className="text-xl font-bold text-accent relative z-10">@{displayName}</p>
+                  <p className="text-xs uppercase tracking-[0.3em] text-white/40 mb-3 relative z-10">A Year in Watching</p>
+                  <h2 className="text-5xl font-black text-white leading-tight mb-2 relative z-10">{year}</h2>
+                  <p className="text-base text-white/50 italic mb-4 relative z-10">A Film by</p>
+                  <p className="text-2xl font-bold text-accent relative z-10">@{displayName}</p>
                   <div className="absolute bottom-6 left-6 right-6">
-                    <div className="border-t border-white/10 pt-3 text-[9px] text-white/30 uppercase tracking-[0.2em]">
+                    <div className="border-t border-white/10 pt-3 text-xs text-white/30 uppercase tracking-[0.2em]">
                       Swipe →
                     </div>
                   </div>
@@ -685,16 +710,16 @@ export default function ProfilePage() {
                 <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[360px]" style={{ background: `linear-gradient(135deg, ${gc1}, ${gc2})` }}>
                   <div className="absolute inset-0 bg-black/20" />
                   <div className="relative z-10">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/60 mb-4">Total Watch Time</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-4">Total Watch Time</p>
                     <span className="text-7xl font-black text-white tabular-nums">{stats.yearlyRecap.hours}</span>
                     <p className="text-2xl text-white/80 mt-1 font-light">HOURS</p>
-                    <p className="text-xs text-white/50 mt-4 max-w-[240px]">
+                    <p className="text-sm text-white/60 mt-4 max-w-[260px]">
                       {stats.yearlyRecap.hours >= 2000 ? "That's over 83 full days. More than many film school students." :
                        stats.yearlyRecap.hours >= 1000 ? "Over 40 days. A serious commitment to the screen." :
                        stats.yearlyRecap.hours >= 500 ? "20+ full days. Cinema is clearly your second home." :
                        "Every hour well spent. Quality over quantity."}
                     </p>
-                    <p className="text-xs text-white/40 mt-3">
+                    <p className="text-sm text-white/50 mt-3">
                       Across {stats.yearlyRecap.titles} titles
                     </p>
                   </div>
@@ -704,23 +729,23 @@ export default function ProfilePage() {
                 <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[360px]" style={{ background: `linear-gradient(135deg, ${gc1}, ${gc2})` }}>
                   <div className="absolute inset-0 bg-black/20" />
                   <div className="relative z-10 px-4">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-3">Top Genre</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-white/40 mb-3">Top Genre</p>
                     <span className="text-4xl font-black text-white tracking-tight">{topGenre}</span>
-                    <p className="text-white/60 text-sm mt-1">{stats.genres?.[0]?.count || 0} titles</p>
+                    <p className="text-white/60 text-base mt-1">{stats.genres?.[0]?.count || 0} titles</p>
                     {stats.genres && stats.genres[1] && (
                       <div className="flex gap-2 justify-center mt-4">
-                        <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-[10px]">{stats.genres[1].name} · {stats.genres[1].count}</span>
-                        {stats.genres[2] && <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-[10px]">{stats.genres[2].name} · {stats.genres[2].count}</span>}
+                        <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/70 text-xs">{stats.genres[1].name} · {stats.genres[1].count}</span>
+                        {stats.genres[2] && <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/70 text-xs">{stats.genres[2].name} · {stats.genres[2].count}</span>}
                       </div>
                     )}
-                    <p className="text-white/40 text-[10px] italic mt-5 max-w-[220px]">
+                    <p className="text-white/50 text-sm italic mt-5 max-w-[240px]">
                       {topGenre === "Drama" ? "You live for emotional depth and powerful performances." :
                        topGenre === "Action" ? "Adrenaline is your preferred viewing fuel." :
                        topGenre === "Comedy" ? "Laughter is the best medicine — and you know it." :
                        topGenre === "Thriller" ? "You chase suspense like a seasoned detective." :
                        topGenre === "Horror" ? "Fear is your comfort zone." :
                        topGenre === "Sci-Fi" ? "The future fascinates you more than the present." :
-                       `\"${topGenre}\" defined your ${year}.`}
+                       `"${topGenre}" defined your ${year}.`}
                     </p>
                   </div>
                 </div>
@@ -729,30 +754,30 @@ export default function ProfilePage() {
                 <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[360px] bg-[#0a0a0a]">
                   <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.8) 100%)" }} />
                   <div className="relative z-10 w-full px-6">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-5">Starring</p>
-                    <div className="space-y-2">
+                    <p className="text-xs uppercase tracking-[0.2em] text-white/40 mb-5">Starring</p>
+                    <div className="space-y-3">
                       {(stats.topActors || []).slice(0, 5).map((a, i) => (
-                        <p key={a.name} className="text-white font-medium tracking-wide text-base" style={{ opacity: 1 - i * 0.15 }}>
+                        <p key={a.name} className="text-white font-medium tracking-wide text-lg" style={{ opacity: 1 - i * 0.12 }}>
                           {a.name}
                         </p>
                       ))}
                     </div>
-                    <p className="text-white/30 text-[9px] tracking-[0.15em] uppercase mt-6">and many more</p>
+                    <p className="text-white/30 text-xs tracking-[0.15em] uppercase mt-6">and many more</p>
                   </div>
-                  <div className="absolute bottom-4 right-4 text-white/10 text-[8px] uppercase tracking-[0.2em]">Top Actors</div>
+                  <div className="absolute bottom-4 right-4 text-white/10 text-xs uppercase tracking-[0.2em]">Top Actors</div>
                 </div>
 
                 {/* Slide 5 — The Awards */}
                 <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[360px]" style={{ background: "linear-gradient(135deg, #1a1400, #3d2e00)" }}>
                   <div className="relative z-10">
                     <span className="text-5xl mb-3 block">🏆</span>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-yellow-400/60 mb-2">Critical Consensus</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-yellow-400/50 mb-2">Critical Consensus</p>
                     <div className="flex items-baseline justify-center gap-1">
                       <span className="text-5xl font-black text-yellow-400">★</span>
                       <span className="text-5xl font-black text-white">{stats.rating.average || "—"}</span>
                     </div>
-                    <p className="text-white/60 text-xs mt-2">{stats.totals.rated} titles rated</p>
-                    <p className="text-yellow-400/50 text-[10px] italic mt-4 max-w-[220px]">
+                    <p className="text-white/60 text-sm mt-2">{stats.totals.rated} titles rated</p>
+                    <p className="text-yellow-400/60 text-sm italic mt-4 max-w-[240px]">
                       {stats.rating.average >= 4.0 ? "A true connoisseur with impeccable taste." :
                        stats.rating.average >= 3.5 ? "A balanced viewer who knows a good story when they see one." :
                        stats.rating.average >= 3.0 ? "Selective and honest — you don't hand out stars lightly." :
@@ -761,32 +786,45 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Slide 6 — Recap Summary */}
+                {/* Slide 6 — Recap Summary + Share */}
                 <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[360px]" style={{ background: "linear-gradient(135deg, #0f0f1a, #1a0a2e, #3b0764)" }}>
-                  <div className="relative z-10 px-4" data-summary-card>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">{year}</p>
+                  <div className="relative z-10 px-4 w-full">
+                    <p className="text-sm uppercase tracking-[0.2em] text-white/40 mb-2">{year}</p>
                     <p className="text-4xl font-black text-white">{stats.yearlyRecap.hours}h</p>
-                    <p className="text-xs text-white/50 mt-1">across {stats.yearlyRecap.titles} titles</p>
+                    <p className="text-sm text-white/50 mt-1">across {stats.yearlyRecap.titles} titles</p>
                     <div className="flex items-center justify-center gap-2 mt-3">
-                      <span className="text-yellow-400">★{stats.rating.average || "—"}</span>
+                      <span className="text-yellow-400 text-base">★{stats.rating.average || "—"}</span>
                       <span className="text-white/20">·</span>
-                      <span className="text-accent text-sm">{topGenre}</span>
+                      <span className="text-accent text-base">{topGenre}</span>
                       <span className="text-white/20">·</span>
-                      <span className="text-white/40 text-xs">@{displayName}</span>
+                      <span className="text-white/40 text-sm">@{displayName}</span>
                     </div>
-                    <div className="border-t border-white/10 mt-4 pt-4 w-full text-center">
-                      <p className="text-white/30 text-[9px]">Discover more on Seriez</p>
+                    <div className="border-t border-white/10 mt-5 pt-5">
+                      <button
+                        onClick={handleShare}
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-black text-sm font-semibold hover:bg-gray-200 transition-colors"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                        Share My {year} Recap
+                      </button>
+                      <p className="text-white/25 text-xs mt-3">Discover more on Seriez</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Dots */}
+              {dotsMounted && (
               <div className="flex justify-center gap-1.5 mt-3">
-                {Array.from({ length: visibleDots }).map((_, i) => (
-                  <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === 0 ? "bg-accent" : "bg-border"}`} />
+                {Array.from({ length: totalSlides }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { scrollRef.current?.scrollTo({ left: scrollRef.current.clientWidth * i, behavior: "smooth" }); }}
+                    className={`w-2 h-2 rounded-full transition-all ${i === activeSlide ? "bg-accent w-4" : "bg-border hover:bg-text-secondary"}`}
+                  />
                 ))}
               </div>
+              )}
             </div>
             );
           })()}
