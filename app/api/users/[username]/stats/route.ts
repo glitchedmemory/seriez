@@ -80,45 +80,106 @@ async function fetchRuntimes(
   if (missingMovies.length > 0) {
     const wdRes = await Promise.allSettled(
       missingMovies.map(async (tmdbId) => {
-        const query = `SELECT ?runtime WHERE { ?item wdt:P4947 "${tmdbId}". ?item wdt:P2047 ?runtime. } LIMIT 1`;
+        const query = `SELECT ?runtime ?article WHERE { ?item wdt:P4947 "${tmdbId}". OPTIONAL { ?item wdt:P2047 ?runtime. } OPTIONAL { ?article schema:about ?item; schema:isPartOf <https://en.wikipedia.org/>. } } LIMIT 1`;
         const url = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(query)}`;
         try {
           const r = await fetch(url, { headers: { "User-Agent": "Seriez/1.0" } });
-          if (!r.ok) return { tmdbId, runtime: 0 };
+          if (!r.ok) return { tmdbId, runtime: 0, article: "" };
           const j = await r.json();
-          const val = j?.results?.bindings?.[0]?.runtime?.value;
-          const mins = val ? parseFloat(val) : 0;
-          return { tmdbId, runtime: mins > 0 ? Math.round(mins) : 0 };
-        } catch { return { tmdbId, runtime: 0 }; }
+          const b = j?.results?.bindings?.[0];
+          const mins = b?.runtime?.value ? parseFloat(b.runtime.value) : 0;
+          const article = b?.article?.value || "";
+          return { tmdbId, runtime: mins > 0 ? Math.round(mins) : 0, article };
+        } catch { return { tmdbId, runtime: 0, article: "" }; }
       })
     );
+    const wpIds: { tmdbId: number; article: string }[] = [];
     for (const res of wdRes) {
       if (res.status === "fulfilled" && res.value.runtime > 0) {
         map.set(res.value.tmdbId, res.value.runtime);
+      } else if (res.status === "fulfilled" && res.value.article) {
+        wpIds.push({ tmdbId: res.value.tmdbId, article: res.value.article });
+      }
+    }
+
+    // ── Source 3: Wikipedia infobox (free, no key) for Wikidata misses ──
+    if (wpIds.length > 0) {
+      const wpRes = await Promise.allSettled(
+        wpIds.map(async ({ tmdbId, article }) => {
+          const title = article.replace("https://en.wikipedia.org/wiki/", "");
+          try {
+            const r = await fetch(
+              `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&prop=text&section=0&format=json`,
+              { headers: { "User-Agent": "Seriez/1.0" } }
+            );
+            if (!r.ok) return { tmdbId, runtime: 0 };
+            const j = await r.json();
+            const html: string = j?.parse?.text?.["*"] || "";
+            // Parse infobox: "Running time", "Runtime", or "minutes" with preceding number
+            const m1 = html.match(/(?:Running time|Runtime)[^<]*?(\d+)\s*(?:minutes|min)/i);
+            const m2 = html.match(/<td[^>]*>(\d+)\s*(?:minutes|min)<\/td>/i);
+            const mins = m1 ? parseInt(m1[1]) : m2 ? parseInt(m2[1]) : 0;
+            return { tmdbId, runtime: mins > 0 ? mins : 0 };
+          } catch { return { tmdbId, runtime: 0 }; }
+        })
+      );
+      for (const res of wpRes) {
+        if (res.status === "fulfilled" && res.value.runtime > 0) {
+          map.set(res.value.tmdbId, res.value.runtime);
+        }
       }
     }
   }
 
-  // ── Source 3: Wikidata (free, no key) for TV missing episode length ──
+  // ── Source 4: Wikidata (free, no key) for TV missing episode length ──
   const missingTV = tvIds.filter(id => !map.has(id));
   if (missingTV.length > 0) {
     const wdRes = await Promise.allSettled(
       missingTV.map(async (tmdbId) => {
-        const query = `SELECT ?runtime WHERE { ?item wdt:P4983 "${tmdbId}". ?item wdt:P2047 ?runtime. } LIMIT 1`;
+        const query = `SELECT ?runtime ?article WHERE { ?item wdt:P4983 "${tmdbId}". OPTIONAL { ?item wdt:P2047 ?runtime. } OPTIONAL { ?article schema:about ?item; schema:isPartOf <https://en.wikipedia.org/>. } } LIMIT 1`;
         const url = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(query)}`;
         try {
           const r = await fetch(url, { headers: { "User-Agent": "Seriez/1.0" } });
-          if (!r.ok) return { tmdbId, runtime: 0 };
+          if (!r.ok) return { tmdbId, runtime: 0, article: "" };
           const j = await r.json();
-          const val = j?.results?.bindings?.[0]?.runtime?.value;
-          const mins = val ? parseFloat(val) : 0;
-          return { tmdbId, runtime: mins > 0 ? Math.round(mins) : 0 };
-        } catch { return { tmdbId, runtime: 0 }; }
+          const b = j?.results?.bindings?.[0];
+          const mins = b?.runtime?.value ? parseFloat(b.runtime.value) : 0;
+          const article = b?.article?.value || "";
+          return { tmdbId, runtime: mins > 0 ? Math.round(mins) : 0, article };
+        } catch { return { tmdbId, runtime: 0, article: "" }; }
       })
     );
+    const wpTVIds: { tmdbId: number; article: string }[] = [];
     for (const res of wdRes) {
       if (res.status === "fulfilled" && res.value.runtime > 0) {
         map.set(res.value.tmdbId, res.value.runtime);
+      } else if (res.status === "fulfilled" && res.value.article) {
+        wpTVIds.push({ tmdbId: res.value.tmdbId, article: res.value.article });
+      }
+    }
+
+    // ── Source 5: TVMaze (free, no key) for TV Wikidata misses ──
+    if (wpTVIds.length > 0) {
+      const tvRes = await Promise.allSettled(
+        wpTVIds.map(async ({ tmdbId, article }) => {
+          try {
+            // Use Wikipedia title to search TVMaze
+            const title = decodeURIComponent(article.replace("https://en.wikipedia.org/wiki/", "").replace(/_/g, " "));
+            const r = await fetch(
+              `https://api.tvmaze.com/singlesearch/shows?q=${encodeURIComponent(title)}`,
+              { headers: { "User-Agent": "Seriez/1.0" } }
+            );
+            if (!r.ok) return { tmdbId, runtime: 0 };
+            const j = await r.json();
+            const mins = j?.averageRuntime || 0;
+            return { tmdbId, runtime: mins > 0 ? mins : 0 };
+          } catch { return { tmdbId, runtime: 0 }; }
+        })
+      );
+      for (const res of tvRes) {
+        if (res.status === "fulfilled" && res.value.runtime > 0) {
+          map.set(res.value.tmdbId, res.value.runtime);
+        }
       }
     }
   }
