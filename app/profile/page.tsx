@@ -646,7 +646,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Yearly Recap — Cinematic Slideshow */}
+          {/* Yearly Recap */}
           {stats.yearlyRecap && stats.yearlyRecap.titles > 0 && (
             <YearlyRecapSlideshow
               hours={stats.yearlyRecap.hours}
@@ -657,6 +657,12 @@ export default function ProfilePage() {
               topGenreCount={stats.genres?.[0]?.count || 0}
               allGenres={stats.genres || []}
               topActors={stats.topActors || []}
+              topDirectors={stats.topDirectors || []}
+              monthlyWatch={stats.monthlyWatch || []}
+              ratingDistribution={stats.rating.distribution || []}
+              completionRate={stats.completion?.rate || 0}
+              completionStarted={stats.completion?.started || 0}
+              completionCompleted={stats.completion?.completed || 0}
               displayName={displayName}
             />
           )}
