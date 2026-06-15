@@ -5,7 +5,6 @@ import PosterCalendar from "./PosterCalendar";
 import DayPopup from "./DayPopup";
 import type { DayEntry } from "./DayPopup";
 import WatchGraph from "./WatchGraph";
-import TopGenres from "./TopGenres";
 import { StreamingTop10 } from "@/components/StreamingTop10";
 import RouletteCard from "@/components/RouletteCard";
 import type { WatchListItem } from "./WatchList";
@@ -133,31 +132,12 @@ export default function HistoryClient() {
       {/* ── Divider ── */}
       <div className="h-2 bg-border light:bg-text-secondary/15 mb-5" />
 
-      {/* ── Your Taste Profile ── */}
-      <div className="px-4 mb-5">
-        <h2 className="text-lg font-extrabold text-text-primary tracking-tight mb-3">Your Taste Profile</h2>
-        <span className="inline-block bg-accent text-white text-[11px] font-bold px-3 py-1 rounded-full mb-2 tracking-wide">
-          #RatingSpread
-        </span>
-        <p className="text-[15px] font-bold text-text-primary tracking-tight mb-1">
-          You&apos;re a &apos;{persona?.label ?? "Movie Fan"}&apos;
-        </p>
-        <p className="text-[13px] text-text-secondary leading-relaxed mb-5">
-          {persona?.desc ?? "Watch more to discover your taste profile."}
-        </p>
+      {/* Streaming Top 10 */}
+      <StreamingTop10 variant="page" />
 
-        {/* Top Genres (moved from below) */}
-        {data.watchList.length > 0 && (
-          <TopGenres genres={data.topGenres} />
-        )}
-
-        {/* Streaming Top 10 */}
-        <StreamingTop10 variant="page" />
-
-        {/* 🎰 Roulette */}
-        <div className="mt-8">
-          <RouletteCard />
-        </div>
+      {/* 🎰 Roulette */}
+      <div className="mt-8">
+        <RouletteCard />
       </div>
 
       {/* Popup */}
