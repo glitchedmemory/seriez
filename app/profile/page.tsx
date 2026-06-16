@@ -608,36 +608,6 @@ export default function ProfilePage() {
       {/* ── Premium: Taste Profile ── */}
       {stats && user && (
         <div className="px-4 mt-6 space-y-5">
-          {/* Monthly Activity (12 months) */}
-          {stats.monthlyWatch && stats.monthlyWatch.length > 0 && (
-            <div>
-              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Monthly Activity</h3>
-              <div className="bg-bg-card border border-border rounded-xl p-4">
-                <div className="grid grid-cols-6 gap-1.5">
-                  {stats.monthlyWatch.map((m) => {
-                    const maxCount = Math.max(...stats.monthlyWatch.map(x => x.count), 1);
-                    const intensity = Math.max(m.count / maxCount, 0.08);
-                    const monthLabel = m.month.slice(5); // "06"
-                    return (
-                      <div key={m.month} className="text-center">
-                        <div
-                          className="w-full aspect-square rounded-md flex items-center justify-center transition-colors"
-                          style={{
-                            backgroundColor: `rgba(99, 102, 241, ${intensity.toFixed(2)})`,
-                            color: intensity > 0.5 ? '#fff' : undefined
-                          }}
-                        >
-                          <span className="text-[10px] font-medium">{m.count}</span>
-                        </div>
-                        <span className="text-[9px] text-text-secondary mt-0.5 block">{monthLabel}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Yearly Recap — Premium only */}
           {stats.yearlyRecap && stats.yearlyRecap.titles > 0 && (
             isPremium ? (
