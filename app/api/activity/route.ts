@@ -10,6 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 const TMDB_API = "https://api.themoviedb.org/3";
 const TMDB_KEY = process.env.TMDB_API_KEY;
+const ANILIST_API = "https://graphql.anilist.co";
 
 // Virtual activity data — shows full features when no real follows exist
 function getVirtualActivities(): Activity[] {
@@ -275,10 +276,18 @@ export async function GET(req: NextRequest) {
     return true;
   }).slice(0, 20);
 
-  // Enrich ALL entries with TMDB data (real + virtual, same pipeline)
+  // Enrich ALL entries — anime goes through AniList→Jikan→Kitsu chain, others through TMDB
   const enriched = await Promise.all(
     unique.map(async (a) => {
       if (a.type === "collection" || a.tmdbId === 0) return a;
+      
+      // Anime: use dedicated 3-source chain (no TMDB fallback)
+      if (a.mediaType === "anime") {
+        const result = await enrichAnime(a.tmdbId);
+        return { ...a, title: result.title || a.title, poster: result.poster, year: result.year || a.year };
+      }
+      
+      // Movies / TV: TMDB enrichment
       try {
         const res = await fetch(
           `${TMDB_API}/${a.mediaType}/${a.tmdbId}?api_key=${TMDB_KEY}`
@@ -298,6 +307,87 @@ export async function GET(req: NextRequest) {
   );
 
   return NextResponse.json({ activities: enriched });
+}
+
+// ─── Anime poster resolution chain: AniList → Jikan(MAL) → Kitsu ↔ no poster ───
+
+async function enrichAnime(anilistId: number): Promise<{ title: string; poster: string | null; year: string | null }> {
+  // 1. AniList GraphQL
+  try {
+    const res = await fetch(ANILIST_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        query: `query($id:Int){Media(id:$id){idMal title{romaji english}coverImage{extraLarge}seasonYear}}`,
+        variables: { id: anilistId },
+      }),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      const m = json.data?.Media;
+      if (!m) return { title: "", poster: null, year: null };
+      const title = m.title?.english || m.title?.romaji || "";
+      const year = m.seasonYear?.toString() || null;
+
+      // Got poster from AniList → done
+      if (m.coverImage?.extraLarge) {
+        return { title, poster: m.coverImage.extraLarge, year };
+      }
+
+      // No poster → try Jikan (using MAL id)
+      if (m.idMal) {
+        try {
+          const jikanRes = await fetch(`https://api.jikan.moe/v4/anime/${m.idMal}`);
+          if (jikanRes.ok) {
+            const jd = await jikanRes.json();
+            const jpg = jd?.data?.images?.jpg;
+            if (jpg?.large_image_url) {
+              return { title, poster: jpg.large_image_url, year };
+            }
+          }
+        } catch {}
+      }
+
+      // Still no poster → try Kitsu
+      if (title) {
+        try {
+          const kitsuRes = await fetch(
+            `https://kitsu.io/api/edge/anime?filter[text]=${encodeURIComponent(title)}&page[limit]=1`,
+            { headers: { "Accept": "application/vnd.api+json", "User-Agent": "Seriez/1.0" } }
+          );
+          if (kitsuRes.ok) {
+            const kd = await kitsuRes.json();
+            const pi = kd?.data?.[0]?.attributes?.posterImage;
+            if (pi?.original) {
+              return { title, poster: pi.original, year };
+            }
+          }
+        } catch {}
+      }
+
+      // All sources exhausted — return without poster
+      return { title, poster: null, year };
+    }
+  } catch {}
+
+  // AniList failed — try Jikan directly (some AniList IDs happen to match MAL IDs)
+  try {
+    const jikanRes = await fetch(`https://api.jikan.moe/v4/anime/${anilistId}`);
+    if (jikanRes.ok) {
+      const jd = await jikanRes.json();
+      const d = jd?.data;
+      if (d) {
+        return {
+          title: d.title || "",
+          poster: d.images?.jpg?.large_image_url || null,
+          year: d.year?.toString() || null,
+        };
+      }
+    }
+  } catch {}
+
+  // Nothing worked
+  return { title: "", poster: null, year: null };
 }
 
 interface Activity {
