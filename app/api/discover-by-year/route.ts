@@ -137,12 +137,12 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // Sort by rating desc, limit to 30
-  results.sort((a, b) => b.rating - a.rating);
+  // Preserve source ordering (popularity from TMDB/AniList requests)
+  const top30 = results.slice(0, 30);
 
   return NextResponse.json({
     decade: `${startYear}s`,
-    results: results.slice(0, 30),
+    results: top30,
     count: results.length,
   });
 }
