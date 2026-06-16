@@ -582,7 +582,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                         >
                           ← Back
                         </button>
-                        <p className="text-[11px] text-text-secondary mb-1.5">한줄평: {activeNoteCollName}</p>
+                        <p className="text-[11px] text-text-secondary mb-1.5">Note: {activeNoteCollName}</p>
                         <div className="flex gap-1.5">
                           <input
                             type="text"
@@ -614,7 +614,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                             disabled={!noteText.trim() || addingCollId !== null}
                             className="px-2.5 py-1.5 text-xs bg-accent text-white rounded-lg font-medium hover:bg-accent-hover disabled:opacity-40 transition-colors border-none cursor-pointer"
                           >
-                            추가
+                            Add
                           </button>
                         </div>
                       </div>
