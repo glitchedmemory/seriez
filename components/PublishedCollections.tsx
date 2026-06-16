@@ -71,37 +71,35 @@ export default function PublishedCollections() {
           <button
             key={c.id}
             onClick={() => router.push(`/collections/${c.id}`)}
-            className="flex-shrink-0 w-[180px] text-left group"
+            className="flex-shrink-0 w-[150px] text-left group"
           >
-            {/* 2x2 thumbnail grid */}
-            <div className="grid grid-cols-2 gap-0.5 rounded-xl overflow-hidden bg-bg-card aspect-square mb-2 group-hover:ring-1 ring-accent transition-all">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="aspect-[2/3] bg-bg-surface overflow-hidden">
-                  {c.thumbnails[i] ? (
-                    <PosterImage
-                      src={c.thumbnails[i]!}
-                      alt=""
-                      width={90}
-                      height={135}
-                      className="w-full h-full object-cover"
-                      sizes="90px"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-text-primary/10 text-lg">
-                      🎬
-                    </div>
-                  )}
+            {/* Hero Poster + Gradient Overlay */}
+            <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card group-hover:ring-1 ring-accent transition-all">
+              {c.thumbnails[0] ? (
+                <PosterImage
+                  src={c.thumbnails[0]!}
+                  alt={c.name}
+                  width={150}
+                  height={225}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="150px"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-text-primary/10 text-2xl">
+                  🎬
                 </div>
-              ))}
+              )}
+              {/* Gradient overlay — dark: deep navy, light: soft warm */}
+              <div className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-[#0a0a14]/95 via-[#0a0a14]/50 to-transparent light:from-[#1a1a2e]/85 light:via-[#1a1a2e]/35 pointer-events-none" />
+              <div className="absolute inset-x-0 bottom-0 p-3 pointer-events-none">
+                <p className="text-xs font-semibold text-white truncate drop-shadow-sm">{c.name}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[10px] text-[#f87171] drop-shadow-sm">♥ {c.likesCount}</span>
+                  <span className="text-[10px] text-white/70 drop-shadow-sm">{c.itemCount} items</span>
+                </div>
+                <p className="text-[10px] text-white/50 drop-shadow-sm">by {c.owner}</p>
+              </div>
             </div>
-
-            {/* Info */}
-            <p className="text-xs font-medium text-text-primary truncate">{c.name}</p>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[10px] text-[#f87171]">♥ {c.likesCount}</span>
-              <span className="text-[10px] text-text-secondary">{c.itemCount} items</span>
-            </div>
-            <p className="text-[10px] text-text-secondary">by {c.owner}</p>
           </button>
         ))}
       </div>
