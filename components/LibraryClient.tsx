@@ -15,7 +15,7 @@ interface LibraryItem {
   year: number | null; tmdbRating: number;
 }
 interface Collection { id: string; name: string; isPublic: boolean; isPublished: boolean; itemCount: number; createdAt: string; }
-interface CollectionItem { tmdbId: number; mediaType: string; title: string; poster: string | null; year: number | null; rating: number; addedAt: string; }
+interface CollectionItem { tmdbId: number; mediaType: string; title: string; poster: string | null; year: number | null; rating: number; note: string | null; addedAt: string; }
 
 const TABS = [
   { key: "plan_to_watch", label: "To Watch" },
@@ -191,10 +191,11 @@ function CollectionsView() {
                 <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card">
                   {item.poster ? <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-text-primary/20 text-2xl font-bold">{item.title.slice(0,2)}</div>}
                   {item.rating > 0 && <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-gold">★ {item.rating}</div>}
-                  <button onClick={(e) => { e.preventDefault(); removeItem(selectedId, item.tmdbId, item.mediaType); }} className="absolute top-2 left-2 bg-red-500/80 hover:bg-red-500 rounded-full w-5 h-5 flex items-center justify-center text-text-primary text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeItem(selectedId, item.tmdbId, item.mediaType); }} className="absolute top-2 left-2 w-6 h-6 rounded-full bg-red-600/80 hover:bg-red-600 text-white text-xs flex items-center justify-center z-10">✕</button>
                 </div>
                 <p className="mt-1.5 text-xs font-medium text-text-primary leading-tight line-clamp-2">{item.title}</p>
                 <p className="text-[10px] text-text-secondary">{item.year||"—"} · {item.mediaType==="movie"?"Movie":"TV"}</p>
+                {item.note && <p className="text-[10px] text-accent mt-0.5 line-clamp-2">"{item.note}"</p>}
               </a>
             </div>
           ))}
