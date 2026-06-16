@@ -1166,7 +1166,7 @@ function RatingStats({ stats }: { stats: RatingStatsData | null }) {
       {/* Total reviews */}
       <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4, marginBottom: 0 }}>Total reviews</p>
       <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", margin: 0 }}>
-        {total >= 10000 ? `${(total / 10000).toFixed(1)}만` : total >= 1000 ? `${(total / 1000).toFixed(1)}k` : String(total)}
+        {total >= 10000 ? `${(total / 10000).toFixed(1)}M` : total >= 1000 ? `${(total / 1000).toFixed(1)}k` : String(total)}
       </p>
 
       <div style={{ marginTop: 16, display: "flex", flexDirection: "column", alignItems: "center" }}>
