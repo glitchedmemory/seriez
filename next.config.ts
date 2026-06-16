@@ -29,9 +29,19 @@ const pwaOptions: any = {
   //  stale references that result in CSS chunk mismatch 404s)
   buildExcludes: [/chunks\/.*\.css$/, /chunks\/.*\.css\.map$/],
   runtimeCaching: [
-    // Static JS, fonts, icons: cache-first (deterministic names)
+    // JS: network-first (must update on new deploys)
     {
-      urlPattern: /\.(?:js|woff2?|ttf|otf|png|svg|ico)$/,
+      urlPattern: /\.js(\?.*)?$/,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "js",
+        expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 },
+        networkTimeoutSeconds: 3,
+      },
+    },
+    // Static fonts, icons: cache-first (deterministic names)
+    {
+      urlPattern: /\.(?:woff2?|ttf|otf|png|svg|ico)$/,
       handler: "CacheFirst",
       options: {
         cacheName: "static-assets",
