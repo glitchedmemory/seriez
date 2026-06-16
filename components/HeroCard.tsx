@@ -170,7 +170,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
                     >
                       ← Back
                     </button>
-                    <p className="text-[11px] text-text-secondary mb-1.5">Note: {activeNoteCollName}</p>
+                    <p className="text-[11px] text-text-secondary mb-1.5">Your thought</p>
                     <div className="flex gap-1.5">
                       <input
                         type="text"
