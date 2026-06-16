@@ -127,7 +127,7 @@ export default function PublishedCollections() {
                   <span className="text-[10px] text-[#f87171] drop-shadow-sm">♥ {c.likesCount}</span>
                   <span className="text-[10px] text-white/70 drop-shadow-sm">{c.itemCount} items</span>
                 </div>
-                <p className="text-[10px] text-white/50 drop-shadow-sm">by {c.owner}</p>
+                <p className="text-[11px] text-white/50 drop-shadow-sm">by {c.owner}</p>
               </div>
             </div>
           </button>
