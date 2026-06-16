@@ -237,7 +237,7 @@ function CollectionsView() {
         {collections.map(c => (
           <div key={c.id} className="flex items-center gap-3 bg-bg-card rounded-xl p-3 hover:bg-bg-surface transition-colors cursor-pointer group" onClick={() => { setSelectedId(c.id); fetchItems(c.id); }}>
             <div className="flex-1 min-w-0"><p className="text-sm font-medium text-text-primary truncate">{c.name}</p><p className="text-xs text-text-secondary">{c.itemCount} item{c.itemCount !== 1 ? "s" : ""}</p></div>
-            <button onClick={e => { e.stopPropagation(); togglePublish(c.id); }} className={`text-[10px] font-medium px-2 py-1 rounded-lg transition-colors ${c.isPublished ? "bg-[#374151]/50 text-text-secondary hover:bg-[#374151]" : "bg-accent/10 text-[#818cf8] hover:bg-accent/20"}`}>{c.isPublished ? "혼자보기" : "발행하기"}</button>
+            <button onClick={e => { e.stopPropagation(); togglePublish(c.id); }} className={`text-[10px] font-medium px-2 py-1 rounded-lg transition-colors ${c.isPublished ? "bg-[#374151]/50 text-text-secondary hover:bg-[#374151]" : "bg-accent/10 text-[#818cf8] hover:bg-accent/20"}`}>{c.isPublished ? "Unpublish" : "Publish"}</button>
             <button onClick={e => { e.stopPropagation(); deleteCollection(c.id); }} className="text-text-secondary hover:text-red-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity">🗑</button>
           </div>
         ))}

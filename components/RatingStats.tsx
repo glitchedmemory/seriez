@@ -13,18 +13,18 @@ export function RatingStats({ stats }: { stats: RatingStatsData }) {
   return (
     <div className="px-4 py-3">
       {/* Average rating */}
-      <p className="text-[13px] font-medium text-[#1a1a1a]">평균 별점</p>
+      <p className="text-[13px] font-medium text-[#1a1a1a]">Average Rating</p>
       <p className="text-[34px] font-bold text-[#1a1a1a] leading-tight">
         {stats.average > 0 ? stats.average.toFixed(1) : "—"}
       </p>
 
       {/* Total ratings */}
-      <p className="text-[11px] text-[#8e8e8e] mt-1">전체 평가 수</p>
+      <p className="text-[11px] text-[#8e8e8e] mt-1">Total Ratings</p>
       <p className="text-[13px] font-semibold text-[#1a1a1a]">
         {stats.total >= 10000
-          ? `${(stats.total / 10000).toFixed(1)}만`
+          ? `${(stats.total / 10000).toFixed(1)}M`
           : stats.total >= 1000
-            ? `${(stats.total / 1000).toFixed(1)}천`
+            ? `${(stats.total / 1000).toFixed(1)}K`
             : String(stats.total)}
       </p>
 
