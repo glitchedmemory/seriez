@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ListSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -248,9 +249,27 @@ function CollectionsView() {
 
 // ─── Main Library ───
 export default function LibraryClient() {
-  const [activeFilter, setActiveFilter] = useState<"completed" | "watching" | "plan_to_watch" | "collections" | null>("completed");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tabFromUrl = searchParams.get("tab") as "completed" | "watching" | "plan_to_watch" | "collections" | null;
+  const [activeFilter, setActiveFilter] = useState<"completed" | "watching" | "plan_to_watch" | "collections" | null>(
+    tabFromUrl && ["completed", "watching", "plan_to_watch", "collections"].includes(tabFromUrl) ? tabFromUrl : "completed"
+  );
   const [stats, setStats] = useState({ plan_to_watch: 0, watching: 0, completed: 0, collections: 0 });
   const [statsLoaded, setStatsLoaded] = useState(false);
+
+  // Sync activeFilter to URL
+  function updateFilter(filter: "completed" | "watching" | "plan_to_watch" | "collections" | null) {
+    setActiveFilter(filter);
+    const params = new URLSearchParams(searchParams.toString());
+    if (filter && filter !== "completed") {
+      params.set("tab", filter);
+    } else {
+      params.delete("tab");
+    }
+    const qs = params.toString();
+    router.replace(`/library${qs ? `?${qs}` : ""}`, { scroll: false });
+  }
 
   useEffect(() => {
     const username = typeof window !== "undefined" ? localStorage.getItem("seriez-username") || "Anonymous" : "Anonymous";
@@ -280,7 +299,7 @@ export default function LibraryClient() {
       {/* Stats bar */}
       {statsLoaded && (
         <div className="flex gap-3 px-4 py-3 border-b border-border">
-          <button onClick={() => setActiveFilter(activeFilter === "completed" ? null : "completed")}
+          <button onClick={() => updateFilter(activeFilter === "completed" ? null : "completed")}
             className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${
               activeFilter === "completed"
                 ? "bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/30"
@@ -288,7 +307,7 @@ export default function LibraryClient() {
             }`}>
             <span className="block text-lg font-bold">{stats.completed}</span>WATCHED
           </button>
-          <button onClick={() => setActiveFilter(activeFilter === "watching" ? null : "watching")}
+          <button onClick={() => updateFilter(activeFilter === "watching" ? null : "watching")}
             className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${
               activeFilter === "watching"
                 ? "bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/30"
@@ -296,7 +315,7 @@ export default function LibraryClient() {
             }`}>
             <span className="block text-lg font-bold">{stats.watching}</span>WATCHING
           </button>
-          <button onClick={() => setActiveFilter(activeFilter === "plan_to_watch" ? null : "plan_to_watch")}
+          <button onClick={() => updateFilter(activeFilter === "plan_to_watch" ? null : "plan_to_watch")}
             className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${
               activeFilter === "plan_to_watch"
                 ? "bg-gold/10 text-gold border border-gold/30"
@@ -304,7 +323,7 @@ export default function LibraryClient() {
             }`}>
             <span className="block text-lg font-bold">{stats.plan_to_watch}</span>TO WATCH
           </button>
-          <button onClick={() => setActiveFilter(activeFilter === "collections" ? null : "collections")}
+          <button onClick={() => updateFilter(activeFilter === "collections" ? null : "collections")}
             className={`flex-1 text-center py-2 rounded-xl text-xs font-medium transition-all ${
               activeFilter === "collections"
                 ? "bg-accent-light/10 text-accent-light border border-[#a855f7]/30"
