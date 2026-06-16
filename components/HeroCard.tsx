@@ -39,8 +39,6 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
   }, [showCollDropdown]);
 
   async function addToCollection(listId: string, listName: string) {
-    const note = prompt("One-line note (required):");
-    if (!note || !note.trim()) return;
     const username = localStorage.getItem("seriez-username") || "Anonymous";
     setAddingCollId(listId);
     setCollFeedback(null);
@@ -48,7 +46,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
       const res = await fetch(`/api/collections/${listId}/items`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, tmdbId: item.id, mediaType: item.type, note: note.trim() }),
+        body: JSON.stringify({ username, tmdbId: item.id, mediaType: item.type, note: "" }),
       });
       const json = await res.json();
       if (res.ok) {
@@ -76,6 +74,10 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
   function handlePlusClick(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
+    if (collections.length === 0) {
+      router.push("/library");
+      return;
+    }
     setShowCollDropdown(!showCollDropdown);
   }
 
@@ -157,15 +159,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
             )}
             {showCollDropdown && (
               <div className="absolute top-full mt-2 left-0 w-52 bg-bg-card border border-border rounded-xl shadow-2xl z-50">
-                {collections.length === 0 ? (
-                  <div className="px-3 py-3 text-[11px] text-text-secondary text-center">
-                    No collections yet.
-                    <a href="/library?tab=collections" className="block mt-1 text-accent hover:underline">
-                      Create one →
-                    </a>
-                  </div>
-                ) : (
-                  collections.map((c) => (
+                {collections.map((c) => (
                     <button
                       key={c.id}
                       onClick={(e) => {
@@ -180,8 +174,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
                       <span>{c.name}</span>
                       <span className="text-[10px] text-text-secondary">{c.itemCount}</span>
                     </button>
-                  ))
-                )}
+                  ))}
               </div>
             )}
           </div>
