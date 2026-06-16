@@ -302,7 +302,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       setCollFeedback("Failed to add");
     }
     setAddingCollId(null);
-    setTimeout(() => setCollFeedback(null), 2500);
+    setTimeout(() => setCollFeedback(null), 3500);
   }
 
   function handleRatingChange(newRating: number) {
@@ -571,7 +571,11 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                 >
                   <span className="text-sm font-bold mr-0.5">+</span> Add to Collection
                 </button>
-                {collFeedback && <span className="text-[11px] ml-2 self-center text-accent">{collFeedback}</span>}
+                {collFeedback && <span className={`text-[12px] font-medium ml-2 self-center px-2.5 py-1 rounded-full inline-flex items-center gap-1 ${
+                  collFeedback.includes("✓") ? "bg-green-500/15 text-green-400" :
+                  collFeedback.includes("Failed") ? "bg-red-500/15 text-red-400" :
+                  "text-accent"
+                }`}>{collFeedback}</span>}
                 {showCollDropdown && (
                   <div className="absolute mt-8 w-52 bg-bg-card border border-border rounded-xl shadow-2xl z-50 overflow-hidden">
                     {activeNoteCollId ? (
