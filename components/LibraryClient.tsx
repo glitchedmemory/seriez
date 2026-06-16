@@ -112,6 +112,7 @@ function CollectionsView() {
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [items, setItems] = useState<CollectionItem[]>([]);
   const [itemsLoading, setItemsLoading] = useState(false);
@@ -144,8 +145,14 @@ function CollectionsView() {
   const createCollection = async () => {
     if (!newName.trim() || creating || !authUser) return;
     setCreating(true);
-    const res = await fetch("/api/collections", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, name: newName.trim() }) });
-    if (res.ok) { setNewName(""); fetchCollections(); }
+    setErrorMsg(null);
+    try {
+      const res = await fetch("/api/collections", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, name: newName.trim() }) });
+      if (res.ok) { setNewName(""); fetchCollections(); }
+      else { const data = await res.json().catch(() => ({})); setErrorMsg(data.error || "Failed to create collection"); }
+    } catch {
+      setErrorMsg("Network error — please try again");
+    }
     setCreating(false);
   };
 
@@ -215,6 +222,9 @@ function CollectionsView() {
             </div>
             {atLimit && (
               <p className="mt-2 text-xs text-amber-400">Free plan limited to 3 collections. <a href="/profile/settings" className="underline hover:text-amber-300">Upgrade to Golden Ticket</a> for unlimited.</p>
+            )}
+            {errorMsg && (
+              <p className="mt-2 text-xs text-red-400">{errorMsg}</p>
             )}
           </div>
         );
