@@ -16,8 +16,49 @@ export default function SearchPage() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [trendingSearches, setTrendingSearches] = useState<{ id: number; title: string; type: string }[]>([]);
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [decadeResults, setDecadeResults] = useState<any[]>([]);
+  const [decadeLoading, setDecadeLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const yearOptions = [
+    { label: "2020s", range: [2020, 2029] as [number, number] },
+    { label: "2010s", range: [2010, 2019] as [number, number] },
+    { label: "2000s", range: [2000, 2009] as [number, number] },
+    { label: "1990s", range: [1990, 1999] as [number, number] },
+    { label: "Classic", range: [1900, 1989] as [number, number] },
+  ];
+
+  // Fetch decade results from discover API
+  async function fetchByDecade(yearLabel: string) {
+    const option = yearOptions.find((yo) => yo.label === yearLabel);
+    if (!option) return;
+    setDecadeLoading(true);
+    try {
+      const res = await fetch(
+        `/api/discover-by-year?startYear=${option.range[0]}&endYear=${option.range[1]}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setDecadeResults(data.results || []);
+      }
+    } catch {
+      setDecadeResults([]);
+    } finally {
+      setDecadeLoading(false);
+    }
+  }
+
+  function handleYearClick(yearLabel: string) {
+    if (selectedYear === yearLabel) {
+      setSelectedYear("");
+      setDecadeResults([]);
+      return;
+    }
+    setSelectedYear(yearLabel);
+    fetchByDecade(yearLabel);
+  }
 
   // Fetch trending searches on mount
   useEffect(() => {
@@ -123,9 +164,28 @@ export default function SearchPage() {
         </div>
       </div>
 
+      {/* ── Year Quick-Pills ── */}
+      <div className="px-4 mt-4 mb-2">
+        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 hide-scrollbar">
+          {yearOptions.map((yo) => (
+            <button
+              key={yo.label}
+              onClick={() => handleYearClick(yo.label)}
+              className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-150 ${
+                selectedYear === yo.label
+                  ? "bg-accent text-white"
+                  : "bg-bg-card text-text-secondary border border-border hover:border-accent hover:text-text-primary"
+              }`}
+            >
+              {yo.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* ── Trending Searches & Published Collections ── */}
       <div className="px-4">
-        {!query && (
+        {!query && !selectedYear && (
           <>
             {trendingSearches.length > 0 ? (
               <div>
@@ -151,6 +211,55 @@ export default function SearchPage() {
               <div className="mt-5">
                 <PublishedCollections />
               </div>
+            )}
+          </>
+        )}
+
+        {/* Decade Results (year pill active) */}
+        {selectedYear && (
+          <>
+            {decadeLoading ? (
+              <SearchSkeleton />
+            ) : decadeResults.length > 0 ? (
+              <div>
+                <p className="text-xs text-text-secondary mb-3 font-medium">
+                  📅 {selectedYear} &middot; {decadeResults.length} titles
+                </p>
+                <div className="space-y-1">
+                  {decadeResults.map((item: any) => (
+                    <button
+                      key={`${item.type}-${item.id}`}
+                      onClick={() => router.push(`/title/${item.id}?type=${item.type}`)}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-bg-card transition-colors text-left"
+                    >
+                      <div className="flex-shrink-0 w-12 aspect-[2/3] rounded-lg overflow-hidden bg-bg-card">
+                        {item.poster ? (
+                          <PosterImage src={item.poster} alt={item.title} width={48} height={72} className="rounded-lg" sizes="48px" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-text-primary/20 text-xs font-bold">
+                            {item.title.slice(0, 2)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-text-primary truncate">{item.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] text-text-secondary">
+                            {item.type === "anime" ? "Anime" : item.type === "movie" ? "Movie" : "TV"}
+                          </span>
+                          {item.year && <span className="text-[10px] text-text-secondary">{item.year}</span>}
+                          {item.rating > 0 && <span className="text-[10px] text-gold">★ {item.rating}</span>}
+                        </div>
+                      </div>
+                      <svg className="w-4 h-4 text-text-secondary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <EmptyState icon="📅" title={`No results for ${selectedYear}`} description="Try a different decade or search for a specific title." />
             )}
           </>
         )}
