@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Seriez Search — Filter Banner Designs</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f0f1a;
+    color: #ffffff;
+    font-family: system-ui, -apple-system, sans-serif;
+    padding: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .page-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .page-header p {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+  .variant-section {
+    margin-bottom: 36px;
+  }
+  .variant-label {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .variant-label .badge {
+    background: #6366f1;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+  .variant-label h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .variant-label .sub {
+    font-size: 10px;
+    color: #9ca3af;
+    margin-left: auto;
+  }
+
+  /* ===== PHONE FRAME ===== */
+  .phone-frame {
+    width: 390px;
+    margin: 0 auto 10px;
+    background: #0f0f1a;
+    border: 1px solid #2a2a45;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 0 0 3px #1a1a2e, 0 8px 40px rgba(0,0,0,0.5);
+  }
+  .phone-inner {
+    max-height: 580px;
+    overflow-y: auto;
+    padding: 0 16px 24px;
+  }
+  .phone-inner::-webkit-scrollbar { width: 0; }
+
+  /* ===== MOCK INPUT BAR ===== */
+  .mock-searchbar {
+    position: sticky; top: 0; z-index: 10;
+    background: #0f0f1a;
+    padding: 14px 0 10px;
+  }
+  .mock-input {
+    display: flex; align-items: center; gap: 10px;
+    background: #1a1a2e;
+    border: 1px solid #2a2a45;
+    border-radius: 14px;
+    padding: 10px 14px;
+    transition: border-color 0.2s;
+  }
+  .mock-input:focus-within {
+    border-color: #6366f1;
+  }
+  .mock-input .search-icon {
+    color: #9ca3af;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .mock-input input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 14px;
+    min-width: 0;
+  }
+  .mock-input input::placeholder { color: #9ca3af; }
+  .mock-input .clear {
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ===== SECTION TITLES ===== */
+  .section-title {
+    font-size: 11px;
+    color: #9ca3af;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    margin-top: 14px;
+  }
+
+  /* ===== CHIPS (PILLS) ===== */
+  .chip-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 7px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+  }
+  .chip-row::-webkit-scrollbar { display: none; }
+  .chip {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    background: #1a1a2e;
+    color: #9ca3af;
+    border: 1px solid #2a2a45;
+  }
+  .chip:hover { border-color: #6366f1; color: #fff; }
+  .chip.selected {
+    background: #6366f1;
+    color: #fff;
+    border-color: #6366f1;
+    font-weight: 600;
+  }
+  .chip.locked {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .chip .lock-icon {
+    font-size: 9px;
+    margin-right: 2px;
+  }
+
+  /* Mood-specific chip accents */
+  .chip.mood-intense { border-color: #ef444480; }
+  .chip.mood-easy { border-color: #22c55e80; }
+  .chip.mood-mindbend { border-color: #a855f780; }
+  .chip.mood-light { border-color: #f59e0b80; }
+  .chip.mood-emotional { border-color: #ec489980; }
+  .chip.mood-intense.selected { background: #ef4444; border-color: #ef4444; }
+  .chip.mood-easy.selected { background: #22c55e; border-color: #22c55e; }
+  .chip.mood-mindbend.selected { background: #a855f7; border-color: #a855f7; }
+  .chip.mood-light.selected { background: #f59e0b; border-color: #f59e0b; }
+  .chip.mood-emotional.selected { background: #ec4899; border-color: #ec4899; }
+
+  /* ===== TYPE SEGMENTED CONTROL ===== */
+  .segmented-control {
+    display: flex;
+    background: #1a1a2e;
+    border-radius: 10px;
+    padding: 3px;
+    gap: 3px;
+  }
+  .segment {
+    flex: 1;
+    text-align: center;
+    padding: 7px 0;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #9ca3af;
+    transition: all 0.15s;
+  }
+  .segment.selected {
+    background: #6366f1;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ===== EXPANDABLE FILTER PANEL ===== */
+  .filter-panel {
+    background: #1a1a2e;
+    border: 1px solid #2a2a45;
+    border-radius: 14px;
+    padding: 14px;
+    margin-top: 10px;
+  }
+  .filter-group {
+    margin-bottom: 12px;
+  }
+  .filter-group:last-child { margin-bottom: 0; }
+  .filter-group-label {
+    font-size: 10px;
+    color: #9ca3af;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* ===== YEAR RANGE ===== */
+  .year-range {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .year-range select {
+    flex: 1;
+    background: #0f0f1a;
+    color: #fff;
+    border: 1px solid #2a2a45;
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 12px;
+    appearance: none;
+    cursor: pointer;
+    text-align: center;
+  }
+  .year-range .sep { color: #9ca3af; font-size: 12px; }
+
+  /* ===== DIRECTOR INPUT ===== */
+  .director-input {
+    width: 100%;
+    background: #0f0f1a;
+    border: 1px solid #2a2a45;
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 12px;
+    color: #fff;
+    outline: none;
+  }
+  .director-input:focus { border-color: #6366f1; }
+  .director-input::placeholder { color: #9ca3af; }
+
+  /* ===== APPLY BUTTON ===== */
+  .filter-actions {
+    display: flex; gap: 8px; margin-top: 14px;
+  }
+  .filter-apply {
+    flex: 1;
+    background: #6366f1;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 0;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-align: center;
+  }
+  .filter-apply:hover { background: #818cf8; }
+  .filter-reset {
+    flex: 1;
+    background: #1a1a2e;
+    color: #9ca3af;
+    border: 1px solid #2a2a45;
+    border-radius: 10px;
+    padding: 9px 0;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  /* ===== "More Filters" button ===== */
+  .more-filters-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #1a1a2e;
+    border: 1px solid #2a2a45;
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-size: 11px;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .more-filters-btn:hover { border-color: #6366f1; color: #fff; }
+
+  /* ===== RESULTS PREVIEW ===== */
+  .result-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  .result-row:hover { background: #1a1a2e; }
+  .result-poster {
+    width: 44px; height: 66px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #2a2a45, #1a1a2e);
+    flex-shrink: 0;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .result-info { flex: 1; min-width: 0; }
+  .result-title {
+    font-size: 13px; font-weight: 600; color: #fff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .result-meta {
+    display: flex; align-items: center; gap: 6px; margin-top: 3px;
+  }
+  .result-meta span {
+    font-size: 10px; color: #9ca3af;
+  }
+  .result-meta .result-rating { color: #f59e0b; }
+  .result-arrow { color: #9ca3af; font-size: 14px; flex-shrink: 0; }
+
+  /* ===== MOCK POSTER GRADIENT ===== */
+  .poster-g1 { background: linear-gradient(135deg, #dc2626, #991b1b); }
+  .poster-g2 { background: linear-gradient(135deg, #2563eb, #1e3a5f); }
+  .poster-g3 { background: linear-gradient(135deg, #7c3aed, #4c1d95); }
+  .poster-g4 { background: linear-gradient(135deg, #059669, #064e3b); }
+
+  /* ===== AD PLACEHOLDER ===== */
+  .ad-placeholder {
+    background: #1a1a2e;
+    border: 2px dashed #2a2a45;
+    border-radius: 12px;
+    height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .ad-placeholder span { font-size: 10px; color: #9ca3af; }
+
+  /* ===== DIVIDER ===== */
+  .divider {
+    height: 1px;
+    background: #2a2a45;
+    margin: 16px 0;
+  }
+
+  /* ===== PRO UPGRADE CARD (SMALL) ===== */
+  .pro-card-sm {
+    background: linear-gradient(135deg, #6366f110, #a855f710);
+    border: 1px solid #2a2a45;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    margin-top: 8px;
+  }
+  .pro-card-sm .emoji { font-size: 22px; margin-bottom: 4px; }
+  .pro-card-sm h4 { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .pro-card-sm p { font-size: 10px; color: #9ca3af; margin-bottom: 8px; }
+  .pro-card-sm .cta {
+    display: inline-block;
+    background: #6366f1;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 100px;
+    text-decoration: none;
+  }
+
+  /* ===== NOTES BOX ===== */  
+  .notes {
+    width: 390px; margin: 0 auto;
+    background: #1a1a2e;
+    border: 1px solid #2a2a45;
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .notes h4 { font-size: 11px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .notes ul { padding-left: 16px; }
+  .notes li { font-size: 10px; color: #9ca3af; margin-bottom: 3px; line-height: 1.5; }
+  .notes .pro { color: #f59e0b; }
+  .notes .free { color: #22c55e; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>🔍 Seriez Search</h1>
+  <p>Advanced filter banner designs — 3 variants</p>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- VARIANT 1: Compact Filter Chips -->
+<!-- ═══════════════════════════════════════ -->
+<div class="variant-section">
+  <div class="variant-label">
+    <span class="badge">V1</span>
+    <h2>Compact Filter Chips</h2>
+    <span class="sub">Horizontal scroll, 1-row mood + year pills</span>
+  </div>
+
+  <div class="phone-frame">
+  <div class="phone-inner">
+
+    <!-- Sticky search bar -->
+    <div class="mock-searchbar">
+      <div class="mock-input">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search movies, TV shows &amp; anime...">
+      </div>
+    </div>
+
+    <!-- 🏷️ Mood Chips — horizontal scroll -->
+    <p class="section-title">By Mood</p>
+    <div class="chip-row">
+      <span class="chip mood-intense selected">⚡ Intense</span>
+      <span class="chip mood-easy">😌 Easy</span>
+      <span class="chip mood-mindbend locked"><span class="lock-icon">🔒</span> Mind-bend</span>
+      <span class="chip mood-light locked"><span class="lock-icon">🔒</span> Light</span>
+      <span class="chip mood-emotional locked"><span class="lock-icon">🔒</span> Emotional</span>
+    </div>
+
+    <!-- 📅 Year Quick-Picks -->
+    <p class="section-title">Year</p>
+    <div class="chip-row">
+      <span class="chip selected">All</span>
+      <span class="chip">2020s</span>
+      <span class="chip">2010s</span>
+      <span class="chip">2000s</span>
+      <span class="chip">1990s</span>
+      <span class="chip">Classic</span>
+    </div>
+
+    <!-- 🎬 Type Filter -->
+    <p class="section-title">Type</p>
+    <div class="segmented-control">
+      <span class="segment selected">All</span>
+      <span class="segment">Movies</span>
+      <span class="segment">TV</span>
+      <span class="segment">Anime</span>
+    </div>
+
+    <!-- Ad -->
+    <div class="ad-placeholder">
+      <span>📢</span>
+      <span>AdSense Banner — 320×100</span>
+    </div>
+
+    <!-- Mock results -->
+    <p class="section-title">⚡ Intense · All Years · All Types</p>
+    <div class="result-row"><div class="result-poster poster-g1">🎬</div><div class="result-info"><div class="result-title">John Wick: Chapter 4</div><div class="result-meta"><span>Movie</span><span>2023</span><span class="result-rating">★ 7.8</span></div></div><span class="result-arrow">›</span></div>
+    <div class="result-row"><div class="result-poster poster-g2">🎬</div><div class="result-info"><div class="result-title">The Dark Knight</div><div class="result-meta"><span>Movie</span><span>2008</span><span class="result-rating">★ 8.5</span></div></div><span class="result-arrow">›</span></div>
+    <div class="result-row"><div class="result-poster poster-g3">🎬</div><div class="result-info"><div class="result-title">Mad Max: Fury Road</div><div class="result-meta"><span>Movie</span><span>2015</span><span class="result-rating">★ 7.8</span></div></div><span class="result-arrow">›</span></div>
+
+  </div>
+  </div>
+
+  <div class="notes">
+    <h4>V1 Analysis</h4>
+    <ul>
+      <li><span class="free">✓</span> Very compact — 3 filter rows fit above the fold</li>
+      <li><span class="free">✓</span> Mood chips are familiar (already on Profile page)</li>
+      <li><span class="pro">⚠</span> Locked moods (Mind-bend, Light, Emotional) = free tier only has 2 moods</li>
+      <li><span class="pro">⚠</span> Year pills are broad (decade-level), no custom range</li>
+      <li><span class="pro">⚠</span> No director/actor filter at all</li>
+      <li>Best for: quick, casual browsing</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- VARIANT 2: Expandable Filter Panel -->
+<!-- ═══════════════════════════════════════ -->
+<div class="variant-section">
+  <div class="variant-label">
+    <span class="badge">V2</span>
+    <h2>Expandable Filter Panel</h2>
+    <span class="sub">"Filters" button → full panel with genre/year/director</span>
+  </div>
+
+  <div class="phone-frame">
+  <div class="phone-inner">
+
+    <!-- Sticky search bar -->
+    <div class="mock-searchbar">
+      <div class="mock-input">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search movies, TV shows &amp; anime...">
+      </div>
+    </div>
+
+    <!-- Filters trigger row -->
+    <div style="display:flex; align-items:center; gap:8px; margin:10px 0 14px;">
+      <span style="font-size:11px;font-weight:600;color:#9ca3af;letter-spacing:1px;">FILTERS</span>
+      <span class="more-filters-btn" style="color:#6366f1;border-color:#6366f1;">
+        ⚙ Filters (3 active)
+      </span>
+      <span style="font-size:10px;color:#9ca3af;margin-left:4px;">Action · 2020s</span>
+    </div>
+
+    <!-- EXPANDED FILTER PANEL -->
+    <div class="filter-panel">
+
+      <!-- Genre -->
+      <div class="filter-group">
+        <div class="filter-group-label">Genre</div>
+        <div class="filter-row">
+          <span class="chip">All</span>
+          <span class="chip selected">Action</span>
+          <span class="chip">Drama</span>
+          <span class="chip">Comedy</span>
+          <span class="chip">Sci-Fi</span>
+          <span class="chip">Horror</span>
+          <span class="chip">Thriller</span>
+          <span class="chip">Romance</span>
+          <span class="chip">Mystery</span>
+          <span class="chip">Fantasy</span>
+          <span class="chip">Anime</span>
+          <span class="chip">Doc</span>
+        </div>
+      </div>
+
+      <!-- Type -->
+      <div class="filter-group">
+        <div class="filter-group-label">Type</div>
+        <div class="segmented-control">
+          <span class="segment selected">All</span>
+          <span class="segment">Movies</span>
+          <span class="segment">TV</span>
+          <span class="segment">Anime</span>
+        </div>
+      </div>
+
+      <!-- Year Range -->
+      <div class="filter-group">
+        <div class="filter-group-label">Year Range</div>
+        <div class="year-range">
+          <select><option>2010</option><option>2020</option><option selected>2023</option><option>2025</option></select>
+          <span class="sep">→</span>
+          <select><option>2026</option><option selected>2026</option></select>
+        </div>
+      </div>
+
+      <!-- Director -->
+      <div class="filter-group">
+        <div class="filter-group-label">Director / Actor (Pro)</div>
+        <input class="director-input" type="text" placeholder="e.g. Christopher Nolan" disabled>
+        <div class="pro-card-sm" style="margin-top:8px;">
+          <div class="emoji">🎬</div>
+          <h4>Director &amp; Actor Search</h4>
+          <p>Filter by filmmakers</p>
+          <a href="#" class="cta">Upgrade to Golden Ticket</a>
+        </div>
+      </div>
+
+      <!-- Apply -->
+      <div class="filter-actions">
+        <button class="filter-reset">Reset</button>
+        <button class="filter-apply">Show Results</button>
+      </div>
+    </div>
+
+    <!-- Ad -->
+    <div class="ad-placeholder">
+      <span>📢</span>
+      <span>AdSense Banner — 320×100</span>
+    </div>
+
+    <!-- Mock results -->
+    <p class="section-title">Action · 2023–2026 · All Types</p>
+    <div class="result-row"><div class="result-poster poster-g1">🎬</div><div class="result-info"><div class="result-title">Mission: Impossible 8</div><div class="result-meta"><span>Movie</span><span>2025</span><span class="result-rating">★ 8.1</span></div></div><span class="result-arrow">›</span></div>
+    <div class="result-row"><div class="result-poster poster-g2">🎬</div><div class="result-info"><div class="result-title">John Wick: Chapter 4</div><div class="result-meta"><span>Movie</span><span>2023</span><span class="result-rating">★ 7.8</span></div></div><span class="result-arrow">›</span></div>
+    <div class="result-row"><div class="result-poster poster-g3">📺</div><div class="result-info"><div class="result-title">The Terminal List</div><div class="result-meta"><span>TV</span><span>2023</span><span class="result-rating">★ 7.4</span></div></div><span class="result-arrow">›</span></div>
+
+  </div>
+  </div>
+
+  <div class="notes">
+    <h4>V2 Analysis</h4>
+    <ul>
+      <li><span class="free">✓</span> Most powerful — genre + year + type in one panel</li>
+      <li><span class="free">✓</span> Director/actor input gated behind Pro (revenue opportunity)</li>
+      <li><span class="pro">⚠</span> Panel takes significant vertical space (push results down)</li>
+      <li><span class="pro">⚠</span> 12 genre chips is a lot — may overwhelm casual users</li>
+      <li><span class="pro">⚠</span> Each filter = separate TMDB API call → needs smart query builder</li>
+      <li>Best for: power users who know exactly what they want</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- VARIANT 3: Hybrid — Minimal + Expand -->
+<!-- ═══════════════════════════════════════ -->
+<div class="variant-section">
+  <div class="variant-label">
+    <span class="badge">V3</span>
+    <h2>Hybrid — Mood Chips + "More Filters"</h2>
+    <span class="sub">Default: mood row. Tap button → expand year + genre + director</span>
+  </div>
+
+  <div class="phone-frame">
+  <div class="phone-inner">
+
+    <!-- Sticky search bar -->
+    <div class="mock-searchbar">
+      <div class="mock-input">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search movies, TV shows &amp; anime...">
+      </div>
+    </div>
+
+    <!-- Quick mood row + More Filters -->
+    <div style="display:flex; align-items:center; gap:8px; margin:8px 0 2px;">
+      <p class="section-title" style="margin:0;">Mood</p>
+      <span class="more-filters-btn" style="font-size:10px;padding:4px 10px;margin-left:auto;">
+        + Filters
+      </span>
+    </div>
+    <div class="chip-row" style="margin-bottom:6px;">
+      <span class="chip mood-intense">⚡ Intense</span>
+      <span class="chip mood-easy">😌 Easy</span>
+      <span class="chip mood-mindbend locked">🔒 Mind-bend</span>
+      <span class="chip mood-light locked">🔒 Light</span>
+      <span class="chip mood-emotional locked">🔒 Emotional</span>
+      <span class="more-filters-btn" style="padding:6px 12px;">+ More</span>
+    </div>
+
+    <!-- divider -->
+    <div class="divider"></div>
+
+    <!-- Trending searches (default state) -->
+    <p class="section-title">🔥 Trending Searches</p>
+    <div class="chip-row">
+      <span class="chip">Squid Game 3</span>
+      <span class="chip">Oppenheimer</span>
+      <span class="chip">Dune: Part Two</span>
+      <span class="chip">Jujutsu Kaisen</span>
+      <span class="chip">The Batman 2</span>
+    </div>
+
+    <!-- Published Collections -->
+    <p class="section-title" style="margin-top:16px;">📚 Published Collections</p>
+    <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;">
+      <div style="min-width:120px;height:160px;background:#1a1a2e;border:1px solid #2a2a45;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:32px;">🎬</div>
+      <div style="min-width:120px;height:160px;background:#1a1a2e;border:1px solid #2a2a45;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:32px;">📺</div>
+      <div style="min-width:120px;height:160px;background:#1a1a2e;border:1px solid #2a2a45;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:32px;">🎭</div>
+    </div>
+
+    <!-- Ad -->
+    <div class="ad-placeholder">
+      <span>📢</span>
+      <span>AdSense Banner — 320×100</span>
+    </div>
+
+  </div>
+  </div>
+
+  <div class="notes">
+    <h4>V3 Analysis</h4>
+    <ul>
+      <li><span class="free">✓</span> Best of both worlds — mood chips visible by default</li>
+      <li><span class="free">✓</span> "+ More" button tucks advanced filters away (no clutter)</li>
+      <li><span class="free">✓</span> Trending searches + collections still show in default state</li>
+      <li><span class="pro">⚠</span> Mood search = separate API from keyword search (different TMDB endpoints)</li>
+      <li><span class="pro">⚠</span> "More Filters" panel is yet another API call chain</li>
+      <li>Best for: balanced approach — casual browsing + power user needs</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

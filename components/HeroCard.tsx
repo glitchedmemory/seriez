@@ -13,6 +13,9 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
   const [showCollDropdown, setShowCollDropdown] = useState(false);
   const [addingCollId, setAddingCollId] = useState<string | null>(null);
   const [collFeedback, setCollFeedback] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState("");
+  const [activeNoteCollId, setActiveNoteCollId] = useState<string | null>(null);
+  const [activeNoteCollName, setActiveNoteCollName] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -38,7 +41,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
     return () => document.removeEventListener("mousedown", handleClick);
   }, [showCollDropdown]);
 
-  async function addToCollection(listId: string, listName: string) {
+  async function addToCollection(listId: string, listName: string, note: string) {
     const username = localStorage.getItem("seriez-username") || "Anonymous";
     setAddingCollId(listId);
     setCollFeedback(null);
@@ -46,7 +49,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
       const res = await fetch(`/api/collections/${listId}/items`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, tmdbId: item.id, mediaType: item.type, note: "" }),
+        body: JSON.stringify({ username, tmdbId: item.id, mediaType: item.type, note: note.trim() }),
       });
       const json = await res.json();
       if (res.ok) {
@@ -159,14 +162,59 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
             )}
             {showCollDropdown && (
               <div className="absolute top-full mt-2 left-0 w-52 bg-bg-card border border-border rounded-xl shadow-2xl z-50">
-                {collections.map((c) => (
+                {activeNoteCollId ? (
+                  <div className="p-2.5">
+                    <button
+                      onClick={() => { setActiveNoteCollId(null); setActiveNoteCollName(""); setNoteText(""); }}
+                      className="text-[10px] text-text-secondary hover:text-text-primary mb-2 border-none bg-transparent cursor-pointer"
+                    >
+                      ← Back
+                    </button>
+                    <p className="text-[11px] text-text-secondary mb-1.5">한줄평: {activeNoteCollName}</p>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        value={noteText}
+                        onChange={(e) => setNoteText(e.target.value)}
+                        placeholder="e.g. Best action movie of 2025"
+                        className="flex-1 px-2 py-1.5 text-xs bg-bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-secondary outline-none focus:border-accent"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && noteText.trim()) {
+                            addToCollection(activeNoteCollId, activeNoteCollName, noteText.trim());
+                            setNoteText("");
+                            setActiveNoteCollId(null);
+                            setActiveNoteCollName("");
+                            setShowCollDropdown(false);
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          if (noteText.trim()) {
+                            addToCollection(activeNoteCollId, activeNoteCollName, noteText.trim());
+                            setNoteText("");
+                            setActiveNoteCollId(null);
+                            setActiveNoteCollName("");
+                            setShowCollDropdown(false);
+                          }
+                        }}
+                        disabled={!noteText.trim() || addingCollId !== null}
+                        className="px-2.5 py-1.5 text-xs bg-accent text-white rounded-lg font-medium hover:bg-accent-hover disabled:opacity-40 transition-colors border-none cursor-pointer"
+                      >
+                        추가
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  collections.map((c) => (
                     <button
                       key={c.id}
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        addToCollection(c.id, c.name);
-                        setShowCollDropdown(false);
+                        setActiveNoteCollId(c.id);
+                        setActiveNoteCollName(c.name);
                       }}
                       disabled={addingCollId === c.id}
                       className="w-full text-left px-3 py-2.5 text-xs text-text-primary hover:bg-bg-surface flex justify-between items-center transition-colors disabled:opacity-50 border-none cursor-pointer"
@@ -174,7 +222,8 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
                       <span>{c.name}</span>
                       <span className="text-[10px] text-text-secondary">{c.itemCount}</span>
                     </button>
-                  ))}
+                  ))
+                )}
               </div>
             )}
           </div>

@@ -107,6 +107,9 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
   const [showCollDropdown, setShowCollDropdown] = useState(false);
   const [addingCollId, setAddingCollId] = useState<string | null>(null);
   const [collFeedback, setCollFeedback] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState("");
+  const [activeNoteCollId, setActiveNoteCollId] = useState<string | null>(null);
+  const [activeNoteCollName, setActiveNoteCollName] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const visibleCast = showAllCast ? data.cast : data.cast.slice(0, 6);
@@ -325,10 +328,9 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
   const isWatching = trackStatus === "watching";
   const isWatched = trackStatus === "completed";
 
-  async function addToCollection(listId: string, listName: string) {
+  async function addToCollection(listId: string, listName: string, note: string) {
     if (!authUser) return;
-    const note = prompt("One-line note (required):");
-    if (!note || !note.trim()) return;
+    if (!note.trim()) return;
     const username = authUser.user_metadata?.username || "";
     setAddingCollId(listId);
     setCollFeedback(null);
@@ -511,7 +513,51 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 )}
                 {showCollDropdown && (
                   <div className="absolute mt-8 w-52 bg-bg-card border border-border rounded-xl shadow-2xl z-50 overflow-hidden">
-                    {collections.length === 0 ? (
+                    {activeNoteCollId ? (
+                      <div className="p-2.5">
+                        <button
+                          onClick={() => { setActiveNoteCollId(null); setActiveNoteCollName(""); setNoteText(""); }}
+                          className="text-[10px] text-text-secondary hover:text-text-primary mb-2 border-none bg-transparent cursor-pointer"
+                        >
+                          ← Back
+                        </button>
+                        <p className="text-[11px] text-text-secondary mb-1.5">한줄평: {activeNoteCollName}</p>
+                        <div className="flex gap-1.5">
+                          <input
+                            type="text"
+                            value={noteText}
+                            onChange={(e) => setNoteText(e.target.value)}
+                            placeholder="e.g. Best season finale ever"
+                            className="flex-1 px-2 py-1.5 text-xs bg-bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-secondary outline-none focus:border-accent"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && noteText.trim()) {
+                                addToCollection(activeNoteCollId, activeNoteCollName, noteText.trim());
+                                setNoteText("");
+                                setActiveNoteCollId(null);
+                                setActiveNoteCollName("");
+                                setShowCollDropdown(false);
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={() => {
+                              if (noteText.trim()) {
+                                addToCollection(activeNoteCollId, activeNoteCollName, noteText.trim());
+                                setNoteText("");
+                                setActiveNoteCollId(null);
+                                setActiveNoteCollName("");
+                                setShowCollDropdown(false);
+                              }
+                            }}
+                            disabled={!noteText.trim() || addingCollId !== null}
+                            className="px-2.5 py-1.5 text-xs bg-accent text-white rounded-lg font-medium hover:bg-accent-hover disabled:opacity-40 transition-colors border-none cursor-pointer"
+                          >
+                            추가
+                          </button>
+                        </div>
+                      </div>
+                    ) : collections.length === 0 ? (
                       <div className="px-3 py-3 text-[11px] text-text-secondary text-center">
                         No collections yet.
                         <a href="/library?tab=collections" className="block mt-1 text-accent hover:underline">Create one →</a>
@@ -520,9 +566,9 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                       collections.map((c) => (
                         <button
                           key={c.id}
-                          onClick={() => { addToCollection(c.id, c.name); setShowCollDropdown(false); }}
+                          onClick={() => { setActiveNoteCollId(c.id); setActiveNoteCollName(c.name); }}
                           disabled={addingCollId === c.id}
-                          className="w-full text-left px-3 py-2.5 text-xs text-text-primary hover:bg-bg-surface flex justify-between items-center transition-colors disabled:opacity-50"
+                          className="w-full text-left px-3 py-2.5 text-xs text-text-primary hover:bg-bg-surface flex justify-between items-center transition-colors disabled:opacity-50 border-none cursor-pointer"
                         >
                           <span>{c.name}</span>
                           <span className="text-[10px] text-text-secondary">{c.itemCount}</span>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seriez Golden Ticket — Upsell Banner Concepts</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f0f1a;
+    color: #fff;
+    font-family: system-ui, -apple-system, sans-serif;
+    padding: 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 24px;
+    -webkit-font-smoothing: antialiased;
+  }
+  h2 { font-size: 13px; color: #9ca3af; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .banner-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+
+  .banner {
+    width: 360px;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .banner:hover { transform: scale(1.02); }
+
+  /* ── Concept 1: Golden Glow ── */
+  .c1 {
+    height: 100px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #1a1020 40%, #2a1a10 100%);
+    display: flex; align-items: center; padding: 0 18px;
+    position: relative; overflow: hidden;
+  }
+  .c1::before {
+    content: ''; position: absolute; top: -30px; right: -40px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, #f59e0b30 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .c1::after {
+    content: ''; position: absolute; bottom: -20px; left: 30%;
+    width: 200px; height: 3px;
+    background: linear-gradient(90deg, transparent, #f59e0b80, #f59e0b30, transparent);
+  }
+  .c1 .ticket-icon {
+    font-size: 38px; flex-shrink: 0; margin-right: 14px;
+    filter: drop-shadow(0 2px 8px #f59e0b40);
+    z-index: 1;
+  }
+  .c1 .text { z-index: 1; flex: 1; min-width: 0; }
+  .c1 .text .label { font-size: 10px; color: #f59e0b; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 3px; }
+  .c1 .text .headline { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .c1 .text .sub { font-size: 10px; color: #9ca3af; }
+  .c1 .cta {
+    z-index: 1; flex-shrink: 0;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #0f0f1a; font-size: 10px; font-weight: 700;
+    padding: 6px 14px; border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  /* ── Concept 2: Feature Strip ── */
+  .c2 {
+    height: 100px;
+    background: linear-gradient(135deg, #6366f108, #a855f708);
+    border: 1px solid #2a2a45;
+    display: flex; align-items: center; padding: 0 16px; gap: 12px;
+  }
+  .c2 .features {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .c2 .feature-row {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; color: #9ca3af;
+  }
+  .c2 .feature-row .check {
+    color: #f59e0b; font-size: 11px; flex-shrink: 0;
+  }
+  .c2 .cta-col {
+    flex-shrink: 0; text-align: center;
+  }
+  .c2 .cta-col .price {
+    font-size: 9px; color: #9ca3af; margin-bottom: 4px;
+  }
+  .c2 .cta-col .cta {
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: #fff; font-size: 10px; font-weight: 700;
+    padding: 6px 14px; border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  /* ── Concept 3: Minimal Card ── */
+  .c3 {
+    height: 90px;
+    background: #1a1a2e;
+    border: 1px solid #2a2a45;
+    display: flex; align-items: center; justify-content: center; gap: 32px;
+    padding: 0 20px;
+  }
+  .c3 .stat { text-align: center; }
+  .c3 .stat .num { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #f59e0b, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .c3 .stat .label { font-size: 8px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; }
+  .c3 .divider { width: 1px; height: 36px; background: #2a2a45; }
+  .c3 .cta-text { text-align: center; }
+  .c3 .cta-text .head { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .c3 .cta-text .sub { font-size: 9px; color: #9ca3af; margin-bottom: 6px; }
+  .c3 .cta-text .cta {
+    background: #f59e0b; color: #0f0f1a; font-size: 10px; font-weight: 700;
+    padding: 5px 16px; border-radius: 100px;
+  }
+
+  /* ── Concept 4: Yearly Recap teaser ── */
+  .c4 {
+    height: 100px;
+    background: linear-gradient(135deg, #1a1020, #151030, #0f0f1a);
+    display: flex; align-items: center; padding: 0 18px; gap: 14px;
+    position: relative; overflow: hidden;
+  }
+  .c4::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, #a855f720 0%, transparent 60%);
+  }
+  .c4 .emoji {
+    font-size: 42px; z-index: 1; flex-shrink: 0;
+    filter: drop-shadow(0 2px 12px #a855f740);
+  }
+  .c4 .text { z-index: 1; flex: 1; min-width: 0; }
+  .c4 .text .label { font-size: 9px; color: #a855f7; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 3px; }
+  .c4 .text .headline { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .c4 .text .sub { font-size: 10px; color: #9ca3af; }
+  .c4 .cta {
+    z-index: 1; flex-shrink: 0;
+    background: linear-gradient(135deg, #a855f7, #6366f1);
+    color: #fff; font-size: 10px; font-weight: 700;
+    padding: 6px 14px; border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  /* ── Concept 5: Mystery/Locked Content ── */
+  .c5 {
+    height: 100px;
+    background: #1a1a2e;
+    border: 1px solid #2a2a45;
+    display: flex; align-items: center; padding: 0 18px; gap: 14px;
+    position: relative; overflow: hidden;
+  }
+  .c5 .lock-grid {
+    display: flex; gap: 2px; flex-shrink: 0; z-index: 1;
+  }
+  .c5 .lock-icon {
+    width: 38px; height: 52px;
+    background: #25253a;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    opacity: 0.6;
+    border: 1px solid #2a2a45;
+  }
+  .c5 .lock-icon.unlocked {
+    background: linear-gradient(135deg, #6366f130, #a855f730);
+    border-color: #6366f160;
+    opacity: 1;
+  }
+  .c5 .text { z-index: 1; flex: 1; min-width: 0; }
+  .c5 .text .headline { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .c5 .text .sub { font-size: 10px; color: #9ca3af; }
+  .c5 .cta {
+    z-index: 1; flex-shrink: 0;
+    background: #6366f1; color: #fff; font-size: 10px; font-weight: 700;
+    padding: 6px 14px; border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  /* ── Concept 6: Progress bar ── */
+  .c6 {
+    height: 90px;
+    background: linear-gradient(135deg, #6366f108, #f59e0b08);
+    border: 1px solid #2a2a45;
+    display: flex; align-items: center; padding: 0 18px; gap: 14px;
+  }
+  .c6 .progress-col { flex: 1; min-width: 0; }
+  .c6 .progress-col .headline { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .c6 .progress-bar {
+    height: 4px; background: #25253a; border-radius: 2px; overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .c6 .progress-fill {
+    height: 100%; width: 35%;
+    background: linear-gradient(90deg, #6366f1, #f59e0b);
+    border-radius: 2px;
+  }
+  .c6 .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 8px; color: #9ca3af;
+  }
+  .c6 .cta {
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #6366f1, #f59e0b);
+    color: #fff; font-size: 10px; font-weight: 700;
+    padding: 6px 14px; border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  /* labels */
+  .concept-label {
+    font-size: 10px; font-weight: 600; color: #9ca3af;
+    margin-bottom: 6px; letter-spacing: 0.5px;
+  }
+  .concept-label span { color: #6366f1; }
+</style>
+</head>
+<body>
+
+<h2>Golden Ticket Upsell Banner Concepts</h2>
+
+<!-- Concept 1 -->
+<div>
+  <div class="concept-label"><span>1.</span> Golden Glow — 따뜻한 골드 무드</div>
+  <div class="banner c1">
+    <div class="ticket-icon">🎫</div>
+    <div class="text">
+      <div class="label">Golden Ticket</div>
+      <div class="headline">Unlock the Full Experience</div>
+      <div class="sub">Yearly Recap · Premium Moods · Director Search</div>
+    </div>
+    <div class="cta">Upgrade</div>
+  </div>
+</div>
+
+<!-- Concept 2 -->
+<div>
+  <div class="concept-label"><span>2.</span> Feature Checklist — 받을 수 있는 기능 나열</div>
+  <div class="banner c2">
+    <div class="features">
+      <div class="feature-row"><span class="check">✦</span> Yearly Recap — Your 2026 Wrapped</div>
+      <div class="feature-row"><span class="check">✦</span> Premium Moods — Mind-bend, Light, Emotional</div>
+      <div class="feature-row"><span class="check">✦</span> Director & Actor Search</div>
+      <div class="feature-row"><span class="check">✦</span> Taste Comparison — Match with friends</div>
+    </div>
+    <div class="cta-col">
+      <div class="price">$2.99/mo</div>
+      <div class="cta">Upgrade</div>
+    </div>
+  </div>
+</div>
+
+<!-- Concept 3 -->
+<div>
+  <div class="concept-label"><span>3.</span> Stats Teaser — 수치로 어필</div>
+  <div class="banner c3">
+    <div class="stat"><div class="num">∞</div><div class="label">Moods</div></div>
+    <div class="divider"></div>
+    <div class="stat"><div class="num">7</div><div class="label">Recap Slides</div></div>
+    <div class="divider"></div>
+    <div class="stat"><div class="num">100%</div><div class="label">Ad-Free</div></div>
+    <div class="divider"></div>
+    <div class="cta-text">
+      <div class="head">Golden Ticket</div>
+      <div class="sub">$2.99/month</div>
+      <div class="cta">Upgrade</div>
+    </div>
+  </div>
+</div>
+
+<!-- Concept 4 -->
+<div>
+  <div class="concept-label"><span>4.</span> Yearly Recap Teaser — Wrapped 미리보기</div>
+  <div class="banner c4">
+    <div class="emoji">📊</div>
+    <div class="text">
+      <div class="label">Golden Ticket Exclusive</div>
+      <div class="headline">Your 2026 Wrapped Awaits</div>
+      <div class="sub">7 cinematic slides · Top genres · Crown Jewel pick</div>
+    </div>
+    <div class="cta">Upgrade</div>
+  </div>
+</div>
+
+<!-- Concept 5 -->
+<div>
+  <div class="concept-label"><span>5.</span> Locked Content — 잠긴 기능 시각화</div>
+  <div class="banner c5">
+    <div class="lock-grid">
+      <div class="lock-icon unlocked" style="transform:rotate(-5deg)">🧠</div>
+      <div class="lock-icon" style="transform:rotate(2deg)">🔒</div>
+      <div class="lock-icon" style="transform:rotate(-3deg)">🔒</div>
+    </div>
+    <div class="text">
+      <div class="headline">3 Premium Moods Locked</div>
+      <div class="sub">Mind-bend · Light · Emotional — Unlock all 5 moods</div>
+    </div>
+    <div class="cta">Upgrade</div>
+  </div>
+</div>
+
+<!-- Concept 6 -->
+<div>
+  <div class="concept-label"><span>6.</span> Progress Bar — 무료 체험 얼마나 썼는지</div>
+  <div class="banner c6">
+    <div class="progress-col">
+      <div class="headline">⚡ You're using 2 of 5 moods</div>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+      <div class="progress-label"><span>Free: 2 moods</span><span>Golden: 5 moods + Recap</span></div>
+    </div>
+    <div class="cta">Upgrade</div>
+  </div>
+</div>
+
+</body>
+</html>
