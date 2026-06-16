@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Curated Collections — Design Options</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0f0f1a; color: #e2e2e9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 20px; }
+  h1 { font-size: 18px; margin-bottom: 6px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 28px; }
+  .option { background: #161625; border: 1px solid #2a2a3e; border-radius: 16px; padding: 20px; margin-bottom: 28px; }
+  .option h2 { font-size: 14px; color: #a78bfa; margin-bottom: 4px; }
+  .option .tag { display: inline-block; background: #a78bfa22; color: #a78bfa; font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-bottom: 14px; }
+  .mockup { background: #fff; border-radius: 24px; padding: 16px 12px; max-width: 390px; margin: 0 auto; color: #1a1a2e; position: relative; overflow: hidden; }
+  .mockup .status { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; padding: 0 4px 12px; color: #333; }
+  .mockup .section-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .mockup .section-label .title { font-size: 12px; font-weight: 700; color: #666; }
+  .mockup .section-label .arrows { display: flex; gap: 4px; }
+  .mockup .section-label .arrows button { width: 24px; height: 24px; border-radius: 50%; border: 1px solid #ddd; background: #fff; font-size: 10px; cursor: pointer; }
+  .mockup .section-label .arrows button:hover { background: #f5f5f5; }
+
+  /* Option A — Current: 2x2 grid */
+  .opt-a-grid { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+  .opt-a-grid::-webkit-scrollbar { display: none; }
+  .opt-a-card { flex-shrink: 0; width: 160px; }
+  .opt-a-thumbs { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; border-radius: 12px; overflow: hidden; aspect-ratio: 1; margin-bottom: 6px; }
+  .opt-a-thumbs div { aspect-ratio: 2/3; }
+  .opt-a-name { font-size: 12px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .opt-a-meta { font-size: 10px; color: #999; }
+
+  /* Option B — Hero poster + overlay */
+  .opt-b-grid { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+  .opt-b-grid::-webkit-scrollbar { display: none; }
+  .opt-b-card { flex-shrink: 0; width: 140px; border-radius: 12px; overflow: hidden; position: relative; aspect-ratio: 3/4; cursor: pointer; }
+  .opt-b-card img { width: 100%; height: 100%; object-fit: cover; }
+  .opt-b-overlay { position: absolute; inset: 0; background: linear-gradient(transparent 50%, rgba(0,0,0,0.75) 85%, rgba(0,0,0,0.9) 100%); }
+  .opt-b-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px; }
+  .opt-b-name { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .opt-b-meta { font-size: 10px; color: rgba(255,255,255,0.7); display: flex; gap: 8px; }
+
+  /* Option C — Wide horizontal card */
+  .opt-c-grid { display: flex; flex-direction: column; gap: 8px; }
+  .opt-c-card { display: flex; gap: 10px; padding: 8px; border-radius: 12px; background: #f8f8fc; cursor: pointer; transition: background 0.15s; }
+  .opt-c-card:hover { background: #f0f0f8; }
+  .opt-c-thumb { width: 64px; height: 64px; border-radius: 10px; overflow: hidden; flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; }
+  .opt-c-thumb div { aspect-ratio: 1; }
+  .opt-c-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+  .opt-c-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+  .opt-c-meta { font-size: 10px; color: #999; }
+
+  /* Poster color blocks */
+  .p1 { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+  .p2 { background: linear-gradient(135deg, #3498db, #2980b9); }
+  .p3 { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+  .p4 { background: linear-gradient(135deg, #f39c12, #e67e22); }
+  .p5 { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+  .p6 { background: linear-gradient(135deg, #1abc9c, #16a085); }
+  .p7 { background: linear-gradient(135deg, #e91e63, #c2185b); }
+  .p8 { background: linear-gradient(135deg, #ff9800, #f57c00); }
+
+  .like { color: #f87171; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>📚 Curated Collections — Design Options</h1>
+<p class="subtitle">Search page · mobile (390px width)</p>
+
+<!-- ─── Option A: Current ─── -->
+<div class="option">
+  <h2>A. Current — 2×2 Thumbnail Grid</h2>
+  <span class="tag">지금</span>
+  <div class="mockup">
+    <div class="status"><span>7:00</span><span>📶 🔋</span></div>
+    <div class="section-label">
+      <span class="title">📚 Curated Collections</span>
+      <div class="arrows"><button>←</button><button>→</button></div>
+    </div>
+    <div class="opt-a-grid">
+      <div class="opt-a-card">
+        <div class="opt-a-thumbs"><div class="p1"></div><div class="p2"></div><div class="p3"></div><div class="p4"></div></div>
+        <div class="opt-a-name">Animated Magic</div>
+        <div class="opt-a-meta"><span class="like">♥ 14</span> · 10 items</div>
+        <div class="opt-a-meta">by alice_wonder</div>
+      </div>
+      <div class="opt-a-card">
+        <div class="opt-a-thumbs"><div class="p5"></div><div class="p6"></div><div class="p7"></div><div class="p8"></div></div>
+        <div class="opt-a-name">Cozy Sunday Flms</div>
+        <div class="opt-a-meta"><span class="like">♥ 8</span> · 15 items</div>
+        <div class="opt-a-meta">by bob_flicks</div>
+      </div>
+      <div class="opt-a-card">
+        <div class="opt-a-thumbs"><div class="p3"></div><div class="p1"></div><div class="p5"></div><div class="p7"></div></div>
+        <div class="opt-a-name">Sci-Fi Gems</div>
+        <div class="opt-a-meta"><span class="like">♥ 22</span> · 12 items</div>
+        <div class="opt-a-meta">by charlie_frames</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Option B: Hero Poster ─── -->
+<div class="option">
+  <h2>B. Hero Poster + Gradient Overlay</h2>
+  <span class="tag">추천</span>
+  <div class="mockup">
+    <div class="status"><span>7:00</span><span>📶 🔋</span></div>
+    <div class="section-label">
+      <span class="title">📚 Curated Collections</span>
+      <div class="arrows"><button>←</button><button>→</button></div>
+    </div>
+    <div class="opt-b-grid">
+      <div class="opt-b-card">
+        <div class="p1" style="width:100%;height:100%"></div>
+        <div class="opt-b-overlay"></div>
+        <div class="opt-b-info">
+          <div class="opt-b-name">Animated Magic</div>
+          <div class="opt-b-meta"><span>♥ 14</span><span>10 items</span></div>
+        </div>
+      </div>
+      <div class="opt-b-card">
+        <div class="p5" style="width:100%;height:100%"></div>
+        <div class="opt-b-overlay"></div>
+        <div class="opt-b-info">
+          <div class="opt-b-name">Cozy Sunday Films</div>
+          <div class="opt-b-meta"><span>♥ 8</span><span>15 items</span></div>
+        </div>
+      </div>
+      <div class="opt-b-card">
+        <div class="p3" style="width:100%;height:100%"></div>
+        <div class="opt-b-overlay"></div>
+        <div class="opt-b-info">
+          <div class="opt-b-name">Sci-Fi Gems</div>
+          <div class="opt-b-meta"><span>♥ 22</span><span>12 items</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Option C: Wide Horizontal ─── -->
+<div class="option">
+  <h2>C. Wide Horizontal Cards</h2>
+  <span class="tag">대안</span>
+  <div class="mockup">
+    <div class="status"><span>7:00</span><span>📶 🔋</span></div>
+    <div class="section-label">
+      <span class="title">📚 Curated Collections</span>
+      <div class="arrows"><button>←</button><button>→</button></div>
+    </div>
+    <div class="opt-c-grid">
+      <div class="opt-c-card">
+        <div class="opt-c-thumb"><div class="p1"></div><div class="p2"></div><div class="p3"></div><div class="p4"></div></div>
+        <div class="opt-c-info">
+          <div class="opt-c-name">Animated Magic</div>
+          <div class="opt-c-meta"><span class="like">♥ 14</span> · 10 items · alice_wonder</div>
+        </div>
+      </div>
+      <div class="opt-c-card">
+        <div class="opt-c-thumb"><div class="p5"></div><div class="p6"></div><div class="p7"></div><div class="p8"></div></div>
+        <div class="opt-c-info">
+          <div class="opt-c-name">Cozy Sunday Films</div>
+          <div class="opt-c-meta"><span class="like">♥ 8</span> · 15 items · bob_flicks</div>
+        </div>
+      </div>
+      <div class="opt-c-card">
+        <div class="opt-c-thumb"><div class="p3"></div><div class="p1"></div><div class="p5"></div><div class="p7"></div></div>
+        <div class="opt-c-info">
+          <div class="opt-c-name">Sci-Fi Gems</div>
+          <div class="opt-c-meta"><span class="like">♥ 22</span> · 12 items · charlie_frames</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
