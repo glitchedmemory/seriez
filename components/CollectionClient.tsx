@@ -202,38 +202,60 @@ export default function CollectionClient() {
       {items.length > 0 && (
         <div className="grid grid-cols-2 gap-3 mb-8">
           {items.map((item) => (
-            <button
+            <div
               key={`${item.tmdbId}-${item.mediaType}`}
-              onClick={() => router.push(`/title/${item.tmdbId}?type=${item.mediaType}`)}
-              className="bg-bg-card rounded-xl overflow-hidden text-left hover:ring-1 ring-accent transition-all group"
+              className="relative"
             >
-              <div className="aspect-[2/3] bg-bg-surface overflow-hidden relative">
-                {item.poster ? (
-                  <PosterImage
-                    src={item.poster}
-                    alt={item.title}
-                    width={200}
-                    height={300}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    sizes="(max-width: 640px) 50vw, 200px"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-text-primary/10 text-2xl">🎬</div>
-                )}
-              </div>
-              <div className="p-2.5">
-                <p className="text-xs font-medium text-text-primary truncate">{item.title}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  {item.year && <span className="text-[10px] text-text-secondary">{item.year}</span>}
-                  {item.rating > 0 && (
-                    <span className="text-[10px] text-gold">★ {item.rating}</span>
+              <button
+                onClick={() => router.push(`/title/${item.tmdbId}?type=${item.mediaType}`)}
+                className="w-full bg-bg-card rounded-xl overflow-hidden text-left hover:ring-1 ring-accent transition-all group"
+              >
+                <div className="aspect-[2/3] bg-bg-surface overflow-hidden relative">
+                  {item.poster ? (
+                    <PosterImage
+                      src={item.poster}
+                      alt={item.title}
+                      width={200}
+                      height={300}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 640px) 50vw, 200px"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-text-primary/10 text-2xl">🎬</div>
                   )}
                 </div>
-                {item.note && (
-                  <p className="text-xs text-accent italic mt-1 line-clamp-2">"{item.note}"</p>
-                )}
-              </div>
-            </button>
+                <div className="p-2.5">
+                  <p className="text-xs font-medium text-text-primary truncate">{item.title}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {item.year && <span className="text-[10px] text-text-secondary">{item.year}</span>}
+                    {item.rating > 0 && (
+                      <span className="text-[10px] text-gold">★ {item.rating}</span>
+                    )}
+                  </div>
+                  {item.note && (
+                    <p className="text-xs text-accent mt-1 line-clamp-2">"{item.note}"</p>
+                  )}
+                </div>
+              </button>
+              {collection.isOwner && (
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (!confirm(`Remove "${item.title}" from this collection?`)) return;
+                    await fetch(`/api/collections/${collection.id}/items`, {
+                      method: "DELETE",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ tmdbId: item.tmdbId, mediaType: item.mediaType }),
+                    });
+                    loadCollection();
+                  }}
+                  className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-600/80 hover:bg-red-600 text-white text-xs flex items-center justify-center transition-colors z-10"
+                  title="Remove"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           ))}
         </div>
       )}
