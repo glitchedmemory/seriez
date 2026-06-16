@@ -342,13 +342,13 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
       });
       const json = await res.json();
       if (res.ok) {
-        setCollFeedback(`"${listName}"에 추가됨 ✓`);
+        setCollFeedback(`Added to "${listName}" ✓`);
         setCollections(prev => prev.map(c => c.id === listId ? { ...c, itemCount: c.itemCount + 1 } : c));
       } else {
-        setCollFeedback(json.error || "추가 실패");
+        setCollFeedback(json.error || "Failed to add");
       }
     } catch {
-      setCollFeedback("추가 실패");
+      setCollFeedback("Failed to add");
     }
     setAddingCollId(null);
     setTimeout(() => setCollFeedback(null), 2500);
@@ -521,7 +521,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                         >
                           ← Back
                         </button>
-                        <p className="text-[11px] text-text-secondary mb-1.5">한줄평: {activeNoteCollName}</p>
+                        <p className="text-[11px] text-text-secondary mb-1.5">Note: {activeNoteCollName}</p>
                         <div className="flex gap-1.5">
                           <input
                             type="text"
@@ -553,7 +553,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                             disabled={!noteText.trim() || addingCollId !== null}
                             className="px-2.5 py-1.5 text-xs bg-accent text-white rounded-lg font-medium hover:bg-accent-hover disabled:opacity-40 transition-colors border-none cursor-pointer"
                           >
-                            추가
+                            Add
                           </button>
                         </div>
                       </div>
