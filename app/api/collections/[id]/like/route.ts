@@ -3,8 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { resolveUsername } from "@/lib/auth-helper";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 // POST — toggle like on a collection
 export async function POST(
