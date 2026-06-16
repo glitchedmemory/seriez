@@ -287,29 +287,124 @@ export async function GET(req: NextRequest) {
         return { ...a, title: result.title || a.title, poster: result.poster, year: result.year || a.year };
       }
       
-      // Movies / TV: TMDB enrichment
-      try {
-        const res = await fetch(
-          `${TMDB_API}/${a.mediaType}/${a.tmdbId}?api_key=${TMDB_KEY}`
-        );
-        if (!res.ok) return a;
-        const d = await res.json();
-        return {
-          ...a,
-          title: d.title || d.name || "Unknown",
-          poster: d.poster_path ? `${TMDB_IMAGE_BASE}${d.poster_path}` : null,
-          year: (d.release_date || d.first_air_date || "").slice(0, 4) || null,
-        };
-      } catch {
-        return a;
-      }
+      // Movies / TV: TMDB → Wikipedia → Wikidata → TVMaze(TV only) chain
+      const result = await enrichMovieTV(a.tmdbId, a.mediaType);
+      return { ...a, title: result.title || a.title, poster: result.poster, year: result.year || a.year };
     })
   );
 
   return NextResponse.json({ activities: enriched });
 }
 
-// ─── Anime poster resolution chain: AniList → Jikan(MAL) → Kitsu ↔ no poster ───
+// ─── Movie/TV poster resolution chain: TMDB → Wikipedia → Wikidata → TVMaze(TV) ───
+
+async function enrichMovieTV(tmdbId: number, mediaType: string): Promise<{ title: string; poster: string | null; year: string | null }> {
+  // 1. TMDB by ID
+  let title = "";
+  let year: string | null = null;
+  try {
+    const ep = mediaType === "tv" ? "tv" : "movie";
+    const res = await fetch(`${TMDB_API}/${ep}/${tmdbId}?api_key=${TMDB_KEY}`);
+    if (res.ok) {
+      const d = await res.json();
+      title = d.title || d.name || "";
+      year = (d.release_date || d.first_air_date || "").slice(0, 4) || null;
+      if (d.poster_path) {
+        return { title, poster: `${TMDB_IMAGE_BASE}${d.poster_path}`, year };
+      }
+    }
+  } catch {}
+
+  // 2. Wikipedia EN infobox poster
+  if (title) {
+    try {
+      const wpPoster = await fetchWikipediaPoster(title);
+      if (wpPoster) return { title, poster: wpPoster, year };
+    } catch {}
+  }
+
+  // 3. Wikidata SPARQL → Wikipedia article → poster
+  if (title) {
+    try {
+      const wpPoster = await fetchWikidataPoster(tmdbId, mediaType, title);
+      if (wpPoster) return { title, poster: wpPoster, year };
+    } catch {}
+  }
+
+  // 4. TVMaze (TV only)
+  if (mediaType === "tv" && title) {
+    try {
+      const tvmPoster = await fetchTVMazePoster(title);
+      if (tvmPoster) return { title, poster: tvmPoster, year };
+    } catch {}
+  }
+
+  return { title, poster: null, year };
+}
+
+async function fetchWikipediaPoster(title: string): Promise<string | null> {
+  const slugs = [
+    title.replace(/\s+/g, "_").replace(/[^\w_-]/g, ""),
+    title.replace(/\s+/g, "_") + "_(film)",
+  ];
+  for (const slug of slugs) {
+    try {
+      const res = await fetch(
+        `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(slug)}&prop=text&format=json&origin=*`,
+        { headers: { "User-Agent": "Seriez/1.0" } }
+      );
+      if (!res.ok) continue;
+      const data = await res.json();
+      const text = data?.parse?.text?.["*"] || "";
+      const m = text.match(/src="(\/\/upload\.wikimedia\.org\/wikipedia\/[^"]+\.(?:jpg|png|jpeg))"/i);
+      if (m) {
+        return "https:" + m[1].replace(/\/thumb\//, "/").replace(/\/\d+px-[^/]+$/, "");
+      }
+    } catch {}
+  }
+  return null;
+}
+
+async function fetchWikidataPoster(tmdbId: number, mediaType: string, _title: string): Promise<string | null> {
+  try {
+    const prop = mediaType === "tv" ? "P4983" : "P4947";
+    const query = `SELECT ?article WHERE { ?item wdt:${prop} "${tmdbId}". ?article schema:about ?item; schema:isPartOf <https://en.wikipedia.org/>. } LIMIT 1`;
+    const url = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(query)}`;
+    const r = await fetch(url, { headers: { "User-Agent": "Seriez/1.0" } });
+    if (!r.ok) return null;
+    const j = await r.json();
+    const article = j?.results?.bindings?.[0]?.article?.value;
+    if (!article) return null;
+    const wpTitle = article.replace("https://en.wikipedia.org/wiki/", "");
+    // Extract poster from WP article
+    const wpRes = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(wpTitle)}&prop=text&section=0&format=json`,
+      { headers: { "User-Agent": "Seriez/1.0" } }
+    );
+    if (!wpRes.ok) return null;
+    const wpData = await wpRes.json();
+    const text = wpData?.parse?.text?.["*"] || "";
+    const m = text.match(/src="(\/\/upload\.wikimedia\.org\/wikipedia\/[^"]+\.(?:jpg|png|jpeg))"/i);
+    if (m) {
+      return "https:" + m[1].replace(/\/thumb\//, "/").replace(/\/\d+px-[^/]+$/, "");
+    }
+  } catch {}
+  return null;
+}
+
+async function fetchTVMazePoster(title: string): Promise<string | null> {
+  try {
+    const r = await fetch(
+      `https://api.tvmaze.com/singlesearch/shows?q=${encodeURIComponent(title)}`,
+      { headers: { "User-Agent": "Seriez/1.0" } }
+    );
+    if (!r.ok) return null;
+    const j = await r.json();
+    const img = j?.image?.original || j?.image?.medium;
+    return img || null;
+  } catch {}
+  return null;
+}
 
 async function enrichAnime(anilistId: number): Promise<{ title: string; poster: string | null; year: string | null }> {
   // 1. AniList GraphQL
