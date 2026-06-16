@@ -4,6 +4,17 @@ import withPWA from "next-pwa";
 const nextConfig: NextConfig = {
   turbopack: {},
   allowedDevOrigins: ["*.trycloudflare.com"],
+  // sw.js MUST bypass all caching — browser SW update check uses this
+  async headers() {
+    return [
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+        ],
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "image.tmdb.org" },
