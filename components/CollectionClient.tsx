@@ -230,7 +230,7 @@ export default function CollectionClient() {
                   )}
                 </div>
                 {item.note && (
-                  <p className="text-[10px] text-text-secondary italic mt-1 line-clamp-1">“{item.note}”</p>
+                  <p className="text-xs text-accent italic mt-1 line-clamp-2">"{item.note}"</p>
                 )}
               </div>
             </button>
