@@ -27,7 +27,8 @@ const pwaOptions: any = {
   // Exclude Turbopack-generated CSS chunks from precache
   // (chunk names are non-deterministic — precaching them causes
   //  stale references that result in CSS chunk mismatch 404s)
-  buildExcludes: [/chunks\/.*\.css$/, /chunks\/.*\.css\.map$/],
+  // sw.js MUST NOT be cached — if old SW caches it, new SW can never install
+  buildExcludes: [/chunks\/.*\.css$/, /chunks\/.*\.css\.map$/, /^\/sw\.js$/],
   runtimeCaching: [
     // JS: network-first (must update on new deploys)
     {
