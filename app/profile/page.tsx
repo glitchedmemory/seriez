@@ -866,6 +866,11 @@ export default function ProfilePage() {
                         ))}
                       </div>
                       {review.year && <span className="text-[10px] text-text-secondary">{review.year}</span>}
+                      {review.created_at && (
+                        <span className="text-[10px] text-text-secondary">
+                          {new Date(review.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </span>
+                      )}
                     </div>
                     {review.content && (
                       <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">
