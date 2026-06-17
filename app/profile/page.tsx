@@ -800,6 +800,42 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
+
+              {/* ── Export My Data ── */}
+              <div className="bg-bg-card border border-border rounded-2xl overflow-hidden">
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide">Export My Data</h3>
+                  </div>
+                  <p className="text-xs text-text-secondary leading-relaxed mb-4">
+                    Download your watching history, ratings, and reviews as a file.
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        const a = document.createElement("a");
+                        a.href = "/api/user/export?format=json";
+                        a.download = "seriez-export.json";
+                        a.click();
+                      }}
+                      className="px-4 py-2 bg-accent text-white text-sm font-bold rounded-xl hover:bg-[#818cf8] transition-colors"
+                    >
+                      Export as JSON
+                    </button>
+                    <button
+                      onClick={() => {
+                        const a = document.createElement("a");
+                        a.href = "/api/user/export?format=csv";
+                        a.download = "seriez-export.csv";
+                        a.click();
+                      }}
+                      className="px-4 py-2 bg-bg-surface border border-border text-text-primary text-sm font-medium rounded-xl hover:bg-bg-card-hover transition-colors"
+                    >
+                      Export as CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
             </>
           )}
         </div>
