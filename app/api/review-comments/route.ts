@@ -166,11 +166,14 @@ export async function POST(req: NextRequest) {
 // ─── DELETE: delete a comment (author or admin) ───
 export async function DELETE(req: NextRequest) {
   try {
+    const username = await resolveUsername(req);
+    if (!username) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
     const { searchParams } = new URL(req.url);
     const commentId = searchParams.get("commentId");
-    const username = searchParams.get("username");
-    if (!commentId || !username) {
-      return NextResponse.json({ error: "Missing commentId or username" }, { status: 400 });
+    if (!commentId) {
+      return NextResponse.json({ error: "Missing commentId" }, { status: 400 });
     }
 
     const user = username.trim();

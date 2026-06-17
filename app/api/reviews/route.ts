@@ -183,11 +183,14 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const username = await resolveUsername(req);
+    if (!username) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
     const { searchParams } = new URL(req.url);
     const reviewId = searchParams.get("reviewId");
-    const username = searchParams.get("username");
-    if (!reviewId || !username) {
-      return NextResponse.json({ error: "Missing reviewId or username" }, { status: 400 });
+    if (!reviewId) {
+      return NextResponse.json({ error: "Missing reviewId" }, { status: 400 });
     }
 
     const user = username.trim();
