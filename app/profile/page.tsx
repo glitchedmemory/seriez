@@ -733,31 +733,6 @@ export default function ProfilePage() {
                 />
               )}
 
-              {/* ── All-Time Overview ── */}
-              <div>
-                <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">
-                  All-Time Overview
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
-                    <p className="text-2xl font-bold text-text-primary">{stats.totals.watched + stats.totals.watching + stats.totals.planned}</p>
-                    <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-1">Total Titles</p>
-                  </div>
-                  <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
-                    <p className="text-2xl font-bold text-text-primary">{stats.totals.hours}h</p>
-                    <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-1">Hours</p>
-                  </div>
-                  <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
-                    <p className="text-2xl font-bold text-yellow-400">{stats.rating.average || "—"}</p>
-                    <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-1">Avg Rating</p>
-                  </div>
-                  <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
-                    <p className="text-2xl font-bold text-text-primary">{stats.totals.rated}</p>
-                    <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-1">Rated</p>
-                  </div>
-                </div>
-              </div>
-
               {/* ── Media Breakdown ── */}
               {stats.mediaBreakdown && (stats.mediaBreakdown.movie + stats.mediaBreakdown.tv + stats.mediaBreakdown.anime) > 0 && (
                 <div>
@@ -891,66 +866,30 @@ export default function ProfilePage() {
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide">Viewer DNA</h3>
-                    {!isPremium && (
-                      <span className="px-2 py-0.5 bg-gold/15 text-gold text-[9px] font-bold rounded-full">Golden Ticket</span>
-                    )}
                   </div>
                   <p className="text-xs text-text-secondary leading-relaxed">
-                    {isPremium
-                      ? "AI-powered analysis of your review style, taste preferences, and watching personality."
-                      : "Unlock AI-powered analysis of your unique watching personality and review style."}
+                    AI-powered analysis of your review style, taste preferences, and watching personality.
                   </p>
                 </div>
-                {isPremium ? (
-                  <div className="border-t border-border px-5 py-4 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">🧬</span>
-                      <div>
-                        <p className="text-sm font-semibold text-text-primary">Your Profile</p>
-                        <p className="text-xs text-text-secondary">Based on {stats.totals.reviewed || 0} reviews</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-bg-surface rounded-lg p-3">
-                        <p className="text-[9px] text-text-secondary uppercase tracking-wide mb-1">Style</p>
-                        <p className="text-sm font-medium text-text-primary">Analyzing...</p>
-                      </div>
-                      <div className="bg-bg-surface rounded-lg p-3">
-                        <p className="text-[9px] text-text-secondary uppercase tracking-wide mb-1">Taste</p>
-                        <p className="text-sm font-medium text-text-primary">Analyzing...</p>
-                      </div>
+                <div className="border-t border-border px-5 py-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">🧬</span>
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">Your Profile</p>
+                      <p className="text-xs text-text-secondary">Based on {stats.totals.reviewed || 0} reviews</p>
                     </div>
                   </div>
-                ) : (
-                  <div className="border-t border-border px-5 py-4">
-                    <div className="relative">
-                      <div className="blur-sm pointer-events-none select-none opacity-30 space-y-3">
-                        <div className="flex items-center gap-3">
-                          <span className="text-3xl">🧬</span>
-                          <div>
-                            <p className="text-sm font-semibold text-text-primary">Story-First Analyst</p>
-                            <p className="text-xs text-text-secondary">Based on your reviews</p>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="bg-bg-surface rounded-lg p-3">
-                            <p className="text-[9px] text-text-secondary uppercase tracking-wide mb-1">Style</p>
-                            <p className="text-sm font-medium text-text-primary">Narrative-driven</p>
-                          </div>
-                          <div className="bg-bg-surface rounded-lg p-3">
-                            <p className="text-[9px] text-text-secondary uppercase tracking-wide mb-1">Taste</p>
-                            <p className="text-sm font-medium text-text-primary">Genre Explorer</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <a href="/pro" className="px-5 py-2.5 bg-accent text-white text-sm font-semibold rounded-xl hover:bg-[#818cf8] transition-colors shadow-lg shadow-accent/25">
-                          Upgrade to Golden Ticket
-                        </a>
-                      </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-bg-surface rounded-lg p-3">
+                      <p className="text-[9px] text-text-secondary uppercase tracking-wide mb-1">Style</p>
+                      <p className="text-sm font-medium text-text-primary">Analyzing...</p>
+                    </div>
+                    <div className="bg-bg-surface rounded-lg p-3">
+                      <p className="text-[9px] text-text-secondary uppercase tracking-wide mb-1">Taste</p>
+                      <p className="text-sm font-medium text-text-primary">Analyzing...</p>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             </>
           )}
