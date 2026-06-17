@@ -11,14 +11,14 @@ const TMDB_KEY = process.env.TMDB_API_KEY;
 
 // How many collections to pick randomly
 const PICK_COUNT = 8;
-// Minimum likes to qualify
-const MIN_LIKES = 5;
-// Server cache: 2 hours
-export const revalidate = 7200;
+// No minimum likes — any published collection qualifies
+const MIN_LIKES = 0;
+// Server cache: 30 minutes
+export const revalidate = 1800;
 
 export async function GET() {
   try {
-    // Get all published collections with ≥ MIN_LIKES likes
+    // Get all published collections (no min likes)
     const { data: collections, error } = await supabase.rpc("get_published_collections", {
       min_likes: MIN_LIKES,
     });
@@ -47,8 +47,8 @@ export async function GET() {
         likeMap[l.list_id] = (likeMap[l.list_id] || 0) + 1;
       }
 
-      const qualified = fallback.filter((l) => (likeMap[l.id] || 0) >= MIN_LIKES);
-      const shuffled = qualified.sort(() => Math.random() - 0.5).slice(0, PICK_COUNT);
+      // All published collections qualify (no min likes)
+      const shuffled = fallback.sort(() => Math.random() - 0.5).slice(0, PICK_COUNT);
 
       const userIds = [...new Set(shuffled.map((l) => l.user_id))];
       const { data: users } = await supabase
