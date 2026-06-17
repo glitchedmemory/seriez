@@ -1,6 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
+
+async function getTmdbMeta(tmdbId: number, mediaType: string) {
+  const isAnime = mediaType === "anime";
+  const endpoint = isAnime ? "tv" : mediaType === "tv" ? "tv" : "movie";
+  const url = `https://api.themoviedb.org/3/${endpoint}/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US`;
+
+  try {
+    const res = await fetch(url, { next: { revalidate: 86400 } });
+    if (!res.ok) return { title: `${mediaType === "anime" ? "Anime" : mediaType === "tv" ? "TV Show" : "Movie"} #${tmdbId}`, poster: null, year: null };
+    const data = await res.json();
+    return {
+      title: data.title || data.name || `Title #${tmdbId}`,
+      poster: data.poster_path ? `https://image.tmdb.org/t/p/w185${data.poster_path}` : null,
+      year: data.release_date ? new Date(data.release_date).getFullYear() : (data.first_air_date ? new Date(data.first_air_date).getFullYear() : null),
+    };
+  } catch {
+    return { title: `Title #${tmdbId}`, poster: null, year: null };
+  }
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ username: string }> }
@@ -24,36 +45,29 @@ export async function GET(
       return NextResponse.json({ reviews: [] });
     }
 
-    // Gather unique tmdb_id + media_type pairs
+    // Deduplicate and batch-lookup TMDB metadata
     const seen = new Set<string>();
-    const conditions: string[] = [];
+    const lookups: Promise<any>[] = [];
+    const lookupKeys: string[] = [];
+
     for (const r of reviews) {
       const key = `${r.tmdb_id}-${r.media_type}`;
       if (!seen.has(key)) {
         seen.add(key);
-        conditions.push(`and(tmdb_id.eq.${r.tmdb_id},media_type.eq.${r.media_type})`);
+        lookups.push(getTmdbMeta(r.tmdb_id, r.media_type));
+        lookupKeys.push(key);
       }
     }
 
-    // Look up title/poster/year from media_trackings
-    let metaMap: Record<string, { title: string; poster: string | null; year: number | null }> = {};
-    if (conditions.length > 0) {
-      const { data: trackings } = await supabase
-        .from("media_trackings")
-        .select("tmdb_id, media_type, title, poster, year")
-        .or(conditions.join(","));
-
-      if (trackings) {
-        for (const t of trackings) {
-          const key = `${t.tmdb_id}-${t.media_type}`;
-          if (!metaMap[key]) metaMap[key] = { title: t.title, poster: t.poster, year: t.year };
-        }
-      }
+    const metaResults = await Promise.all(lookups);
+    const metaMap: Record<string, { title: string; poster: string | null; year: number | null }> = {};
+    for (let i = 0; i < lookupKeys.length; i++) {
+      metaMap[lookupKeys[i]] = metaResults[i];
     }
 
     const enriched = reviews.map(r => {
       const key = `${r.tmdb_id}-${r.media_type}`;
-      const meta = metaMap[key] || { title: `${r.media_type === "anime" ? "Anime" : r.media_type === "tv" ? "TV Show" : "Movie"} #${r.tmdb_id}`, poster: null, year: null };
+      const meta = metaMap[key] || { title: `Title #${r.tmdb_id}`, poster: null, year: null };
       return { ...r, title: meta.title, poster: meta.poster, year: meta.year };
     });
 
