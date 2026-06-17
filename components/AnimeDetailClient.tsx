@@ -536,9 +536,9 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                       disabled={trackLoading}
                       className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                       style={{
-                        color: isWatching ? "#14b8a6" : "#6b7280",
-                        backgroundColor: isWatching ? "#14b8a610" : "#1a1a2e",
-                        border: isWatching ? "1px solid #14b8a640" : "1px solid #2d2d4a",
+                        color: isWatching ? "#14b8a6" : "var(--color-text-secondary)",
+                        backgroundColor: isWatching ? "#14b8a610" : "var(--color-bg-card)",
+                        border: isWatching ? "1px solid #14b8a640" : "1px solid var(--color-border)",
                       }}
                     >
                       <PlayIcon active={isWatching} />
@@ -549,9 +549,9 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                       disabled={trackLoading}
                       className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                       style={{
-                        color: isWatched ? "#14b8a6" : "#6b7280",
-                        backgroundColor: isWatched ? "#14b8a610" : "#1a1a2e",
-                        border: isWatched ? "1px solid #14b8a640" : "1px solid #2d2d4a",
+                        color: isWatched ? "#14b8a6" : "var(--color-text-secondary)",
+                        backgroundColor: isWatched ? "#14b8a610" : "var(--color-bg-card)",
+                        border: isWatched ? "1px solid #14b8a640" : "1px solid var(--color-border)",
                       }}
                     >
                       <CheckIcon active={isWatched} />
