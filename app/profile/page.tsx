@@ -63,6 +63,7 @@ export default function ProfilePage() {
   const [selectedMediaType, setSelectedMediaType] = useState<"movie" | "tv" | "anime">("movie");
   const [isPremium, setIsPremium] = useState(false);
   const [reviewsMap, setReviewsMap] = useState<Record<string, string>>({});
+  const [activeView, setActiveView] = useState<"profile" | "insights">("profile");
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -400,6 +401,35 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* ── View Tabs ── */}
+      <div className="px-4 mt-5">
+        <div className="flex border-b border-border">
+          <button
+            onClick={() => setActiveView("profile")}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              activeView === "profile"
+                ? "border-accent text-accent"
+                : "border-transparent text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            Profile
+          </button>
+          <button
+            onClick={() => setActiveView("insights")}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              activeView === "insights"
+                ? "border-accent text-accent"
+                : "border-transparent text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            Insights
+          </button>
+        </div>
+      </div>
+
+      {/* ── Profile View ── */}
+      {activeView === "profile" && (
+      <>
       {/* ── Content wrapper (for guest blur overlay) ── */}
       <div className="relative">
         <div className={!user ? "blur-lg pointer-events-none select-none opacity-60" : ""}>
@@ -675,6 +705,50 @@ export default function ProfilePage() {
       {user && (
         <div className="mt-6">
           <HistoryClient />
+        </div>
+      )}
+      </>
+      )}
+
+      {/* ── Insights View ── */}
+      {activeView === "insights" && (
+        <div className="px-4 mt-5 space-y-6 pb-32">
+          {/* Coming Soon placeholder */}
+          <div className="bg-bg-card border border-border rounded-2xl p-8 text-center">
+            <span className="text-5xl block mb-4">📊</span>
+            <h2 className="text-lg font-bold text-text-primary mb-2">Insights Dashboard</h2>
+            <p className="text-sm text-text-secondary leading-relaxed max-w-md mx-auto">
+              Deep analytics about your watching habits, review personality, and taste profile — coming soon.
+            </p>
+          </div>
+
+          {/* Skeleton preview cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-bg-card border border-border rounded-xl p-5 animate-pulse">
+              <div className="h-3 w-24 bg-bg-card-hover rounded mb-3" />
+              <div className="h-6 w-32 bg-bg-card-hover rounded mb-2" />
+              <div className="h-4 w-full bg-bg-card-hover rounded mt-4" />
+              <div className="h-4 w-3/4 bg-bg-card-hover rounded mt-2" />
+            </div>
+            <div className="bg-bg-card border border-border rounded-xl p-5 animate-pulse">
+              <div className="h-3 w-24 bg-bg-card-hover rounded mb-3" />
+              <div className="h-6 w-32 bg-bg-card-hover rounded mb-2" />
+              <div className="h-4 w-full bg-bg-card-hover rounded mt-4" />
+              <div className="h-4 w-3/4 bg-bg-card-hover rounded mt-2" />
+            </div>
+            <div className="bg-bg-card border border-border rounded-xl p-5 animate-pulse">
+              <div className="h-3 w-24 bg-bg-card-hover rounded mb-3" />
+              <div className="h-6 w-40 bg-bg-card-hover rounded mb-2" />
+              <div className="h-4 w-full bg-bg-card-hover rounded mt-4" />
+              <div className="h-4 w-2/3 bg-bg-card-hover rounded mt-2" />
+            </div>
+            <div className="bg-bg-card border border-border rounded-xl p-5 animate-pulse">
+              <div className="h-3 w-24 bg-bg-card-hover rounded mb-3" />
+              <div className="h-6 w-28 bg-bg-card-hover rounded mb-2" />
+              <div className="h-4 w-full bg-bg-card-hover rounded mt-4" />
+              <div className="h-4 w-3/4 bg-bg-card-hover rounded mt-2" />
+            </div>
+          </div>
         </div>
       )}
     </div>
