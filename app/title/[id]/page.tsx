@@ -21,6 +21,24 @@ async function getTVSeasonCount(id: number): Promise<number | null> {
   }
 }
 
+// Resolve TMDB ID → AniList ID via media_trackings
+async function resolveAnilistId(tmdbId: number): Promise<number | null> {
+  try {
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("media_trackings")
+      .select("anilist_id")
+      .eq("tmdb_id", tmdbId)
+      .not("anilist_id", "is", null)
+      .limit(1)
+      .maybeSingle();
+    return data?.anilist_id || null;
+  } catch {
+    return null;
+  }
+}
+
 interface Props {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ type?: string }>;
@@ -44,13 +62,15 @@ export default async function TitlePage({ params, searchParams }: Props) {
     notFound();
   }
 
-  // Anime detail — render directly from AniList with season navigation
+  // Anime detail — resolve TMDB ID to AniList ID first
   if (type === "anime") {
-    const detail = await getAnimeDetail(numId);
+    const anilistId = await resolveAnilistId(numId);
+    if (!anilistId) notFound();
+    const detail = await getAnimeDetail(anilistId);
     if (!detail) notFound();
 
     // Enrich relations: fetch 2 levels deep to catch all seasons
-    detail.relations = await enrichAnimeRelations(numId, detail.relations);
+    detail.relations = await enrichAnimeRelations(anilistId, detail.relations);
 
     const episodes = await getAnimeEpisodes(
       detail.title,
