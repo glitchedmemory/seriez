@@ -10,7 +10,7 @@ import PosterImage from "@/components/PosterImage";
 // ─── Inline SVG icon components ───
 function HeartIcon({ active }: { active: boolean }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={active ? "#14b8a6" : "none"} stroke={active ? "#14b8a6" : "#6b7280"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={active ? "#14b8a6" : "none"} stroke={active ? "#14b8a6" : "var(--color-text-secondary)"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78l1.06-1.06a5.5 5.5 0 0 0 0-7.78"/>
     </svg>
   );
@@ -18,7 +18,7 @@ function HeartIcon({ active }: { active: boolean }) {
 
 function PlayIcon({ active }: { active: boolean }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={active ? "#14b8a6" : "none"} stroke={active ? "#14b8a6" : "#6b7280"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={active ? "#14b8a6" : "none"} stroke={active ? "#14b8a6" : "var(--color-text-secondary)"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <polygon points="5 3 19 12 5 21 5 3"/>
     </svg>
   );
@@ -26,7 +26,7 @@ function PlayIcon({ active }: { active: boolean }) {
 
 function CheckIcon({ active }: { active: boolean }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={active ? "#14b8a6" : "#6b7280"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={active ? "#14b8a6" : "var(--color-text-secondary)"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12"/>
     </svg>
   );
@@ -459,7 +459,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 disabled={trackLoading}
                 className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                 style={{
-                  color: isWanted ? "#14b8a6" : "#6b7280",
+                  color: isWanted ? "#14b8a6" : "var(--color-text-secondary)",
                   backgroundColor: isWanted ? "#14b8a610" : "var(--bg-card)",
                   border: isWanted ? "1px solid #14b8a640" : "1px solid var(--border-color)",
                 }}
@@ -472,7 +472,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 disabled={trackLoading}
                 className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                 style={{
-                  color: isWatching ? "#14b8a6" : "#6b7280",
+                  color: isWatching ? "#14b8a6" : "var(--color-text-secondary)",
                   backgroundColor: isWatching ? "#14b8a610" : "var(--bg-card)",
                   border: isWatching ? "1px solid #14b8a640" : "1px solid var(--border-color)",
                 }}
@@ -485,7 +485,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 disabled={trackLoading}
                 className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                 style={{
-                  color: isWatched ? "#14b8a6" : "#6b7280",
+                  color: isWatched ? "#14b8a6" : "var(--color-text-secondary)",
                   backgroundColor: isWatched ? "#14b8a610" : "var(--bg-card)",
                   border: isWatched ? "1px solid #14b8a640" : "1px solid var(--border-color)",
                 }}
