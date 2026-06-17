@@ -25,19 +25,29 @@ export async function GET(
     }
 
     // Gather unique tmdb_id + media_type pairs
-    const pairs = reviews.map(r => ({ tmdb_id: r.tmdb_id, media_type: r.media_type }));
+    const seen = new Set<string>();
+    const conditions: string[] = [];
+    for (const r of reviews) {
+      const key = `${r.tmdb_id}-${r.media_type}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        conditions.push(`and(tmdb_id.eq.${r.tmdb_id},media_type.eq.${r.media_type})`);
+      }
+    }
 
     // Look up title/poster/year from media_trackings
-    const { data: trackings, error: trErr } = await supabase
-      .from("media_trackings")
-      .select("tmdb_id, media_type, title, poster, year")
-      .or(pairs.map(p => `and(tmdb_id.eq.${p.tmdb_id},media_type.eq.${p.media_type})`).join(","));
+    let metaMap: Record<string, { title: string; poster: string | null; year: number | null }> = {};
+    if (conditions.length > 0) {
+      const { data: trackings } = await supabase
+        .from("media_trackings")
+        .select("tmdb_id, media_type, title, poster, year")
+        .or(conditions.join(","));
 
-    const metaMap: Record<string, { title: string; poster: string | null; year: number | null }> = {};
-    if (trackings) {
-      for (const t of trackings) {
-        const key = `${t.tmdb_id}-${t.media_type}`;
-        if (!metaMap[key]) metaMap[key] = { title: t.title, poster: t.poster, year: t.year };
+      if (trackings) {
+        for (const t of trackings) {
+          const key = `${t.tmdb_id}-${t.media_type}`;
+          if (!metaMap[key]) metaMap[key] = { title: t.title, poster: t.poster, year: t.year };
+        }
       }
     }
 
