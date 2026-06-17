@@ -24,33 +24,6 @@ async function getTmdbMeta(tmdbId: number, mediaType: string) {
   }
 }
 
-// TMDB title-only lookup — used ONLY to find the anime name for AniList search
-async function getTmdbTitleOnly(tmdbId: number): Promise<string | null> {
-  try {
-    const res = await fetch(`https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US`);
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.name || null;
-  } catch { return null; }
-}
-
-// Search AniList by title → returns anilistId for use with enrichAnime()
-async function searchAniListId(title: string): Promise<number | null> {
-  try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        query: `query($search:String){Media(search:$search,type:ANIME){id title{romaji english}}}`,
-        variables: { search: title },
-      }),
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json.data?.Media?.id || null;
-  } catch { return null; }
-}
-
 async function enrichAnime(anilistId: number): Promise<{ title: string; poster: string | null; year: number | null } | null> {
   try {
     const res = await fetch(ANILIST_API, {
@@ -161,17 +134,7 @@ export async function GET(
       const key = `${p.tmdb_id}-${p.media_type}`;
 
       if (p.media_type === "anime") {
-        let anilistId: number | null = animeIdMap[p.tmdb_id] || null;
-
-        // No anilist_id in trackings → get title from TMDB TV endpoint (name only)
-        // then search AniList to find the ID for the enrichAnime() chain
-        if (!anilistId) {
-          const tmdbTitle = await getTmdbTitleOnly(p.tmdb_id);
-          if (tmdbTitle) {
-            anilistId = await searchAniListId(tmdbTitle);
-          }
-        }
-
+        const anilistId = animeIdMap[p.tmdb_id];
         if (anilistId) {
           const animeMeta = await enrichAnime(anilistId);
           if (animeMeta?.title) {
@@ -179,7 +142,7 @@ export async function GET(
             return;
           }
         }
-        // All AniList paths exhausted
+        // No anilist_id in media_trackings → placeholder
         metaMap[key] = { title: `Anime #${p.tmdb_id}`, poster: null, year: null };
         return;
       }
