@@ -63,7 +63,9 @@ export default function ProfilePage() {
   const [selectedMediaType, setSelectedMediaType] = useState<"movie" | "tv" | "anime">("movie");
   const [isPremium, setIsPremium] = useState(false);
   const [reviewsMap, setReviewsMap] = useState<Record<string, string>>({});
-  const [activeView, setActiveView] = useState<"profile" | "insights">("profile");
+  const [activeView, setActiveView] = useState<"profile" | "insights" | "reviews">("profile");
+  const [userReviews, setUserReviews] = useState<any[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -192,6 +194,16 @@ export default function ProfilePage() {
   useEffect(() => {
     if (mounted && effectiveUsername) fetchCompare();
   }, [mounted, effectiveUsername, fetchCompare]);
+
+  // Fetch reviews when Reviews tab selected
+  useEffect(() => {
+    if (!user || activeView !== "reviews" || !effectiveUsername) return;
+    setReviewsLoading(true);
+    fetch(`/api/users/${encodeURIComponent(effectiveUsername)}/reviews`)
+      .then(r => r.json())
+      .then(data => { setUserReviews(data.reviews || []); setReviewsLoading(false); })
+      .catch(() => setReviewsLoading(false));
+  }, [activeView, effectiveUsername, user]);
 
   async function handleFollow() {
     if (!ownUsername || !profileUsername) return;
@@ -423,6 +435,16 @@ export default function ProfilePage() {
             }`}
           >
             Insights
+          </button>
+          <button
+            onClick={() => setActiveView("reviews")}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              activeView === "reviews"
+                ? "border-accent text-accent"
+                : "border-transparent text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            Reviews
           </button>
         </div>
       </div>
@@ -779,6 +801,81 @@ export default function ProfilePage() {
                 </div>
               </div>
             </>
+          )}
+        </div>
+      )}
+
+      {/* ── Reviews View ── */}
+      {activeView === "reviews" && (
+        <div className="px-4 mt-5 pb-32">
+          {!user ? (
+            <div className="bg-bg-card border border-border rounded-2xl p-8 text-center">
+              <span className="text-5xl block mb-4">🔒</span>
+              <h2 className="text-lg font-bold text-text-primary mb-2">Sign in to see reviews</h2>
+              <p className="text-sm text-text-secondary leading-relaxed max-w-md mx-auto mb-4">
+                Your reviews and ratings will appear here.
+              </p>
+              <a href="/login" className="inline-block px-6 py-2.5 bg-accent text-white text-sm font-bold rounded-xl hover:bg-[#818cf8] transition-colors">
+                Sign In / Sign Up
+              </a>
+            </div>
+          ) : reviewsLoading ? (
+            <div className="space-y-3">
+              {[1,2,3].map(i => (
+                <div key={i} className="bg-bg-card border border-border rounded-xl p-4 animate-pulse">
+                  <div className="flex gap-3">
+                    <div className="w-12 h-[72px] bg-bg-card-hover rounded-lg flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="h-4 w-32 bg-bg-card-hover rounded mb-2" />
+                      <div className="h-3 w-20 bg-bg-card-hover rounded mb-3" />
+                      <div className="h-3 w-full bg-bg-card-hover rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : userReviews.length === 0 ? (
+            <div className="bg-bg-card border border-border rounded-2xl p-8 text-center">
+              <span className="text-5xl block mb-4">📝</span>
+              <h2 className="text-lg font-bold text-text-primary mb-2">No reviews yet</h2>
+              <p className="text-sm text-text-secondary leading-relaxed">
+                Reviews you write will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {userReviews.map((review, i) => (
+                <a
+                  key={i}
+                  href={`/title/${review.tmdb_id}?type=${review.media_type}`}
+                  className="flex gap-3 bg-bg-card border border-border rounded-xl p-3 hover:border-accent/40 transition-colors"
+                >
+                  <div className="w-12 h-[72px] rounded-lg overflow-hidden bg-bg-surface flex-shrink-0">
+                    {review.poster ? (
+                      <img src={review.poster} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-lg">🎬</div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text-primary truncate">{review.title}</p>
+                    <div className="flex items-center gap-2 mt-0.5 mb-1.5">
+                      <div className="flex items-center gap-0.5">
+                        {[1,2,3,4,5].map(s => (
+                          <span key={s} className={`text-[10px] ${s <= (review.rating || 0) ? "text-yellow-400" : "text-text-secondary/30"}`}>★</span>
+                        ))}
+                      </div>
+                      {review.year && <span className="text-[10px] text-text-secondary">{review.year}</span>}
+                    </div>
+                    {review.content && (
+                      <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">
+                        {review.content}
+                      </p>
+                    )}
+                  </div>
+                </a>
+              ))}
+            </div>
           )}
         </div>
       )}
