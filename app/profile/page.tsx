@@ -769,7 +769,7 @@ export default function ProfilePage() {
                     <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide">Viewer DNA</h3>
                   </div>
                   <p className="text-xs text-text-secondary leading-relaxed">
-                    AI-powered analysis of your review style, taste preferences, and watching personality.
+                    Your watching personality, decoded from your ratings and reviews.
                   </p>
                 </div>
                 <div className="border-t border-border px-5 py-4 space-y-3">
