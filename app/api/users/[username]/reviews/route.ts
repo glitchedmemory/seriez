@@ -24,6 +24,72 @@ async function getTmdbMeta(tmdbId: number, mediaType: string) {
   }
 }
 
+// Search anime metadata from Jikan + Kitsu when no anilist_id available
+// Tries multiple anime APIs with the enrichAnime chain
+async function searchAnimeMetadata(tmdbId: number): Promise<{ title: string; poster: string | null; year: number | null } | null> {
+  // Try Jikan — search by TMDB ID (some anime have matching MAL IDs or cross-refs)
+  try {
+    const jikanRes = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(String(tmdbId))}&limit=1`);
+    if (jikanRes.ok) {
+      const jd = await jikanRes.json();
+      const entry = jd?.data?.[0];
+      if (entry) {
+        const malId = entry.mal_id;
+        if (malId) {
+          // Use existing enrichAnime via anilistId derived from MAL
+          const anilistRes = await fetch(ANILIST_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify({
+              query: `query($idMal:Int){Media(idMal:$idMal,type:ANIME){id title{romaji english}coverImage{extraLarge}seasonYear}}`,
+              variables: { idMal: malId },
+            }),
+          });
+          if (anilistRes.ok) {
+            const aj = await anilistRes.json();
+            const m = aj.data?.Media;
+            if (m) {
+              return {
+                title: m.title?.english || m.title?.romaji || entry.title || "",
+                poster: m.coverImage?.extraLarge || entry.images?.jpg?.large_image_url || null,
+                year: m.seasonYear || entry.year || null,
+              };
+            }
+          }
+          // Fallback to Jikan data directly
+          return {
+            title: entry.title || `Anime #${tmdbId}`,
+            poster: entry.images?.jpg?.large_image_url || null,
+            year: entry.year || null,
+          };
+        }
+      }
+    }
+  } catch {}
+
+  // Try Kitsu
+  try {
+    const kitsuRes = await fetch(
+      `https://kitsu.io/api/edge/anime?filter[text]=${encodeURIComponent(String(tmdbId))}&page[limit]=1`,
+      { headers: { "Accept": "application/vnd.api+json", "User-Agent": "Seriez/1.0" } }
+    );
+    if (kitsuRes.ok) {
+      const kd = await kitsuRes.json();
+      const entry = kd?.data?.[0];
+      if (entry) {
+        const attr = entry.attributes;
+        return {
+          title: attr?.canonicalTitle || attr?.titles?.en || attr?.titles?.en_jp || `Anime #${tmdbId}`,
+          poster: attr?.posterImage?.original || null,
+          year: attr?.startDate ? new Date(attr.startDate).getFullYear() : null,
+        };
+      }
+    }
+  } catch {}
+
+  return null;
+}
+
 async function enrichAnime(anilistId: number): Promise<{ title: string; poster: string | null; year: number | null } | null> {
   try {
     const res = await fetch(ANILIST_API, {
@@ -142,7 +208,12 @@ export async function GET(
             return;
           }
         }
-        // No anilist_id in media_trackings → placeholder
+        // No anilist_id in media_trackings → search Jikan + Kitsu
+        const meta = await searchAnimeMetadata(p.tmdb_id);
+        if (meta) {
+          metaMap[key] = meta;
+          return;
+        }
         metaMap[key] = { title: `Anime #${p.tmdb_id}`, poster: null, year: null };
         return;
       }
