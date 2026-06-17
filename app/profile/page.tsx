@@ -733,38 +733,6 @@ export default function ProfilePage() {
                 />
               )}
 
-              {/* ── Media Breakdown ── */}
-              {stats.mediaBreakdown && (stats.mediaBreakdown.movie + stats.mediaBreakdown.tv + stats.mediaBreakdown.anime) > 0 && (
-                <div>
-                  <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">
-                    Media Breakdown
-                  </h3>
-                  <div className="bg-bg-card border border-border rounded-xl p-4">
-                    <div className="flex items-center gap-4">
-                      {(["movie","tv","anime"] as const).map(type => {
-                        const count = stats.mediaBreakdown[type] || 0;
-                        const hours = stats.mediaHours?.[type] || 0;
-                        const total = stats.mediaBreakdown.movie + stats.mediaBreakdown.tv + stats.mediaBreakdown.anime;
-                        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-                        const icons: Record<string,string> = { movie: "🎬", tv: "📺", anime: "✨" };
-                        const labels: Record<string,string> = { movie: "Movies", tv: "TV Shows", anime: "Anime" };
-                        return (
-                          <div key={type} className="flex-1 text-center">
-                            <span className="text-2xl block mb-1">{icons[type]}</span>
-                            <p className="text-lg font-bold text-text-primary">{count}</p>
-                            <p className="text-[10px] text-text-secondary">{labels[type]}</p>
-                            <div className="mt-2 h-1.5 bg-bg-surface rounded-full overflow-hidden">
-                              <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
-                            </div>
-                            <p className="text-[9px] text-text-secondary mt-1">{pct}% · {hours}h</p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* ── Top Genres ── */}
               {stats.genres && stats.genres.length > 0 && (
                 <div>
