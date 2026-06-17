@@ -21,7 +21,7 @@ async function getTVSeasonCount(id: number): Promise<number | null> {
   }
 }
 
-// Resolve TMDB ID → AniList ID via media_trackings
+// Resolve TMDB ID → AniList ID via media_trackings, then Jikan/Kitsu fallback
 async function resolveAnilistId(tmdbId: number): Promise<number | null> {
   try {
     const { createClient } = await import("@/lib/supabase/server");
@@ -33,10 +33,33 @@ async function resolveAnilistId(tmdbId: number): Promise<number | null> {
       .not("anilist_id", "is", null)
       .limit(1)
       .maybeSingle();
-    return data?.anilist_id || null;
-  } catch {
-    return null;
-  }
+    if (data?.anilist_id) return data.anilist_id;
+  } catch {}
+
+  // Fallback: search AniList via Jikan (MAL ID → AniList)
+  try {
+    const jikanRes = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(String(tmdbId))}&limit=1`);
+    if (jikanRes.ok) {
+      const jd = await jikanRes.json();
+      const malId = jd?.data?.[0]?.mal_id;
+      if (malId) {
+        const anilistRes = await fetch("https://graphql.anilist.co", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({
+            query: `query($idMal:Int){Media(idMal:$idMal,type:ANIME){id}}`,
+            variables: { idMal: malId },
+          }),
+        });
+        if (anilistRes.ok) {
+          const aj = await anilistRes.json();
+          return aj.data?.Media?.id || null;
+        }
+      }
+    }
+  } catch {}
+
+  return null;
 }
 
 interface Props {
