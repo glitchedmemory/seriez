@@ -635,55 +635,31 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* ── Premium: Taste Profile ── */}
-      {stats && user && (
-        <div className="px-4 mt-6 space-y-5">
-          {/* Yearly Recap — all users */}
-          {stats.yearlyRecap && stats.yearlyRecap.titles > 0 && (
-            <YearlyRecapSlideshow
-              hours={stats.yearlyRecap.hours}
-              titles={stats.yearlyRecap.titles}
-              ratingAvg={stats.rating.average || "—"}
-              ratedCount={stats.totals.rated}
-              topGenre={stats.genres?.[0]?.name || "Film"}
-              topGenreCount={stats.genres?.[0]?.count || 0}
-              allGenres={stats.genres || []}
-              topActors={stats.topActors || []}
-              displayName={displayName}
-              mediaBreakdown={stats.mediaBreakdown}
-              mediaHours={stats.mediaHours || { movie: 0, tv: 0, anime: 0 }}
-              library={library}
-              reviewsMap={reviewsMap}
-            />
-          )}
+      {/* Top Actors */}
+      {stats && stats.topActors && stats.topActors.length > 0 && (
+        <div className="px-4 mt-6">
+          <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Actors</h3>
+          <div className="flex flex-wrap gap-2">
+            {stats.topActors.slice(0, 5).map((a) => (
+              <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">
+                {a.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
-          {/* Top Actors */}
-          {stats.topActors && stats.topActors.length > 0 && (
-            <div className="relative">
-              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Actors</h3>
-              <div className="flex flex-wrap gap-2">
-                {stats.topActors.slice(0, 5).map((a) => (
-                  <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">
-                    {a.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Top Directors */}
-          {stats.topDirectors && stats.topDirectors.length > 0 && (
-            <div className="relative">
-              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Directors</h3>
-              <div className="flex flex-wrap gap-2">
-                {stats.topDirectors.slice(0, 5).map((d) => (
-                  <span key={d.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">
-                    {d.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+      {/* Top Directors */}
+      {stats && stats.topDirectors && stats.topDirectors.length > 0 && (
+        <div className="px-4 mt-5">
+          <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Directors</h3>
+          <div className="flex flex-wrap gap-2">
+            {stats.topDirectors.slice(0, 5).map((d) => (
+              <span key={d.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">
+                {d.name}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 
@@ -713,42 +689,271 @@ export default function ProfilePage() {
       {/* ── Insights View ── */}
       {activeView === "insights" && (
         <div className="px-4 mt-5 space-y-6 pb-32">
-          {/* Coming Soon placeholder */}
-          <div className="bg-bg-card border border-border rounded-2xl p-8 text-center">
-            <span className="text-5xl block mb-4">📊</span>
-            <h2 className="text-lg font-bold text-text-primary mb-2">Insights Dashboard</h2>
-            <p className="text-sm text-text-secondary leading-relaxed max-w-md mx-auto">
-              Deep analytics about your watching habits, review personality, and taste profile — coming soon.
-            </p>
-          </div>
+          {!user ? (
+            /* Guest: sign-in prompt */
+            <div className="bg-bg-card border border-border rounded-2xl p-8 text-center">
+              <span className="text-5xl block mb-4">🔒</span>
+              <h2 className="text-lg font-bold text-text-primary mb-2">Sign in to see Insights</h2>
+              <p className="text-sm text-text-secondary leading-relaxed max-w-md mx-auto mb-4">
+                Track your watching habits, discover patterns, and unlock your personal Viewer DNA.
+              </p>
+              <a href="/login" className="inline-block px-6 py-2.5 bg-accent text-white text-sm font-bold rounded-xl hover:bg-[#818cf8] transition-colors">
+                Sign In / Sign Up
+              </a>
+            </div>
+          ) : !stats ? (
+            /* Loading skeleton */
+            <div className="space-y-5">
+              <div className="bg-bg-card border border-border rounded-2xl p-6 animate-pulse">
+                <div className="h-4 w-32 bg-bg-card-hover rounded mb-4" />
+                <div className="h-48 bg-bg-card-hover rounded-xl" />
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[1,2,3,4].map(i => <div key={i} className="bg-bg-card border border-border rounded-xl p-4 animate-pulse"><div className="h-8 w-12 bg-bg-card-hover rounded mb-2" /><div className="h-3 w-16 bg-bg-card-hover rounded" /></div>)}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* ── Yearly Recap ── */}
+              {stats.yearlyRecap && stats.yearlyRecap.titles > 0 && (
+                <YearlyRecapSlideshow
+                  hours={stats.yearlyRecap.hours}
+                  titles={stats.yearlyRecap.titles}
+                  ratingAvg={stats.rating.average || "—"}
+                  ratedCount={stats.totals.rated}
+                  topGenre={stats.genres?.[0]?.name || "Film"}
+                  topGenreCount={stats.genres?.[0]?.count || 0}
+                  allGenres={stats.genres || []}
+                  topActors={stats.topActors || []}
+                  displayName={displayName}
+                  mediaBreakdown={stats.mediaBreakdown}
+                  mediaHours={stats.mediaHours || { movie: 0, tv: 0, anime: 0 }}
+                  library={library}
+                  reviewsMap={reviewsMap}
+                />
+              )}
 
-          {/* Skeleton preview cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-bg-card border border-border rounded-xl p-5 animate-pulse">
-              <div className="h-3 w-24 bg-bg-card-hover rounded mb-3" />
-              <div className="h-6 w-32 bg-bg-card-hover rounded mb-2" />
-              <div className="h-4 w-full bg-bg-card-hover rounded mt-4" />
-              <div className="h-4 w-3/4 bg-bg-card-hover rounded mt-2" />
-            </div>
-            <div className="bg-bg-card border border-border rounded-xl p-5 animate-pulse">
-              <div className="h-3 w-24 bg-bg-card-hover rounded mb-3" />
-              <div className="h-6 w-32 bg-bg-card-hover rounded mb-2" />
-              <div className="h-4 w-full bg-bg-card-hover rounded mt-4" />
-              <div className="h-4 w-3/4 bg-bg-card-hover rounded mt-2" />
-            </div>
-            <div className="bg-bg-card border border-border rounded-xl p-5 animate-pulse">
-              <div className="h-3 w-24 bg-bg-card-hover rounded mb-3" />
-              <div className="h-6 w-40 bg-bg-card-hover rounded mb-2" />
-              <div className="h-4 w-full bg-bg-card-hover rounded mt-4" />
-              <div className="h-4 w-2/3 bg-bg-card-hover rounded mt-2" />
-            </div>
-            <div className="bg-bg-card border border-border rounded-xl p-5 animate-pulse">
-              <div className="h-3 w-24 bg-bg-card-hover rounded mb-3" />
-              <div className="h-6 w-28 bg-bg-card-hover rounded mb-2" />
-              <div className="h-4 w-full bg-bg-card-hover rounded mt-4" />
-              <div className="h-4 w-3/4 bg-bg-card-hover rounded mt-2" />
-            </div>
-          </div>
+              {/* ── All-Time Overview ── */}
+              <div>
+                <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">
+                  All-Time Overview
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
+                    <p className="text-2xl font-bold text-text-primary">{stats.totals.watched + stats.totals.watching + stats.totals.planned}</p>
+                    <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-1">Total Titles</p>
+                  </div>
+                  <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
+                    <p className="text-2xl font-bold text-text-primary">{stats.totals.hours}h</p>
+                    <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-1">Hours</p>
+                  </div>
+                  <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
+                    <p className="text-2xl font-bold text-yellow-400">{stats.rating.average || "—"}</p>
+                    <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-1">Avg Rating</p>
+                  </div>
+                  <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
+                    <p className="text-2xl font-bold text-text-primary">{stats.totals.rated}</p>
+                    <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-1">Rated</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Media Breakdown ── */}
+              {stats.mediaBreakdown && (stats.mediaBreakdown.movie + stats.mediaBreakdown.tv + stats.mediaBreakdown.anime) > 0 && (
+                <div>
+                  <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">
+                    Media Breakdown
+                  </h3>
+                  <div className="bg-bg-card border border-border rounded-xl p-4">
+                    <div className="flex items-center gap-4">
+                      {(["movie","tv","anime"] as const).map(type => {
+                        const count = stats.mediaBreakdown[type] || 0;
+                        const hours = stats.mediaHours?.[type] || 0;
+                        const total = stats.mediaBreakdown.movie + stats.mediaBreakdown.tv + stats.mediaBreakdown.anime;
+                        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                        const icons: Record<string,string> = { movie: "🎬", tv: "📺", anime: "✨" };
+                        const labels: Record<string,string> = { movie: "Movies", tv: "TV Shows", anime: "Anime" };
+                        return (
+                          <div key={type} className="flex-1 text-center">
+                            <span className="text-2xl block mb-1">{icons[type]}</span>
+                            <p className="text-lg font-bold text-text-primary">{count}</p>
+                            <p className="text-[10px] text-text-secondary">{labels[type]}</p>
+                            <div className="mt-2 h-1.5 bg-bg-surface rounded-full overflow-hidden">
+                              <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                            </div>
+                            <p className="text-[9px] text-text-secondary mt-1">{pct}% · {hours}h</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Top Genres ── */}
+              {stats.genres && stats.genres.length > 0 && (
+                <div>
+                  <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">
+                    Top Genres
+                  </h3>
+                  <div className="bg-bg-card border border-border rounded-xl p-4 space-y-3">
+                    {stats.genres.slice(0, 8).map((g, i) => {
+                      const max = stats.genres?.[0]?.count || 1;
+                      const pct = Math.round((g.count / max) * 100);
+                      return (
+                        <div key={g.name} className="flex items-center gap-3">
+                          <span className="text-xs text-text-secondary w-5 text-right tabular-nums">{i + 1}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between mb-1">
+                              <span className="text-xs text-text-primary font-medium truncate">{g.name}</span>
+                              <span className="text-[10px] text-text-secondary ml-2">{g.count}</span>
+                            </div>
+                            <div className="h-1.5 bg-bg-surface rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-accent to-[#a855f7] rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Completion & Rating ── */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {stats.completion && stats.completion.started > 0 && (
+                  <div className="bg-bg-card border border-border rounded-xl p-4">
+                    <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Completion Rate</h3>
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl font-bold text-text-primary">{stats.completion.rate}%</span>
+                      <div className="flex-1 h-3 bg-bg-surface rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-accent to-[#a855f7] rounded-full transition-all duration-700" style={{ width: `${stats.completion.rate}%` }} />
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-text-secondary mt-2">{stats.completion.completed} completed of {stats.completion.started} started</p>
+                  </div>
+                )}
+                {stats.rating && stats.rating.distribution && stats.rating.distribution.length > 0 && (
+                  <div className="bg-bg-card border border-border rounded-xl p-4">
+                    <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Rating Spread</h3>
+                    <div className="space-y-1.5">
+                      {[...stats.rating.distribution].reverse().map((d) => {
+                        const max = Math.max(...stats.rating.distribution.map(x => x.count), 1);
+                        const pct = Math.round((d.count / max) * 100);
+                        return (
+                          <div key={d.score} className="flex items-center gap-2">
+                            <span className="text-[10px] text-text-secondary w-4 text-right">{d.score}</span>
+                            <span className="text-yellow-400 text-[10px]">★</span>
+                            <div className="flex-1 h-2 bg-bg-surface rounded-full overflow-hidden">
+                              <div className="h-full bg-yellow-400/40 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                            </div>
+                            <span className="text-[10px] text-text-secondary w-5 tabular-nums">{d.count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Monthly Activity ── */}
+              {stats.monthlyWatch && stats.monthlyWatch.length > 0 && (
+                <div>
+                  <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Monthly Activity</h3>
+                  <div className="bg-bg-card border border-border rounded-xl p-4">
+                    <div className="flex items-end gap-1 h-24">
+                      {stats.monthlyWatch.slice(-12).map((m) => {
+                        const max = Math.max(...stats.monthlyWatch.map(x => x.count), 1);
+                        const h = Math.max(4, Math.round((m.count / max) * 100));
+                        return (
+                          <div key={m.month} className="flex-1 flex flex-col items-center justify-end h-full group">
+                            <span className="text-[8px] text-text-secondary mb-1 opacity-0 group-hover:opacity-100 transition-opacity">{m.count}</span>
+                            <div
+                              className="w-full bg-accent/70 hover:bg-accent rounded-t transition-colors"
+                              style={{ height: `${h}%` }}
+                            />
+                            <span className="text-[8px] text-text-secondary mt-1.5 truncate w-full text-center">
+                              {(() => {
+                                const [y, m2] = m.month.split("-");
+                                return `${parseInt(m2)}`;
+                              })()}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Viewer DNA ── */}
+              <div className="bg-bg-card border border-border rounded-2xl overflow-hidden">
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide">Viewer DNA</h3>
+                    {!isPremium && (
+                      <span className="px-2 py-0.5 bg-gold/15 text-gold text-[9px] font-bold rounded-full">Golden Ticket</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-text-secondary leading-relaxed">
+                    {isPremium
+                      ? "AI-powered analysis of your review style, taste preferences, and watching personality."
+                      : "Unlock AI-powered analysis of your unique watching personality and review style."}
+                  </p>
+                </div>
+                {isPremium ? (
+                  <div className="border-t border-border px-5 py-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🧬</span>
+                      <div>
+                        <p className="text-sm font-semibold text-text-primary">Your Profile</p>
+                        <p className="text-xs text-text-secondary">Based on {stats.totals.reviewed || 0} reviews</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-bg-surface rounded-lg p-3">
+                        <p className="text-[9px] text-text-secondary uppercase tracking-wide mb-1">Style</p>
+                        <p className="text-sm font-medium text-text-primary">Analyzing...</p>
+                      </div>
+                      <div className="bg-bg-surface rounded-lg p-3">
+                        <p className="text-[9px] text-text-secondary uppercase tracking-wide mb-1">Taste</p>
+                        <p className="text-sm font-medium text-text-primary">Analyzing...</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-t border-border px-5 py-4">
+                    <div className="relative">
+                      <div className="blur-sm pointer-events-none select-none opacity-30 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-3xl">🧬</span>
+                          <div>
+                            <p className="text-sm font-semibold text-text-primary">Story-First Analyst</p>
+                            <p className="text-xs text-text-secondary">Based on your reviews</p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="bg-bg-surface rounded-lg p-3">
+                            <p className="text-[9px] text-text-secondary uppercase tracking-wide mb-1">Style</p>
+                            <p className="text-sm font-medium text-text-primary">Narrative-driven</p>
+                          </div>
+                          <div className="bg-bg-surface rounded-lg p-3">
+                            <p className="text-[9px] text-text-secondary uppercase tracking-wide mb-1">Taste</p>
+                            <p className="text-sm font-medium text-text-primary">Genre Explorer</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <a href="/pro" className="px-5 py-2.5 bg-accent text-white text-sm font-semibold rounded-xl hover:bg-[#818cf8] transition-colors shadow-lg shadow-accent/25">
+                          Upgrade to Golden Ticket
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
