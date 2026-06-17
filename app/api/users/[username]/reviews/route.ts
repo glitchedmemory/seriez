@@ -142,14 +142,17 @@ export async function GET(
             return;
           }
         }
+        // Anime → AniList only. No TMDB fallback.
+        metaMap[key] = { title: `Anime #${p.tmdb_id}`, poster: null, year: null };
+        return;
       }
 
-      // Fallback to TMDB for all types
+      // TMDB fallback for movie/tv only
       const tmdbMeta = await getTmdbMeta(p.tmdb_id, p.media_type);
       if (tmdbMeta?.title) {
         metaMap[key] = tmdbMeta;
       } else {
-        const label = p.media_type === "anime" ? "Anime" : p.media_type === "tv" ? "TV Show" : "Movie";
+        const label = p.media_type === "tv" ? "TV Show" : "Movie";
         metaMap[key] = { title: `${label} #${p.tmdb_id}`, poster: null, year: null };
       }
     });
