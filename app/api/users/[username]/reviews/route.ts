@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const ANILIST_API = "https://graphql.anilist.co";
 
@@ -9,7 +11,7 @@ async function getTmdbMeta(tmdbId: number, mediaType: string) {
   const url = `https://api.themoviedb.org/3/${endpoint}/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US`;
 
   try {
-    const res = await fetch(url, { next: { revalidate: 86400 } });
+    const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();
     return {
