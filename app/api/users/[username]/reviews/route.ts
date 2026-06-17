@@ -22,7 +22,7 @@ async function getTmdbMeta(tmdbId: number, mediaType: string) {
   }
 }
 
-async function enrichAnime(anilistId: number): Promise<{ title: string; poster: string | null; year: string | null } | null> {
+async function enrichAnime(anilistId: number): Promise<{ title: string; poster: string | null; year: number | null } | null> {
   try {
     const res = await fetch(ANILIST_API, {
       method: "POST",
@@ -37,7 +37,7 @@ async function enrichAnime(anilistId: number): Promise<{ title: string; poster: 
     const m = json.data?.Media;
     if (!m) return null;
     const title = m.title?.english || m.title?.romaji || "";
-    const year = m.seasonYear?.toString() || null;
+    const year = m.seasonYear || null;
 
     if (m.coverImage?.extraLarge) {
       return { title, poster: m.coverImage.extraLarge, year };
