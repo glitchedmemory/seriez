@@ -477,6 +477,20 @@ export default function ProfilePage() {
               <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">Rated</p>
             </div>
           </div>
+
+          {/* ── Completion Rate ── */}
+          {stats.completion && stats.completion.started > 0 && (
+            <div className="mt-4 bg-bg-card border border-border rounded-xl p-4">
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-2">Completion Rate</h3>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-3 bg-bg-surface rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-accent to-[#a855f7] rounded-full transition-all duration-700" style={{ width: `${stats.completion.rate}%` }} />
+                </div>
+                <span className="text-sm font-bold text-text-primary">{stats.completion.rate}%</span>
+              </div>
+              <p className="text-[10px] text-text-secondary mt-1.5">{stats.completion.completed} completed of {stats.completion.started} series started</p>
+            </div>
+          )}
         </div>
       )}
 
