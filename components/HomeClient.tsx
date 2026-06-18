@@ -325,7 +325,7 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
                   ? forYouItems.slice(0, 14)
                   : trending.slice(0, 14)
                 ).map((item) => (
-                  <CardWrapper key={item.id} item={item} />
+                  <CardWrapper key={item.id} item={item} reasonText={forYouReasons[item.id] && !["Recommended for you","Trending this week"].includes(forYouReasons[item.id]) ? forYouReasons[item.id] : undefined} />
                 ))
               )}
             </PosterGrid>
