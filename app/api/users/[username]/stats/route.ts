@@ -566,21 +566,67 @@ export async function GET(
     };
 
     // ── 11. Viewer DNA: Style & Taste ──
-    const styleLabel = avgRating >= 4.0
-      ? "Enthusiast"
-      : avgRating >= 3.0
-        ? "Balanced Watcher"
-        : allRated.length > 0
-          ? "Selective Critic"
-          : "Newcomer";
-    const styleDesc = avgRating >= 4.0
-      ? "You rate generously — you find joy in most things you watch."
-      : avgRating >= 3.0
-        ? "You have a balanced eye — appreciative but discerning."
-        : allRated.length > 0
-          ? "You have high standards — only the best earn your praise."
-          : "Start rating to reveal your watching style.";
 
+    // --- Style: rating trait + watching pattern ---
+    const ratedCount = allRated.length;
+    const watchedCount = watched.length;
+    const { movie, tv, anime } = mediaBreakdown;
+    const totalTracked = movie + tv + anime;
+
+    // Rating trait
+    let ratingTrait: string;
+    let ratingTraitDesc: string;
+    if (ratedCount === 0) {
+      ratingTrait = "";
+      ratingTraitDesc = "";
+    } else if (avgRating >= 4.0) {
+      ratingTrait = "Enthusiastic";
+      ratingTraitDesc = "You rate generously — you find joy in most things you watch.";
+    } else if (avgRating >= 3.0) {
+      ratingTrait = "Balanced";
+      ratingTraitDesc = "You have a balanced eye — appreciative but discerning.";
+    } else {
+      ratingTrait = "Selective";
+      ratingTraitDesc = "You have high standards — only the best earn your praise.";
+    }
+
+    // Watching pattern
+    let pattern: string;
+    let patternDesc: string;
+    if (watchedCount < 5) {
+      pattern = "Newcomer";
+      patternDesc = "You're just getting started — your watching personality is still forming.";
+    } else if (completionRate >= 70 && ratedCount >= 5) {
+      pattern = "Completionist";
+      patternDesc = "When you start something, you see it through to the end.";
+    } else if (completionRate < 40 && watchedCount >= 10) {
+      pattern = "Explorer";
+      patternDesc = "You love sampling a wide variety — always chasing the next discovery.";
+    } else if (totalTracked > 0 && (movie / totalTracked) >= 0.6) {
+      pattern = "Movie Buff";
+      patternDesc = "The big screen is your home — you're drawn to cinematic storytelling.";
+    } else if (totalTracked > 0 && (tv / totalTracked) >= 0.5) {
+      pattern = "Series Devotee";
+      patternDesc = "You live for long arcs and deep character journeys.";
+    } else if (totalTracked > 0 && (anime / totalTracked) >= 0.5) {
+      pattern = "Anime Fan";
+      patternDesc = "Animation is your medium of choice.";
+    } else if (watchedCount >= 100) {
+      pattern = "Binge Watcher";
+      patternDesc = "You devour content at an impressive pace.";
+    } else {
+      pattern = "Casual Viewer";
+      patternDesc = "You watch at your own pace, picking what genuinely interests you.";
+    }
+
+    const styleLabel = ratingTrait && pattern
+      ? `${ratingTrait} ${pattern}`
+      : pattern || "Analyzing...";
+    const styleDesc = ratingTraitDesc && patternDesc
+      ? `${patternDesc} ${ratingTraitDesc}`
+      : patternDesc || "Rate a few titles to reveal your watching personality.";
+
+    // --- Taste: top genres ---
     const topGenreNames = topGenres.slice(0, 2).map(g => g.name);
     const tasteLabel = topGenreNames.length >= 2
       ? `${topGenreNames[0]} & ${topGenreNames[1]}`
@@ -592,8 +638,8 @@ export async function GET(
       : "Watch and rate more to reveal your taste.";
 
     const viewerDNA = {
-      style: allRated.length > 0 ? styleLabel : "Analyzing...",
-      styleDescription: allRated.length > 0 ? styleDesc : "Rate a few titles to reveal your watching personality.",
+      style: ratedCount > 0 || watchedCount >= 5 ? styleLabel : "Analyzing...",
+      styleDescription: ratedCount > 0 || watchedCount >= 5 ? styleDesc : "Rate a few titles to reveal your watching personality.",
       taste: topGenreNames.length > 0 ? tasteLabel : "Analyzing...",
       tasteDescription: topGenreNames.length > 0 ? tasteDesc : "The more you watch and rate, the clearer your taste becomes.",
     };
