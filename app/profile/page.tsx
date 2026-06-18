@@ -7,6 +7,7 @@ import { ProfileSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import HistoryClient from "@/app/history/HistoryClient";
 import YearlyRecapSlideshow from "@/components/YearlyRecapSlideshow";
+import { StreamingTop10 } from "@/components/StreamingTop10";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +65,7 @@ export default function ProfilePage() {
   const [selectedMediaType, setSelectedMediaType] = useState<"movie" | "tv" | "anime">("movie");
   const [isPremium, setIsPremium] = useState(false);
   const [reviewsMap, setReviewsMap] = useState<Record<string, string>>({});
-  const [activeView, setActiveView] = useState<"profile" | "insights" | "reviews">("profile");
+  const [activeView, setActiveView] = useState<"profile" | "insights" | "ott" | "reviews">("profile");
   const [userReviews, setUserReviews] = useState<any[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const router = useRouter();
@@ -436,6 +437,16 @@ export default function ProfilePage() {
             }`}
           >
             Insights
+          </button>
+          <button
+            onClick={() => setActiveView("ott")}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              activeView === "ott"
+                ? "border-accent text-accent"
+                : "border-transparent text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            OTT
           </button>
           <button
             onClick={() => setActiveView("reviews")}
@@ -867,6 +878,13 @@ export default function ProfilePage() {
               </div>
             </>
           )}
+        </div>
+      )}
+
+      {/* ── OTT View ── */}
+      {activeView === "ott" && (
+        <div className="px-4 mt-5 pb-32">
+          <StreamingTop10 />
         </div>
       )}
 
