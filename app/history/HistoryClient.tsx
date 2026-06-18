@@ -20,7 +20,7 @@ interface HistoryData {
 
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-export default function HistoryClient({ profileUsername }: { profileUsername: string }) {
+export default function HistoryClient({ profileUsername, isOwn }: { profileUsername: string; isOwn?: boolean }) {
   const [data, setData] = useState<HistoryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
@@ -130,10 +130,12 @@ export default function HistoryClient({ profileUsername }: { profileUsername: st
       {/* ── Divider ── */}
       <div className="h-2 bg-border light:bg-text-secondary/15 mb-5" />
 
-      {/* 🎰 Roulette */}
+      {/* 🎰 Roulette — only on own profile */}
+      {isOwn && (
       <div className="mt-8">
         <RouletteCard />
       </div>
+      )}
 
       {/* Popup */}
       {popup && <DayPopup date={popup.date} entries={popup.entries} onClose={() => setPopup(null)} />}
