@@ -637,11 +637,26 @@ export async function GET(
       ? `Your ratings reveal a love for ${topGenreNames.join(" and ")}.`
       : "Watch and rate more to reveal your taste.";
 
+    const styleReady = ratedCount > 0 || watchedCount >= 5;
+    const tasteReady = topGenreNames.length > 0;
+
     const viewerDNA = {
-      style: ratedCount > 0 || watchedCount >= 5 ? styleLabel : "Analyzing...",
-      styleDescription: ratedCount > 0 || watchedCount >= 5 ? styleDesc : "Rate a few titles to reveal your watching personality.",
-      taste: topGenreNames.length > 0 ? tasteLabel : "Analyzing...",
-      tasteDescription: topGenreNames.length > 0 ? tasteDesc : "The more you watch and rate, the clearer your taste becomes.",
+      style: styleReady ? styleLabel : "Analyzing...",
+      styleDescription: styleReady ? styleDesc : "Rate a few titles to reveal your watching personality.",
+      styleReady,
+      styleStatus: styleReady
+        ? null
+        : ratedCount > 0
+          ? `시청 ${watchedCount}/5 작품 — ${5 - watchedCount}개 더 시청하면 분석돼요`
+          : watchedCount >= 5
+            ? `평점 ${ratedCount}/1 — 평점 1개만 남겨보세요`
+            : `평점 ${ratedCount}/1 · 시청 ${watchedCount}/5`,
+      taste: tasteReady ? tasteLabel : "Analyzing...",
+      tasteDescription: tasteReady ? tasteDesc : "The more you watch and rate, the clearer your taste becomes.",
+      tasteReady,
+      tasteStatus: tasteReady
+        ? null
+        : "장르 데이터 수집 중...",
     };
 
     return NextResponse.json({
