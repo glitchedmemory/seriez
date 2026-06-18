@@ -565,6 +565,39 @@ export async function GET(
       topRated: thisYearRated,
     };
 
+    // ── 11. Viewer DNA: Style & Taste ──
+    const styleLabel = avgRating >= 4.0
+      ? "Enthusiast"
+      : avgRating >= 3.0
+        ? "Balanced Watcher"
+        : allRated.length > 0
+          ? "Selective Critic"
+          : "Newcomer";
+    const styleDesc = avgRating >= 4.0
+      ? "You rate generously — you find joy in most things you watch."
+      : avgRating >= 3.0
+        ? "You have a balanced eye — appreciative but discerning."
+        : allRated.length > 0
+          ? "You have high standards — only the best earn your praise."
+          : "Start rating to reveal your watching style.";
+
+    const topGenreNames = topGenres.slice(0, 2).map(g => g.name);
+    const tasteLabel = topGenreNames.length >= 2
+      ? `${topGenreNames[0]} & ${topGenreNames[1]}`
+      : topGenreNames.length === 1
+        ? topGenreNames[0]
+        : "Undiscovered";
+    const tasteDesc = topGenreNames.length > 0
+      ? `Your ratings reveal a love for ${topGenreNames.join(" and ")}.`
+      : "Watch and rate more to reveal your taste.";
+
+    const viewerDNA = {
+      style: allRated.length > 0 ? styleLabel : "Analyzing...",
+      styleDescription: allRated.length > 0 ? styleDesc : "Rate a few titles to reveal your watching personality.",
+      taste: topGenreNames.length > 0 ? tasteLabel : "Analyzing...",
+      tasteDescription: topGenreNames.length > 0 ? tasteDesc : "The more you watch and rate, the clearer your taste becomes.",
+    };
+
     return NextResponse.json({
       totals: {
         watched: watched.length,
@@ -599,6 +632,7 @@ export async function GET(
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([month, count]) => ({ month, count })),
       yearlyRecap,
+      viewerDNA,
     });
   } catch (err: any) {
     console.error("Stats error:", err);
