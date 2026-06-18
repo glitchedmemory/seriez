@@ -44,7 +44,7 @@ function getAvatarColor(username: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, _tick?: number): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const min = Math.floor(diff / 60000);
   if (min < 60) return `${min}m ago`;
@@ -71,6 +71,7 @@ export default function FeedPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     fetch("/api/activity")
@@ -81,6 +82,11 @@ export default function FeedPage() {
       })
       .catch(() => setError("Failed to load"))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTick(t => t + 1), 60000);
+    return () => clearInterval(timer);
   }, []);
 
   return (
@@ -170,7 +176,7 @@ export default function FeedPage() {
                       📁 {a.itemCount} item{a.itemCount !== 1 ? "s" : ""}
                     </span>
                   )}
-                  <span className="text-[11px] text-text-secondary">{timeAgo(a.createdAt)}</span>
+                  <span className="text-[11px] text-text-secondary">{timeAgo(a.createdAt, tick)}</span>
                 </div>
 
                 {/* Review snippet */}
