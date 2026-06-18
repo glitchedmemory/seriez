@@ -38,12 +38,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Delete all user data from every table
-    const tablesToCleanUser = ["media_trackings", "episode_watches", "notifications", "search_logs"];
-    const tablesToCleanUsername = [] as string[];
+    const tablesToCleanUser = ["notifications", "search_logs"];
+    const tablesToCleanUsername = ["media_trackings", "episode_watches"];
     const tablesToCleanBoth = ["reviews", "review_likes", "collection_comments", "collection_likes"];
 
     for (const table of tablesToCleanUser) {
       await supabaseAdmin.from(table).delete().eq("user_id", userId);
+    }
+    for (const table of tablesToCleanUsername) {
+      await supabaseAdmin.from(table).delete().eq("username", userId);
     }
     for (const table of tablesToCleanBoth) {
       await supabaseAdmin.from(table).delete().eq("user_id", userId);
