@@ -76,7 +76,7 @@ export async function GET() {
         })
       );
 
-      return NextResponse.json({ collections: enriched });
+      return NextResponse.json({ collections: enriched.filter(c => c.itemCount > 0) });
     }
 
     // RPC path — already filtered and counted
@@ -101,7 +101,7 @@ export async function GET() {
       })
     );
 
-    return NextResponse.json({ collections: enriched });
+    return NextResponse.json({ collections: enriched.filter(c => c.itemCount > 0) });
   } catch (err) {
     return NextResponse.json({ collections: [], error: "Failed to load" }, { status: 500 });
   }
