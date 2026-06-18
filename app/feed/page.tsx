@@ -44,8 +44,8 @@ function getAvatarColor(username: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-function timeAgo(dateStr: string, _tick?: number): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
+function timeAgo(dateStr: string, now: number): string {
+  const diff = now - new Date(dateStr).getTime();
   const min = Math.floor(diff / 60000);
   if (min < 60) return `${min}m ago`;
   const hr = Math.floor(min / 60);
@@ -71,7 +71,7 @@ export default function FeedPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tick, setTick] = useState(0);
+  const [tick, setTick] = useState(Date.now());
 
   useEffect(() => {
     fetch("/api/activity")
@@ -85,7 +85,7 @@ export default function FeedPage() {
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => setTick(t => t + 1), 60000);
+    const timer = setInterval(() => setTick(Date.now()), 60000);
     return () => clearInterval(timer);
   }, []);
 
