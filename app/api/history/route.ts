@@ -15,13 +15,7 @@ async function resolveUserIdByUsername(username: string): Promise<string | null>
   const { data: existing } = await supabaseAdmin
     .from("users").select("id").eq("username", trimmed).maybeSingle();
   if (existing) return existing.id;
-  const crypto = await import("crypto");
-  const hash = crypto.createHash("sha256").update("seriez:" + trimmed).digest();
-  hash[6] = (hash[6] & 0x0f) | 0x50; hash[8] = (hash[8] & 0x3f) | 0x80;
-  const hex = hash.toString("hex");
-  const userId = `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20,32)}`;
-  await supabaseAdmin.from("users").insert({ id: userId, username: trimmed, email: `${trimmed}@seriezuser.com` });
-  return userId;
+  return null; // Do NOT auto-create — user must already exist
 }
 
 // ─── TMDB fetch (no cache — rate limit handled by 50ms delay) ───
