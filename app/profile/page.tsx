@@ -39,7 +39,7 @@ interface ProfileStats {
   topDirectors: { name: string; count: number }[];
   monthlyWatch: { month: string; count: number }[];
   yearlyRecap: { hours: number; titles: number; topRated: { tmdb_id: number; media_type: string; rating: number }[] };
-  viewerDNA: { style: string; styleDescription: string; taste: string; tasteDescription: string };
+  viewerDNA: { style: string; styleDescription: string; styleReady: boolean; styleStatus: string | null; taste: string; tasteDescription: string; tasteReady: boolean; tasteStatus: string | null };
 }
 
 export default function ProfilePage() {
@@ -792,16 +792,38 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-2 gap-2">
                     <div className="bg-bg-surface rounded-lg p-3">
                       <p className="text-[9px] text-text-secondary uppercase tracking-wide mb-1">Style</p>
-                      <p className="text-sm font-medium text-text-primary">{stats?.viewerDNA?.style || "Analyzing..."}</p>
-                      {stats?.viewerDNA?.styleDescription && (
-                        <p className="text-[10px] text-text-secondary mt-1 leading-tight">{stats.viewerDNA.styleDescription}</p>
+                      {stats?.viewerDNA?.styleReady ? (
+                        <>
+                          <p className="text-sm font-medium text-text-primary">{stats.viewerDNA.style}</p>
+                          {stats.viewerDNA.styleDescription && (
+                            <p className="text-[10px] text-text-secondary mt-1 leading-tight">{stats.viewerDNA.styleDescription}</p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm font-medium text-text-primary">Analyzing...</p>
+                          {stats?.viewerDNA?.styleStatus && (
+                            <p className="text-[10px] text-text-secondary mt-1 leading-tight">{stats.viewerDNA.styleStatus}</p>
+                          )}
+                        </>
                       )}
                     </div>
                     <div className="bg-bg-surface rounded-lg p-3">
                       <p className="text-[9px] text-text-secondary uppercase tracking-wide mb-1">Taste</p>
-                      <p className="text-sm font-medium text-text-primary">{stats?.viewerDNA?.taste || "Analyzing..."}</p>
-                      {stats?.viewerDNA?.tasteDescription && (
-                        <p className="text-[10px] text-text-secondary mt-1 leading-tight">{stats.viewerDNA.tasteDescription}</p>
+                      {stats?.viewerDNA?.tasteReady ? (
+                        <>
+                          <p className="text-sm font-medium text-text-primary">{stats.viewerDNA.taste}</p>
+                          {stats.viewerDNA.tasteDescription && (
+                            <p className="text-[10px] text-text-secondary mt-1 leading-tight">{stats.viewerDNA.tasteDescription}</p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm font-medium text-text-primary">Analyzing...</p>
+                          {stats?.viewerDNA?.tasteStatus && (
+                            <p className="text-[10px] text-text-secondary mt-1 leading-tight">{stats.viewerDNA.tasteStatus}</p>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
