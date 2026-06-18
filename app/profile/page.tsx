@@ -440,7 +440,7 @@ export default function ProfilePage() {
           </button>
           <button
             onClick={() => setActiveView("ott")}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`md:hidden px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
               activeView === "ott"
                 ? "border-accent text-accent"
                 : "border-transparent text-text-secondary hover:text-text-primary"
@@ -883,7 +883,7 @@ export default function ProfilePage() {
 
       {/* ── OTT View ── */}
       {activeView === "ott" && (
-        <div className="px-4 mt-5 pb-32">
+        <div className="px-4 mt-5 pb-32 md:hidden">
           <StreamingTop10 />
         </div>
       )}
