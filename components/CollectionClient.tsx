@@ -181,8 +181,8 @@ export default function CollectionClient() {
   return (
     <div className="max-w-2xl mx-auto min-h-screen px-4 py-6 pb-24">
       {/* Header */}
-      <button onClick={() => router.push("/library?tab=collections")} className="text-xs text-text-secondary hover:text-white light:hover:text-accent mb-3 inline-block">
-        ← Back to My List
+      <button onClick={() => router.back()} className="text-xs text-text-secondary hover:text-white light:hover:text-accent mb-3 inline-block">
+        ← Back
       </button>
 
       <div className="relative">
