@@ -595,36 +595,34 @@ export async function GET(
     let patternDesc: string;
     if (watchedCount < 5) {
       pattern = "Newcomer";
-      patternDesc = "You're just getting started — your watching personality is still forming.";
+      patternDesc = "Just getting started.";
     } else if (completionRate >= 70 && ratedCount >= 5) {
       pattern = "Completionist";
-      patternDesc = "When you start something, you see it through to the end.";
+      patternDesc = "Sees every story through to the end.";
     } else if (completionRate < 40 && watchedCount >= 10) {
       pattern = "Explorer";
-      patternDesc = "You love sampling a wide variety — always chasing the next discovery.";
+      patternDesc = "Always chasing the next discovery.";
     } else if (totalTracked > 0 && (movie / totalTracked) >= 0.6) {
       pattern = "Movie Buff";
-      patternDesc = "The big screen is your home — you're drawn to cinematic storytelling.";
+      patternDesc = "Drawn to cinematic storytelling.";
     } else if (totalTracked > 0 && (tv / totalTracked) >= 0.5) {
       pattern = "Series Devotee";
-      patternDesc = "You live for long arcs and deep character journeys.";
+      patternDesc = "Lives for deep character journeys.";
     } else if (totalTracked > 0 && (anime / totalTracked) >= 0.5) {
       pattern = "Anime Fan";
-      patternDesc = "Animation is your medium of choice.";
+      patternDesc = "Animation is your medium.";
     } else if (watchedCount >= 100) {
       pattern = "Binge Watcher";
-      patternDesc = "You devour content at an impressive pace.";
+      patternDesc = "Devouring content at an impressive pace.";
     } else {
       pattern = "Casual Viewer";
-      patternDesc = "You watch at your own pace, picking what genuinely interests you.";
+      patternDesc = "Watching at your own rhythm.";
     }
 
     const styleLabel = ratingTrait && pattern
       ? `${ratingTrait} ${pattern}`
       : pattern || "Analyzing...";
-    const styleDesc = ratingTraitDesc && patternDesc
-      ? `${patternDesc} ${ratingTraitDesc}`
-      : patternDesc || "Rate a few titles to reveal your watching personality.";
+    const styleDesc = patternDesc || "Rate a few titles to reveal your watching personality.";
 
     // --- Taste: top genres ---
     const topGenreNames = topGenres.slice(0, 2).map(g => g.name);
