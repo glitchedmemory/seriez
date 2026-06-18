@@ -698,9 +698,9 @@ export default function ProfilePage() {
       </div>
 
       {/* History — only for logged-in users */}
-      {user && (
+      {user && effectiveUsername && (
         <div className="mt-6">
-          <HistoryClient />
+          <HistoryClient profileUsername={effectiveUsername} />
         </div>
       )}
       </>

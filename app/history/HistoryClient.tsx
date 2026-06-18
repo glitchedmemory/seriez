@@ -20,7 +20,7 @@ interface HistoryData {
 
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-export default function HistoryClient() {
+export default function HistoryClient({ profileUsername }: { profileUsername: string }) {
   const [data, setData] = useState<HistoryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
@@ -37,9 +37,7 @@ export default function HistoryClient() {
     if (showSpinner) setFetching(true);
     setError(null);
     try {
-      const username = typeof window !== "undefined"
-        ? (localStorage.getItem("seriez-username") || "glitchedmemory") : "glitchedmemory";
-      const res = await fetch(`/api/history?username=${encodeURIComponent(username)}&month=${monthKey}`);
+      const res = await fetch(`/api/history?username=${encodeURIComponent(profileUsername)}&month=${monthKey}`);
       if (!res.ok) throw new Error("Failed");
       const json = await res.json();
       if (json.error) throw new Error(json.error);
