@@ -68,7 +68,18 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
   const [activeNoteCollName, setActiveNoteCollName] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const visibleCast = showAllCast ? detail.characters : detail.characters.slice(0, 6);
+  // Merge staff directors into character grid
+  const staffDirectors = detail.staff
+    .filter((s: any) => s.role === "Director")
+    .map((s: any) => ({
+      name: s.name,
+      role: "Director",
+      voiceActor: "",
+      image: s.image,
+      staffId: s.id,
+    }));
+  const allCast = [...staffDirectors, ...detail.characters];
+  const visibleCast = showAllCast ? allCast : allCast.slice(0, 6);
   const totalPages = Math.ceil(episodes.length / EPISODES_PER_PAGE);
   const visibleEpisodes = episodes.slice((currentPage - 1) * EPISODES_PER_PAGE, currentPage * EPISODES_PER_PAGE);
 
@@ -879,12 +890,27 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           </section>
         )}
 
-        {/* Characters + Voice Actors */}
-        {detail.characters.length > 0 && (
+        {/* Characters + Voice Actors (includes directors) */}
+        {allCast.length > 0 && (
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-text-primary mb-3">Characters & Voice Actors</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {visibleCast.map((c) => (
+              {visibleCast.map((c: any) => (
+                c.staffId ? (
+                  <a
+                    key={`staff-${c.staffId}`}
+                    href={`/person/anilist/${c.staffId}`}
+                    className="bg-bg-card rounded-xl p-3 flex items-center gap-3 hover:bg-bg-surface transition-colors"
+                  >
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden bg-bg-surface relative">
+                      <PosterImage src={c.image} alt={c.name} fill className="rounded-full" sizes="40px" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-text-primary truncate">{c.name}</p>
+                      <p className="text-[10px] text-accent truncate">{c.role}</p>
+                    </div>
+                  </a>
+                ) : (
                 <div key={c.name} className="bg-bg-card rounded-xl p-3 flex items-center gap-3">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden bg-bg-surface relative">
                     <PosterImage src={c.image} alt={c.name} fill className="rounded-full" sizes="40px" />
@@ -897,14 +923,15 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                     )}
                   </div>
                 </div>
+                )
               ))}
             </div>
-            {detail.characters.length > 6 && (
+            {allCast.length > 6 && (
               <button
                 onClick={() => setShowAllCast(!showAllCast)}
                 className="mt-3 text-xs text-accent hover:underline mx-auto block"
               >
-                {showAllCast ? "Show less" : `Show all ${detail.characters.length} characters`}
+                {showAllCast ? "Show less" : `Show all ${allCast.length} cast & crew`}
               </button>
             )}
           </section>
