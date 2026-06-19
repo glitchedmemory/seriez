@@ -1007,16 +1007,20 @@ export async function getStaffDetail(id: number): Promise<StaffDetail | null> {
       ? `${s.dateOfBirth.year}-${String(s.dateOfBirth.month || 1).padStart(2, "0")}-${String(s.dateOfBirth.day || 1).padStart(2, "0")}`
       : null;
 
-    const credits = (s.staffMedia?.edges || []).map((e: any) => {
+    const credits: { id: number; title: string; format: string; poster: string | null; rating: number }[] = [];
+    const seenIds = new Set<number>();
+    for (const e of (s.staffMedia?.edges || [])) {
       const n = e.node;
-      return {
+      if (seenIds.has(n.id)) continue;
+      seenIds.add(n.id);
+      credits.push({
         id: n.id,
         title: n.title?.english || n.title?.romaji || "Unknown",
         format: n.format || "Unknown",
         poster: n.coverImage?.large || null,
         rating: n.averageScore ? Math.round(n.averageScore / 10) : 0,
-      };
-    });
+      });
+    }
 
     return {
       id: s.id,
