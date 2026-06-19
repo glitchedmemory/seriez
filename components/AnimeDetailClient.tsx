@@ -657,9 +657,18 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
             {detail.staff.length > 0 && (
               <div className="mt-1 text-xs text-text-secondary">
                 <span>Staff: </span>
-                <span className="text-text-secondary">
-                  {detail.staff.slice(0, 5).map(s => `${s.name} (${s.role})`).join(", ")}
-                </span>
+                {detail.staff.slice(0, 5).map((s, i) => (
+                  <span key={s.id}>
+                    <a
+                      href={`/person/anilist/${s.id}`}
+                      className="text-accent hover:underline"
+                    >
+                      {s.name}
+                    </a>
+                    <span className="text-text-secondary"> ({s.role})</span>
+                    {i < Math.min(detail.staff.length, 5) - 1 && ", "}
+                  </span>
+                ))}
               </div>
             )}
           </div>

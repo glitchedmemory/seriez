@@ -187,14 +187,22 @@ export type TmdbDetail = {
   videos: { key: string; name: string; site: string; type: string }[];
 };
 
-function formatCredits(credits: { cast?: Array<{ id: number; name: string; character?: string; profile_path: string | null }>; crew?: Array<{ name: string; job: string; profile_path: string | null }> }) {
+function formatCredits(credits: { cast?: Array<{ id: number; name: string; character?: string; profile_path: string | null }>; crew?: Array<{ id: number; name: string; job: string; profile_path: string | null }> }) {
   const cast = (credits.cast || []).slice(0, 15).map((c) => ({
     id: c.id,
     name: c.name,
     character: c.character || "Unknown",
     photo: poster(c.profile_path),
   }));
-  return cast;
+  const directors = (credits.crew || [])
+    .filter((c) => c.job === "Director")
+    .map((d) => ({
+      id: d.id,
+      name: d.name,
+      character: "Director",
+      photo: poster(d.profile_path),
+    }));
+  return [...directors, ...cast];
 }
 
 function formatSimilar(

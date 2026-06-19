@@ -45,7 +45,7 @@ export type AnimeDetail = {
   genres: string[];
   tags: { name: string; rank: number }[];
   studios: string[];
-  staff: { name: string; role: string }[];
+  staff: { id: number; name: string; role: string }[];
   characters: { name: string; role: string; voiceActor: string; image: string | null }[];
   recommendations: AnimeRecItem[];
   trailer: { id: string; site: string } | null;
@@ -97,6 +97,7 @@ query($id: Int) {
     }
     staff(sort: RELEVANCE, perPage: 8) {
       nodes {
+        id
         name { full }
         primaryOccupations
       }
@@ -243,6 +244,7 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
 
     // Staff (directors, writers, etc.)
     const staff = (m.staff?.nodes || []).map((s: any) => ({
+      id: s.id,
       name: s.name?.full || "Unknown",
       role: (s.primaryOccupations || [])[0] || "Staff",
     }));
@@ -938,4 +940,94 @@ export async function enrichAnimeRelations(
   }
 
   return result;
+}
+
+// ─── Staff Detail ───
+
+export type StaffDetail = {
+  id: number;
+  name: string;
+  nativeName: string;
+  photo: string | null;
+  birthday: string | null;
+  birthplace: string | null;
+  description: string | null;
+  knownFor: string;
+  credits: {
+    id: number;
+    title: string;
+    format: string;
+    poster: string | null;
+    rating: number;
+  }[];
+};
+
+export async function getStaffDetail(id: number): Promise<StaffDetail | null> {
+  try {
+    const query = `
+      query {
+        Staff(id: ${id}) {
+          id
+          name { full native }
+          image { large }
+          description
+          primaryOccupations
+          dateOfBirth { year month day }
+          age
+          homeTown
+          staffMedia(sort: POPULARITY_DESC, perPage: 20) {
+            edges {
+              node {
+                id
+                title { romaji english }
+                type
+                format
+                coverImage { large }
+                averageScore
+              }
+            }
+          }
+        }
+      }
+    `;
+    const res = await fetch(ANILIST_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const s = json?.data?.Staff;
+    if (!s) return null;
+
+    const birthday = s.dateOfBirth?.year
+      ? `${s.dateOfBirth.year}-${String(s.dateOfBirth.month || 1).padStart(2, "0")}-${String(s.dateOfBirth.day || 1).padStart(2, "0")}`
+      : null;
+
+    const credits = (s.staffMedia?.edges || []).map((e: any) => {
+      const n = e.node;
+      return {
+        id: n.id,
+        title: n.title?.english || n.title?.romaji || "Unknown",
+        format: n.format || "Unknown",
+        poster: n.coverImage?.large || null,
+        rating: n.averageScore ? Math.round(n.averageScore / 10) : 0,
+      };
+    });
+
+    return {
+      id: s.id,
+      name: s.name?.full || "Unknown",
+      nativeName: s.name?.native || "",
+      photo: s.image?.large || null,
+      birthday,
+      birthplace: s.homeTown || null,
+      description: s.description || null,
+      knownFor: (s.primaryOccupations || [])[0] || "Staff",
+      credits,
+    };
+  } catch {
+    return null;
+  }
 }

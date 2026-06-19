@@ -36,8 +36,8 @@ interface ProfileStats {
   mediaBreakdown: { movie: number; tv: number; anime: number };
   mediaHours: { movie: number; tv: number; anime: number };
   genres: { name: string; count: number }[];
-  topActors: { name: string; count: number }[];
-  topDirectors: { name: string; count: number }[];
+  topActors: { name: string; count: number; personId?: number; personSource?: string; image?: string | null }[];
+  topDirectors: { name: string; count: number; personId?: number; personSource?: string; image?: string | null }[];
   monthlyWatch: { month: string; count: number }[];
   yearlyRecap: { hours: number; titles: number; topRated: { tmdb_id: number; media_type: string; rating: number }[] };
   viewerDNA: { style: string; styleDescription: string; styleReady: boolean; styleStatus: string | null; taste: string; tasteDescription: string; tasteReady: boolean; tasteStatus: string | null };
@@ -68,6 +68,9 @@ export default function ProfilePage() {
   const [activeView, setActiveView] = useState<"profile" | "insights" | "ott" | "reviews">("profile");
   const [userReviews, setUserReviews] = useState<any[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [isFavoriteMode, setIsFavoriteMode] = useState(false);
+  const [favoriteDirectors, setFavoriteDirectors] = useState<any[]>([]);
+  const [favoriteActors, setFavoriteActors] = useState<any[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -655,29 +658,109 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Top Actors */}
-      {stats && stats.topActors && stats.topActors.length > 0 && (
+      {/* Toggle + Directors Section */}
+      {stats && stats.topDirectors && stats.topDirectors.length > 0 && (
         <div className="px-4 mt-6">
-          <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Actors</h3>
-          <div className="flex flex-wrap gap-2">
-            {stats.topActors.slice(0, 5).map((a) => (
-              <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">
-                {a.name}
-              </span>
-            ))}
+          <div className="flex items-center gap-3 mb-3">
+            <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide">
+              {isFavoriteMode ? "Favorite Directors" : "Top Directors"}
+            </h3>
+            {isOwn && (
+              <button
+                onClick={async () => {
+                  if (!isFavoriteMode && favoriteDirectors.length === 0 && effectiveUsername) {
+                    try {
+                      const res = await fetch(`/api/persons/likes?username=${encodeURIComponent(effectiveUsername)}&role=director`);
+                      const data = await res.json();
+                      setFavoriteDirectors(data.likes || []);
+                    } catch {}
+                  }
+                  setIsFavoriteMode(!isFavoriteMode);
+                }}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                  isFavoriteMode ? "bg-accent" : "bg-bg-surface border border-border"
+                }`}
+              >
+                <span
+                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                    isFavoriteMode ? "translate-x-[18px]" : "translate-x-[2px]"
+                  }`}
+                />
+              </button>
+            )}
           </div>
+          {isFavoriteMode ? (
+            favoriteDirectors.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {favoriteDirectors.slice(0, 8).map((d: any) => (
+                  <a
+                    key={`${d.person_source}-${d.person_id}`}
+                    href={`/person/${d.person_source === "anilist" ? "anilist/" : ""}${d.person_id}`}
+                    className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors"
+                  >
+                    {d.person_image && (
+                      <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0">
+                        <img src={d.person_image} alt={d.person_name} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <span className="text-xs text-text-primary">{d.person_name}</span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-text-secondary">No favorite directors yet. Visit a director&apos;s page and tap ♥</p>
+            )
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {stats.topDirectors.slice(0, 5).map((d) => (
+                d.personId ? (
+                  <a
+                    key={d.name}
+                    href={`/person/${d.personSource === "anilist" ? "anilist/" : ""}${d.personId}`}
+                    className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors"
+                  >
+                    {d.image && (
+                      <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0">
+                        <img src={d.image} alt={d.name} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <span className="text-xs text-text-primary">{d.name}</span>
+                  </a>
+                ) : (
+                  <span key={d.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">
+                    {d.name}
+                  </span>
+                )
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Top Directors */}
-      {stats && stats.topDirectors && stats.topDirectors.length > 0 && (
+      {/* Actors Section (no toggle, always auto-computed) */}
+      {stats && stats.topActors && stats.topActors.length > 0 && (
         <div className="px-4 mt-5">
-          <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Directors</h3>
+          <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Actors</h3>
           <div className="flex flex-wrap gap-2">
-            {stats.topDirectors.slice(0, 5).map((d) => (
-              <span key={d.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">
-                {d.name}
-              </span>
+            {stats.topActors.slice(0, 5).map((a) => (
+              a.personId ? (
+                <a
+                  key={a.name}
+                  href={`/person/${a.personId}`}
+                  className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors"
+                >
+                  {a.image && (
+                    <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0">
+                      <img src={a.image} alt={a.name} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <span className="text-xs text-text-primary">{a.name}</span>
+                </a>
+              ) : (
+                <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">
+                  {a.name}
+                </span>
+              )
             ))}
           </div>
         </div>
