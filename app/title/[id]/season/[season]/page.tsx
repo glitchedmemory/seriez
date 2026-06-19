@@ -75,13 +75,24 @@ export default async function SeasonPage({ params }: Props) {
     // Extract keyword IDs
     const keywordIds: number[] = ((keywordsData as any).results || []).map((k: any) => k.id);
 
-    // Format cast
-    const cast = (credits.cast || []).slice(0, 15).map((c: any) => ({
-      id: c.id,
-      name: c.name,
-      character: c.character || "Unknown",
-      photo: poster(c.profile_path),
-    }));
+    // Format cast (include directors from crew)
+    const directors = (credits.crew || [])
+      .filter((c: any) => c.job === "Director")
+      .map((d: any) => ({
+        id: d.id,
+        name: d.name,
+        character: "Director",
+        photo: poster(d.profile_path),
+      }));
+    const cast = [
+      ...directors,
+      ...(credits.cast || []).slice(0, 15).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        character: c.character || "Unknown",
+        photo: poster(c.profile_path),
+      })),
+    ];
 
     // Format trailers — match to this season
     const seasonAirDate = seasonData.air_date ? new Date(seasonData.air_date) : null;

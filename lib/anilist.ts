@@ -979,6 +979,7 @@ export async function getStaffDetail(id: number): Promise<StaffDetail | null> {
           homeTown
           staffMedia(sort: POPULARITY_DESC, perPage: 20) {
             edges {
+              staffRole
               node {
                 id
                 title { romaji english }
@@ -1007,20 +1008,32 @@ export async function getStaffDetail(id: number): Promise<StaffDetail | null> {
       ? `${s.dateOfBirth.year}-${String(s.dateOfBirth.month || 1).padStart(2, "0")}-${String(s.dateOfBirth.day || 1).padStart(2, "0")}`
       : null;
 
-    const credits: { id: number; title: string; format: string; poster: string | null; rating: number }[] = [];
-    const seenIds = new Set<number>();
+    // Gather director-role entries, deduplicate by id (prioritize full "Director" over "Episode Director")
+    const seenIds = new Map<number, { title: string; format: string; poster: string | null; rating: number; isFullDirector: boolean }>();
     for (const e of (s.staffMedia?.edges || [])) {
+      const role = e.staffRole || "";
+      if (!role.includes("Director")) continue;
       const n = e.node;
-      if (seenIds.has(n.id)) continue;
-      seenIds.add(n.id);
-      credits.push({
-        id: n.id,
-        title: n.title?.english || n.title?.romaji || "Unknown",
-        format: n.format || "Unknown",
-        poster: n.coverImage?.large || null,
-        rating: n.averageScore ? Math.round(n.averageScore / 10) : 0,
-      });
+      const id = n.id;
+      const isFullDirector = role === "Director";
+      const existing = seenIds.get(id);
+      if (!existing || (isFullDirector && !existing.isFullDirector)) {
+        seenIds.set(id, {
+          title: n.title?.english || n.title?.romaji || "Unknown",
+          format: n.format || "Unknown",
+          poster: n.coverImage?.large || null,
+          rating: n.averageScore ? Math.round(n.averageScore / 10) : 0,
+          isFullDirector,
+        });
+      }
     }
+    const credits = Array.from(seenIds.entries()).map(([id, info]) => ({
+      id,
+      title: info.title,
+      format: info.format,
+      poster: info.poster,
+      rating: info.rating,
+    }));
 
     return {
       id: s.id,
