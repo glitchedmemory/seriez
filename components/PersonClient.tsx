@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import type { PersonDetail } from "@/lib/tmdb";
 import PosterImage from "@/components/PosterImage";
+import { createClient } from "@supabase/supabase-js";
 
 function CreditCard({ item, type }: { item: { id: number; title: string; character: string; year: number; poster: string | null; rating: number }; type: "movie" | "tv" }) {
   return (
@@ -29,6 +31,76 @@ function CreditCard({ item, type }: { item: { id: number; title: string; charact
 }
 
 export default function PersonClient({ person }: { person: PersonDetail }) {
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [user, setUser] = useState<any>(null);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user || null);
+    });
+    // Fetch like count
+    fetch(`/api/persons/likes?username=count`
+    ).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    // Get like count
+    fetch(`/api/persons/like-count?source=tmdb&id=${person.id}`)
+      .then(r => r.json())
+      .then(d => setLikeCount(d.count || 0))
+      .catch(() => {});
+    // Check if current user liked
+    if (user) {
+      const username = localStorage.getItem("seriez-username") || user.user_metadata?.username;
+      if (username) {
+        fetch(`/api/persons/likes?username=${encodeURIComponent(username)}`)
+          .then(r => r.json())
+          .then(d => {
+            const liked = (d.likes || []).some(
+              (l: any) => l.person_source === "tmdb" && l.person_id === person.id
+            );
+            setLiked(liked);
+          })
+          .catch(() => {});
+      }
+    }
+  }, [person.id, user]);
+
+  const handleLike = async () => {
+    if (!user) return;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    try {
+      const res = await fetch("/api/persons/like", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          personSource: "tmdb",
+          personId: person.id,
+          personName: person.name,
+          personImage: person.photo,
+          personRole: person.knownFor?.toLowerCase().includes("director") ? "director" : "actor",
+        }),
+      });
+      const data = await res.json();
+      if (data.liked !== undefined) {
+        setLiked(data.liked);
+        setLikeCount(data.count);
+      }
+    } catch {}
+  };
+
   return (
     <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24 px-4">
       {/* Header */}
@@ -64,6 +136,23 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
               Died: {person.deathday}
             </p>
           )}
+
+          {/* Like button */}
+          <div className="mt-2">
+            <button
+              onClick={handleLike}
+              disabled={!user}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-colors ${
+                liked
+                  ? "bg-red-500/10 border-red-500/30 text-red-500"
+                  : "bg-bg-card border-border text-text-secondary hover:border-red-500/30 hover:text-red-500"
+              } ${!user ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+              title={user ? (liked ? "Unlike" : "Like") : "Sign in to like"}
+            >
+              <span>{liked ? "❤️" : "🤍"}</span>
+              <span className="text-xs font-medium">{likeCount}</span>
+            </button>
+          </div>
         </div>
       </div>
 

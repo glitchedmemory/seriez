@@ -323,7 +323,7 @@ export async function GET(
     // ── 2. Fetch all tracking data ──
     let trackingQuery = supabaseAdmin
       .from("media_trackings")
-      .select("tmdb_id, media_type, status, rating, progress, watched_at, updated_at")
+      .select("tmdb_id, media_type, status, rating, progress, watched_at, updated_at, anilist_id")
       .eq("username", userId);
     if (mediaType) trackingQuery = trackingQuery.eq("media_type", mediaType);
     const { data: tracking } = await trackingQuery;
@@ -467,39 +467,58 @@ export async function GET(
       .map(([name, count]) => ({ name, count }));
 
     // ── 8. Top actors/directors (from projects rated > 0) ──
-    const actorCounts: Record<string, number> = {};
-    const directorCounts: Record<string, number> = {};
+    const actorMap: Record<string, { count: number; id: number; image: string | null }> = {};
+    const directorMap: Record<string, { count: number; id: number; personSource: string; image: string | null }> = {};
     const ratedTmdbIds = [...new Set(allRated.map(r => {
       const track = tracking?.find(t => t.tmdb_id && t.rating === r.rating);
       return track?.tmdb_id;
     }).filter(Boolean))];
 
+    const ANILIST_URL = "https://graphql.anilist.co";
+
     for (const tmdbId of ratedTmdbIds.slice(0, 20)) {
       try {
         const track = tracking?.find(t => t.tmdb_id === tmdbId);
         const mt = track?.media_type || "movie";
-        if (mt === "anime") continue;
-        const ep = mt === "movie" ? `/movie/${tmdbId}` : `/tv/${tmdbId}`;
+
+        if (mt === "anime") {
+          const anilistId = track?.anilist_id;
+          if (anilistId) {
+            const q = `{Media(id:${anilistId}){staff(sort:RELEVANCE,perPage:8){edges{role node{id name{full}image{large}}}}}}`;
+            const res = await fetch(ANILIST_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q }) });
+            const data = await res.json();
+            for (const edge of data?.data?.Media?.staff?.edges || []) {
+              if (edge.role === "Director") {
+                const name = edge.node?.name?.full || "Unknown";
+                if (!directorMap[name]) directorMap[name] = { count: 0, id: edge.node.id, personSource: "anilist", image: edge.node?.image?.large || null };
+                directorMap[name].count++;
+              }
+            }
+          }
+          continue;
+        }
 
         const credits = await tmdbGet(`/${mt}/${tmdbId}/credits`);
         for (const cast of (credits.cast || []).slice(0, 10)) {
-          actorCounts[cast.name] = (actorCounts[cast.name] || 0) + 1;
+          if (!actorMap[cast.name]) actorMap[cast.name] = { count: 0, id: cast.id, image: cast.profile_path ? `https://image.tmdb.org/t/p/w185${cast.profile_path}` : null };
+          actorMap[cast.name].count++;
         }
         for (const crew of (credits.crew || []).filter((c: any) => c.job === "Director")) {
-          directorCounts[crew.name] = (directorCounts[crew.name] || 0) + 1;
+          if (!directorMap[crew.name]) directorMap[crew.name] = { count: 0, id: crew.id, personSource: "tmdb", image: crew.profile_path ? `https://image.tmdb.org/t/p/w185${crew.profile_path}` : null };
+          directorMap[crew.name].count++;
         }
       } catch { /* skip */ }
     }
 
-    const topActors = Object.entries(actorCounts)
-      .sort(([, a], [, b]) => b - a)
+    const topActors = Object.entries(actorMap)
+      .sort(([, a], [, b]) => b.count - a.count)
       .slice(0, 8)
-      .map(([name, count]) => ({ name, count }));
+      .map(([name, info]) => ({ name, count: info.count, personId: info.id, personSource: "tmdb" as const, image: info.image }));
 
-    const topDirectors = Object.entries(directorCounts)
-      .sort(([, a], [, b]) => b - a)
+    const topDirectors = Object.entries(directorMap)
+      .sort(([, a], [, b]) => b.count - a.count)
       .slice(0, 5)
-      .map(([name, count]) => ({ name, count }));
+      .map(([name, info]) => ({ name, count: info.count, personId: info.id, personSource: info.personSource, image: info.image }));
 
     // ── 9. Monthly watch heatmap (last 12 months) ──
     const monthlyWatch: Record<string, number> = {};
