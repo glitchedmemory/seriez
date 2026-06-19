@@ -706,31 +706,76 @@ export async function getPersonDetail(id: number): Promise<PersonDetail | null> 
       get(`/person/${id}/tv_credits`),
     ]);
 
-    const movieList = (movieCredits.cast || [])
-      .filter((c: { release_date?: string }) => c.release_date)
-      .sort((a: { release_date: string }, b: { release_date: string }) => b.release_date.localeCompare(a.release_date))
-      .slice(0, 20)
-      .map((c: { id: number; title: string; character: string; release_date: string; poster_path: string | null; vote_average: number }) => ({
+    // Process movie credits — merge cast + crew, deduplicate, prefer crew for matching department
+    const movieSeen = new Map<number, { id: number; title: string; character: string; year: number; poster: string | null; rating: number; isCrew: boolean }>();
+    
+    // Add cast first
+    for (const c of (movieCredits.cast || []).filter((c: { release_date?: string }) => c.release_date)) {
+      movieSeen.set(c.id, {
         id: c.id,
         title: c.title,
         character: c.character || "",
-        year: new Date(c.release_date).getFullYear(),
+        year: new Date(c.release_date!).getFullYear(),
         poster: poster(c.poster_path),
         rating: Math.round(c.vote_average * 10) / 10,
-      }));
+        isCrew: false,
+      });
+    }
+    
+    // Add crew — overwrites cast when department matches knownFor
+    const knownDept = detail.known_for_department || "";
+    for (const c of (movieCredits.crew || []).filter((c: { release_date?: string }) => c.release_date)) {
+      const existing = movieSeen.get(c.id);
+      const isDirector = knownDept === "Directing" && c.job === "Director";
+      if (!existing || isDirector) {
+        movieSeen.set(c.id, {
+          id: c.id,
+          title: c.title,
+          character: c.job || "",
+          year: new Date(c.release_date!).getFullYear(),
+          poster: poster(c.poster_path),
+          rating: Math.round(c.vote_average * 10) / 10,
+          isCrew: true,
+        });
+      }
+    }
+    
+    const movieList = Array.from(movieSeen.values())
+      .sort((a, b) => b.year - a.year)
+      .slice(0, 30);
 
-    const tvList = (tvCredits.cast || [])
-      .filter((c: { first_air_date?: string }) => c.first_air_date)
-      .sort((a: { first_air_date: string }, b: { first_air_date: string }) => b.first_air_date.localeCompare(a.first_air_date))
-      .slice(0, 20)
-      .map((c: { id: number; name: string; character: string; first_air_date: string; poster_path: string | null; vote_average: number }) => ({
+    // Process TV credits — merge cast + crew, deduplicate, prefer crew for matching department
+    const tvSeen = new Map<number, { id: number; title: string; character: string; year: number; poster: string | null; rating: number }>();
+    
+    for (const c of (tvCredits.cast || []).filter((c: { first_air_date?: string }) => c.first_air_date)) {
+      tvSeen.set(c.id, {
         id: c.id,
         title: c.name,
         character: c.character || "",
-        year: new Date(c.first_air_date).getFullYear(),
+        year: new Date(c.first_air_date!).getFullYear(),
         poster: poster(c.poster_path),
         rating: Math.round(c.vote_average * 10) / 10,
-      }));
+      });
+    }
+    
+    for (const c of (tvCredits.crew || []).filter((c: { first_air_date?: string }) => c.first_air_date)) {
+      const existing = tvSeen.get(c.id);
+      const isDirector = knownDept === "Directing" && c.job === "Director";
+      if (!existing || isDirector) {
+        tvSeen.set(c.id, {
+          id: c.id,
+          title: c.name,
+          character: c.job || "",
+          year: new Date(c.first_air_date!).getFullYear(),
+          poster: poster(c.poster_path),
+          rating: Math.round(c.vote_average * 10) / 10,
+        });
+      }
+    }
+    
+    const tvList = Array.from(tvSeen.values())
+      .sort((a, b) => b.year - a.year)
+      .slice(0, 30);
 
     return {
       id: detail.id,
