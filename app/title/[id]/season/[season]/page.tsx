@@ -57,13 +57,14 @@ export default async function SeasonPage({ params }: Props) {
 
   try {
     // Fetch series detail + season detail in parallel
-    const [seriesData, credits, similar, videos, seasonData, keywordsData] = await Promise.all([
+    const [seriesData, credits, similar, videos, seasonData, keywordsData, aggregateCredits] = await Promise.all([
       get(`/tv/${seriesId}`),
       get(`/tv/${seriesId}/credits`),
       get(`/tv/${seriesId}/similar`),
       get(`/tv/${seriesId}/videos`),
       get(`/tv/${seriesId}/season/${seasonNum}`),
       get(`/tv/${seriesId}/keywords`).catch(() => ({ results: [] })),
+      get(`/tv/${seriesId}/aggregate_credits`),
     ]);
 
     // AniList banner fallback for anime without TMDB backdrop
@@ -75,10 +76,16 @@ export default async function SeasonPage({ params }: Props) {
     // Extract keyword IDs
     const keywordIds: number[] = ((keywordsData as any).results || []).map((k: any) => k.id);
 
-    // Format cast (include directors from crew)
-    const directors = (credits.crew || [])
-      .filter((c: any) => c.job === "Director")
-      .map((d: any) => ({
+    // Format cast — use aggregate_credits for TV directors (crew.jobs array format)
+    const aggCrew = (aggregateCredits as any).crew || [];
+    const directors = aggCrew
+      .filter((c: any) => (c.jobs || []).some((j: any) => j.job === "Director"))
+      .sort((a, b) => {
+        const aEp = (a.jobs || []).find((j: any) => j.job === "Director")?.episode_count || 0;
+        const bEp = (b.jobs || []).find((j: any) => j.job === "Director")?.episode_count || 0;
+        return bEp - aEp;
+      })
+      .map((d) => ({
         id: d.id,
         name: d.name,
         character: "Director",
