@@ -45,7 +45,7 @@ export type AnimeDetail = {
   genres: string[];
   tags: { name: string; rank: number }[];
   studios: string[];
-  staff: { id: number; name: string; role: string }[];
+  staff: { id: number; name: string; role: string; image: string | null }[];
   characters: { name: string; role: string; voiceActor: string; image: string | null }[];
   recommendations: AnimeRecItem[];
   trailer: { id: string; site: string } | null;
@@ -100,6 +100,7 @@ query($id: Int) {
         id
         name { full }
         primaryOccupations
+        image { medium }
       }
     }
     characters(sort: ROLE, perPage: 15) {
@@ -247,6 +248,7 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
       id: s.id,
       name: s.name?.full || "Unknown",
       role: (s.primaryOccupations || [])[0] || "Staff",
+      image: s.image?.medium || null,
     }));
 
     // Studios
