@@ -205,6 +205,33 @@ function formatCredits(credits: { cast?: Array<{ id: number; name: string; chara
   return [...directors, ...cast];
 }
 
+// Aggregate credits (TV only) — crew.jobs is an array, cast.roles is an array
+function formatAggregateCredits(aggregate: {
+  cast?: Array<{ id: number; name: string; roles?: Array<{ character: string; episode_count: number }>; profile_path: string | null }>;
+  crew?: Array<{ id: number; name: string; jobs?: Array<{ job: string; episode_count: number }>; profile_path: string | null }>;
+}) {
+  const directors = (aggregate.crew || [])
+    .filter((c) => (c.jobs || []).some((j) => j.job === "Director"))
+    .sort((a, b) => {
+      const aEp = (a.jobs || []).find((j) => j.job === "Director")?.episode_count || 0;
+      const bEp = (b.jobs || []).find((j) => j.job === "Director")?.episode_count || 0;
+      return bEp - aEp; // most episodes first
+    })
+    .map((d) => ({
+      id: d.id,
+      name: d.name,
+      character: "Director",
+      photo: poster(d.profile_path),
+    }));
+  const cast = (aggregate.cast || []).slice(0, 15).map((c) => ({
+    id: c.id,
+    name: c.name,
+    character: (c.roles || [])[0]?.character || "Unknown",
+    photo: poster(c.profile_path),
+  }));
+  return [...directors, ...cast];
+}
+
 function formatSimilar(
   data: { results?: TmdbItem[] },
   sourceGenreIds: number[] = [],
@@ -512,12 +539,13 @@ export async function getMovieDetail(id: number): Promise<TmdbDetail> {
 }
 
 export async function getTVDetail(id: number): Promise<TmdbDetail> {
-  const [detail, credits, similar, videos, keywords] = await Promise.all([
+  const [detail, credits, similar, videos, keywords, aggregateCredits] = await Promise.all([
     get(`/tv/${id}`),
     get(`/tv/${id}/credits`),
     get(`/tv/${id}/similar`),
     get(`/tv/${id}/videos`),
     getKeywords(id, "tv"),
+    get(`/tv/${id}/aggregate_credits`),
   ]);
 
   const genreIds: number[] = (detail.genres || []).map((g: { id: number }) => g.id);
@@ -545,7 +573,7 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
     createdBy: (detail.created_by || []).map((c: { name: string }) => c.name),
     networks: (detail.networks || []).map((n: { name: string }) => n.name),
     lastAirDate: detail.last_air_date || "",
-    cast: formatCredits(credits),
+    cast: formatAggregateCredits(aggregateCredits),
     similar: mergeSimilar(similarFiltered, discoverResults),
     videos: [] as TmdbDetail["videos"],
   };
