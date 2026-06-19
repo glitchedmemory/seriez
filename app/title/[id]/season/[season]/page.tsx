@@ -80,12 +80,12 @@ export default async function SeasonPage({ params }: Props) {
     const aggCrew = (aggregateCredits as any).crew || [];
     const directors = aggCrew
       .filter((c: any) => (c.jobs || []).some((j: any) => j.job === "Director"))
-      .sort((a, b) => {
+      .sort((a: any, b: any) => {
         const aEp = (a.jobs || []).find((j: any) => j.job === "Director")?.episode_count || 0;
         const bEp = (b.jobs || []).find((j: any) => j.job === "Director")?.episode_count || 0;
         return bEp - aEp;
       })
-      .map((d) => ({
+      .map((d: any) => ({
         id: d.id,
         name: d.name,
         character: "Director",
