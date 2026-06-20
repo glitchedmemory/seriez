@@ -112,6 +112,7 @@ export async function GET(req: NextRequest) {
   // TMDB movies — skip if title matches an anime
   for (const item of movieData?.results || []) {
     if (!item.poster_path) continue;
+    if ((item.genre_ids || []).includes(16) && item.original_language === "ja") continue;
     if (animeTitles.has(normalize(item.title))) continue;
     results.push({
       id: item.id,
@@ -126,6 +127,7 @@ export async function GET(req: NextRequest) {
   // TMDB TV shows — skip if title matches an anime
   for (const item of tvData?.results || []) {
     if (!item.poster_path) continue;
+    if ((item.genre_ids || []).includes(16) && item.original_language === "ja") continue;
     if (animeTitles.has(normalize(item.name))) continue;
     results.push({
       id: item.id,

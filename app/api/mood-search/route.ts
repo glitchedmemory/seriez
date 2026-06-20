@@ -147,6 +147,7 @@ export async function GET(req: NextRequest) {
 
   for (const item of (movieData?.results || []).slice(0, 8)) {
     if (!item.poster_path) continue;
+    if ((item.genre_ids || []).includes(16) && item.original_language === "ja") continue;
     const genreNames = getGenreNames(item.genre_ids);
     const matchCount = countGenreMatches(item.genre_ids, config.with_genres);
     allResults.push({
@@ -166,6 +167,7 @@ export async function GET(req: NextRequest) {
   for (const item of (tvData?.results || []).slice(0, 8)) {
     if (!item.poster_path) continue;
     if (allResults.find(r => r.title === item.name)) continue; // dedup
+    if ((item.genre_ids || []).includes(16) && item.original_language === "ja") continue;
     const genreNames = getGenreNames(item.genre_ids);
     const matchCount = countGenreMatches(item.genre_ids, config.with_genres);
     allResults.push({
