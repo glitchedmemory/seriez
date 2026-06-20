@@ -1074,7 +1074,7 @@ export async function getAnimeUpcoming(): Promise<{ id: number; title: string; p
     const res = await fetch(ANILIST_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: UPCOMING_QUERY, variables: { page: 1, perPage: 10 } }),
+      body: JSON.stringify({ query: UPCOMING_QUERY, variables: { page: 1, perPage: 4 } }),
       next: { revalidate: 3600 },
     });
     if (!res.ok) return [];
