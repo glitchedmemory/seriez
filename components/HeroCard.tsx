@@ -268,9 +268,15 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
         ) : (
           <a href="/signup" className="mt-3 mx-4 md:mx-0 block bg-bg-card rounded-xl overflow-hidden hover:ring-1 hover:ring-accent/30 transition-all" style={{ minHeight: 100 }}>
             <img
-              src="/seriez-banner.jpg?v=2"
+              src="/seriez-banner.jpg?v=3"
               alt="Seriez — Never lose track of what to watch"
-              className="w-full h-auto block object-contain mx-auto"
+              className="w-full h-auto block object-contain mx-auto md:hidden"
+              style={{ maxHeight: 100 }}
+            />
+            <img
+              src="/seriez-banner-desktop.jpg?v=2"
+              alt="Seriez — Never lose track of what to watch"
+              className="w-full h-auto hidden md:block object-contain mx-auto"
               style={{ maxHeight: 100 }}
             />
           </a>
