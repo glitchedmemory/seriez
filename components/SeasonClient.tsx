@@ -113,6 +113,9 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const visibleCast = showAllCast ? data.cast : data.cast.slice(0, 6);
+  const directors = data.cast.filter((c: { character: string }) => c.character === "Director");
+  const actors = data.cast.filter((c: { character: string }) => c.character !== "Director");
+  const visibleActors = showAllCast ? actors : actors.slice(0, 6);
   const totalEpPages = Math.ceil(data.episodes.length / EPISODES_PER_PAGE);
   const visibleEpisodes = data.episodes.slice((currentPage - 1) * EPISODES_PER_PAGE, currentPage * EPISODES_PER_PAGE);
 
@@ -809,12 +812,40 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
           </section>
         )}
 
+        {/* Directors */}
+        {directors.length > 0 && (
+          <section className="mt-6">
+            <h2 className="text-lg font-semibold text-text-primary mb-3">Directors</h2>
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+              {directors.map((c: any) => (
+                <a
+                  key={c.name}
+                  href={`/person/${c.id}`}
+                  className="bg-bg-card rounded-xl p-2 text-center hover:bg-bg-surface transition-colors cursor-pointer"
+                >
+                  <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full overflow-hidden bg-bg-surface mb-2 relative">
+                    <PosterImage
+                      src={c.photo}
+                      alt={c.name}
+                      fill
+                      className="rounded-full"
+                      sizes="(max-width: 768px) 48px, 64px"
+                    />
+                  </div>
+                  <p className="text-xs font-medium text-text-primary truncate">{c.name}</p>
+                  <p className="text-[10px] text-text-secondary truncate">Director</p>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Cast */}
-        {data.cast.length > 0 && (
+        {actors.length > 0 && (
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-text-primary mb-3">Cast</h2>
             <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-              {visibleCast.map((c) => (
+              {visibleActors.map((c: any) => (
                 <a
                   key={c.name}
                   href={`/person/${c.id}`}
@@ -834,12 +865,12 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 </a>
               ))}
             </div>
-            {data.cast.length > 6 && (
+            {actors.length > 6 && (
               <button
                 onClick={() => setShowAllCast(!showAllCast)}
                 className="mt-3 text-xs text-accent hover:underline mx-auto block"
               >
-                {showAllCast ? "Show less" : `Show all ${data.cast.length} cast members`}
+                {showAllCast ? "Show less" : `Show all ${actors.length} cast members`}
               </button>
             )}
           </section>
