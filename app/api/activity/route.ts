@@ -14,7 +14,10 @@ const ANILIST_API = "https://graphql.anilist.co";
 
 // Fixed seed — computed fresh per request so timestamps progress in real time
 function getVirtualActivities(): Activity[] {
-  const SEED_NOW = Date.now();
+  // Fixed seed — midnight today so timestamps age naturally in real time (no reset on refresh)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const SEED_NOW = today.getTime();
   const h = (hr: number) => new Date(SEED_NOW - hr * 3600000).toISOString();
   const d = (days: number) => new Date(SEED_NOW - days * 86400000).toISOString();
 
