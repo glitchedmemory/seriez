@@ -242,7 +242,7 @@ function CommentTree({
   };
 
   return (
-    <div className={isTopLevel ? "space-y-2 mb-3" : "ml-6 mt-1.5 space-y-1.5"}>
+    <div className={isTopLevel ? "space-y-2 mb-3 ml-6" : "ml-6 mt-1.5 space-y-1.5"}>
       {visible.map((c: any, idx: number) => {
         // Consecutive same-author detection
         const prevAuthor = idx > 0 ? visible[idx - 1].username : null;
