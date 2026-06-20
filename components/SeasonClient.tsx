@@ -69,6 +69,7 @@ interface SeasonData {
     airDate: string;
     runtime: number;
   }[];
+  daysUntil?: number | null;
 }
 
 function formatRuntime(minutes: number) {
@@ -474,7 +475,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
               </button>
               <button
                 onClick={() => handleTrack("watching")}
-                disabled={trackLoading}
+                disabled={trackLoading || (data.daysUntil != null && data.daysUntil > 0)}
                 className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                 style={{
                   color: isWatching ? "#14b8a6" : "var(--color-text-secondary)",
@@ -487,7 +488,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
               </button>
               <button
                 onClick={() => handleTrack("completed")}
-                disabled={trackLoading}
+                disabled={trackLoading || (data.daysUntil != null && data.daysUntil > 0)}
                 className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                 style={{
                   color: isWatched ? "#14b8a6" : "var(--color-text-secondary)",

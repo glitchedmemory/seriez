@@ -50,6 +50,7 @@ export type AnimeDetail = {
   recommendations: AnimeRecItem[];
   trailer: { id: string; site: string } | null;
   relations: { id: number; title: string; type: string; format: string; seasonYear: number | null }[];
+  daysUntil?: number | null;  // days until release (upcoming items only)
 };
 
 export type AnimeRecItem = {
@@ -85,6 +86,7 @@ query($id: Int) {
     averageScore
     popularity
     seasonYear
+    startDate { year month day }
     season
     format
     status
@@ -323,6 +325,13 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
       trailer: null as { id: string; site: string } | null,
       relations,
     };
+    // Compute daysUntil for upcoming anime
+    const sd = m.startDate;
+    if (sd?.year && sd?.month && sd?.day) {
+      const release = new Date(sd.year, sd.month - 1, sd.day);
+      const diff = Math.ceil((release.getTime() - Date.now()) / 86400000);
+      if (diff > 0) result.daysUntil = diff;
+    }
     // Kitsu backdrop fallback when AniList bannerImage is null
     if (!result.backdrop && result.year) {
       result.backdrop = (await fetchKitsuBackdrop(result.title, result.year, result.titleRomaji)) || "";
@@ -1063,6 +1072,7 @@ query UpcomingAnime($page: Int, $perPage: Int) {
       bannerImage
       averageScore
       seasonYear
+      startDate { year month day }
       description
       genres
     }
@@ -1080,7 +1090,15 @@ export async function getAnimeUpcoming(): Promise<{ id: number; title: string; p
     if (!res.ok) return [];
     const json = await res.json();
     const media = json.data?.Page?.media || [];
-    return media.map((m: any) => ({
+    return media.map((m: any) => {
+      const sd = m.startDate;
+      let daysUntil: number | null = null;
+      if (sd?.year && sd?.month && sd?.day) {
+        const release = new Date(sd.year, sd.month - 1, sd.day);
+        const diff = Math.ceil((release.getTime() - Date.now()) / 86400000);
+        daysUntil = diff > 0 ? diff : null;
+      }
+      return {
       id: m.id,
       title: m.title?.english || m.title?.romaji || "Unknown",
       poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
@@ -1089,9 +1107,9 @@ export async function getAnimeUpcoming(): Promise<{ id: number; title: string; p
       year: m.seasonYear || 0,
       type: "anime" as const,
       genres: (m.genres || []).slice(0, 5),
-      daysUntil: null,
+      daysUntil,
       overview: (m.description || "").replace(/<[^>]*>/g, "").slice(0, 300),
-    }));
+    };});
   } catch {
     return [];
   }

@@ -546,20 +546,20 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                     </button>
                     <button
                       onClick={() => handleTrack("watching")}
-                      disabled={trackLoading}
+                      disabled={trackLoading || (detail.daysUntil != null && detail.daysUntil > 0)}
                       className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                       style={{
                         color: isWatching ? "#14b8a6" : "var(--color-text-secondary)",
                         backgroundColor: isWatching ? "#14b8a610" : "var(--color-bg-card)",
                         border: isWatching ? "1px solid #14b8a640" : "1px solid var(--color-border)",
                       }}
-                    >
+                      >
                       <PlayIcon active={isWatching} />
                       WATCHING
-                    </button>
-                    <button
+                      </button>
+                      <button
                       onClick={() => handleTrack("completed")}
-                      disabled={trackLoading}
+                      disabled={trackLoading || (detail.daysUntil != null && detail.daysUntil > 0)}
                       className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                       style={{
                         color: isWatched ? "#14b8a6" : "var(--color-text-secondary)",

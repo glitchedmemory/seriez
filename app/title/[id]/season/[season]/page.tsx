@@ -275,6 +275,12 @@ export default async function SeasonPage({ params }: Props) {
       episodes,
     };
 
+    // Compute daysUntil for upcoming TV seasons
+    if (seriesData.first_air_date) {
+      const diff = Math.ceil((new Date(seriesData.first_air_date).getTime() - Date.now()) / 86400000);
+      if (diff > 0) data.daysUntil = diff;
+    }
+
     return <SeasonClient data={data} />;
   } catch (e: any) {
     console.error("Season page error:", e.message);
