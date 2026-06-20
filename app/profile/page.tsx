@@ -670,13 +670,14 @@ export default function ProfilePage() {
                 onClick={async () => {
                   if (!isFavoriteMode && effectiveUsername) {
                     try {
+                      const uid = user?.id || "";
                       if (favoriteDirectors.length === 0) {
-                        const dRes = await fetch(`/api/persons/likes?username=${encodeURIComponent(effectiveUsername)}&role=director`);
+                        const dRes = await fetch(`/api/persons/likes?username=${encodeURIComponent(effectiveUsername)}&role=director&userId=${uid}`);
                         const dData = await dRes.json();
                         setFavoriteDirectors(dData.likes || []);
                       }
                       if (favoriteActors.length === 0) {
-                        const aRes = await fetch(`/api/persons/likes?username=${encodeURIComponent(effectiveUsername)}&role=actor`);
+                        const aRes = await fetch(`/api/persons/likes?username=${encodeURIComponent(effectiveUsername)}&role=actor&userId=${uid}`);
                         const aData = await aRes.json();
                         setFavoriteActors(aData.likes || []);
                       }
