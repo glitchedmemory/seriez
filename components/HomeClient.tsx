@@ -341,15 +341,6 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
             </PosterGrid>
           </section>
 
-          {/* ── AdSense Placeholder ── */}
-          <div className="px-4 md:px-0 my-6">
-            <div className="w-full h-[100px] rounded-xl border-2 border-dashed border-accent/40 bg-bg-card/50 flex flex-col items-center justify-center text-text-secondary text-xs gap-1">
-              <span className="text-base">📢</span>
-              <span className="font-medium text-text-secondary">AdSense Banner</span>
-              <span>320×100 / 300×250 responsive</span>
-            </div>
-          </div>
-
           <section>
             <div className="px-4 md:px-0 mb-3">
               <div className="flex items-center gap-3">
