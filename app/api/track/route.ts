@@ -88,19 +88,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to resolve user" }, { status: 500 });
     }
 
+    // Preserve existing watched_at — only set on first completion
+    const existingWatchDate = status === "completed"
+      ? ((await supabaseAdmin
+          .from("media_trackings")
+          .select("watched_at")
+          .eq("username", userId)
+          .eq("tmdb_id", tmdbId)
+          .eq("media_type", mediaType)
+          .maybeSingle())?.data?.watched_at ?? undefined)
+      : undefined;
+
+    const upsertData: Record<string, unknown> = {
+      username: userId,
+      tmdb_id: tmdbId,
+      media_type: mediaType,
+      status,
+      rating: rating ?? null,
+      progress: progress ?? null,
+    };
+    // Set watched_at only on first completion (existingWatchDate is null or undefined)
+    if (status === "completed" && !existingWatchDate) {
+      upsertData.watched_at = new Date().toISOString();
+    } else if (status === "completed" && existingWatchDate) {
+      upsertData.watched_at = existingWatchDate;
+    }
+
     const { data, error } = await supabaseAdmin
       .from("media_trackings")
-      .upsert(
-        {
-          username: userId,
-          tmdb_id: tmdbId,
-          media_type: mediaType,
-          status,
-          rating: rating ?? null,
-          progress: progress ?? null,
-        },
-        { onConflict: "username,tmdb_id,media_type" }
-      )
+      .upsert(upsertData, { onConflict: "username,tmdb_id,media_type" })
       .select("*")
       .single();
 
