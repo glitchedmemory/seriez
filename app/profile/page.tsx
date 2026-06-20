@@ -802,9 +802,9 @@ export default function ProfilePage() {
       )}
 
       {/* ── Insights View ── */}
-      {activeView === "insights" && (
+      {activeView === "insights" && isOwn && (
         <div className="px-4 mt-5 space-y-6 pb-32">
-          {!user || !isOwn ? (
+          {!user ? (
             /* Guest: sign-in prompt */
             <div className="bg-bg-card border border-border rounded-2xl p-8 text-center">
               <span className="text-5xl block mb-4">🔒</span>
@@ -949,9 +949,9 @@ export default function ProfilePage() {
       )}
 
       {/* ── Reviews View ── */}
-      {activeView === "reviews" && (
+      {activeView === "reviews" && isOwn && (
         <div className="px-4 mt-5 pb-32">
-          {!user || !isOwn ? (
+          {!user ? (
             <div className="bg-bg-card border border-border rounded-2xl p-8 text-center">
               <span className="text-5xl block mb-4">🔒</span>
               <h2 className="text-lg font-bold text-text-primary mb-2">Sign in to see reviews</h2>
