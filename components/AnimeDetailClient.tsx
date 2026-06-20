@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { AnimeDetail, AnimeRecItem, AnimeEpisode } from "@/lib/anilist";
+import { getAnimeSagas, type AnimeSaga } from "@/lib/anilist";
 import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
@@ -82,8 +83,18 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
   const allCast = detail.characters;
   const visibleDirectors = showAllDirectors ? staffDirectors : staffDirectors.slice(0, 5);
   const visibleCast = showAllCast ? allCast : allCast.slice(0, 6);
-  const totalPages = Math.ceil(episodes.length / EPISODES_PER_PAGE);
-  const visibleEpisodes = episodes.slice((currentPage - 1) * EPISODES_PER_PAGE, currentPage * EPISODES_PER_PAGE);
+
+  // Saga filtering (One Piece)
+  const sagas = getAnimeSagas(detail.id);
+  const [selectedSaga, setSelectedSaga] = useState<AnimeSaga | null>(null);
+  const filteredEpisodes = selectedSaga
+    ? episodes.filter(ep => ep.number >= selectedSaga.start && ep.number <= selectedSaga.end)
+    : episodes;
+  const totalPages = Math.ceil(filteredEpisodes.length / EPISODES_PER_PAGE);
+  const visibleEpisodes = filteredEpisodes.slice((currentPage - 1) * EPISODES_PER_PAGE, currentPage * EPISODES_PER_PAGE);
+
+  // Reset page when saga changes
+  useEffect(() => { setCurrentPage(1); }, [selectedSaga]);
 
   // Fetch current tracking status + collections on mount
   useEffect(() => {
@@ -739,6 +750,26 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         {/* Episodes — interactive with watch tracking */}
         {episodes.length > 0 ? (
           <section className="mt-6">
+            {/* Saga tabs */}
+            {sagas && (
+              <div className="flex gap-1.5 mb-3 overflow-x-auto hide-scrollbar">
+                <button
+                  onClick={() => setSelectedSaga(null)}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
+                    !selectedSaga ? "bg-accent text-white" : "bg-bg-card text-text-secondary hover:text-text-primary"
+                  }`}
+                >All</button>
+                {sagas.map((s) => (
+                  <button
+                    key={s.name}
+                    onClick={() => setSelectedSaga(s)}
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all whitespace-nowrap ${
+                      selectedSaga?.name === s.name ? "bg-accent text-white" : "bg-bg-card text-text-secondary hover:text-text-primary"
+                    }`}
+                  >{s.name}</button>
+                ))}
+              </div>
+            )}
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold text-text-primary">
                 Episodes · {episodes.length}
