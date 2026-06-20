@@ -128,9 +128,9 @@ export default function AdminReportsPage() {
                 </p>
                 {verdict && (
                   <div className={`mt-2 text-xs p-2 rounded ${
-                    verdict.includes("삭제") || verdict.includes("DELETE")
+                    verdict.includes("DELETE")
                       ? "bg-red-900/30 text-red-300"
-                      : verdict.includes("복구") || verdict.includes("RESTORE")
+                      : verdict.includes("RESTORE")
                       ? "bg-green-900/30 text-green-300"
                       : "bg-yellow-900/30 text-yellow-300"
                   }`}>

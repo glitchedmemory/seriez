@@ -14,7 +14,7 @@ const TMDB_KEY = process.env.TMDB_API_KEY;
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const username = await resolveUsername(req);
+  const username = searchParams.get("username") || await resolveUsername(req);
   const status = searchParams.get("status");
 
   if (!username) {

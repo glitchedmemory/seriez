@@ -337,7 +337,7 @@ async function scrapeKR(): Promise<TmdbResult[]> {
         overview: "",
         genres: [],
         daysUntil: null,
-        boxOffice: { gross: `${item.audiCnt?.toLocaleString() || "?"}명` },
+        boxOffice: { gross: `${item.audiCnt?.toLocaleString() || "?"} viewers` },
       } as unknown as TmdbResult);
     }
     return results;

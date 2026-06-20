@@ -664,16 +664,16 @@ export async function GET(
       styleStatus: styleReady
         ? null
         : ratedCount > 0
-          ? `시청 ${watchedCount}/5 작품 — ${5 - watchedCount}개 더 시청하면 분석돼요`
+          ? `Watched ${watchedCount}/5 titles — watch ${5 - watchedCount} more to analyze`
           : watchedCount >= 5
-            ? `평점 ${ratedCount}/1 — 평점 1개만 남겨보세요`
-            : `평점 ${ratedCount}/1 · 시청 ${watchedCount}/5`,
+            ? `Rated ${ratedCount}/1 — rate at least 1 title`
+            : `Rated ${ratedCount}/1 · Watched ${watchedCount}/5`,
       taste: tasteReady ? tasteLabel : "Analyzing...",
       tasteDescription: tasteReady ? tasteDesc : "The more you watch and rate, the clearer your taste becomes.",
       tasteReady,
       tasteStatus: tasteReady
         ? null
-        : "장르 데이터 수집 중...",
+        : "Collecting genre data...",
     };
 
     return NextResponse.json({
