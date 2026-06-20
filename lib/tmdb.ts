@@ -101,20 +101,17 @@ export async function getTrending(): Promise<TmdbResult[]> {
 }
 
 export async function getUpcoming(): Promise<TmdbResult[]> {
-  // V4: movies + TV with anime filter, vote_count gating, TV discover via first_air_date range
+  // V5: top 5 movies + top 5 TV by popularity, release_date/first_air_date >= today
   const today = new Date();
-  const past30 = new Date(today); past30.setDate(past30.getDate() - 30);
   const future90 = new Date(today); future90.setDate(future90.getDate() + 90);
   const todayStr = today.toISOString().slice(0, 10);
-  const past30Str = past30.toISOString().slice(0, 10);
   const future90Str = future90.toISOString().slice(0, 10);
   const [movieData, tvData] = await Promise.all([
-    get("/movie/upcoming", { region: "US", sort_by: "popularity.desc", "vote_count.gte": "100" }),
+    get("/movie/upcoming", { region: "US", sort_by: "popularity.desc" }),
     get("/discover/tv", {
       "first_air_date.gte": todayStr,
       "first_air_date.lte": future90Str,
       sort_by: "popularity.desc",
-      "vote_count.gte": "0",
     }),
   ]);
 
@@ -127,23 +124,18 @@ export async function getUpcoming(): Promise<TmdbResult[]> {
     .filter((item) => {
       if (!item.daysUntil) return item.year === 0;
       return item.daysUntil > 0;
-    })
-    .filter((item) => item.rating > 0);
+    });
 
-  // For TV, keep shows premiered in last 30 days or upcoming 90 days
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - 30);
   const tvs = (tvData.results as TmdbItem[])
     .filter(filterAnime)
     .map(format)
     .filter((item) => {
       if (!item.daysUntil) return item.year === 0;
-      return item.daysUntil > -30; // allow up to 30 days in the past
-    });
+      return item.daysUntil > 0;
+    })
+    .slice(0, 5);
 
-  // Merge: top 10 movies + top 4 TV (by popularity via rating proxy), return 14
-  const merged = [...movies.slice(0, 10), ...tvs.slice(0, 4)];
-  return merged;
+  return [...movies.slice(0, 5), ...tvs];
 }
 
 export async function getNowPlaying(region: string = "US"): Promise<TmdbResult[]> {

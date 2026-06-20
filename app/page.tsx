@@ -28,5 +28,12 @@ export default async function Home() {
     // fallback: empty arrays, HomeClient shows empty states
   }
 
-  return <HomeClient trending={trending} upcoming={upcoming} animeUpcoming={animeUpcoming} boxOffice={boxOffice} region={region} randomSeed={Date.now()} />;
+  // Merge & shuffle: movies + TV + anime, random order per request
+  const allUpcoming = [...upcoming, ...animeUpcoming];
+  for (let i = allUpcoming.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allUpcoming[i], allUpcoming[j]] = [allUpcoming[j], allUpcoming[i]];
+  }
+
+  return <HomeClient trending={trending} upcoming={allUpcoming} animeUpcoming={[]} boxOffice={boxOffice} region={region} randomSeed={Date.now()} />;
 }
