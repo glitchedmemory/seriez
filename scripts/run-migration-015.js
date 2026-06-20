@@ -1,17 +1,26 @@
 // Run Supabase SQL migration
+// Usage: node scripts/run-migration-015.js [project-root]
 const { execSync } = require('child_process');
+const path = require('path');
 
-// Install pg if not available
-try { require('pg'); } catch { execSync('npm install pg', { cwd: __dirname, stdio: 'inherit' }); }
+const projectRoot = process.argv[2] || path.resolve(__dirname, '..');
+
+// Install pg if not available (look in project node_modules first)
+try { require(path.join(projectRoot, 'node_modules/pg')); } 
+catch { try { require('pg'); } catch { execSync('npm install pg', { cwd: projectRoot, stdio: 'inherit' }); } }
 
 const { Client } = require('pg');
 const { readFileSync } = require('fs');
-const path = require('path');
 
 // Read env
-const projectRoot = path.resolve(__dirname, '..');
 const envContent = readFileSync(path.join(projectRoot, '.env.local'), 'utf-8');
-const getEnv = (key) => envContent.split('\n').find(l => l.startsWith(key + '='))?.split('=')[1]?.trim() || '';
+
+function getEnv(key) {
+  const line = envContent.split('\n').find(l => l.startsWith(key + '='));
+  if (!line) return '';
+  const val = line.split('=').slice(1).join('='); // handle values with =
+  return val.replace(/["'\r\n]/g, '').trim();
+}
 
 const serviceKey = getEnv('SUPABASE_SERVICE_ROLE_KEY');
 const sql = readFileSync(path.join(projectRoot, 'supabase/migrations/015_anti_spam.sql'), 'utf-8');
@@ -20,10 +29,10 @@ if (!serviceKey) { console.error('Missing SUPABASE_SERVICE_ROLE_KEY'); process.e
 
 async function run() {
   const client = new Client({
-    host: 'aws-0-us-west-1.pooler.supabase.com',
-    port: 6543,
+    host: 'db.zntyjtjodyzizoafxord.supabase.co',
+    port: 5432,
     database: 'postgres',
-    user: 'postgres.zntyjtjodyzizoafxord',
+    user: 'postgres',
     password: serviceKey,
     ssl: { rejectUnauthorized: false },
     connectionTimeoutMillis: 10000,
