@@ -1,0 +1,62 @@
+<svg width="320" height="100" viewBox="0 0 320 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f0f1a"/>
+      <stop offset="60%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#16162a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.85" cy="0.15" r="0.55">
+      <stop offset="0%" stop-color="#14b8a6" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#14b8a6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="btn" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#0d9488"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Card background -->
+  <rect x="0" y="0" width="320" height="100" rx="12" ry="12" fill="url(#bg)" stroke="#2d2d4a" stroke-width="1"/>
+  <rect x="0" y="0" width="320" height="100" rx="12" ry="12" fill="url(#glow)"/>
+  
+  <!-- Top accent line -->
+  <rect x="14" y="0" width="64" height="2" rx="1" fill="#14b8a6" opacity="0.5"/>
+
+  <!-- 📺 icon -->
+  <text x="14" y="36" font-size="24" opacity="0.85">📺</text>
+
+  <!-- Line 1: Track any show -->
+  <text x="46" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="11.5" font-weight="600" fill="#e8e8ed" letter-spacing="0.2">
+    Track any show
+  </text>
+  
+  <!-- Arrow separator -->
+  <text x="141" y="30" font-family="system-ui, sans-serif" font-size="10" fill="#14b8a6" opacity="0.8">→</text>
+  
+  <text x="154" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="11.5" font-weight="600" fill="#e8e8ed" letter-spacing="0.2">
+    Get personalized
+  </text>
+
+  <!-- Line 2: "For You" recommendations -->
+  <text x="14" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="11.5" font-weight="700" fill="#14b8a6">
+    "For You" recommendations
+  </text>
+
+  <!-- Sub-description -->
+  <text x="14" y="72" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#9ca3af" letter-spacing="0.1">
+    Based on what you watch &amp; rate
+  </text>
+
+  <!-- CTA button -->
+  <rect x="228" y="60" width="76" height="26" rx="13" fill="url(#btn)" opacity="0.92"/>
+  <text x="266" y="78" font-family="system-ui, -apple-system, sans-serif" font-size="10.5" font-weight="600" fill="#fff" text-anchor="middle" letter-spacing="0.2">
+    Try It →
+  </text>
+
+  <!-- Decorative dots -->
+  <circle cx="295" cy="18" r="1.5" fill="#14b8a6" opacity="0.12"/>
+  <circle cx="308" cy="32" r="1" fill="#14b8a6" opacity="0.08"/>
+  <circle cx="282" cy="52" r="1.5" fill="#14b8a6" opacity="0.1"/>
+  <circle cx="305" cy="70" r="1" fill="#14b8a6" opacity="0.08"/>
+  <circle cx="290" cy="88" r="1.5" fill="#14b8a6" opacity="0.1"/>
+</svg>
