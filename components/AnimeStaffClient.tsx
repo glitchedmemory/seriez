@@ -70,6 +70,8 @@ export default function AnimeStaffClient({ staff }: { staff: StaffDetail }) {
     if (!session) return;
 
     try {
+      const kf = (staff.knownFor || "").toLowerCase();
+      const personRole = kf.includes("actor") && kf.includes("director") ? "both" : kf.includes("director") ? "director" : "actor";
       const res = await fetch("/api/persons/like", {
         method: "POST",
         headers: {
@@ -81,7 +83,7 @@ export default function AnimeStaffClient({ staff }: { staff: StaffDetail }) {
           personId: staff.id,
           personName: staff.name,
           personImage: staff.photo,
-          personRole: staff.knownFor?.toLowerCase().includes("director") ? "director" : "actor",
+          personRole,
         }),
       });
       const data = await res.json();
@@ -131,7 +133,7 @@ export default function AnimeStaffClient({ staff }: { staff: StaffDetail }) {
             <button
               onClick={handleLike}
               disabled={!user}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-colors ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full border text-base transition-colors ${
                 liked
                   ? "bg-red-500/10 border-red-500/30 text-red-500"
                   : "bg-bg-card border-border text-text-secondary hover:border-red-500/30 hover:text-red-500"
@@ -139,7 +141,7 @@ export default function AnimeStaffClient({ staff }: { staff: StaffDetail }) {
               title={user ? (liked ? "Unlike" : "Like") : "Sign in to like"}
             >
               <span>{liked ? "❤️" : "🤍"}</span>
-              <span className="text-xs font-medium">{likeCount}</span>
+              <span className="text-sm font-medium">{likeCount}</span>
             </button>
           </div>
         </div>
