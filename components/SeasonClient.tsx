@@ -86,6 +86,7 @@ function formatDate(iso: string) {
 
 export default function SeasonClient({ data }: { data: SeasonData }) {
   const [showAllCast, setShowAllCast] = useState(false);
+  const [showAllDirectors, setShowAllDirectors] = useState(false);
   const [trackStatus, setTrackStatus] = useState<string | null>(null);
   const [trackLoading, setTrackLoading] = useState(false);
   const [rating, setRating] = useState(0);
@@ -114,6 +115,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
 
   const visibleCast = showAllCast ? data.cast : data.cast.slice(0, 6);
   const directors = data.cast.filter((c: { character: string }) => c.character === "Director");
+  const visibleDirectors = showAllDirectors ? directors : directors.slice(0, 5);
   const actors = data.cast.filter((c: { character: string }) => c.character !== "Director");
   const visibleActors = showAllCast ? actors : actors.slice(0, 6);
   const totalEpPages = Math.ceil(data.episodes.length / EPISODES_PER_PAGE);
@@ -817,7 +819,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-text-primary mb-3">Directors</h2>
             <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-              {directors.map((c: any) => (
+              {visibleDirectors.map((c: any) => (
                 <a
                   key={c.name}
                   href={`/person/${c.id}`}
@@ -837,6 +839,14 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 </a>
               ))}
             </div>
+            {directors.length > 5 && (
+              <button
+                onClick={() => setShowAllDirectors(!showAllDirectors)}
+                className="mt-3 text-xs text-accent hover:underline mx-auto block"
+              >
+                {showAllDirectors ? "Show less" : `Show all ${directors.length} directors`}
+              </button>
+            )}
           </section>
         )}
 

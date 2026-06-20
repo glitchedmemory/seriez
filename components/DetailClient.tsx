@@ -56,6 +56,7 @@ function formatDate(iso: string) {
 
 export default function DetailClient({ detail }: { detail: TmdbDetail }) {
   const [showAllCast, setShowAllCast] = useState(false);
+  const [showAllDirectors, setShowAllDirectors] = useState(false);
   const [trackStatus, setTrackStatus] = useState<string | null>(null);
   const [trackLoading, setTrackLoading] = useState(false);
   const [rating, setRating] = useState(0);
@@ -77,6 +78,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
 
   const visibleCast = showAllCast ? detail.cast : detail.cast.slice(0, 6);
   const directors = detail.cast.filter((c: { character: string }) => c.character === "Director");
+  const visibleDirectors = showAllDirectors ? directors : directors.slice(0, 5);
   const actors = detail.cast.filter((c: { character: string }) => c.character !== "Director");
   const visibleActors = showAllCast ? actors : actors.slice(0, 6);
 
@@ -538,7 +540,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-text-primary mb-3">Director{directors.length > 1 ? "s" : ""}</h2>
             <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-              {directors.map((c: any) => (
+              {visibleDirectors.map((c: any) => (
                 <a
                   key={c.name}
                   href={`/person/${c.id}`}
@@ -562,6 +564,14 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
                 </a>
               ))}
             </div>
+            {directors.length > 5 && (
+              <button
+                onClick={() => setShowAllDirectors(!showAllDirectors)}
+                className="mt-3 text-xs text-accent hover:underline mx-auto block"
+              >
+                {showAllDirectors ? "Show less" : `Show all ${directors.length} directors`}
+              </button>
+            )}
           </section>
         )}
 

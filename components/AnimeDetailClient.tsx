@@ -44,6 +44,7 @@ function formatDate(iso: string) {
 
 export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeDetail; episodes: AnimeEpisode[] }) {
   const [showAllCast, setShowAllCast] = useState(false);
+  const [showAllDirectors, setShowAllDirectors] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const EPISODES_PER_PAGE = 50;
   const [trackStatus, setTrackStatus] = useState<string | null>(null);
@@ -79,6 +80,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       staffId: s.id,
     }));
   const allCast = detail.characters;
+  const visibleDirectors = showAllDirectors ? staffDirectors : staffDirectors.slice(0, 5);
   const visibleCast = showAllCast ? allCast : allCast.slice(0, 6);
   const totalPages = Math.ceil(episodes.length / EPISODES_PER_PAGE);
   const visibleEpisodes = episodes.slice((currentPage - 1) * EPISODES_PER_PAGE, currentPage * EPISODES_PER_PAGE);
@@ -895,7 +897,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-text-primary mb-3">Director{staffDirectors.length > 1 ? "s" : ""}</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {staffDirectors.map((d: any) => (
+              {visibleDirectors.map((d: any) => (
                 <a
                   key={`staff-${d.staffId}`}
                   href={`/person/anilist/${d.staffId}`}
@@ -911,6 +913,14 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                 </a>
               ))}
             </div>
+            {staffDirectors.length > 5 && (
+              <button
+                onClick={() => setShowAllDirectors(!showAllDirectors)}
+                className="mt-3 text-xs text-accent hover:underline mx-auto block"
+              >
+                {showAllDirectors ? "Show less" : `Show all ${staffDirectors.length} directors`}
+              </button>
+            )}
           </section>
         )}
 
