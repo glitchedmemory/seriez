@@ -12,11 +12,9 @@ const TMDB_API = "https://api.themoviedb.org/3";
 const TMDB_KEY = process.env.TMDB_API_KEY;
 const ANILIST_API = "https://graphql.anilist.co";
 
-// Fixed seed — computed once at server start so timestamps don't reset on refresh
-const SEED_NOW = Date.now();
-
-// Virtual activity data — shows full features when no real follows exist
+// Fixed seed — computed fresh per request so timestamps progress in real time
 function getVirtualActivities(): Activity[] {
+  const SEED_NOW = Date.now();
   const h = (hr: number) => new Date(SEED_NOW - hr * 3600000).toISOString();
   const d = (days: number) => new Date(SEED_NOW - days * 86400000).toISOString();
 
