@@ -151,8 +151,14 @@ export default function AnimeStaffClient({ staff }: { staff: StaffDetail }) {
       {staff.description && (
         <section className="mt-6">
           <h2 className="text-lg font-semibold text-text-primary mb-2">About</h2>
-          <p className="text-sm text-[#d1d5db] light:text-text-primary leading-relaxed"
-             dangerouslySetInnerHTML={{ __html: staff.description.replace(/<[^>]*>/g, " ") }} />
+          <p className="text-sm text-[#d1d5db] light:text-text-primary leading-relaxed">
+            {staff.description
+              .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Markdown links → display text
+              .replace(/\[\[?([^\]]+)\]\]?/g, '$1')    // [[text]] or [text] → text
+              .replace(/<[^>]*>/g, '')                  // strip any leftover HTML tags
+              .replace(/\n{2,}/g, '\n\n')               // normalize multiple newlines
+              .trim()}
+          </p>
         </section>
       )}
 
