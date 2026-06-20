@@ -752,7 +752,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           <section className="mt-6">
             {/* Saga tabs */}
             {sagas && (
-              <div className="flex gap-1.5 mb-3 overflow-x-auto hide-scrollbar">
+              <div className="flex gap-1.5 mb-3 overflow-x-auto">
                 <button
                   onClick={() => setSelectedSaga(null)}
                   className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
@@ -772,17 +772,17 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
             )}
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold text-text-primary">
-                Episodes · {episodes.length}
+                Episodes · {filteredEpisodes.length}
               </h2>
               <div className="flex items-center gap-3">
                 {totalPages > 1 && (
                   <span className="text-[11px] text-text-secondary">
-                    {(currentPage - 1) * EPISODES_PER_PAGE + 1}–{Math.min(currentPage * EPISODES_PER_PAGE, episodes.length)}
+                    {(currentPage - 1) * EPISODES_PER_PAGE + 1}–{Math.min(currentPage * EPISODES_PER_PAGE, filteredEpisodes.length)}
                   </span>
                 )}
                 {watchedCount > 0 && (
                   <span className="text-xs text-text-secondary">
-                    Watched {watchedCount}/{episodes.length}
+                    Watched {watchedCount}/{filteredEpisodes.length}
                   </span>
                 )}
               </div>
