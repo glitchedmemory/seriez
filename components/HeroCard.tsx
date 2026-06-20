@@ -267,15 +267,12 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
           </a>
         ) : (
           <div className="mt-3 mx-4 md:mx-0 bg-bg-card rounded-xl overflow-hidden" style={{ minHeight: 100 }}>
-            <picture>
-              <source srcSet="/seriez-banner-desktop.jpg" media="(min-width: 768px)" />
-              <img
-                src="/seriez-banner.jpg"
-                alt="Seriez — Never lose track of what to watch"
-                className="w-full h-auto block object-contain mx-auto"
-                style={{ maxHeight: 100 }}
-              />
-            </picture>
+            <img
+              src="/seriez-banner.jpg?v=2"
+              alt="Seriez — Never lose track of what to watch"
+              className="w-full h-auto block object-contain mx-auto"
+              style={{ maxHeight: 100 }}
+            />
           </div>
         )
       )}
