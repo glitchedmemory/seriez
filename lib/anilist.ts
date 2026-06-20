@@ -1050,3 +1050,49 @@ export async function getStaffDetail(id: number): Promise<StaffDetail | null> {
     return null;
   }
 }
+
+// ─── Upcoming anime (NOT_YET_RELEASED, sorted by popularity) ───
+
+const UPCOMING_QUERY = `
+query UpcomingAnime($page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
+    media(status: NOT_YET_RELEASED, type: ANIME, sort: POPULARITY_DESC, isAdult: false) {
+      id
+      title { romaji english }
+      coverImage { extraLarge }
+      bannerImage
+      averageScore
+      seasonYear
+      description
+      genres
+    }
+  }
+}`;
+
+export async function getAnimeUpcoming(): Promise<{ id: number; title: string; poster: string | null; rating: number; year: number; type: "anime"; genres: string[]; daysUntil: number | null; overview: string; backdrop: string | null }[]> {
+  try {
+    const res = await fetch(ANILIST_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: UPCOMING_QUERY, variables: { page: 1, perPage: 10 } }),
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const media = json.data?.Page?.media || [];
+    return media.map((m: any) => ({
+      id: m.id,
+      title: m.title?.english || m.title?.romaji || "Unknown",
+      poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
+      backdrop: m.bannerImage || null,
+      rating: Math.round((m.averageScore / 10) * 10) / 10 || 0,
+      year: m.seasonYear || 0,
+      type: "anime" as const,
+      genres: (m.genres || []).slice(0, 5),
+      daysUntil: null,
+      overview: (m.description || "").replace(/<[^>]*>/g, "").slice(0, 300),
+    }));
+  } catch {
+    return [];
+  }
+}

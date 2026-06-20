@@ -60,7 +60,7 @@ function CardWrapper({ item, reasonText, showCountdown }: { item: TmdbResult; re
         </div>
       </div>
       <p className="mt-1 text-xs text-text-secondary">
-        {item.year} · {item.type === "movie" ? "Movie" : "TV"}
+        {item.year} · {item.type === "movie" ? "Movie" : item.type === "tv" ? "TV" : "Anime"}
       </p>
       {reasonText && (
         <p className="text-[10px] text-accent mt-0.5 line-clamp-1">
@@ -94,6 +94,7 @@ function BoxOfficeCard({ movie, rank }: { movie: TmdbResult; rank: number }) {
 interface Props {
   trending: TmdbResult[];
   upcoming: TmdbResult[];
+  animeUpcoming: TmdbResult[];
   boxOffice: TmdbResult[];
   region: string;
   randomSeed: number;
@@ -108,7 +109,7 @@ function getStoredMode(): TrendingMode {
   return "anime";
 }
 
-export default function HomeClient({ trending, upcoming, boxOffice, region, randomSeed }: Props) {
+export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffice, region, randomSeed }: Props) {
   const [trendingMode, setTrendingMode] = useState<TrendingMode>(getStoredMode);
   const [animeTrending, setAnimeTrending] = useState<TmdbResult[]>([]);
   const [animeLoading, setAnimeLoading] = useState(false);
@@ -333,10 +334,10 @@ export default function HomeClient({ trending, upcoming, boxOffice, region, rand
 
           <section>
             <div className="px-4 md:px-0 mb-3">
-              <SectionHeader emoji="⏳" title="Coming Soon" subtitle="Upcoming releases" />
+              <SectionHeader emoji="⏳" title="Coming Soon" subtitle="Movies, TV & Anime" />
             </div>
             <PosterGrid>
-              {upcoming.map((item) => <CardWrapper key={item.id} item={item} showCountdown />)}
+              {[...upcoming.map((item) => <CardWrapper key={`tmdb-${item.id}`} item={item} showCountdown />), ...animeUpcoming.map((item) => <CardWrapper key={`anilist-${item.id}`} item={item} />)].slice(0, 14)}
             </PosterGrid>
           </section>
 

@@ -31,29 +31,17 @@ async function searchAniList(query: string) {
     if (!res.ok) return [];
     const json = await res.json();
     const media = json.data?.Page?.media || [];
-    return media.map((m: any) => {
-      const romaji = (m.title.romaji || "").toLowerCase();
-      const english = (m.title.english || "").toLowerCase();
-      const native = (m.title.native || "").toLowerCase();
-      return {
+    return media.map((m: any) => ({
         id: m.id,
         title: m.title.english || m.title.romaji || "Unknown",
         year: m.startDate?.year?.toString() || "",
         type: "anime",
         poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
         rating: (m.averageScore || 0) / 10,
-        // For dedup matching
-        _aliases: [romaji, english, native].filter(Boolean),
-      };
-    });
+      }));
   } catch {
     return [];
   }
-}
-
-// Normalize title for fuzzy matching
-function normalize(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
 export async function GET(req: NextRequest) {
@@ -85,30 +73,22 @@ export async function GET(req: NextRequest) {
           ? `https://image.tmdb.org/t/p/w500${r.poster_path}`
           : null,
         rating: Math.round((r.vote_average || 0) * 10) / 10,
-        _aliases: [] as string[],
+        _rawGenreIds: r.genre_ids || [] as number[],
+        _origLang: r.original_language || "",
       }));
   }
 
-  // ─── Dedup: remove TMDB TV results that match AniList titles ───
-  const animeAliases = animeResults.flatMap((a: any) => a._aliases);
+  // ─── Filter out Japanese anime (genre 16 Animation + JP origin) from TMDB ───
+  // Anime titles only come from AniList; TMDB should only return live-action/non-anime content
   const filteredTmdb = tmdbResults.filter((tmdb: any) => {
-    // Only filter TV shows — movies are almost never anime conflicts
-    if (tmdb.type !== "tv") return true;
-    const tmdbNorm = normalize(tmdb.title);
-    // Check if any AniList alias closely matches this TMDB TV title
-    const isAnimeTV = animeAliases.some((alias: string) => {
-      const aliasNorm = normalize(alias);
-      // Stricter: both must be substantial matches (not just substring)
-      return tmdbNorm === aliasNorm ||
-        (tmdbNorm.length > 5 && aliasNorm.length > 5 &&
-         (tmdbNorm.includes(aliasNorm) || aliasNorm.includes(tmdbNorm)));
-    });
-    return !isAnimeTV;
+    const genreIds: number[] = tmdb._rawGenreIds || [];
+    const origLang: string = tmdb._origLang || "";
+    return !(genreIds.includes(16) && origLang === "ja");
   }).slice(0, 6);
 
-  // Clean up _aliases from results
-  const cleanTmdb = filteredTmdb.map(({ _aliases, ...rest }: any) => rest);
-  const cleanAnime = animeResults.slice(0, 10).map(({ _aliases, ...rest }: any) => rest);
+  // Clean up internal fields from results
+  const cleanTmdb = filteredTmdb.map(({ _rawGenreIds, _origLang, ...rest }: any) => rest);
+  const cleanAnime = animeResults.slice(0, 10);
 
   // AniList first, then TMDB
   const results = [...cleanAnime, ...cleanTmdb];
