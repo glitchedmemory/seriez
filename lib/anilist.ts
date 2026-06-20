@@ -773,7 +773,8 @@ export async function getAnimeEpisodes(
   title: string,
   titleRomaji: string,
   idMal?: number,
-  titleNative?: string
+  titleNative?: string,
+  seriesDuration?: number
 ): Promise<AnimeEpisode[]> {
   let episodes: AnimeEpisode[] = [];
 
@@ -864,6 +865,13 @@ export async function getAnimeEpisodes(
         });
       }
     }
+  }
+
+  // Apply seriesDuration as fallback for episodes with missing duration
+  if (seriesDuration && seriesDuration > 0) {
+    episodes = episodes.map(ep => 
+      ep.duration > 0 ? ep : { ...ep, duration: seriesDuration }
+    );
   }
 
   return episodes;
