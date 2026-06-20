@@ -752,7 +752,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           <section className="mt-6">
             {/* Saga tabs */}
             {sagas && (
-              <div className="flex gap-1.5 mb-3 overflow-x-auto">
+              <div className="flex gap-1.5 mb-3 overflow-x-auto md:flex-wrap">
                 <button
                   onClick={() => setSelectedSaga(null)}
                   className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${

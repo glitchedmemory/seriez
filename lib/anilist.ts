@@ -389,6 +389,8 @@ async function fetchJikanEpisodes(malId: number): Promise<AnimeEpisode[]> {
 
       if (!data.pagination?.has_next_page) break;
       page++;
+      // Avoid Jikan rate limiting on VPS (429 after 3 rapid requests)
+      await new Promise(r => setTimeout(r, 1500));
     }
 
     return allEpisodes.sort((a, b) => a.number - b.number);
