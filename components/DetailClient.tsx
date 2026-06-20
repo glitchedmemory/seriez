@@ -329,7 +329,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               </button>
               <button
                 onClick={() => handleTrack("watching")}
-                disabled={trackLoading}
+                disabled={trackLoading || (detail.daysUntil != null && detail.daysUntil > 0)}
                 className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                 style={{
                   color: isWatching ? "#14b8a6" : "var(--color-text-secondary)",
@@ -342,7 +342,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               </button>
               <button
                 onClick={() => handleTrack("completed")}
-                disabled={trackLoading}
+                disabled={trackLoading || (detail.daysUntil != null && detail.daysUntil > 0)}
                 className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
                 style={{
                   color: isWatched ? "#14b8a6" : "var(--color-text-secondary)",

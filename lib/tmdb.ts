@@ -210,6 +210,7 @@ export type TmdbDetail = {
   cast: { id: number; name: string; character: string; photo: string | null }[];
   similar: TmdbResult[];
   videos: { key: string; name: string; site: string; type: string }[];
+  daysUntil?: number | null;  // days until release (upcoming items only)
 };
 
 function formatCredits(credits: { cast?: Array<{ id: number; name: string; character?: string; profile_path: string | null }>; crew?: Array<{ id: number; name: string; job: string; profile_path: string | null }> }) {
@@ -542,6 +543,12 @@ export async function getMovieDetail(id: number): Promise<TmdbDetail> {
     videos: [] as TmdbDetail["videos"],
   };
 
+  // Compute daysUntil for upcoming movies
+  if (detail.release_date) {
+    const diff = Math.ceil((new Date(detail.release_date).getTime() - Date.now()) / 86400000);
+    if (diff > 0) result.daysUntil = diff;
+  }
+
   // Validate YouTube trailers and replace broken ones
   const movieTitle = `${detail.title || ""} ${detail.release_date ? parseInt(detail.release_date.slice(0, 4)) : ""}`.trim();
   const rawVideos = (videos.results || [])
@@ -602,6 +609,12 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
     similar: mergeSimilar(similarFiltered, discoverResults),
     videos: [] as TmdbDetail["videos"],
   };
+
+  // Compute daysUntil for upcoming TV
+  if (detail.first_air_date) {
+    const diff = Math.ceil((new Date(detail.first_air_date).getTime() - Date.now()) / 86400000);
+    if (diff > 0) resultTV.daysUntil = diff;
+  }
 
   // Validate YouTube trailers and replace broken ones
   const tvTitle = `${detail.name || ""} ${detail.first_air_date ? parseInt(detail.first_air_date.slice(0, 4)) : ""}`.trim();
