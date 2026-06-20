@@ -13,6 +13,18 @@ import { createClient } from "@/lib/supabase/client";
 const MAX_DEPTH = 2;
 const MAX_VISIBLE_REPLIES = 2;
 
+/** Collect all descendant comment IDs in thread order (BFS: direct children first, then their children, etc.) */
+function getAllDescendants(parentId: number, allComments: any[]): any[] {
+  const result: any[] = [];
+  const queue = allComments.filter((c: any) => c.parent_id === parentId);
+  for (const node of queue) {
+    result.push(node);
+    const children = allComments.filter((c: any) => c.parent_id === node.id);
+    queue.push(...children);
+  }
+  return result;
+}
+
 function CommentCard({
   c,
   isAdmin,
@@ -258,14 +270,40 @@ function CommentTree({
               {/* (already inside CommentCard) */}
             </div>
 
-            {/* Nested replies */}
-            {allowNestedReply && hasReplies && (
-              <CommentTree
-                comments={comments} depth={depth + 1} parentId={c.id}
-                {...sharedProps}
-                expandedThreads={expandedThreads} onToggleThread={onToggleThread}
-              />
-            )}
+            {/* Flat reply list — all descendants, no deep nesting */}
+            {hasReplies && (() => {
+              const allDescendants = getAllDescendants(c.id, comments);
+              if (allDescendants.length === 0) return null;
+              const replyKey = `flat-${c.id}`;
+              const replyExpanded = expandedThreads.has(replyKey);
+              const visibleReplies = replyExpanded ? allDescendants : allDescendants.slice(0, MAX_VISIBLE_REPLIES);
+              const hiddenCnt = allDescendants.length - visibleReplies.length;
+              return (
+                <div className="space-y-1.5 mt-1.5">
+                  {visibleReplies.map((dc: any, idx: number) => {
+                    const prevAuthor = idx > 0 ? visibleReplies[idx - 1].username : null;
+                    const sameAuthorDc = prevAuthor === dc.username;
+                    return (
+                      <div key={dc.id} className="bg-bg-card rounded-lg p-2.5">
+                        <CommentCard c={dc} {...sharedProps} compact={idx > 0 && sameAuthorDc} replyCount={0} />
+                      </div>
+                    );
+                  })}
+                  {hiddenCnt > 0 && !replyExpanded && (
+                    <button onClick={() => onToggleThread(replyKey)}
+                      className="text-[10px] text-accent hover:text-[#818cf8] transition-colors">
+                      ▸ Show {hiddenCnt} more {hiddenCnt === 1 ? "reply" : "replies"}
+                    </button>
+                  )}
+                  {replyExpanded && hiddenCnt > 0 && (
+                    <button onClick={() => onToggleThread(replyKey)}
+                      className="text-[10px] text-text-secondary hover:text-accent transition-colors">
+                      ▴ Show less
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         );
       })}
