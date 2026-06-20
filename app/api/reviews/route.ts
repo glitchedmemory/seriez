@@ -173,12 +173,94 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: modResult.reason || "Content rejected" }, { status: 422 });
     }
 
+    const user = username.trim().slice(0, 20);
+    const trimmed = content.trim().slice(0, 2000);
+
+    // ─── Protection 4: New account restriction ───
+    try {
+      const { data: userData } = await supabaseAdmin
+        .from("users").select("created_at").eq("username", user).maybeSingle();
+      if (userData?.created_at) {
+        const hoursSince = (Date.now() - new Date(userData.created_at).getTime()) / 3600000;
+        if (hoursSince < 1) {
+          const count = await getRecentCount("review", user, 60);
+          if (count >= 2) return NextResponse.json({ error: "New accounts are limited to 2 reviews per hour" }, { status: 429 });
+        } else if (hoursSince < 24) {
+          const count = await getRecentCount("review", user, 1440);
+          if (count >= 5) return NextResponse.json({ error: "New accounts are limited to 5 reviews per day" }, { status: 429 });
+        }
+      }
+    } catch { /* non-blocking */ }
+
+    // ─── Protection 1: Rate limiting ───
+    try {
+      const recentCount = await getRecentCount("review", user, 60); // last 60 min
+      if (recentCount >= 5) {
+        return NextResponse.json({ error: "Too many reviews. Please wait before posting another." }, { status: 429 });
+      }
+    } catch { /* non-blocking — rate_log table might not exist yet */ }
+
+    // ─── Protection 5: Duplicate content detection ───
+    try {
+      const normalized = trimmed.toLowerCase().slice(0, 100);
+      const { data: recent } = await supabaseAdmin
+        .from("reviews")
+        .select("content")
+        .eq("username", user)
+        .gte("created_at", new Date(Date.now() - 3600000).toISOString())
+        .limit(10);
+      if (recent?.length) {
+        const dup = recent.some(r => r.content.toLowerCase().startsWith(normalized));
+        if (dup) return NextResponse.json({ error: "You already posted similar content recently" }, { status: 429 });
+      }
+    } catch { /* non-blocking */ }
+
     const { data, error } = await supabaseAdmin
-      .from("reviews").insert({ tmdb_id: tmdbId, media_type: mediaType, username: username.trim().slice(0, 20), content: content.trim().slice(0, 2000), rating: dbRating })
+      .from("reviews").insert({ tmdb_id: tmdbId, media_type: mediaType, username: user, content: trimmed, rating: dbRating })
       .select("id, username, content, rating, likes_count, created_at").single();
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    if (error) {
+      // Protection 2: UNIQUE constraint violation → friendly message
+      if (error.code === "23505") {
+        return NextResponse.json({ error: "You've already reviewed this title" }, { status: 409 });
+      }
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Log to rate_log (best-effort)
+    try {
+      const crypto = await import("crypto");
+      const contentHash = crypto.createHash("sha256").update(trimmed.toLowerCase()).digest("hex").slice(0, 16);
+      await supabaseAdmin.from("rate_log").insert({ username: user, action: "review", content_hash: contentHash });
+    } catch { /* non-blocking — rate_log table might not exist yet */ }
+
     return NextResponse.json({ id: data.id, username: data.username, content: data.content, rating: FROM_DB(data.rating), likes: data.likes_count || 0, liked: false, createdAt: data.created_at }, { status: 201 });
   } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
+}
+
+// Helper: count recent actions by user
+async function getRecentCount(action: string, username: string, minutes: number): Promise<number> {
+  try {
+    const { count } = await supabaseAdmin
+      .from("rate_log")
+      .select("*", { count: "exact", head: true })
+      .eq("username", username)
+      .eq("action", action)
+      .gte("created_at", new Date(Date.now() - minutes * 60 * 1000).toISOString());
+    return count || 0;
+  } catch {
+    // Fallback: count directly from reviews table
+    try {
+      const { count } = await supabaseAdmin
+        .from("reviews")
+        .select("*", { count: "exact", head: true })
+        .eq("username", username)
+        .gte("created_at", new Date(Date.now() - minutes * 60 * 1000).toISOString());
+      return count || 0;
+    } catch {
+      return 0;
+    }
+  }
 }
 
 export async function DELETE(req: NextRequest) {
