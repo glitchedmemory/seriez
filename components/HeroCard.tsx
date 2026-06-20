@@ -270,9 +270,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
             <img
               src="/seriez-banner.jpg"
               alt="Seriez — Never lose track of what to watch"
-              className="block mx-auto"
-              width={320}
-              height={100}
+              className="w-full h-auto block"
             />
           </div>
         )
