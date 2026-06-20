@@ -279,25 +279,25 @@ function CommentTree({
               const visibleReplies = replyExpanded ? allDescendants : allDescendants.slice(0, MAX_VISIBLE_REPLIES);
               const hiddenCnt = allDescendants.length - visibleReplies.length;
               return (
-                <div className="space-y-1.5 mt-1.5 ml-6">
+                <div className="space-y-1.5 mt-1.5">
                   {visibleReplies.map((dc: any, idx: number) => {
                     const prevAuthor = idx > 0 ? visibleReplies[idx - 1].username : null;
                     const sameAuthorDc = prevAuthor === dc.username;
                     return (
-                      <div key={dc.id} className="bg-bg-card rounded-lg p-2.5">
+                      <div key={dc.id} className="ml-6 bg-bg-card rounded-lg p-2.5">
                         <CommentCard c={dc} {...sharedProps} compact={idx > 0 && sameAuthorDc} replyCount={comments.filter((cc: any) => cc.parent_id === dc.id).length} />
                       </div>
                     );
                   })}
                   {hiddenCnt > 0 && !replyExpanded && (
                     <button onClick={() => onToggleThread(replyKey)}
-                      className="text-[10px] text-accent hover:text-[#818cf8] transition-colors">
+                      className="ml-6 text-[10px] text-accent hover:text-[#818cf8] transition-colors">
                       ▸ Show {hiddenCnt} more {hiddenCnt === 1 ? "reply" : "replies"}
                     </button>
                   )}
                   {replyExpanded && allDescendants.length > MAX_VISIBLE_REPLIES && (
                     <button onClick={() => onToggleThread(replyKey)}
-                      className="text-[10px] text-text-secondary hover:text-accent transition-colors">
+                      className="ml-6 text-[10px] text-text-secondary hover:text-accent transition-colors">
                       ▴ Show less
                     </button>
                   )}
