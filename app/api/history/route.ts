@@ -32,6 +32,10 @@ interface TmdbCache {
 }
 
 async function getTmdbInfo(tmdbId: number, mediaType: string): Promise<TmdbCache | null> {
+  // Anime — use AniList GraphQL (stored tmdb_id is actually an AniList ID)
+  if (mediaType === "anime") {
+    return getAnimeInfo(tmdbId);
+  }
   const ep = mediaType === "movie" ? `/movie/${tmdbId}` : `/tv/${tmdbId}`;
   const detail = await getTmdbCached(ep);
   if (!detail) return null;
@@ -44,6 +48,31 @@ async function getTmdbInfo(tmdbId: number, mediaType: string): Promise<TmdbCache
       : (detail.episode_run_time?.length > 0 ? detail.episode_run_time[0] : null),
     genres: (detail.genres || []).map((g: any) => ({ id: g.id, name: g.name })),
   };
+}
+
+async function getAnimeInfo(anilistId: number): Promise<TmdbCache | null> {
+  try {
+    const res = await fetch("https://graphql.anilist.co", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        query: `query($id:Int){Media(id:$id){title{romaji english}coverImage{extraLarge}genres duration seasonYear}}`,
+        variables: { id: anilistId },
+      }),
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const m = json.data?.Media;
+    if (!m) return null;
+    return {
+      title: m.title?.english || m.title?.romaji || "Unknown",
+      posterPath: m.coverImage?.extraLarge || null,
+      runtime: m.duration || null,
+      genres: (m.genres || []).map((g: string) => ({ id: 0, name: g })),
+    };
+  } catch {
+    return null;
+  }
 }
 
 // ─── AI persona engine: analyzes watch patterns to pick best-fit persona ───
