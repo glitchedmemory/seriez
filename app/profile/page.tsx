@@ -670,7 +670,7 @@ export default function ProfilePage() {
                 onClick={async () => {
                   if (!isFavoriteMode && effectiveUsername) {
                     try {
-                      const uid = user?.id || "";
+                      const uid = (user as any)?.id || "";
                       if (favoriteDirectors.length === 0) {
                         const dRes = await fetch(`/api/persons/likes?username=${encodeURIComponent(effectiveUsername)}&role=director&userId=${uid}`);
                         const dData = await dRes.json();
