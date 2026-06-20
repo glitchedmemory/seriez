@@ -155,15 +155,6 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* ── AdSense Placeholder ── */}
-      <div className="px-4 my-4">
-        <div className="w-full h-[60px] rounded-xl border-2 border-dashed border-accent/40 bg-bg-card/50 flex items-center justify-center text-text-secondary text-xs gap-2">
-          <span className="text-base">📢</span>
-          <span className="font-medium text-text-secondary">AdSense Banner</span>
-          <span>320×50 / 320×100 responsive</span>
-        </div>
-      </div>
-
       {/* ── Year Quick-Pills ── */}
       <div className="px-4 mt-4 mb-2">
         <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 hide-scrollbar">
