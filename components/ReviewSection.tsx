@@ -279,7 +279,7 @@ function CommentTree({
               const visibleReplies = replyExpanded ? allDescendants : allDescendants.slice(0, MAX_VISIBLE_REPLIES);
               const hiddenCnt = allDescendants.length - visibleReplies.length;
               return (
-                <div className="space-y-1.5 mt-1.5">
+                <div className="space-y-1.5 mt-1.5 ml-6">
                   {visibleReplies.map((dc: any, idx: number) => {
                     const prevAuthor = idx > 0 ? visibleReplies[idx - 1].username : null;
                     const sameAuthorDc = prevAuthor === dc.username;
@@ -295,7 +295,7 @@ function CommentTree({
                       ▸ Show {hiddenCnt} more {hiddenCnt === 1 ? "reply" : "replies"}
                     </button>
                   )}
-                  {replyExpanded && hiddenCnt > 0 && (
+                  {replyExpanded && allDescendants.length > MAX_VISIBLE_REPLIES && (
                     <button onClick={() => onToggleThread(replyKey)}
                       className="text-[10px] text-text-secondary hover:text-accent transition-colors">
                       ▴ Show less
