@@ -5,10 +5,11 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const username = searchParams.get("username");
+    const userIdParam = searchParams.get("userId");
     const role = searchParams.get("role"); // "director" or "actor" or undefined for all
 
-    if (!username) {
-      return NextResponse.json({ error: "Missing username" }, { status: 400 });
+    if (!username && !userIdParam) {
+      return NextResponse.json({ error: "Missing username or userId" }, { status: 400 });
     }
 
     // Resolve username to UUID
@@ -17,27 +18,25 @@ export async function GET(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { data: userRow } = await adminClient
-      .from("users")
-      .select("id")
-      .eq("username", username)
-      .maybeSingle();
+    let userId = userIdParam || null;
 
-    // If using display name, try that too
-    let userId = userRow?.id;
-    if (!userId) {
-      // Try UUID lookup (username column stores UUID in tracking tables)
-      const { data: likeCheck } = await adminClient
-        .from("person_likes")
-        .select("username")
-        .eq("person_name", username)
-        .limit(1)
+    // If no userId param, resolve from username
+    if (!userId && username) {
+      const { data: userRow } = await adminClient
+        .from("users")
+        .select("id")
+        .eq("username", username)
         .maybeSingle();
-      // Fall back to searching user table
-      if (!likeCheck) {
-        return NextResponse.json({ likes: [] });
+      userId = userRow?.id || null;
+
+      // Fallback: if username looks like a UUID, use it directly
+      if (!userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(username)) {
+        userId = username;
       }
-      userId = likeCheck.username;
+    }
+
+    if (!userId) {
+      return NextResponse.json({ likes: [] });
     }
 
     let query = adminClient
