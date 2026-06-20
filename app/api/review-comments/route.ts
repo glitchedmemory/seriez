@@ -115,10 +115,70 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: modResult.reason || "Content rejected" }, { status: 422 });
     }
 
+    const user = username.trim().slice(0, 20);
+
+    // ─── Protection 4: New account restriction ───
+    try {
+      const { data: userData } = await supabaseAdmin
+        .from("users").select("created_at").eq("username", user).maybeSingle();
+      if (userData?.created_at) {
+        const hoursSince = (Date.now() - new Date(userData.created_at).getTime()) / 3600000;
+        if (hoursSince < 1) {
+          const count = await getCommentRecentCount(user, 60);
+          if (count >= 5) return NextResponse.json({ error: "New accounts are limited to 5 comments per hour" }, { status: 429 });
+        } else if (hoursSince < 24) {
+          const count = await getCommentRecentCount(user, 1440);
+          if (count >= 20) return NextResponse.json({ error: "New accounts are limited to 20 comments per day" }, { status: 429 });
+        }
+      }
+    } catch { /* non-blocking */ }
+
+    // ─── Protection 1: Rate limiting (15 min window) ───
+    try {
+      const recentCount = await getCommentRecentCount(user, 15);
+      if (recentCount >= 10) {
+        return NextResponse.json({ error: "Too many comments. Please wait before posting another." }, { status: 429 });
+      }
+    } catch { /* non-blocking */ }
+
+    // ─── Protection 3: Cooldown (30s between comments) ───
+    try {
+      const { data: lastComment } = await supabaseAdmin
+        .from("review_comments")
+        .select("created_at")
+        .eq("username", user)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (lastComment?.created_at) {
+        const secondsSince = (Date.now() - new Date(lastComment.created_at).getTime()) / 1000;
+        if (secondsSince < 30) {
+          return NextResponse.json({
+            error: `Please wait ${Math.ceil(30 - secondsSince)} seconds before posting another comment`
+          }, { status: 429 });
+        }
+      }
+    } catch { /* non-blocking */ }
+
+    // ─── Protection 5: Duplicate content detection ───
+    try {
+      const normalized = trimmed.toLowerCase().slice(0, 100);
+      const { data: recent } = await supabaseAdmin
+        .from("review_comments")
+        .select("content")
+        .eq("username", user)
+        .gte("created_at", new Date(Date.now() - 3600000).toISOString())
+        .limit(10);
+      if (recent?.length) {
+        const dup = recent.some((r: any) => r.content.toLowerCase().startsWith(normalized));
+        if (dup) return NextResponse.json({ error: "You already posted similar content recently" }, { status: 429 });
+      }
+    } catch { /* non-blocking */ }
+
     // Insert comment
     const insertData: any = {
       review_id,
-      username: username.trim().slice(0, 20),
+      username: user,
       content: trimmed,
     };
     if (parent_id != null) insertData.parent_id = parent_id;
@@ -259,5 +319,19 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed" }, { status: 500 });
+  }
+}
+
+// Helper: count recent comments by user
+async function getCommentRecentCount(username: string, minutes: number): Promise<number> {
+  try {
+    const { count } = await supabaseAdmin
+      .from("review_comments")
+      .select("*", { count: "exact", head: true })
+      .eq("username", username)
+      .gte("created_at", new Date(Date.now() - minutes * 60 * 1000).toISOString());
+    return count || 0;
+  } catch {
+    return 0;
   }
 }
