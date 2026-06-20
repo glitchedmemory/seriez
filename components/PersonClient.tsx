@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import type { PersonDetail } from "@/lib/tmdb";
 import PosterImage from "@/components/PosterImage";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 
 function CreditCard({ item, type }: { item: { id: number; title: string; character: string; year: number; poster: string | null; rating: number }; type: "movie" | "tv" }) {
   return (
@@ -34,10 +34,7 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [user, setUser] = useState<any>(null);
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -73,8 +70,6 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
 
   const handleLike = async () => {
     if (!user) return;
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
