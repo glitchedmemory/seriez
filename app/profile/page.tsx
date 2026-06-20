@@ -668,11 +668,18 @@ export default function ProfilePage() {
             {isOwn && (
               <button
                 onClick={async () => {
-                  if (!isFavoriteMode && favoriteDirectors.length === 0 && effectiveUsername) {
+                  if (!isFavoriteMode && effectiveUsername) {
                     try {
-                      const res = await fetch(`/api/persons/likes?username=${encodeURIComponent(effectiveUsername)}&role=director`);
-                      const data = await res.json();
-                      setFavoriteDirectors(data.likes || []);
+                      if (favoriteDirectors.length === 0) {
+                        const dRes = await fetch(`/api/persons/likes?username=${encodeURIComponent(effectiveUsername)}&role=director`);
+                        const dData = await dRes.json();
+                        setFavoriteDirectors(dData.likes || []);
+                      }
+                      if (favoriteActors.length === 0) {
+                        const aRes = await fetch(`/api/persons/likes?username=${encodeURIComponent(effectiveUsername)}&role=actor`);
+                        const aData = await aRes.json();
+                        setFavoriteActors(aData.likes || []);
+                      }
                     } catch {}
                   }
                   setIsFavoriteMode(!isFavoriteMode);
@@ -737,32 +744,59 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Actors Section (no toggle, always auto-computed) */}
+      {/* Toggle + Actors Section */}
       {stats && stats.topActors && stats.topActors.length > 0 && (
         <div className="px-4 mt-5">
-          <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Top Actors</h3>
-          <div className="flex flex-wrap gap-2">
-            {stats.topActors.slice(0, 5).map((a) => (
-              a.personId ? (
-                <a
-                  key={a.name}
-                  href={`/person/${a.personId}`}
-                  className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors"
-                >
-                  {a.image && (
-                    <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0">
-                      <img src={a.image} alt={a.name} className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                  <span className="text-xs text-text-primary">{a.name}</span>
-                </a>
-              ) : (
-                <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">
-                  {a.name}
-                </span>
-              )
-            ))}
+          <div className="flex items-center gap-3 mb-3">
+            <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide">
+              {isFavoriteMode ? "Favorite Actors" : "Top Actors"}
+            </h3>
           </div>
+          {isFavoriteMode ? (
+            favoriteActors.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {favoriteActors.slice(0, 8).map((a: any) => (
+                  <a
+                    key={`${a.person_source}-${a.person_id}`}
+                    href={`/person/${a.person_source === "anilist" ? "anilist/" : ""}${a.person_id}`}
+                    className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors"
+                  >
+                    {a.person_image && (
+                      <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0">
+                        <img src={a.person_image} alt={a.person_name} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <span className="text-xs text-text-primary">{a.person_name}</span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-text-secondary">No favorite actors yet. Visit an actor&apos;s page and tap ♥</p>
+            )
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {stats.topActors.slice(0, 5).map((a) => (
+                a.personId ? (
+                  <a
+                    key={a.name}
+                    href={`/person/${a.personId}`}
+                    className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors"
+                  >
+                    {a.image && (
+                      <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0">
+                        <img src={a.image} alt={a.name} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <span className="text-xs text-text-primary">{a.name}</span>
+                  </a>
+                ) : (
+                  <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">
+                    {a.name}
+                  </span>
+                )
+              ))}
+            </div>
+          )}
         </div>
       )}
 
