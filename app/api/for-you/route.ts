@@ -101,7 +101,7 @@ async function fetchSimilar(tmdbId: number, mediaType: string): Promise<{ items:
   try {
     const endpoint = mediaType === "movie" ? `/movie/${tmdbId}/similar` : `/tv/${tmdbId}/similar`;
     const data = await tmdbGet(endpoint);
-    const items: TmdbResult[] = (data.results || []).slice(0, 8).map((item: TmdbItem) =>
+    const items: TmdbResult[] = (data.results || []).filter((item: TmdbItem) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 8).map((item: TmdbItem) =>
       formatResult(item, mediaType as "movie" | "tv")
     );
     return { items, reason: "" };
@@ -116,7 +116,7 @@ async function fetchRecommendations(tmdbId: number, mediaType: string): Promise<
   try {
     const endpoint = mediaType === "movie" ? `/movie/${tmdbId}/recommendations` : `/tv/${tmdbId}/recommendations`;
     const data = await tmdbGet(endpoint);
-    const items: TmdbResult[] = (data.results || []).slice(0, 8).map((item: TmdbItem) =>
+    const items: TmdbResult[] = (data.results || []).filter((item: TmdbItem) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 8).map((item: TmdbItem) =>
       formatResult(item, mediaType as "movie" | "tv")
     );
     return { items, reason: "" };
@@ -403,10 +403,10 @@ export async function GET(req: NextRequest) {
         tmdbGet("/trending/tv/week"),
       ]);
       const trendingItems: TmdbResult[] = [];
-      for (const item of (trendingMovies.results || []).slice(0, 5)) {
+      for (const item of (trendingMovies.results || []).filter((item: any) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 5)) {
         trendingItems.push(formatResult(item, "movie"));
       }
-      for (const item of (trendingTV.results || []).slice(0, 5)) {
+      for (const item of (trendingTV.results || []).filter((item: any) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 5)) {
         trendingItems.push(formatResult(item, "tv"));
       }
       for (const item of trendingItems) {

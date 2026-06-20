@@ -95,8 +95,8 @@ export async function getTrending(): Promise<TmdbResult[]> {
     get("/trending/movie/week"),
     get("/trending/tv/week"),
   ]);
-  const movies = (movieData.results as TmdbItem[]).slice(0, 14).map(format);
-  const tvs = (tvData.results as TmdbItem[]).slice(0, 14).map(format);
+  const movies = (movieData.results as TmdbItem[]).filter((item: TmdbItem) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 14).map(format);
+  const tvs = (tvData.results as TmdbItem[]).filter((item: TmdbItem) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 14).map(format);
   return [...movies, ...tvs];
 }
 
@@ -168,10 +168,10 @@ export async function discoverByGenres(genreIds: number[]): Promise<TmdbResult[]
     get("/discover/tv", { with_genres: genreStr, sort_by: "popularity.desc", "vote_count.gte": "50" }),
   ]);
   const results: TmdbResult[] = [];
-  for (const item of (movies.results as TmdbItem[]).slice(0, 6)) {
+  for (const item of (movies.results as TmdbItem[]).filter((item: TmdbItem) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 6)) {
     results.push({ ...format(item), type: "movie" });
   }
-  for (const item of (tv.results as TmdbItem[]).slice(0, 6)) {
+  for (const item of (tv.results as TmdbItem[]).filter((item: TmdbItem) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 6)) {
     results.push({ ...format(item), type: "tv" });
   }
   // Deduplicate by id, shuffle, return top 10
