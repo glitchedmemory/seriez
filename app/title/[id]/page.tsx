@@ -21,8 +21,25 @@ async function getTVSeasonCount(id: number): Promise<number | null> {
   }
 }
 
-// Resolve TMDB ID → AniList ID via media_trackings, then Jikan/Kitsu fallback
+// Resolve TMDB ID → AniList ID. Also handles direct AniList IDs (from search results).
 async function resolveAnilistId(tmdbId: number): Promise<number | null> {
+  // First: try using the ID directly as an AniList ID (for anime results from search)
+  try {
+    const directRes = await fetch("https://graphql.anilist.co", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        query: `query($id:Int){Media(id:$id,type:ANIME){id}}`,
+        variables: { id: tmdbId },
+      }),
+    });
+    if (directRes.ok) {
+      const dj = await directRes.json();
+      if (dj.data?.Media?.id) return dj.data.Media.id;
+    }
+  } catch {}
+
+  // Then: try Supabase media_trackings (TMDB ID → AniList ID)
   try {
     const { createClient } = await import("@/lib/supabase/server");
     const supabase = await createClient();

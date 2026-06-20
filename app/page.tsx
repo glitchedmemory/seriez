@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { getTrending, getUpcoming } from "@/lib/tmdb";
+import { getAnimeUpcoming } from "@/lib/anilist";
 import { getBoxOffice, getCountryName } from "@/lib/box-office";
 import HomeClient from "@/components/HomeClient";
 import { headers } from "next/headers";
@@ -8,6 +9,7 @@ import { headers } from "next/headers";
 export default async function Home() {
   let trending: Awaited<ReturnType<typeof getTrending>> = [];
   let upcoming: Awaited<ReturnType<typeof getUpcoming>> = [];
+  let animeUpcoming: Awaited<ReturnType<typeof getAnimeUpcoming>> = [];
   let boxOffice: Awaited<ReturnType<typeof getBoxOffice>> = [];
 
   // Detect country from Cloudflare or Vercel headers
@@ -16,14 +18,15 @@ export default async function Home() {
   const region = getCountryName(countryCode);
 
   try {
-    [trending, upcoming, boxOffice] = await Promise.all([
+    [trending, upcoming, animeUpcoming, boxOffice] = await Promise.all([
       getTrending(),
       getUpcoming(),
+      getAnimeUpcoming(),
       getBoxOffice(countryCode),
     ]);
   } catch {
     // fallback: empty arrays, HomeClient shows empty states
   }
 
-  return <HomeClient trending={trending} upcoming={upcoming} boxOffice={boxOffice} region={region} randomSeed={Date.now()} />;
+  return <HomeClient trending={trending} upcoming={upcoming} animeUpcoming={animeUpcoming} boxOffice={boxOffice} region={region} randomSeed={Date.now()} />;
 }
