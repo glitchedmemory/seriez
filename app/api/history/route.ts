@@ -156,7 +156,7 @@ export async function GET(req: NextRequest) {
       .select("tmdb_id, season_number, episode_number, watched_at")
       .eq("username", userId).gte("watched_at", graphStart).order("watched_at", { ascending: false }),
     supabaseAdmin.from("media_trackings")
-      .select("tmdb_id, media_type, status, rating, updated_at")
+      .select("tmdb_id, media_type, status, rating, updated_at, watched_at")
       .eq("username", userId),
     supabaseAdmin.from("users")
       .select("is_premium")
@@ -185,6 +185,19 @@ export async function GET(req: NextRequest) {
     const existing = dayGroups[dateKey].find(e => e.tmdbId === w.tmdb_id);
     if (existing) { existing.episodes++; continue; }
     dayGroups[dateKey].push({ tmdbId: w.tmdb_id, episodes: 1 });
+  }
+
+  // Merge completed media_trackings (movies/TV/anime with watched_at) into calendar
+  for (const t of tracking || []) {
+    if (!t.watched_at || t.status !== "completed") continue;
+    const dateKey = new Date(t.watched_at).toISOString().split("T")[0];
+    const monthKey = dateKey.slice(0, 7);
+    monthEpisodeCounts[monthKey] = (monthEpisodeCounts[monthKey] || 0) + 1;
+    if (!dateKey.startsWith(targetPrefix)) continue;
+    if (!dayGroups[dateKey]) dayGroups[dateKey] = [];
+    const existing = dayGroups[dateKey].find(e => e.tmdbId === t.tmdb_id);
+    if (existing) continue; // already counted via episode_watches
+    dayGroups[dateKey].push({ tmdbId: t.tmdb_id, episodes: 1 });
   }
 
   // ─── Sequential TMDB fetch with rate-limit delay ───
