@@ -12,123 +12,6 @@ const TMDB_API = "https://api.themoviedb.org/3";
 const TMDB_KEY = process.env.TMDB_API_KEY;
 const ANILIST_API = "https://graphql.anilist.co";
 
-// Fixed seed — computed fresh per request so timestamps progress in real time
-function getVirtualActivities(): Activity[] {
-  // Fixed seed — midnight today so timestamps age naturally in real time (no reset on refresh)
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const SEED_NOW = today.getTime();
-  const h = (hr: number) => new Date(SEED_NOW - hr * 3600000).toISOString();
-  const d = (days: number) => new Date(SEED_NOW - days * 86400000).toISOString();
-
-  return [
-    {
-      id: "v-review-1", type: "review",
-      username: "cinephile_jane", tmdbId: 1390300, mediaType: "movie",
-      title: "", poster: null, year: null,
-      rating: 4, content: "Darkly hilarious. A cabin-in-the-woods setup where both leads are secretly trying to kill each other. The comedic timing is flawless and the third act twist genuinely surprised me.",
-      createdAt: h(2),
-    },
-    {
-      id: "v-rated-1", type: "rated",
-      username: "moviefan92", tmdbId: 533535, mediaType: "movie",
-      title: "", poster: null, year: null,
-      rating: 4.5,
-      createdAt: h(3),
-    },
-    {
-      id: "v-watched-1", type: "watched",
-      username: "series_tracker", tmdbId: 1399, mediaType: "tv",
-      title: "", poster: null, year: null,
-      rating: 4.5,
-      createdAt: h(5),
-    },
-    {
-      id: "v-watching-1", type: "watching",
-      username: "anime_lover", tmdbId: 95479, mediaType: "tv",
-      title: "", poster: null, year: null,
-      createdAt: h(1),
-    },
-    {
-      id: "v-review-2", type: "review",
-      username: "film_critic_sam", tmdbId: 845781, mediaType: "movie",
-      title: "", poster: null, year: null,
-      rating: 3, content: "A fun holiday romp with great chemistry between the leads. Santa as a buff action hero works better than expected.",
-      createdAt: h(8),
-    },
-    {
-      id: "v-plan-1", type: "plan_to_watch",
-      username: "cinephile_jane", tmdbId: 454639, mediaType: "movie",
-      title: "", poster: null, year: null,
-      createdAt: h(4),
-    },
-    {
-      id: "v-collection-1", type: "collection",
-      username: "moviefan92",
-      tmdbId: 0, mediaType: "",
-      title: "", poster: null, year: null,
-      collectionName: "Best of 2024",
-      itemCount: 12,
-      createdAt: d(1),
-    },
-    {
-      id: "v-review-3", type: "review",
-      username: "anime_lover", tmdbId: 37854, mediaType: "tv",
-      title: "", poster: null, year: null,
-      rating: 5, content: "After 1000+ episodes I can confidently say this is the greatest adventure story ever told. The world-building is unmatched.",
-      createdAt: d(2),
-    },
-    {
-      id: "v-watching-2", type: "watching",
-      username: "series_tracker", tmdbId: 100088, mediaType: "tv",
-      title: "", poster: null, year: null,
-      createdAt: h(6),
-    },
-    {
-      id: "v-rated-2", type: "rated",
-      username: "film_critic_sam", tmdbId: 872585, mediaType: "movie",
-      title: "", poster: null, year: null,
-      rating: 5,
-      createdAt: d(1),
-    },
-    {
-      id: "v-collection-2", type: "collection",
-      username: "cinephile_jane",
-      tmdbId: 0, mediaType: "",
-      title: "", poster: null, year: null,
-      collectionName: "Cozy Autumn Watches",
-      itemCount: 8,
-      createdAt: d(3),
-    },
-    {
-      id: "v-watched-2", type: "watched",
-      username: "moviefan92", tmdbId: 693134, mediaType: "movie",
-      title: "", poster: null, year: null,
-      rating: 4.5,
-      createdAt: d(2),
-    },
-    {
-      id: "v-plan-2", type: "plan_to_watch",
-      username: "anime_lover", tmdbId: 207250, mediaType: "tv",
-      title: "", poster: null, year: null,
-      createdAt: h(12),
-    },
-    {
-      id: "v-review-4", type: "review",
-      username: "series_tracker", tmdbId: 94605, mediaType: "tv",
-      title: "", poster: null, year: null,
-      rating: 5, content: "Visually stunning with a story that hits every emotional beat. Best video game adaptation ever made — and one of the best shows period.",
-      createdAt: d(4),
-    },
-    {
-      id: "v-watching-3", type: "watching",
-      username: "film_critic_sam", tmdbId: 126308, mediaType: "tv",
-      title: "", poster: null, year: null,
-      createdAt: h(3),
-    },
-  ];
-}
-
 export async function GET(req: NextRequest) {
   const username = await resolveUsername(req);
   let activities: Activity[] = [];
@@ -262,12 +145,6 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Always add virtual activities as fallback/extra
-  if (activities.length === 0) {
-    activities = getVirtualActivities();
-  } else {
-    activities.push(...getVirtualActivities());
-  }
 
   // Sort, deduplicate, limit
   activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
