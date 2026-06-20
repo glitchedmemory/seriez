@@ -285,7 +285,7 @@ function CommentTree({
                     const sameAuthorDc = prevAuthor === dc.username;
                     return (
                       <div key={dc.id} className="bg-bg-card rounded-lg p-2.5">
-                        <CommentCard c={dc} {...sharedProps} compact={idx > 0 && sameAuthorDc} replyCount={0} />
+                        <CommentCard c={dc} {...sharedProps} compact={idx > 0 && sameAuthorDc} replyCount={comments.filter((cc: any) => cc.parent_id === dc.id).length} />
                       </div>
                     );
                   })}
