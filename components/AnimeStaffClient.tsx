@@ -71,7 +71,7 @@ export default function AnimeStaffClient({ staff }: { staff: StaffDetail }) {
 
     try {
       const kf = (staff.knownFor || "").toLowerCase();
-      const personRole = kf.includes("actor") && kf.includes("director") ? "both" : kf.includes("director") ? "director" : "actor";
+      const personRole = kf.includes("act") && kf.includes("direct") ? "both" : kf.includes("direct") ? "director" : "actor";
       const res = await fetch("/api/persons/like", {
         method: "POST",
         headers: {
