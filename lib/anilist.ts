@@ -618,7 +618,8 @@ async function fetchTMDBThumbnails(title: string): Promise<Map<number, string>> 
     const searchData = await searchRes.json();
     const tvResults = searchData.results || [];
     if (tvResults.length === 0) return thumbs;
-    const tvId = tvResults[0].id;
+    // Prefer Japanese anime entry (avoid live-action adaptations like Netflix One Piece)
+    const tvId = (tvResults.find((r: any) => r.original_language === "ja") || tvResults[0]).id;
 
     // Step 2: Fetch all seasons' episodes
     const tvRes = await fetch(
