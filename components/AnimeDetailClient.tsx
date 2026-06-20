@@ -752,10 +752,10 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           <section className="mt-6">
             {/* Saga tabs */}
             {sagas && (
-              <div className="flex gap-1.5 mb-3 overflow-x-auto md:flex-wrap">
+              <div className="flex gap-1.5 mb-3 overflow-x-auto md:overflow-visible md:flex-wrap">
                 <button
                   onClick={() => setSelectedSaga(null)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
+                  className={`flex-shrink-0 md:flex-shrink px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
                     !selectedSaga ? "bg-accent text-white" : "bg-bg-card text-text-secondary hover:text-text-primary"
                   }`}
                 >All</button>
@@ -763,7 +763,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                   <button
                     key={s.name}
                     onClick={() => setSelectedSaga(s)}
-                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all whitespace-nowrap ${
+                    className={`flex-shrink-0 md:flex-shrink px-3 py-1.5 rounded-full text-[11px] font-medium transition-all whitespace-nowrap ${
                       selectedSaga?.name === s.name ? "bg-accent text-white" : "bg-bg-card text-text-secondary hover:text-text-primary"
                     }`}
                   >{s.name}</button>
