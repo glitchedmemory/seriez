@@ -437,9 +437,9 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
     return dedupedTabs;
   })();
 
-  // Estimate hours watched (for episodes × duration)
-  const totalMinutes = detail.episodes > 0 && detail.duration > 0
-    ? detail.episodes * detail.duration
+  // Estimate hours watched (based on actually watched episodes × duration)
+  const totalMinutes = watchedCount > 0 && detail.duration > 0
+    ? watchedCount * detail.duration
     : 0;
 
   return (

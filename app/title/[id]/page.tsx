@@ -116,7 +116,8 @@ export default async function TitlePage({ params, searchParams }: Props) {
       detail.title,
       detail.titleRomaji,
       detail.idMal,
-      detail.titleNative
+      detail.titleNative,
+      detail.duration
     );
     return <AnimeDetailClient detail={detail} episodes={episodes} />;
   }
