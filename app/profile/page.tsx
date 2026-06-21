@@ -854,6 +854,18 @@ export default function ProfilePage() {
                 {[1,2,3,4].map(i => <div key={i} className="bg-bg-card border border-border rounded-xl p-4 animate-pulse"><div className="h-8 w-12 bg-bg-card-hover rounded mb-2" /><div className="h-3 w-16 bg-bg-card-hover rounded" /></div>)}
               </div>
             </div>
+          ) : !isPremium ? (
+            /* Free user: Golden Ticket upsell */
+            <div className="bg-bg-card border border-border rounded-2xl p-8 text-center">
+              <span className="text-5xl block mb-4">⭐</span>
+              <h2 className="text-lg font-bold text-text-primary mb-2">Unlock Insights with Golden Ticket</h2>
+              <p className="text-sm text-text-secondary leading-relaxed max-w-md mx-auto mb-4">
+                Insights — including Yearly Recap, genre breakdowns, and your Viewer DNA — are exclusive to Golden Ticket members.
+              </p>
+              <a href="/pro" className="inline-block px-6 py-2.5 bg-accent text-white text-sm font-bold rounded-xl hover:bg-[#818cf8] transition-colors">
+                Get Golden Ticket
+              </a>
+            </div>
           ) : (
             <>
               {/* ── Yearly Recap ── */}
