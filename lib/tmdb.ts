@@ -2,6 +2,7 @@ const TMDB_BASE = "https://api.themoviedb.org/3";
 const API_KEY = process.env.TMDB_API_KEY!;
 
 import { validateAndReplaceTrailers } from "./yt-validator";
+import { getCustomPoster } from "./custom-posters";
 
 const poster = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w780${path}` : null;
@@ -567,6 +568,11 @@ export async function getMovieDetail(id: number): Promise<TmdbDetail> {
   result.videos = (await validateAndReplaceTrailers(rawVideos, `${movieTitle} official trailer`))
     .map((v) => ({ key: v.key, name: v.name, site: "YouTube", type: "Trailer" }));
 
+  // Fallback: custom poster from Supabase
+  if (!result.poster) {
+    result.poster = await getCustomPoster(detail.id);
+  }
+
   return result;
 }
 
@@ -631,6 +637,11 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
     .slice(0, 3);
   resultTV.videos = (await validateAndReplaceTrailers(rawVideos, `${tvTitle} official trailer`))
     .map((v) => ({ key: v.key, name: v.name, site: "YouTube", type: "Trailer" }));
+
+  // Fallback: custom poster from Supabase
+  if (!resultTV.poster) {
+    resultTV.poster = await getCustomPoster(detail.id);
+  }
 
   return resultTV;
 }
