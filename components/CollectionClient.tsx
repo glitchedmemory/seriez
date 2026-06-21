@@ -31,6 +31,8 @@ export default function CollectionClient() {
   const [collection, setCollection] = useState<any>(null);
   const [items, setItems] = useState<CollectionItem[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [reportPopover, setReportPopover] = useState(false);
+  const [reportSubmitted, setReportSubmitted] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -191,6 +193,31 @@ export default function CollectionClient() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           {likesCount}
         </button>
+        {/* Report button */}
+        {authUser && authUser !== collection.owner && (
+          <div className="absolute top-4 right-2">
+            {reportSubmitted ? (
+              <span className="text-[10px] text-green-400">Reported</span>
+            ) : (
+              <div className="relative">
+                <button onClick={() => setReportPopover(!reportPopover)} className="text-xs text-text-secondary hover:text-red-400 transition-colors px-1.5 py-1" title="Report">···</button>
+                {reportPopover && (
+                  <div className="absolute right-0 top-full mt-1 z-50 bg-bg-card border border-border rounded-lg shadow-xl py-1 min-w-[140px]">
+                    {["inappropriate","spam","obscenity","hate_speech","spoiler","other"].map((r) => (
+                      <button key={r}
+                        onClick={async () => { setReportPopover(false);
+                          await fetch("/api/report", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({target_type:"collection",target_id:id,username:authUser,reason:r}) });
+                          setReportSubmitted(true); }}
+                        className="w-full text-left px-3 py-1.5 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors">
+                        {r === "inappropriate" ? "👎 Inappropriate" : r === "spam" ? "📢 Spam" : r === "obscenity" ? "🔞 Obscenity" : r === "hate_speech" ? "🗣️ Hate Speech" : r === "spoiler" ? "🚨 Spoiler" : "··· Other"}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <div className="flex items-center gap-3 text-xs text-text-secondary mb-5">
         <span>by <span className="text-[#d1d5db] light:text-text-primary">{collection.owner}</span></span>
