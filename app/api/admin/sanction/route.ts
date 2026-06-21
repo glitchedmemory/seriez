@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername } from "@/lib/auth-helper";
+import { logAdminAction } from "@/lib/audit-log";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,7 +10,6 @@ const supabaseAdmin = createClient(
 
 const VALID_TYPES = ["warned", "suspended", "banned", "comment_restricted"];
 
-// GET — check user sanction status (any authenticated user can check their own)
 export async function GET(req: NextRequest) {
   const username = await resolveUsername(req);
   if (!username) return NextResponse.json({ error: "Auth required" }, { status: 401 });
@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const target = searchParams.get("username") || username;
 
-  // Only admin/moderator can check other users
   if (target !== username) {
     const { data: adminData } = await supabaseAdmin
       .from("users").select("role").eq("username", username).maybeSingle();
@@ -35,9 +34,7 @@ export async function GET(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!data) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  // Check if temporary sanction has expired
   if (data.sanction_type === "suspended" && data.sanction_until && new Date(data.sanction_until) < new Date()) {
-    // Auto-expire
     await supabaseAdmin.from("users").update({
       sanction_type: null, sanction_reason: null,
       sanction_until: null, sanctioned_at: null, sanctioned_by: null,
@@ -48,7 +45,6 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(data);
 }
 
-// POST — apply sanction (admin only)
 export async function POST(req: NextRequest) {
   try {
     const adminUser = await resolveUsername(req);
@@ -67,7 +63,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid request. Required: username, sanction_type (warned|suspended|banned|comment_restricted)" }, { status: 400 });
     }
 
-    // Cannot sanction another admin
     const { data: targetData } = await supabaseAdmin
       .from("users").select("role").eq("username", targetUser).maybeSingle();
     if (!targetData) return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -92,13 +87,17 @@ export async function POST(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+    // Audit log
+    logAdminAction(adminUser, "sanction", "user", targetUser, {
+      sanction_type, reason: reason || null, duration_hours: duration_hours || null
+    });
+
     return NextResponse.json({ ok: true, target: targetUser, sanction_type, until });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
-// DELETE — remove sanction (admin only)
 export async function DELETE(req: NextRequest) {
   try {
     const adminUser = await resolveUsername(req);
@@ -117,6 +116,11 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "username required" }, { status: 400 });
     }
 
+    // Get previous sanction info for audit
+    const { data: prevData } = await supabaseAdmin
+      .from("users").select("sanction_type, sanction_reason")
+      .eq("username", targetUser).maybeSingle();
+
     const { error } = await supabaseAdmin
       .from("users")
       .update({
@@ -129,6 +133,12 @@ export async function DELETE(req: NextRequest) {
       .eq("username", targetUser);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Audit log
+    logAdminAction(adminUser, "unsanction", "user", targetUser, {
+      previous_sanction: prevData?.sanction_type || "unknown",
+      previous_reason: prevData?.sanction_reason || null,
+    });
 
     return NextResponse.json({ ok: true, target: targetUser, unsanctioned: true });
   } catch (err: any) {
