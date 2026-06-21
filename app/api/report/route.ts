@@ -19,14 +19,18 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+const VALID_TARGETS = ["review", "comment", "collection"];
+const HIGH_RISK_REASONS = ["spam", "obscenity", "hate_speech"];
+const NORMAL_THRESHOLD = 3; // auto-hide after 3 normal reports
+
 export async function POST(req: NextRequest) {
   try {
-    const { target_type, target_id, username } = await req.json();
+    const { target_type, target_id, username, reason } = await req.json();
     if (!target_type || !target_id || !username) {
       return NextResponse.json({ error: "target_type, target_id, and username required" }, { status: 400 });
     }
-    if (!["review", "comment"].includes(target_type)) {
-      return NextResponse.json({ error: "target_type must be review or comment" }, { status: 400 });
+    if (!VALID_TARGETS.includes(target_type)) {
+      return NextResponse.json({ error: "target_type must be review, comment, or collection" }, { status: 400 });
     }
 
     // Sanction check
@@ -41,6 +45,7 @@ export async function POST(req: NextRequest) {
       reporter_username: reporter,
       target_type,
       target_id,
+      reason: reason || "other",
     });
 
     // 23505 = unique violation (already reported) — not an error
@@ -62,22 +67,44 @@ export async function POST(req: NextRequest) {
     }
 
     const reportCount = count || 1;
+    const isHighRisk = HIGH_RISK_REASONS.includes(reason);
 
-    // Auto-hide if 5+ reports
-    if (reportCount >= 5) {
-      const table = target_type === "review" ? "reviews" : "review_comments";
-      const idCol = target_type === "review" ? "id" : "id";
-      const { error: hideErr } = await supabaseAdmin
-        .from(table)
-        .update({ is_hidden: true })
-        .eq(idCol, target_id);
+    // Smart auto-hide:
+    // - High-risk reasons (spam, obscenity, hate_speech): auto-hide on 1st report
+    // - Normal reasons: auto-hide after NORMAL_THRESHOLD reports
+    const shouldHide = isHighRisk || reportCount >= NORMAL_THRESHOLD;
 
-      if (hideErr) {
-        console.error(`Auto-hide ${target_type} error:`, hideErr);
+    if (shouldHide) {
+      const tableMap: Record<string, string> = {
+        review: "reviews",
+        comment: "review_comments",
+        collection: "user_lists",
+      };
+      const idColMap: Record<string, string> = {
+        review: "id",
+        comment: "id",
+        collection: "id",
+      };
+      const table = tableMap[target_type];
+      const idCol = idColMap[target_type];
+
+      if (table) {
+        const { error: hideErr } = await supabaseAdmin
+          .from(table)
+          .update({ is_hidden: true })
+          .eq(idCol, target_id);
+
+        if (hideErr) {
+          console.error(`Auto-hide ${target_type} error:`, hideErr);
+        }
       }
     }
 
-    return NextResponse.json({ report_count: reportCount });
+    return NextResponse.json({
+      report_count: reportCount,
+      auto_hidden: shouldHide,
+      risk_level: isHighRisk ? "high" : "normal",
+    });
   } catch (err: any) {
     console.error("Report API error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

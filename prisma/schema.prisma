@@ -101,6 +101,7 @@ model Report {
   targetType       String    @map("target_type")
   targetId         String    @map("target_id")
   reporterUsername String    @map("reporter_username")
+  reason           String?   @map("reason")
   createdAt        DateTime  @default(now()) @map("created_at")
 
   @@unique([targetType, targetId, reporterUsername])
