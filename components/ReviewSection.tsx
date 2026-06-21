@@ -49,7 +49,7 @@ function CommentCard({
 }: {
   c: any;
   isAdmin: boolean;
-  onReport: (commentId: number) => void;
+  onReport: (commentId: number, reason?: string) => void;
   onDelete: (commentId: number) => void;
   onReply: (commentId: number) => void;
   onToggleReply: (commentId: number) => void;
@@ -70,6 +70,7 @@ function CommentCard({
 }) {
   const router = useRouter();
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [commentPopover, setCommentPopover] = useState<string | null>(null);
 
   return (
     <div>
@@ -93,18 +94,31 @@ function CommentCard({
             {/* actions pushed right */}
             <div className="ml-auto flex items-center gap-1">
               {authUsername !== c.username && (
-                <button onClick={() => authUsername ? onReport(c.id) : router.push("/login")}
-                  disabled={reportingComments.has(String(c.id)) && !!authUsername}
-                  className={`text-[11px] transition-colors disabled:opacity-50 ${
-                    (reportCounts?.[String(c.id)] || 0) > 0
-                      ? "text-green-400"
-                      : "text-text-secondary hover:text-red-400"
-                  }`}
-                  title={reportCounts?.[String(c.id)] ? "Reported ✓" : "Report"}>
-                  {reportCounts?.[String(c.id)] ? "✓ Reported" : (
-                    <span><img src="/report-button.png?v=2" alt="Report" className="h-5 w-auto opacity-70 hover:opacity-100" /></span>
+                <div className="relative inline-block">
+                  <button onClick={() => setCommentPopover(commentPopover === String(c.id) ? null : String(c.id))}
+                    disabled={reportingComments.has(String(c.id)) && !!authUsername}
+                    className={`text-[11px] transition-colors disabled:opacity-50 ${
+                      (reportCounts?.[String(c.id)] || 0) > 0
+                        ? "text-green-400"
+                        : "text-text-secondary hover:text-red-400"
+                    }`}
+                    title={reportCounts?.[String(c.id)] ? "Reported ✓" : "Report"}>
+                    {reportCounts?.[String(c.id)] ? "✓ Reported" : (
+                      <span><img src="/report-button.png?v=2" alt="Report" className="h-5 w-auto opacity-70 hover:opacity-100" /></span>
+                    )}
+                  </button>
+                  {commentPopover === String(c.id) && (
+                    <div className="absolute right-0 top-full mt-1 z-50 bg-bg-card border border-border rounded-lg shadow-xl py-1 min-w-[140px]">
+                      {["inappropriate","spam","obscenity","hate_speech","spoiler","other"].map((r) => (
+                        <button key={r}
+                          onClick={() => { onReport(c.id, r); setCommentPopover(null); }}
+                          className="w-full text-left px-3 py-1.5 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors">
+                          {r === "inappropriate" ? "👎 Inappropriate" : r === "spam" ? "📢 Spam" : r === "obscenity" ? "🔞 Obscenity" : r === "hate_speech" ? "🗣️ Hate Speech" : r === "spoiler" ? "🚨 Spoiler" : "··· Other"}
+                        </button>
+                      ))}
+                    </div>
                   )}
-                </button>
+                </div>
               )}
               {authUsername === c.username && (
                 confirmDelete === c.id ? (
@@ -197,7 +211,7 @@ function CommentTree({
   depth: number;
   parentId?: number;
   isAdmin: boolean;
-  onReport: (commentId: number) => void;
+  onReport: (commentId: number, reason?: string) => void;
   onDelete: (commentId: number) => void;
   onReply: (commentId: number) => void;
   onToggleReply: (commentId: number) => void;
@@ -416,6 +430,7 @@ export function ReviewSection({
   const [isAdmin, setIsAdmin] = useState(false);
   const [reportCounts, setReportCounts] = useState<Record<string, number>>({});
   const [reportingReview, setReportingReview] = useState<Set<string>>(new Set());
+  const [reportPopover, setReportPopover] = useState<string | null>(null);
   const [reportingComments, setReportingComments] = useState<Set<string>>(new Set());
   // Reply state
   const [replyInputs, setReplyInputs] = useState<Record<string, string>>({});
@@ -539,7 +554,7 @@ export function ReviewSection({
 
   const getUsername = () => authUser?.user_metadata?.username || "";
 
-  const handleReport = async (targetType: "review" | "comment", targetId: string) => {
+  const handleReport = async (targetType: "review" | "comment", targetId: string, reason?: string) => {
     if (!authUser) return;
     const username = getUsername();
     if (!username) return;
@@ -548,7 +563,7 @@ export function ReviewSection({
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target_type: targetType, target_id: targetId, username }),
+        body: JSON.stringify({ target_type: targetType, target_id: targetId, username, reason: reason || "other" }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -599,14 +614,14 @@ export function ReviewSection({
     }
   };
 
-  const handleReportComment = (reviewId: string) => async (commentId: number) => {
+  const handleReportComment = (reviewId: string) => async (commentId: number, reason?: string) => {
     if (!authUser) return;
     setReportingComments((prev) => new Set(prev).add(String(commentId)));
     try {
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target_type: "comment", target_id: String(commentId) }),
+        body: JSON.stringify({ target_type: "comment", target_id: String(commentId), username: getUsername(), reason: reason || "other" }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -960,22 +975,35 @@ export function ReviewSection({
                 <span>💬</span>
                 <span>{review.commentCount || "Comment"}</span>
               </button>
-              {/* Report button */}
+              {/* Report button with reason dropdown */}
               {authUser?.user_metadata?.username !== review.username && (
-                <button
-                  onClick={() => authUser ? handleReport("review", review.id) : router.push("/login")}
-                  disabled={reportingReview.has(review.id)}
-                  className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
-                    (reportCounts[review.id] || 0) > 0
-                      ? "text-green-400"
-                      : "text-text-secondary hover:text-red-400"
-                  }`}
-                  title={reportCounts[review.id] ? "Reported ✓" : "Report this review"}
-                >
-                  {reportCounts[review.id] ? "✓ Reported" : (
-                    <span><img src="/report-button.png?v=2" alt="Report" className="h-6 w-auto" /></span>
+                <div className="relative inline-block">
+                  <button
+                    onClick={() => setReportPopover(reportPopover === review.id ? null : review.id)}
+                    disabled={reportingReview.has(review.id)}
+                    className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
+                      (reportCounts[review.id] || 0) > 0
+                        ? "text-green-400"
+                        : "text-text-secondary hover:text-red-400"
+                    }`}
+                    title={reportCounts[review.id] ? "Reported ✓" : "Report this review"}
+                  >
+                    {reportCounts[review.id] ? "✓ Reported" : (
+                      <span><img src="/report-button.png?v=2" alt="Report" className="h-6 w-auto" /></span>
+                    )}
+                  </button>
+                  {reportPopover === review.id && (
+                    <div className="absolute right-0 top-full mt-1 z-50 bg-bg-card border border-border rounded-lg shadow-xl py-1 min-w-[140px]">
+                      {["inappropriate","spam","obscenity","hate_speech","spoiler","other"].map((r) => (
+                        <button key={r}
+                          onClick={() => { handleReport("review", review.id, r); setReportPopover(null); }}
+                          className="w-full text-left px-3 py-1.5 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors">
+                          {r === "inappropriate" ? "👎 Inappropriate" : r === "spam" ? "📢 Spam" : r === "obscenity" ? "🔞 Obscenity" : r === "hate_speech" ? "🗣️ Hate Speech" : r === "spoiler" ? "🚨 Spoiler" : "··· Other"}
+                        </button>
+                      ))}
+                    </div>
                   )}
-                </button>
+                </div>
               )}
               {/* Delete own review */}
               {authUser?.user_metadata?.username === review.username && (
