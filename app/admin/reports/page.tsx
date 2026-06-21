@@ -15,6 +15,13 @@ interface HiddenItem {
   review_id?: string;
 }
 
+interface UserInfo {
+  username: string;
+  role: string;
+  is_premium: boolean;
+  created_at: string;
+}
+
 function formatDate(iso: string) {
   const d = new Date(iso);
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -27,7 +34,10 @@ export default function AdminReportsPage() {
   const [verdicts, setVerdicts] = useState<Record<string, string>>({});
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null); // null = checking
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [section, setSection] = useState<"reports" | "users">("reports");
+  const [users, setUsers] = useState<UserInfo[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
 
   const supabase = createClient();
 
@@ -68,6 +78,24 @@ export default function AdminReportsPage() {
     fetchItems();
   }, []);
 
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const res = await fetch("/api/admin/users");
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data.users || []);
+      }
+    } catch {}
+    setUsersLoading(false);
+  };
+
+  useEffect(() => {
+    if (isAdmin && section === "users" && users.length === 0) {
+      fetchUsers();
+    }
+  }, [isAdmin, section]);
+
   const handleAction = async (item: HiddenItem, action: "restore" | "delete") => {
     const targetId = String(item.id);
     const res = await fetch(`/api/admin/reports?action=${action}&target_type=${item.type}&target_id=${targetId}`);
@@ -95,8 +123,6 @@ export default function AdminReportsPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-text-primary p-6">
-      <h1 className="text-2xl font-bold mb-6">🚨 Hidden Content Reports</h1>
-
       {isAdmin === null ? (
         <p className="text-text-secondary">Checking access...</p>
       ) : isAdmin === false ? (
@@ -106,14 +132,29 @@ export default function AdminReportsPage() {
         </div>
       ) : (
         <>
-          {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
-          {loading ? (
-            <p className="text-text-secondary">Loading...</p>
-          ) : items.length === 0 ? (
-            <p className="text-text-secondary">No hidden content. Clean! ✅</p>
-          ) : (
-            <div className="space-y-4">
-              {items.map((item) => {
+          {/* Section selector */}
+          <div className="flex items-center gap-4 mb-6">
+            <h1 className="text-2xl font-bold">🛡️ Admin</h1>
+            <select
+              value={section}
+              onChange={(e) => setSection(e.target.value as "reports" | "users")}
+              className="bg-bg-card text-text-primary text-sm rounded-xl px-3 py-2 border border-border focus:border-accent outline-none"
+            >
+              <option value="reports">🚨 Reports</option>
+              <option value="users">👥 Users</option>
+            </select>
+          </div>
+
+          {section === "reports" ? (
+            <>
+              {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+              {loading ? (
+                <p className="text-text-secondary">Loading...</p>
+              ) : items.length === 0 ? (
+                <p className="text-text-secondary">No hidden content. Clean! ✅</p>
+              ) : (
+                <div className="space-y-4">
+                  {items.map((item) => {
             const key = `${item.type}-${item.id}`;
             const verdict = verdicts[key] || item.ai_verdict;
             return (
@@ -172,6 +213,59 @@ export default function AdminReportsPage() {
           })}
         </div>
       )}
+            </>
+          ) : (
+            /* Users section */
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-text-secondary">{users.length} users</p>
+                <button
+                  onClick={fetchUsers}
+                  className="text-xs px-3 py-1.5 bg-bg-card border border-border rounded-lg text-text-secondary hover:text-text-primary transition-colors"
+                >
+                  🔄 Refresh
+                </button>
+              </div>
+              {usersLoading ? (
+                <p className="text-text-secondary">Loading...</p>
+              ) : users.length === 0 ? (
+                <p className="text-text-secondary">No users found.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-text-secondary text-xs uppercase tracking-wide">
+                        <th className="text-left py-2 px-3">Username</th>
+                        <th className="text-left py-2 px-3">Role</th>
+                        <th className="text-left py-2 px-3">Premium</th>
+                        <th className="text-left py-2 px-3">Joined</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((u, i) => (
+                        <tr key={u.username} className={`border-b border-border/50 ${i % 2 === 0 ? "bg-bg-card/30" : ""}`}>
+                          <td className="py-2 px-3 font-medium">{u.username}</td>
+                          <td className="py-2 px-3">
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${u.role === "admin" ? "bg-red-900/30 text-red-300" : "bg-bg-card text-text-secondary"}`}>
+                              {u.role}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3">
+                            {u.is_premium ? (
+                              <span className="text-xs bg-gold/10 text-gold px-2 py-0.5 rounded-full">⭐ Yes</span>
+                            ) : (
+                              <span className="text-xs text-text-secondary">—</span>
+                            )}
+                          </td>
+                          <td className="py-2 px-3 text-text-secondary text-xs">{formatDate(u.created_at)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
         </>
       )}
     </div>
