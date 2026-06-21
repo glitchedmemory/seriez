@@ -72,7 +72,7 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
   if (items.length === 0) return <EmptyState icon="📚" title={activeTab ? `No ${TABS.find(t=>t.key===activeTab)?.label || "items"} yet` : "Your library is empty"} description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />;
 
   return (
-    <div className="px-4 mt-4">
+    <div className="max-w-4xl mx-auto px-4 mt-4">
       {/* Sort bar */}
       <div className="flex gap-1.5 mb-3">
         {SORT_OPTIONS.map(opt => (
@@ -194,7 +194,7 @@ function CollectionsView() {
   if (selectedId) {
     const collection = collections.find(c => c.id === selectedId);
     return (
-      <div className="px-4 mt-4">
+      <div className="max-w-4xl mx-auto px-4 mt-4">
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => setSelectedId(null)} className="text-text-secondary hover:text-text-primary text-sm">← Back</button>
           <h2 className="text-lg font-semibold text-text-primary">{collection?.name}</h2>
@@ -223,7 +223,7 @@ function CollectionsView() {
   }
 
   return (
-    <div className="px-4 mt-4">
+    <div className="max-w-4xl mx-auto px-4 mt-4">
       {!authUser ? (
         <EmptyState icon="🔐" title="Sign in to create collections" description="Create an account to make custom collections and share them." action={{ label: "Create account", href: "/signup" }} />
       ) : (
@@ -369,7 +369,7 @@ export default function LibraryClient() {
 
       {/* Content */}
       {!activeFilter ? (
-        <div className="px-4 mt-4">
+        <div className="max-w-4xl mx-auto px-4 mt-4">
           <EmptyState icon="📚" title="Your list is empty" description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />
         </div>
       ) : activeFilter === "collections" ? (
