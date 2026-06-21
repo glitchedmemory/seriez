@@ -65,12 +65,13 @@ export default function ProfilePage() {
   const [selectedMediaType, setSelectedMediaType] = useState<"movie" | "tv" | "anime">("movie");
   const [isPremium, setIsPremium] = useState(false);
   const [reviewsMap, setReviewsMap] = useState<Record<string, string>>({});
-  const [activeView, setActiveView] = useState<"profile" | "insights" | "ott" | "reviews">("profile");
+  const [activeView, setActiveView] = useState<"profile" | "insights" | "ott" | "reviews" | "admin">("profile");
   const [userReviews, setUserReviews] = useState<any[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [isFavoriteMode, setIsFavoriteMode] = useState(false);
   const [favoriteDirectors, setFavoriteDirectors] = useState<any[]>([]);
   const [favoriteActors, setFavoriteActors] = useState<any[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -184,6 +185,18 @@ export default function ProfilePage() {
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
+
+  // Admin role check
+  useEffect(() => {
+    const username = ownUsername || localStorageUsername;
+    if (username) {
+      supabase.from("users").select("role").eq("username", username).maybeSingle()
+        .then(
+          ({ data: rows }) => setIsAdmin((rows as any)?.role === "admin"),
+          () => {}
+        );
+    }
+  }, [ownUsername, localStorageUsername]);
 
   useEffect(() => {
     if (mounted) {
@@ -461,6 +474,18 @@ export default function ProfilePage() {
           >
             Reviews
           </button>
+          {isAdmin && (
+            <button
+              onClick={() => setActiveView("admin")}
+              className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                activeView === "admin"
+                  ? "border-red-400 text-red-400"
+                  : "border-transparent text-text-secondary hover:text-red-400"
+              }`}
+            >
+              🛡️ Admin
+            </button>
+          )}
         </div>
       </div>
 
@@ -1027,8 +1052,85 @@ export default function ProfilePage() {
           )}
         </div>
       )}
+
+      {/* ── Admin View ── */}
+      {activeView === "admin" && isAdmin && (
+        <AdminPanel />
+      )}
     </div>
     </ErrorBoundary>
+  );
+}
+
+function AdminPanel() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchItems = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/reports");
+      if (res.ok) {
+        const data = await res.json();
+        const all = [
+          ...(data.reviews || []).map((r: any) => ({ ...r, type: "review" })),
+          ...(data.comments || []).map((c: any) => ({ ...c, type: "comment" })),
+        ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        setItems(all);
+      }
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchItems(); }, []);
+
+  const handleAction = async (item: any, action: "restore" | "delete") => {
+    await fetch(`/api/admin/reports?action=${action}&target_type=${item.type}&target_id=${item.id}`);
+    setItems(prev => prev.filter(i => i.id !== item.id || i.type !== item.type));
+  };
+
+  return (
+    <div className="px-4 mt-6 pb-24">
+      <h2 className="text-lg font-bold text-text-primary mb-4">🚨 Hidden Content Reports</h2>
+      {loading ? (
+        <p className="text-text-secondary text-sm">Loading...</p>
+      ) : items.length === 0 ? (
+        <p className="text-text-secondary text-sm">No hidden content. Clean! ✅</p>
+      ) : (
+        <div className="space-y-3">
+          {items.map((item: any) => (
+            <div key={`${item.type}-${item.id}`} className="bg-bg-card rounded-xl p-4 border border-red-800/30">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs bg-red-900/50 text-red-300 px-2 py-0.5 rounded">
+                    {item.type === "review" ? "📝 Review" : "💬 Comment"}
+                  </span>
+                  <span className="text-xs text-text-secondary">{item.username}</span>
+                  {(item as any).report_count >= 5 && (
+                    <span className="text-xs bg-red-900/60 text-red-300 px-2 py-0.5 rounded-full font-bold">
+                      🚩 {(item as any).report_count}
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => handleAction(item, "restore")}
+                    className="text-xs px-2 py-1 bg-green-600/30 text-green-300 rounded hover:bg-green-600/50">
+                    ✅ Restore
+                  </button>
+                  <button onClick={() => handleAction(item, "delete")}
+                    className="text-xs px-2 py-1 bg-red-600/30 text-red-300 rounded hover:bg-red-600/50">
+                    🗑️ Delete
+                  </button>
+                </div>
+              </div>
+              <p className="text-sm text-[#d1d5db] bg-bg-surface p-3 rounded-lg whitespace-pre-wrap">
+                {item.content}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
