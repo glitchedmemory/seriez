@@ -57,7 +57,12 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
   }, [activeTab, localUser]);
 
   const sortedItems = useMemo(() => {
-    const sorted = [...items];
+    // Filter out TV/anime main entries (season_number=0) — only show actual seasons
+    const filtered = items.filter(item => {
+      if (item.mediaType === "movie") return true;
+      return item.seasonNumber > 0;
+    });
+    const sorted = [...filtered];
     switch (sort) {
       case "rating": sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)); break;
       case "popularity": sorted.sort((a, b) => (b.tmdbRating ?? 0) - (a.tmdbRating ?? 0)); break;
