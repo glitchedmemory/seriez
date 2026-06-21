@@ -186,17 +186,18 @@ export default function ProfilePage() {
     }).catch(() => setLoading(false));
   }, []);
 
-  // Admin role check
+  // Admin role check (only for authenticated users, never from localStorage)
   useEffect(() => {
-    const username = ownUsername || localStorageUsername;
-    if (username) {
-      supabase.from("users").select("role").eq("username", username).maybeSingle()
+    if (ownUsername) {
+      supabase.from("users").select("role").eq("username", ownUsername).maybeSingle()
         .then(
           ({ data: rows }) => setIsAdmin((rows as any)?.role === "admin"),
           () => {}
         );
+    } else {
+      setIsAdmin(false);
     }
-  }, [ownUsername, localStorageUsername]);
+  }, [ownUsername]);
 
   useEffect(() => {
     if (mounted) {
