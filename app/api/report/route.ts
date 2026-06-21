@@ -40,16 +40,12 @@ export async function POST(req: NextRequest) {
 
     const reporter = username.trim();
 
-    // Insert report (UNIQUE constraint prevents duplicates)
-    // NOTE: reason column not yet in DB. Run migration first:
-    // ALTER TABLE reports ADD COLUMN IF NOT EXISTS reason TEXT;
     const insertData: Record<string, any> = {
       reporter_username: reporter,
       target_type,
       target_id,
+      reason: reason || "other",
     };
-    // Uncomment after running migration above
-    // insertData.reason = reason || "other";
 
     const { error: insertErr } = await supabaseAdmin.from("reports").insert(insertData);
 
