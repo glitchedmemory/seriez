@@ -72,6 +72,7 @@ export default function ProfilePage() {
   const [favoriteDirectors, setFavoriteDirectors] = useState<any[]>([]);
   const [favoriteActors, setFavoriteActors] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -191,7 +192,11 @@ export default function ProfilePage() {
     if (ownUsername) {
       supabase.from("users").select("role").eq("username", ownUsername).maybeSingle()
         .then(
-          ({ data: rows }) => setIsAdmin((rows as any)?.role === "admin"),
+          ({ data: rows }) => {
+            const role = (rows as any)?.role;
+            setIsAdmin(role === "admin" || role === "moderator");
+            setUserRole(role || null);
+          },
           () => {}
         );
     } else {
@@ -1070,15 +1075,15 @@ export default function ProfilePage() {
 
       {/* ── Admin View ── */}
       {activeView === "admin" && isAdmin && (
-        <AdminPanel />
+        <AdminPanel userRole={userRole} />
       )}
     </div>
     </ErrorBoundary>
   );
 }
 
-function AdminPanel() {
-  type Section = "dashboard" | "reports" | "users" | "content";
+function AdminPanel({ userRole }: { userRole: string | null }) {
+  type Section = "dashboard" | "reports" | "users" | "content" | "sanctions" | "audit";
   const [section, setSection] = useState<Section>("dashboard");
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1090,8 +1095,18 @@ function AdminPanel() {
   const [contentLoading, setContentLoading] = useState(false);
   const [contentQ, setContentQ] = useState("");
   const [contentFilter, setContentFilter] = useState("all");
+  const [contentType, setContentType] = useState("all"); // "all" | "review" | "comment" | "collection"
   const [userDetail, setUserDetail] = useState<any>(null);
   const [userDetailLoading, setUserDetailLoading] = useState(false);
+  const [sanctionTarget, setSanctionTarget] = useState("");
+  const [sanctionType, setSanctionType] = useState("warn");
+  const [sanctionReason, setSanctionReason] = useState("");
+  const [sanctionSubmitting, setSanctionSubmitting] = useState(false);
+  const [sanctionMsg, setSanctionMsg] = useState("");
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [roleMsg, setRoleMsg] = useState("");
+  const isAdmin = userRole === "admin";
 
   const fetchItems = async () => {
     setLoading(true);
@@ -1136,6 +1151,7 @@ function AdminPanel() {
       const params = new URLSearchParams();
       if (contentQ) params.set("q", contentQ);
       if (contentFilter !== "all") params.set("hidden", contentFilter);
+      if (contentType !== "all") params.set("type", contentType);
       const res = await fetch(`/api/admin/content?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
@@ -1154,10 +1170,68 @@ function AdminPanel() {
     setUserDetailLoading(false);
   };
 
+  const fetchAuditLogs = async () => {
+    setAuditLoading(true);
+    try {
+      const res = await fetch("/api/admin/audit-log");
+      if (res.ok) {
+        const data = await res.json();
+        setAuditLogs(data.logs || []);
+      }
+    } catch {}
+    setAuditLoading(false);
+  };
+
+  const submitSanction = async () => {
+    if (!sanctionTarget.trim()) return;
+    setSanctionSubmitting(true);
+    setSanctionMsg("");
+    try {
+      const res = await fetch("/api/admin/sanction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: sanctionTarget.trim(), type: sanctionType, reason: sanctionReason }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSanctionMsg(`✅ ${sanctionTarget} sanctioned: ${sanctionType}`);
+        setSanctionTarget("");
+        setSanctionReason("");
+      } else {
+        setSanctionMsg(`❌ ${data.error || "Failed"}`);
+      }
+    } catch {
+      setSanctionMsg("❌ Network error");
+    }
+    setSanctionSubmitting(false);
+  };
+
+  const handleRoleChange = async (target: string, newRole: string) => {
+    setRoleMsg("");
+    try {
+      const res = await fetch("/api/admin/users/role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: target, role: newRole }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setRoleMsg(`✅ ${target} → ${newRole}`);
+        fetchUserDetail(target);
+        fetchUsers();
+      } else {
+        setRoleMsg(`❌ ${data.error || "Failed"}`);
+      }
+    } catch {
+      setRoleMsg("❌ Network error");
+    }
+  };
+
   useEffect(() => { fetchStats(); }, []);
   useEffect(() => {
     if (section === "reports" && items.length === 0) fetchItems();
     if (section === "users" && users.length === 0) fetchUsers();
+    if (section === "audit" && auditLogs.length === 0) fetchAuditLogs();
   }, [section]);
 
   const handleAction = async (item: any, action: "restore" | "delete") => {
@@ -1186,6 +1260,11 @@ function AdminPanel() {
       {/* Section selector */}
       <div className="flex items-center gap-3 mb-4">
         <h2 className="text-lg font-bold text-text-primary">🛡️ Admin</h2>
+        {userRole && (
+          <span className={`text-xs px-2 py-0.5 rounded-full ${userRole === "admin" ? "bg-red-900/30 text-red-300" : "bg-blue-900/30 text-blue-300"}`}>
+            {userRole}
+          </span>
+        )}
         <select
           value={section}
           onChange={(e) => setSection(e.target.value as Section)}
@@ -1195,6 +1274,8 @@ function AdminPanel() {
           <option value="reports">🚨 Reports</option>
           <option value="users">👥 Users</option>
           <option value="content">🔍 Content</option>
+          {isAdmin && <option value="sanctions">⛔ Sanctions</option>}
+          <option value="audit">📋 Audit Log</option>
         </select>
         {userDetail && (
           <button onClick={() => setUserDetail(null)} className="text-xs text-accent hover:underline ml-auto">
@@ -1304,6 +1385,8 @@ function AdminPanel() {
                   </div>
                   <div className="flex items-center gap-2">
                     {u.role === "admin" && <span className="text-[10px] bg-red-900/30 text-red-300 px-1.5 py-0.5 rounded-full">admin</span>}
+                    {u.role === "moderator" && <span className="text-[10px] bg-blue-900/30 text-blue-300 px-1.5 py-0.5 rounded-full">mod</span>}
+                    {u.sanction_type && <span className="text-[10px] bg-yellow-900/30 text-yellow-300 px-1.5 py-0.5 rounded-full">⚠️</span>}
                     {u.is_premium && <span className="text-[10px] bg-gold/10 text-gold px-1.5 py-0.5 rounded-full">⭐</span>}
                   </div>
                 </button>
@@ -1331,9 +1414,33 @@ function AdminPanel() {
                   </div>
                   <div className="ml-auto flex items-center gap-2">
                     {userDetail.user.role === "admin" && <span className="text-xs bg-red-900/30 text-red-300 px-2 py-0.5 rounded-full">admin</span>}
+                    {userDetail.user.role === "moderator" && <span className="text-xs bg-blue-900/30 text-blue-300 px-2 py-0.5 rounded-full">moderator</span>}
+                    {userDetail.user.sanction_type && (
+                      <span className="text-xs bg-yellow-900/30 text-yellow-300 px-2 py-0.5 rounded-full">
+                        {userDetail.user.sanction_type}{userDetail.user.sanction_until ? ` until ${new Date(userDetail.user.sanction_until).toLocaleDateString()}` : ""}
+                      </span>
+                    )}
                     {userDetail.user.is_premium && <span className="text-xs bg-gold/10 text-gold px-2 py-0.5 rounded-full">⭐ Premium</span>}
                   </div>
                 </div>
+                {/* Role management (admin only, not self) */}
+                {isAdmin && userDetail.user.role !== "admin" && (
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
+                    <span className="text-xs text-text-secondary">Role:</span>
+                    {userDetail.user.role === "moderator" ? (
+                      <button onClick={() => handleRoleChange(userDetail.user.username, "user")}
+                        className="text-xs px-2 py-1 bg-orange-600/20 text-orange-300 rounded hover:bg-orange-600/40">
+                        Demote to User
+                      </button>
+                    ) : (
+                      <button onClick={() => handleRoleChange(userDetail.user.username, "moderator")}
+                        className="text-xs px-2 py-1 bg-blue-600/20 text-blue-300 rounded hover:bg-blue-600/40">
+                        Promote to Moderator
+                      </button>
+                    )}
+                    {roleMsg && <span className="text-xs text-green-400">{roleMsg}</span>}
+                  </div>
+                )}
               </div>
               {/* Reviews */}
               <div>
@@ -1392,6 +1499,16 @@ function AdminPanel() {
               className="flex-1 bg-bg-card text-text-primary text-xs rounded-lg px-3 py-1.5 border border-border focus:border-accent outline-none placeholder:text-text-secondary"
             />
             <select
+              value={contentType}
+              onChange={(e) => setContentType(e.target.value)}
+              className="bg-bg-card text-text-primary text-xs rounded-lg px-2 py-1.5 border border-border focus:border-accent outline-none"
+            >
+              <option value="all">All Types</option>
+              <option value="review">Reviews</option>
+              <option value="comment">Comments</option>
+              <option value="collection">Collections</option>
+            </select>
+            <select
               value={contentFilter}
               onChange={(e) => setContentFilter(e.target.value)}
               className="bg-bg-card text-text-primary text-xs rounded-lg px-2 py-1.5 border border-border focus:border-accent outline-none"
@@ -1413,11 +1530,18 @@ function AdminPanel() {
               {contentResults.map((item: any) => (
                 <div key={`${item.content_type}-${item.id}`} className={`bg-bg-card border rounded-lg p-3 text-xs ${item.is_hidden ? "border-red-800/30" : "border-border"}`}>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] ${item.content_type === "review" ? "bg-blue-900/30 text-blue-300" : "bg-purple-900/30 text-purple-300"}`}>
-                      {item.content_type === "review" ? "Review" : "Comment"}
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] ${
+                      item.content_type === "review" ? "bg-blue-900/30 text-blue-300" :
+                      item.content_type === "collection" ? "bg-green-900/30 text-green-300" :
+                      "bg-purple-900/30 text-purple-300"
+                    }`}>
+                      {item.content_type === "review" ? "Review" : item.content_type === "collection" ? "Collection" : "Comment"}
                     </span>
                     <span className="text-text-secondary">{item.username}</span>
                     {item.is_hidden && <span className="text-[10px] bg-red-900/30 text-red-300 px-1.5 py-0.5 rounded">hidden</span>}
+                    {item.content_type === "collection" && item.item_count !== undefined && (
+                      <span className="text-[10px] text-text-secondary">{item.item_count} items</span>
+                    )}
                     <span className="text-text-secondary ml-auto">{formatDate(item.created_at)}</span>
                   </div>
                   <p className="text-text-secondary leading-relaxed line-clamp-2 mb-2">{item.content}</p>
@@ -1429,6 +1553,84 @@ function AdminPanel() {
                     )}
                     <button onClick={() => handleContentAction(item, "delete")} className="text-[10px] px-2 py-0.5 bg-red-600/20 text-red-300 rounded hover:bg-red-600/40">Delete</button>
                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {section === "sanctions" && isAdmin && (
+        <div className="bg-bg-card border border-border rounded-xl p-4 space-y-3">
+          <h3 className="text-sm font-semibold text-text-primary">Issue Sanction</h3>
+          <div className="flex gap-2">
+            <input
+              value={sanctionTarget}
+              onChange={(e) => setSanctionTarget(e.target.value)}
+              placeholder="Username"
+              className="flex-1 bg-bg-surface text-text-primary text-xs rounded-lg px-3 py-1.5 border border-border focus:border-accent outline-none placeholder:text-text-secondary"
+            />
+            <select
+              value={sanctionType}
+              onChange={(e) => setSanctionType(e.target.value)}
+              className="bg-bg-surface text-text-primary text-xs rounded-lg px-2 py-1.5 border border-border focus:border-accent outline-none"
+            >
+              <option value="warn">⚠️ Warn</option>
+              <option value="comment_restrict">💬 Comment Restrict</option>
+              <option value="suspend">🚫 Suspend 24h</option>
+              <option value="ban">🔨 Ban</option>
+            </select>
+          </div>
+          <input
+            value={sanctionReason}
+            onChange={(e) => setSanctionReason(e.target.value)}
+            placeholder="Reason (optional)"
+            className="w-full bg-bg-surface text-text-primary text-xs rounded-lg px-3 py-1.5 border border-border focus:border-accent outline-none placeholder:text-text-secondary"
+          />
+          <button
+            onClick={submitSanction}
+            disabled={sanctionSubmitting || !sanctionTarget.trim()}
+            className="text-xs px-4 py-1.5 bg-red-600/20 text-red-300 rounded-lg hover:bg-red-600/40 disabled:opacity-50 transition-colors"
+          >
+            {sanctionSubmitting ? "Submitting..." : "Apply Sanction"}
+          </button>
+          {sanctionMsg && <p className={`text-xs ${sanctionMsg.startsWith("✅") ? "text-green-400" : "text-red-400"}`}>{sanctionMsg}</p>}
+        </div>
+      )}
+
+      {section === "audit" && (
+        <>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-text-secondary">{auditLogs.length} entries</p>
+            <button onClick={fetchAuditLogs} className="text-xs px-2.5 py-1 bg-bg-card border border-border rounded-lg text-text-secondary hover:text-text-primary transition-colors">
+              🔄 Refresh
+            </button>
+          </div>
+          {auditLoading ? (
+            <p className="text-text-secondary text-sm">Loading...</p>
+          ) : auditLogs.length === 0 ? (
+            <p className="text-text-secondary text-sm">No audit log entries yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {auditLogs.map((entry: any) => (
+                <div key={entry.id} className="bg-bg-card border border-border rounded-lg p-3 text-xs">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-accent font-medium">{entry.admin_username}</span>
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] ${
+                      entry.action.includes("delete") ? "bg-red-900/30 text-red-300" :
+                      entry.action.includes("hide") || entry.action.includes("sanction") ? "bg-yellow-900/30 text-yellow-300" :
+                      "bg-green-900/30 text-green-300"
+                    }`}>
+                      {entry.action}
+                    </span>
+                    <span className="text-text-secondary">{entry.target_type}:{entry.target_id}</span>
+                    <span className="text-text-secondary ml-auto">{formatDate(entry.created_at)}</span>
+                  </div>
+                  {entry.details && typeof entry.details === "object" && (
+                    <p className="text-text-secondary text-[10px] mt-1">
+                      {Object.entries(entry.details).map(([k, v]) => `${k}: ${v}`).join(" | ")}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
