@@ -252,13 +252,13 @@ export default function AdminReportsPage() {
                   {item.content}
                 </p>
                 {verdict && (
-                  <div className={"mt-2 text-xs p-2 rounded ${
+                  <div className={`mt-2 text-xs p-2 rounded ${
                     verdict.includes("DELETE")
                       ? "bg-red-900/30 text-red-300"
                       : verdict.includes("RESTORE")
                       ? "bg-green-900/30 text-green-300"
                       : "bg-yellow-900/30 text-yellow-300"
-                  }"}>
+                  }`}>
                     🤖 {verdict}
                   </div>
                 )}
