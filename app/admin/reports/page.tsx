@@ -25,6 +25,16 @@ interface UserInfo {
   sanctioned_at?: string | null;
 }
 
+interface AuditLogEntry {
+  id: number;
+  action: string;
+  target_type: string;
+  target_id: string;
+  details: any;
+  admin_username: string;
+  created_at: string;
+}
+
 function formatDate(iso: string) {
   const d = new Date(iso);
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -38,7 +48,7 @@ export default function AdminReportsPage() {
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [section, setSection] = useState<"reports" | "users" | "sanctions">("reports");
+  const [section, setSection] = useState<"reports" | "users" | "sanctions" | "audit">("reports");
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState("");
@@ -47,6 +57,10 @@ export default function AdminReportsPage() {
   const [sanctionDuration, setSanctionDuration] = useState(24);
   const [sanctioning, setSanctioning] = useState(false);
   const [sanctionMsg, setSanctionMsg] = useState("");
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditTotal, setAuditTotal] = useState(0);
+  const [auditAction, setAuditAction] = useState("");
 
   const supabase = createClient();
 
@@ -98,9 +112,27 @@ export default function AdminReportsPage() {
     setUsersLoading(false);
   };
 
+  const fetchAuditLogs = async (offset = 0) => {
+    setAuditLoading(true);
+    try {
+      const params = new URLSearchParams({ limit: "50", offset: String(offset) });
+      if (auditAction) params.set("action", auditAction);
+      const res = await fetch("/api/admin/audit-log?" + params.toString());
+      if (res.ok) {
+        const data = await res.json();
+        setAuditLogs(data.actions || []);
+        setAuditTotal(data.total || 0);
+      }
+    } catch {}
+    setAuditLoading(false);
+  };
+
   useEffect(() => {
     if (isAdmin && (section === "users" || section === "sanctions") && users.length === 0) {
       fetchUsers();
+    }
+    if (isAdmin && section === "audit" && auditLogs.length === 0) {
+      fetchAuditLogs();
     }
   }, [isAdmin, section]);
 
@@ -190,12 +222,13 @@ export default function AdminReportsPage() {
             <h1 className="text-2xl font-bold">🛡️ Admin</h1>
             <select
               value={section}
-              onChange={(e) => setSection(e.target.value as "reports" | "users" | "sanctions")}
+              onChange={(e) => setSection(e.target.value as "reports" | "users" | "sanctions" | "audit")}
               className="bg-bg-card text-text-primary text-sm rounded-xl px-3 py-2 border border-border focus:border-accent outline-none"
             >
               <option value="reports">🚨 Reports</option>
               <option value="users">👥 Users</option>
               <option value="sanctions">⛔ Sanctions</option>
+              <option value="audit">📋 Audit Log</option>
             </select>
           </div>
 
@@ -299,6 +332,78 @@ export default function AdminReportsPage() {
                 </button>
                 {sanctionMsg && <p className={"text-xs mt-3 " + (sanctionMsg.startsWith("Sanction") ? "text-green-400" : "text-red-400")}>{sanctionMsg}</p>}
               </div>
+            </>
+          ) : section === "audit" ? (
+            /* Audit Log section */
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-text-secondary">{auditTotal} actions logged</p>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={auditAction}
+                    onChange={(e) => { setAuditAction(e.target.value); setTimeout(() => fetchAuditLogs(), 100); }}
+                    className="bg-bg-card text-text-primary text-xs rounded-lg px-2 py-1.5 border border-border focus:border-accent outline-none"
+                  >
+                    <option value="">All Actions</option>
+                    <option value="sanction">Sanctions</option>
+                    <option value="unsanction">Unsanctions</option>
+                    <option value="hide_content">Hidden Content</option>
+                    <option value="restore_content">Restored Content</option>
+                    <option value="delete_content">Deleted Content</option>
+                  </select>
+                  <button
+                    onClick={() => fetchAuditLogs()}
+                    className="text-xs px-3 py-1.5 bg-bg-card border border-border rounded-lg text-text-secondary hover:text-text-primary transition-colors"
+                  >
+                    🔄 Refresh
+                  </button>
+                </div>
+              </div>
+              {auditLoading ? (
+                <p className="text-text-secondary">Loading...</p>
+              ) : auditLogs.length === 0 ? (
+                <p className="text-text-secondary">No audit logs yet. Actions will appear here as admins perform them.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-text-secondary text-xs uppercase tracking-wide">
+                        <th className="text-left py-2 px-3">When</th>
+                        <th className="text-left py-2 px-3">Admin</th>
+                        <th className="text-left py-2 px-3">Action</th>
+                        <th className="text-left py-2 px-3">Target</th>
+                        <th className="text-left py-2 px-3">Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditLogs.map((log, i) => (
+                        <tr key={log.id} className={"border-b border-border/50 " + (i % 2 === 0 ? "bg-bg-card/30" : "")}>
+                          <td className="py-2 px-3 text-text-secondary text-xs">{formatDate(log.created_at)}</td>
+                          <td className="py-2 px-3 font-medium">{log.admin_username}</td>
+                          <td className="py-2 px-3">
+                            <span className={"text-xs px-2 py-0.5 rounded-full " + (
+                              log.action === "sanction" ? "bg-red-900/30 text-red-300" :
+                              log.action === "unsanction" ? "bg-green-900/30 text-green-300" :
+                              log.action === "hide_content" ? "bg-yellow-900/30 text-yellow-300" :
+                              log.action === "restore_content" ? "bg-green-900/30 text-green-300" :
+                              "bg-red-900/30 text-red-300"
+                            )}>
+                              {log.action.replace(/_/g, " ")}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3">
+                            <span className="text-xs text-text-secondary">{log.target_type}: </span>
+                            {log.target_id}
+                          </td>
+                          <td className="py-2 px-3 text-text-secondary text-xs max-w-[200px] truncate">
+                            {log.details ? (log.details.reason || log.details.sanction_type || log.details.content_preview || JSON.stringify(log.details).substring(0, 60)) : "—"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </>
           ) : (
             /* Users section */

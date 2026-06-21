@@ -159,3 +159,18 @@ model Follow {
   @@unique([followerId, followingId])
   @@map("follows")
 }
+
+model AdminAction {
+  id            BigInt    @id @default(autoincrement())
+  action        String
+  targetType    String    @map("target_type")
+  targetId      String    @map("target_id")
+  details       Json      @default("{}")
+  adminUsername String    @map("admin_username")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([adminUsername])
+  @@index([createdAt(sort: Desc)])
+  @@index([targetType, targetId])
+  @@map("admin_actions")
+}
