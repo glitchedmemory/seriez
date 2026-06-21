@@ -99,7 +99,7 @@ export default function DayPopup({ date, entries, onClose }: DayPopupProps) {
                 <div className="w-[80px] aspect-[2/3] rounded-lg overflow-hidden bg-bg-primary relative shadow-lg group-hover:ring-2 ring-accent transition-all">
                   {entry.posterPath ? (
                     <Image
-                      src={`${TMDB_IMAGE}${entry.posterPath}`}
+                      src={entry.posterPath.startsWith("http") ? entry.posterPath : `${TMDB_IMAGE}${entry.posterPath}`}
                       alt={entry.title}
                       fill
                       className="object-cover"
@@ -127,7 +127,7 @@ export default function DayPopup({ date, entries, onClose }: DayPopupProps) {
                     <p className="text-text-secondary text-[10px]">
                       {entry.mediaType === "movie"
                         ? formatRuntime(entry.runtime)
-                        : `${entry.runtime}m × ${entry.episodeCount}`}
+                        : formatRuntime(entry.runtime * entry.episodeCount)}
                     </p>
                   )}
                 </div>
