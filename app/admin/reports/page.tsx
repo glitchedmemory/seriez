@@ -35,6 +35,26 @@ interface AuditLogEntry {
   created_at: string;
 }
 
+interface UserDetailData {
+  user: {
+    username: string;
+    role: string;
+    is_premium: boolean;
+    created_at: string;
+    updated_at?: string;
+    avatar_url?: string;
+    sanction_type?: string | null;
+    sanction_reason?: string | null;
+    sanction_until?: string | null;
+    sanctioned_at?: string | null;
+    sanctioned_by?: string | null;
+    episode_watch_count: number;
+  };
+  reviews: { id: string; content: string; rating: number; created_at: string; tmdb_id: number; media_type: string; is_hidden: boolean }[];
+  library: { tmdb_id: number; media_type: string; status: string; rating: number | null; season_number: number; updated_at: string }[];
+  comments: { id: number; content: string; created_at: string; review_id: string; is_hidden: boolean }[];
+}
+
 function formatDate(iso: string) {
   const d = new Date(iso);
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -61,6 +81,10 @@ export default function AdminReportsPage() {
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditTotal, setAuditTotal] = useState(0);
   const [auditAction, setAuditAction] = useState("");
+  const [detailUser, setDetailUser] = useState<string | null>(null);
+  const [detailData, setDetailData] = useState<UserDetailData | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailTab, setDetailTab] = useState<"reviews" | "library" | "comments">("reviews");
 
   const supabase = createClient();
 
@@ -125,6 +149,18 @@ export default function AdminReportsPage() {
       }
     } catch {}
     setAuditLoading(false);
+  };
+
+  const fetchUserDetail = async (username: string) => {
+    setDetailUser(username);
+    setDetailLoading(true);
+    setDetailData(null);
+    setDetailTab("reviews");
+    try {
+      const res = await fetch("/api/admin/user-detail?username=" + encodeURIComponent(username));
+      if (res.ok) setDetailData(await res.json());
+    } catch {}
+    setDetailLoading(false);
   };
 
   useEffect(() => {
@@ -435,7 +471,7 @@ export default function AdminReportsPage() {
                     </thead>
                     <tbody>
                       {users.map((u, i) => (
-                        <tr key={u.username} className={"border-b border-border/50 " + (i % 2 === 0 ? "bg-bg-card/30" : "")}>
+                        <tr key={u.username} onClick={() => fetchUserDetail(u.username)} className={"border-b border-border/50 cursor-pointer hover:bg-accent/5 transition-colors " + (i % 2 === 0 ? "bg-bg-card/30" : "")}>
                           <td className="py-2 px-3 font-medium">{u.username}</td>
                           <td className="py-2 px-3">
                             <span className={"text-xs px-2 py-0.5 rounded-full " + (u.role === "admin" ? "bg-red-900/30 text-red-300" : "bg-bg-card text-text-secondary")}>
@@ -464,6 +500,141 @@ export default function AdminReportsPage() {
                 </div>
               )}
             </>
+          )}
+
+          {/* User Detail Panel */}
+          {detailUser && (
+            <div className="fixed inset-0 z-50 flex items-start justify-end pointer-events-none">
+              <div className="pointer-events-auto w-full max-w-lg h-screen bg-[#0a0a1a] border-l border-border overflow-y-auto shadow-2xl">
+                <div className="sticky top-0 bg-[#0a0a1a] border-b border-border px-5 py-4 flex items-center justify-between z-10">
+                  <h2 className="text-lg font-bold text-text-primary">
+                    👤 {detailUser}
+                  </h2>
+                  <button onClick={() => { setDetailUser(null); setDetailData(null); }} className="text-text-secondary hover:text-text-primary text-xl leading-none">&times;</button>
+                </div>
+                <div className="p-5">
+                  {detailLoading ? (
+                    <p className="text-text-secondary">Loading...</p>
+                  ) : detailData ? (
+                    <>
+                      {/* User Info */}
+                      <div className="bg-bg-card rounded-xl p-4 mb-4 border border-border">
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div><span className="text-text-secondary text-xs">Role</span><p className="text-text-primary font-medium">{detailData.user.role}</p></div>
+                          <div><span className="text-text-secondary text-xs">Premium</span><p className="text-text-primary">{detailData.user.is_premium ? "⭐ Yes" : "—"}</p></div>
+                          <div><span className="text-text-secondary text-xs">Joined</span><p className="text-text-primary">{formatDate(detailData.user.created_at)}</p></div>
+                          <div><span className="text-text-secondary text-xs">Episodes</span><p className="text-text-primary">{detailData.user.episode_watch_count}</p></div>
+                        </div>
+                        {detailData.user.sanction_type && (
+                          <div className="mt-3 pt-3 border-t border-border">
+                            <p className="text-xs text-red-400 font-medium mb-1">⚠️ Active Sanction</p>
+                            <p className="text-xs text-text-secondary">Type: <span className="text-red-300">{detailData.user.sanction_type}</span></p>
+                            {detailData.user.sanction_reason && <p className="text-xs text-text-secondary">Reason: {detailData.user.sanction_reason}</p>}
+                            {detailData.user.sanction_until && <p className="text-xs text-text-secondary">Until: {formatDate(detailData.user.sanction_until)}</p>}
+                            {detailData.user.sanctioned_by && <p className="text-xs text-text-secondary">By: {detailData.user.sanctioned_by} ({detailData.user.sanctioned_at ? formatDate(detailData.user.sanctioned_at) : "?"})</p>}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Stats */}
+                      <div className="flex gap-2 mb-4">
+                        <div className="flex-1 bg-bg-card rounded-lg p-3 text-center border border-border">
+                          <p className="text-lg font-bold text-text-primary">{detailData.reviews.length}</p>
+                          <p className="text-xs text-text-secondary">Reviews</p>
+                        </div>
+                        <div className="flex-1 bg-bg-card rounded-lg p-3 text-center border border-border">
+                          <p className="text-lg font-bold text-text-primary">{detailData.library.length}</p>
+                          <p className="text-xs text-text-secondary">Tracked</p>
+                        </div>
+                        <div className="flex-1 bg-bg-card rounded-lg p-3 text-center border border-border">
+                          <p className="text-lg font-bold text-text-primary">{detailData.comments.length}</p>
+                          <p className="text-xs text-text-secondary">Comments</p>
+                        </div>
+                      </div>
+
+                      {/* Tabs */}
+                      <div className="flex gap-1 mb-3">
+                        {(["reviews", "library", "comments"] as const).map((tab) => (
+                          <button key={tab}
+                            onClick={() => setDetailTab(tab)}
+                            className={"flex-1 text-xs py-1.5 rounded-lg transition-colors " + (detailTab === tab ? "bg-accent text-white" : "bg-bg-card text-text-secondary hover:text-text-primary")}
+                          >
+                            {tab === "reviews" ? "📝 Reviews" : tab === "library" ? "📺 Tracked" : "💬 Comments"}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Tab Content */}
+                      {detailTab === "reviews" && (
+                        detailData.reviews.length === 0 ? (
+                          <p className="text-text-secondary text-sm">No reviews</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {detailData.reviews.map((r) => (
+                              <div key={r.id} className={"bg-bg-card rounded-lg p-3 border text-sm " + (r.is_hidden ? "border-red-800/30" : "border-border")}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-xs text-text-secondary">{r.media_type} #{r.tmdb_id}</span>
+                                  <span className="text-xs text-text-secondary">{formatDate(r.created_at)}</span>
+                                </div>
+                                <p className="text-text-primary text-xs line-clamp-3">{r.content}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-xs text-gold">{"★".repeat(Math.round(r.rating || 0))}</span>
+                                  {r.is_hidden && <span className="text-xs bg-red-900/30 text-red-300 px-1.5 py-0.5 rounded">hidden</span>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      )}
+
+                      {detailTab === "library" && (
+                        detailData.library.length === 0 ? (
+                          <p className="text-text-secondary text-sm">No tracked titles</p>
+                        ) : (
+                          <div className="space-y-1">
+                            {detailData.library.map((t, i) => (
+                              <div key={i} className="flex items-center justify-between bg-bg-card rounded-lg p-2.5 border border-border text-sm">
+                                <div>
+                                  <span className="text-text-primary text-xs">{t.media_type} #{t.tmdb_id}</span>
+                                  {t.season_number > 0 && <span className="text-text-secondary text-xs ml-1">S{t.season_number}</span>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className={"text-xs px-2 py-0.5 rounded-full " + (t.status === "completed" ? "bg-green-900/30 text-green-300" : t.status === "watching" ? "bg-blue-900/30 text-blue-300" : "bg-bg-surface text-text-secondary")}>{t.status.replace(/_/g, " ")}</span>
+                                  {t.rating && <span className="text-xs text-gold">★{t.rating}</span>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      )}
+
+                      {detailTab === "comments" && (
+                        detailData.comments.length === 0 ? (
+                          <p className="text-text-secondary text-sm">No comments</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {detailData.comments.map((c) => (
+                              <div key={c.id} className={"bg-bg-card rounded-lg p-3 border text-sm " + (c.is_hidden ? "border-red-800/30" : "border-border")}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-xs text-text-secondary">Review #{c.review_id}</span>
+                                  <span className="text-xs text-text-secondary">{formatDate(c.created_at)}</span>
+                                </div>
+                                <p className="text-text-primary text-xs line-clamp-3">{c.content}</p>
+                                {c.is_hidden && <span className="text-xs bg-red-900/30 text-red-300 px-1.5 py-0.5 rounded mt-1 inline-block">hidden</span>}
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-text-secondary text-sm">Failed to load user data</p>
+                  )}
+                </div>
+              </div>
+              {/* Backdrop */}
+              <div className="pointer-events-auto fixed inset-0 bg-black/40" onClick={() => { setDetailUser(null); setDetailData(null); }} />
+            </div>
           )}
         </>
       )}
