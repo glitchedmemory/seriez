@@ -113,7 +113,7 @@ export default function AdminReportsPage() {
   };
 
   const handleAnalyze = async (item: HiddenItem) => {
-    const key = "${item.type}-${item.id}";
+    const key = `${item.type}-${item.id}`;
     setAnalyzingId(key);
     try {
       const res = await fetch("/api/admin/analyze", {
@@ -209,7 +209,7 @@ export default function AdminReportsPage() {
               ) : (
                 <div className="space-y-4">
                   {items.map((item) => {
-            const key = "${item.type}-${item.id}";
+            const key = `${item.type}-${item.id}`;
             const verdict = verdicts[key] || item.ai_verdict;
             return (
               <div key={key} className="bg-bg-card rounded-xl p-4 border border-red-800/30">
@@ -252,13 +252,13 @@ export default function AdminReportsPage() {
                   {item.content}
                 </p>
                 {verdict && (
-                  <div className={`mt-2 text-xs p-2 rounded ${
+                  <div className={"mt-2 text-xs p-2 rounded " + (
                     verdict.includes("DELETE")
                       ? "bg-red-900/30 text-red-300"
                       : verdict.includes("RESTORE")
                       ? "bg-green-900/30 text-green-300"
                       : "bg-yellow-900/30 text-yellow-300"
-                  }`}>
+                  )}>
                     🤖 {verdict}
                   </div>
                 )}
