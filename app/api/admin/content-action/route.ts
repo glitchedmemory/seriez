@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { resolveUsername } from "@/lib/auth-helper";
+import { resolveUsername, STAFF_ROLES } from "@/lib/auth-helper";
 import { logAdminAction } from "@/lib/audit-log";
 
 const supabaseAdmin = createClient(
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 
     const { data: userData } = await supabaseAdmin
       .from("users").select("role").eq("username", username).maybeSingle();
-    if (userData?.role !== "admin") return NextResponse.json({ error: "Admin only" }, { status: 403 });
+    if (!STAFF_ROLES.includes(userData?.role || "")) return NextResponse.json({ error: "Admin only" }, { status: 403 });
 
     const { searchParams } = new URL(req.url);
     const action = searchParams.get("action");
