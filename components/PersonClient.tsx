@@ -53,7 +53,7 @@ export default function PersonClient({ person }: { person: PersonDetail }) {
       .catch(() => {});
     // Check if current user liked
     if (user) {
-      const username = localStorage.getItem("seriez-username") || user.user_metadata?.username;
+      const username = user.user_metadata?.username || localStorage.getItem("seriez-username");
       if (username) {
         fetch(`/api/persons/likes?username=${encodeURIComponent(username)}`)
           .then(r => r.json())
