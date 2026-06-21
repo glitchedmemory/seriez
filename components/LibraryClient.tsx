@@ -36,15 +36,26 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<SortKey>("recent");
+  const [localUser, setLocalUser] = useState<string | null>(null);
+  const supabase = createClient();
 
   useEffect(() => {
-    const username = localStorage.getItem("seriez-username") || "Anonymous";
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setLocalUser(session?.user?.user_metadata?.username || null);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!localUser) { setLoading(false); return; }
+    const username = localUser;
     const url = activeTab
       ? `/api/library?username=${encodeURIComponent(username)}&status=${activeTab}`
       : `/api/library?username=${encodeURIComponent(username)}`;
     setLoading(true);
     fetch(url).then(r => r.json()).then(data => { setItems(data.items || []); setLoading(false); }).catch(() => setLoading(false));
-  }, [activeTab]);
+  }, [activeTab, localUser]);
+
+  if (!localUser) return <EmptyState icon="🔐" title="Sign in to see your list" description="Create an account to start tracking what you watch." action={{ label: "Sign In / Sign Up", href: "/signup" }} />;
 
   const sortedItems = useMemo(() => {
     const sorted = [...items];
@@ -112,7 +123,8 @@ function CollectionsView() {
   const [publishingId, setPublishingId] = useState<string | null>(null);
   const [isPremium, setIsPremium] = useState(false);
   const supabase = createClient();
-  const username = typeof window !== "undefined" ? localStorage.getItem("seriez-username") || "" : "";
+  const authUsername = authUser?.user_metadata?.username;
+  const username = typeof window !== "undefined" && authUsername ? authUsername : "";
 
   const fetchCollections = () => {
     setLoading(true);
@@ -269,6 +281,14 @@ export default function LibraryClient() {
   );
   const [stats, setStats] = useState({ plan_to_watch: 0, watching: 0, completed: 0, collections: 0 });
   const [statsLoaded, setStatsLoaded] = useState(false);
+  const [authUsername, setAuthUsername] = useState<string | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthUsername(session?.user?.user_metadata?.username || null);
+    }).catch(() => {});
+  }, []);
 
   // Sync activeFilter to URL
   function updateFilter(filter: "completed" | "watching" | "plan_to_watch" | "collections" | null) {
@@ -284,7 +304,8 @@ export default function LibraryClient() {
   }
 
   useEffect(() => {
-    const username = typeof window !== "undefined" ? localStorage.getItem("seriez-username") || "Anonymous" : "Anonymous";
+    if (!authUsername) { setStatsLoaded(true); return; }
+    const username = authUsername;
     Promise.all([
       fetch(`/api/library?username=${encodeURIComponent(username)}`).then(r => r.json()),
       fetch(`/api/collections?username=${encodeURIComponent(username)}`).then(r => r.json()),
@@ -300,7 +321,7 @@ export default function LibraryClient() {
         setStatsLoaded(true);
       })
       .catch(() => setStatsLoaded(true));
-  }, []);
+  }, [authUsername]);
 
   return (
     <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
