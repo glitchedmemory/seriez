@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { resolveUsername } from "@/lib/auth-helper";
+import { createClient } from "@/lib/supabase/server";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Rate limit: IP당 분당 1회
+const rateLimitMap = new Map<string, number>();
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1분
+
+function checkRateLimit(req: NextRequest): boolean {
+  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+  const now = Date.now();
+  const lastCall = rateLimitMap.get(ip);
+  if (lastCall && now - lastCall < RATE_LIMIT_WINDOW_MS) {
+    return false; // rate limited
+  }
+  rateLimitMap.set(ip, now);
+  return true;
+}
 
 function jsonToCsv(rows: Record<string, unknown>[]): string {
   if (rows.length === 0) return "";
@@ -15,7 +25,12 @@ function jsonToCsv(rows: Record<string, unknown>[]): string {
     const values = headers.map((h) => {
       const v = row[h];
       if (v === null || v === undefined) return "";
-      const s = String(v).replace(/"/g, '""');
+      let s = String(v);
+      // CSV Injection 방어: =, +, -, @, 탭, 캐리지리턴으로 시작하면 single quote prefix
+      if (/^[=+\-@\t\r]/.test(s)) {
+        s = "'" + s;
+      }
+      s = s.replace(/"/g, '""');
       return `"${s}"`;
     });
     lines.push(values.join(","));
@@ -25,6 +40,14 @@ function jsonToCsv(rows: Record<string, unknown>[]): string {
 
 export async function GET(req: NextRequest) {
   try {
+    // Rate limit check
+    if (!checkRateLimit(req)) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait before exporting again." },
+        { status: 429 }
+      );
+    }
+
     const username = await resolveUsername(req);
     if (!username) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
@@ -33,17 +56,18 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const format = searchParams.get("format") || "json";
 
+    const supabase = await createClient();
+
     // Fetch all user data
     const [reviewsRes, libraryRes] = await Promise.all([
-      supabaseAdmin
+      supabase
         .from("reviews")
-        .select("tmdb_id, media_type, title, year, rating, content, created_at")
+        .select("tmdb_id, media_type, rating, content, has_spoiler, created_at")
         .eq("username", username)
         .order("created_at", { ascending: false }),
-      supabaseAdmin
+      supabase
         .from("media_trackings")
-        .select("tmdb_id, media_type, title, year, status, rating, updated_at")
-        .eq("username", username)
+        .select("tmdb_id, media_type, status, rating, progress, updated_at")
         .order("updated_at", { ascending: false }),
     ]);
 
