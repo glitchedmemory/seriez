@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
 
     const { data: users, error } = await supabaseAdmin
       .from("users")
-      .select("username, role, is_premium, created_at")
+      .select("username, role, is_premium, created_at, sanction_type, sanction_reason, sanction_until, sanctioned_at, sanctioned_by")
       .order("created_at", { ascending: false })
       .limit(200);
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername } from "@/lib/auth-helper";
 import { checkText } from "@/lib/moderation";
+import { checkSanction, getSanctionError } from "@/lib/sanction-utils";
 
 // Handle CORS preflight
 export async function OPTIONS() {
@@ -155,6 +156,11 @@ export async function POST(req: NextRequest) {
     if (!username) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
+
+    // Sanction check
+    const sanction = await checkSanction(username);
+    const sanctionErr = getSanctionError(sanction, "write");
+    if (sanctionErr) return NextResponse.json({ error: sanctionErr }, { status: 403 });
 
     if (!tmdbId || !mediaType || !content?.trim()) {
       return NextResponse.json({ error: "All fields required" }, { status: 400 });

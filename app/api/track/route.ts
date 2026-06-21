@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUserId } from "@/lib/user-utils";
+import { checkSanction, getSanctionError } from "@/lib/sanction-utils";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -71,6 +72,11 @@ export async function POST(req: NextRequest) {
     if (!username) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
+
+    // Sanction check
+    const sanction = await checkSanction(username);
+    const sanctionErr = getSanctionError(sanction, "write");
+    if (sanctionErr) return NextResponse.json({ error: sanctionErr }, { status: 403 });
 
     const body = await req.json();
     const { tmdbId, mediaType, status, rating, progress, seasonNumber } = body;
@@ -159,6 +165,11 @@ export async function DELETE(req: NextRequest) {
     if (!username) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
+
+    // Sanction check
+    const sanction = await checkSanction(username);
+    const sanctionErr = getSanctionError(sanction, "write");
+    if (sanctionErr) return NextResponse.json({ error: sanctionErr }, { status: 403 });
 
     const body = await req.json();
     const { tmdbId, mediaType, seasonNumber } = body;

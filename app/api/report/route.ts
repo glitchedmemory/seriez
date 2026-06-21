@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { checkSanction, getSanctionError } from "@/lib/sanction-utils";
 
 // Handle CORS preflight
 export async function OPTIONS() {
@@ -27,6 +28,11 @@ export async function POST(req: NextRequest) {
     if (!["review", "comment"].includes(target_type)) {
       return NextResponse.json({ error: "target_type must be review or comment" }, { status: 400 });
     }
+
+    // Sanction check
+    const sanction = await checkSanction(username);
+    const sanctionErr = getSanctionError(sanction, "write");
+    if (sanctionErr) return NextResponse.json({ error: sanctionErr }, { status: 403 });
 
     const reporter = username.trim();
 
