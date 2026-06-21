@@ -19,7 +19,7 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const VALID_TARGETS = ["review", "comment", "collection"];
+const VALID_TARGETS = ["review", "comment"]; // collection uses separate API
 const HIGH_RISK_REASONS = ["spam", "obscenity", "hate_speech"];
 const NORMAL_THRESHOLD = 3; // auto-hide after 3 normal reports
 
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "target_type, target_id, and username required" }, { status: 400 });
     }
     if (!VALID_TARGETS.includes(target_type)) {
-      return NextResponse.json({ error: "target_type must be review, comment, or collection" }, { status: 400 });
+      return NextResponse.json({ error: "target_type must be review or comment (collection reports use /api/collections/[id]/comments/report)" }, { status: 400 });
     }
 
     // Sanction check
