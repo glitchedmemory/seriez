@@ -1117,6 +1117,7 @@ function AdminPanel({ userRole }: { userRole: string | null }) {
         const all = [
           ...(data.reviews || []).map((r: any) => ({ ...r, type: "review" })),
           ...(data.comments || []).map((c: any) => ({ ...c, type: "comment" })),
+          ...(data.collections || []).map((l: any) => ({ ...l, type: "collection" })),
         ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         setItems(all);
       }
@@ -1334,8 +1335,12 @@ function AdminPanel({ userRole }: { userRole: string | null }) {
                 <div key={`${item.type}-${item.id}`} className="bg-bg-card rounded-xl p-4 border border-red-800/30">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs bg-red-900/50 text-red-300 px-2 py-0.5 rounded">
-                        {item.type === "review" ? "📝 Review" : "💬 Comment"}
+                      <span className={`text-xs px-2 py-0.5 rounded ${
+                        item.type === "review" ? "bg-red-900/50 text-red-300" :
+                        item.type === "collection" ? "bg-green-900/50 text-green-300" :
+                        "bg-purple-900/50 text-purple-300"
+                      }`}>
+                        {item.type === "review" ? "📝 Review" : item.type === "collection" ? "📦 Collection" : "💬 Comment"}
                       </span>
                       <span className="text-xs text-text-secondary">{item.username}</span>
                       {item.report_count > 0 && (

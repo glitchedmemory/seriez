@@ -29,13 +29,18 @@ export async function GET(req: NextRequest) {
 
     // Handle restore/delete actions
     if (action && targetType && targetId) {
-      const table = targetType === "review" ? "reviews" : "review_comments";
-      const idCol = "id";
+      const tableMap: Record<string, string> = {
+        review: "reviews",
+        comment: "review_comments",
+        collection: "user_lists",
+      };
+      const table = tableMap[targetType];
+      if (!table) return NextResponse.json({ error: "Invalid target_type" }, { status: 400 });
 
       if (action === "restore") {
-        await supabaseAdmin.from(table).update({ is_hidden: false }).eq(idCol, targetId);
+        await supabaseAdmin.from(table).update({ is_hidden: false }).eq("id", targetId);
       } else if (action === "delete") {
-        await supabaseAdmin.from(table).delete().eq(idCol, targetId);
+        await supabaseAdmin.from(table).delete().eq("id", targetId);
       }
       return NextResponse.json({ ok: true });
     }
@@ -60,10 +65,21 @@ export async function GET(req: NextRequest) {
 
     if (commentErr) return NextResponse.json({ error: commentErr.message }, { status: 500 });
 
+    // Fetch hidden collections
+    const { data: hiddenCollections, error: colErr } = await supabaseAdmin
+      .from("user_lists")
+      .select("id, username, name, created_at, is_public, is_published")
+      .eq("is_hidden", true)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (colErr) return NextResponse.json({ error: colErr.message }, { status: 500 });
+
     // Fetch report details for all hidden items
     const allTargets = [
       ...(hiddenReviews || []).map((r: any) => ({ type: "review", id: String(r.id) })),
       ...(hiddenComments || []).map((c: any) => ({ type: "comment", id: String(c.id) })),
+      ...(hiddenCollections || []).map((l: any) => ({ type: "collection", id: String(l.id) })),
     ];
 
     // Get all reports in one query for efficiency
@@ -119,7 +135,19 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({ reviews, comments });
+    const collections = (hiddenCollections || []).map((l: any) => {
+      const key = `collection-${String(l.id)}`;
+      const details = reportDetails[key] || { reporters: [], count: 0, highRiskCount: 0 };
+      return {
+        ...l,
+        content: l.name,
+        report_count: details.count,
+        risk_level: details.highRiskCount > 0 ? "high" : details.count > 0 ? "normal" : "none",
+        reporters: details.reporters,
+      };
+    });
+
+    return NextResponse.json({ reviews, comments, collections });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
