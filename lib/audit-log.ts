@@ -6,7 +6,7 @@ const supabaseAdmin = createClient(
 );
 
 type AuditAction = "sanction" | "unsanction" | "hide_content" | "restore_content" | "delete_content";
-type TargetType = "user" | "review" | "comment";
+type TargetType = "user" | "review" | "comment" | "collection";
 
 interface AuditEntry {
   action: AuditAction;
