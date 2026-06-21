@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 interface HiddenItem {
-  type: "review" | "comment";
+  type: "review" | "comment" | "collection";
   id: string | number;
   username: string;
   content: string;
@@ -13,6 +13,9 @@ interface HiddenItem {
   tmdb_id?: number;
   media_type?: string;
   review_id?: string;
+  is_public?: boolean;
+  is_published?: boolean;
+  item_count?: number;
 }
 
 interface UserInfo {
@@ -68,7 +71,7 @@ export default function AdminReportsPage() {
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [section, setSection] = useState<"reports" | "users" | "sanctions" | "audit">("reports");
+  const [section, setSection] = useState<"reports" | "users" | "sanctions" | "audit" | "content">("reports");
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState("");
@@ -81,6 +84,7 @@ export default function AdminReportsPage() {
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditTotal, setAuditTotal] = useState(0);
   const [auditAction, setAuditAction] = useState("");
+  const [contentFilter, setContentFilter] = useState<"all" | "review" | "comment" | "collection">("all");
   const [detailUser, setDetailUser] = useState<string | null>(null);
   const [detailData, setDetailData] = useState<UserDetailData | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -110,10 +114,23 @@ export default function AdminReportsPage() {
       const res = await fetch("/api/admin/reports");
       if (res.ok) {
         const data = await res.json();
-        const all: HiddenItem[] = [
+        let all: HiddenItem[] = [
           ...(data.reviews || []).map((r: any) => ({ ...r, type: "review" as const })),
           ...(data.comments || []).map((c: any) => ({ ...c, type: "comment" as const })),
-        ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        ];
+        // Also fetch collections
+        try {
+          const colRes = await fetch("/api/admin/content?type=collection&limit=100");
+          if (colRes.ok) {
+            const colData = await colRes.json();
+            if (colData.results) {
+              all.push(...colData.results.map((c: any) => ({
+                ...c, type: "collection" as const, id: c.id
+              })));
+            }
+          }
+        } catch {}
+        all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         setItems(all);
       }
     } catch {}
@@ -258,26 +275,37 @@ export default function AdminReportsPage() {
             <h1 className="text-2xl font-bold">🛡️ Admin</h1>
             <select
               value={section}
-              onChange={(e) => setSection(e.target.value as "reports" | "users" | "sanctions" | "audit")}
+              onChange={(e) => setSection(e.target.value as "reports" | "users" | "sanctions" | "audit" | "content")}
               className="bg-bg-card text-text-primary text-sm rounded-xl px-3 py-2 border border-border focus:border-accent outline-none"
             >
               <option value="reports">🚨 Reports</option>
               <option value="users">👥 Users</option>
               <option value="sanctions">⛔ Sanctions</option>
               <option value="audit">📋 Audit Log</option>
+              <option value="content">📦 All Content</option>
             </select>
           </div>
 
           {section === "reports" ? (
             <>
               {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs text-text-secondary">Filter:</span>
+                <select value={contentFilter} onChange={(e) => setContentFilter(e.target.value as any)}
+                  className="bg-bg-card text-text-primary text-xs rounded-lg px-2 py-1 border border-border focus:border-accent outline-none">
+                  <option value="all">All</option>
+                  <option value="review">📝 Reviews</option>
+                  <option value="comment">💬 Comments</option>
+                  <option value="collection">📦 Collections</option>
+                </select>
+              </div>
               {loading ? (
                 <p className="text-text-secondary">Loading...</p>
               ) : items.length === 0 ? (
                 <p className="text-text-secondary">No hidden content. Clean! ✅</p>
               ) : (
                 <div className="space-y-4">
-                  {items.map((item) => {
+                  {items.filter(item => contentFilter === "all" || item.type === contentFilter).map((item) => {
             const key = `${item.type}-${item.id}`;
             const verdict = verdicts[key] || item.ai_verdict;
             return (
@@ -285,7 +313,7 @@ export default function AdminReportsPage() {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xs bg-red-900/50 text-red-300 px-2 py-0.5 rounded">
-                      {item.type === "review" ? "📝 Review" : "💬 Comment"}
+                      {item.type === "review" ? "📝 Review" : item.type === "comment" ? "💬 Comment" : "📦 Collection"}
                     </span>
                     <span className="text-xs text-text-secondary">{item.username}</span>
                     <span className="text-xs text-text-secondary">{formatDate(item.created_at)}</span>
@@ -317,10 +345,19 @@ export default function AdminReportsPage() {
                     </button>
                   </div>
                 </div>
-                <p className="text-sm text-[#d1d5db] light:text-text-primary bg-bg-surface p-3 rounded-lg whitespace-pre-wrap">
-                  {item.content}
-                </p>
-                {verdict && (
+                {item.type === "collection" ? (
+                  <div className="flex gap-4 text-xs text-text-secondary mt-1 mb-2">
+                    <span>📋 {item.content}</span>
+                    <span>🔗 {item.item_count || 0} items</span>
+                    <span>{item.is_public ? "🌐 Public" : "🔒 Private"}</span>
+                    {item.is_published && <span>📢 Published</span>}
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#d1d5db] light:text-text-primary bg-bg-surface p-3 rounded-lg whitespace-pre-wrap">
+                    {item.content}
+                  </p>
+                )}
+                {verdict && item.type !== "collection" && (
                   <div className={"mt-2 text-xs p-2 rounded " + (
                     verdict.includes("DELETE")
                       ? "bg-red-900/30 text-red-300"
