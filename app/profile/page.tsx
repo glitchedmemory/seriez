@@ -492,9 +492,21 @@ export default function ProfilePage() {
       {/* ── Profile View ── */}
       {activeView === "profile" && (
       <>
-      {/* ── Content wrapper (for guest blur overlay) ── */}
-      <div className="relative">
-        <div className={!user ? "blur-lg pointer-events-none select-none opacity-60" : ""}>
+      {!user ? (
+        <div className="px-4 mt-5 pb-32">
+          <div className="bg-bg-card border border-border rounded-2xl p-8 text-center">
+            <span className="text-5xl block mb-4">🔒</span>
+            <h2 className="text-lg font-bold text-text-primary mb-2">Sign in to see full profile</h2>
+            <p className="text-sm text-text-secondary leading-relaxed max-w-md mx-auto mb-4">
+              Track what you watch, discover new favorites, and connect with friends
+            </p>
+            <a href="/login" className="inline-block px-6 py-2.5 bg-accent text-white text-sm font-bold rounded-xl hover:bg-[#818cf8] transition-colors">
+              Sign In / Sign Up
+            </a>
+          </div>
+        </div>
+      ) : (
+      <>
 
       {/* ── Stats Dashboard (FREE) ── */}
       {stats && (
@@ -803,19 +815,9 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Sign-in prompt for guests */}
-      {!user && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-8 z-10">
-          <p className="text-lg font-bold text-text-primary mb-2 text-center">Sign in to see full profile</p>
-          <p className="text-xs text-text-secondary mb-5 text-center">Track what you watch, discover new favorites, and connect with friends</p>
-          <a href="/login" className="px-6 py-2.5 bg-accent text-white text-sm font-bold rounded-xl hover:bg-[#818cf8] transition-colors">
-            Sign In / Sign Up
-          </a>
-        </div>
+      {/* Sign-in for guests — now handled by ternary above */}
+      </>
       )}
-
-        </div>
-      </div>
 
       {/* History — only for logged-in users */}
       {user && effectiveUsername && (
