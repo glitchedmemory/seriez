@@ -24,7 +24,7 @@ const comingSoon = [
 export default function ProPage() {
   return (
     <div className="flex-1 bg-bg-primary">
-      <div className="px-4 py-12">
+      <div className="max-w-lg md:max-w-4xl mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold text-text-primary mb-2">
           <span className="text-gold">✨</span> Golden Ticket
         </h1>

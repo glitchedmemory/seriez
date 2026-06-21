@@ -140,7 +140,7 @@ export default function SettingsPage() {
 
   return (
     <ErrorBoundary sectionName="Settings">
-      <div className="pb-32">
+      <div className="max-w-lg md:max-w-4xl mx-auto pb-32">
         {/* Header */}
         <div className="flex items-center gap-4 px-4 pt-6 pb-4">
           <button

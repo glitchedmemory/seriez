@@ -153,7 +153,7 @@ export default function CollectionClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen px-4 py-6 pb-24">
+      <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen px-4 py-6 pb-24">
         <div className="animate-pulse space-y-4">
           <div className="h-6 w-48 bg-bg-card rounded" />
           <div className="grid grid-cols-2 gap-3">
@@ -168,7 +168,7 @@ export default function CollectionClient() {
 
   if (!collection) {
     return (
-      <div className="min-h-screen px-4 py-20 pb-24 text-center">
+      <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen px-4 py-20 pb-24 text-center">
         <p className="text-4xl mb-4">📭</p>
         <h1 className="text-lg font-semibold text-text-primary mb-2">Collection not found</h1>
         <button onClick={() => router.push("/search")} className="text-sm text-accent hover:underline">
@@ -179,7 +179,7 @@ export default function CollectionClient() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-6 pb-24">
+    <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen px-4 py-6 pb-24">
       {/* Header */}
       <button onClick={() => router.back()} className="text-xs text-text-secondary hover:text-white light:hover:text-accent mb-3 inline-block">
         ← Back

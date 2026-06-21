@@ -372,7 +372,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
   }
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
       {/* Backdrop — TMDB > AniList > poster blur */}
       {(data.backdropPath || data.anilistBanner || data.posterPath) && (
         <div className="relative w-full h-48 md:h-72 overflow-hidden">

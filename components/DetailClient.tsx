@@ -214,7 +214,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
   }
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
       {/* Backdrop — fallback to blurred poster when no backdrop */}
       {(detail.backdrop || detail.poster) && (
         <div className="relative w-full h-48 md:h-72 overflow-hidden">
