@@ -70,7 +70,7 @@ export default function AdminReportsPage() {
   const [verdicts, setVerdicts] = useState<Record<string, string>>({});
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [currentRole, setCurrentRole] = useState<string | null>(null);
   const [section, setSection] = useState<"reports" | "users" | "sanctions" | "audit" | "content">("reports");
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
@@ -99,11 +99,11 @@ export default function AdminReportsPage() {
       if (username) {
         supabase.from("users").select("role").eq("username", username).maybeSingle()
           .then(
-            ({ data: rows }) => setIsAdmin((rows as any)?.role === "admin"),
-            () => setIsAdmin(false)
+            ({ data: rows }) => setCurrentRole((rows as any)?.role || null),
+            () => setCurrentRole(null)
           );
       } else {
-        setIsAdmin(false);
+        setCurrentRole(null);
       }
     });
   }, []);
@@ -181,10 +181,10 @@ export default function AdminReportsPage() {
   };
 
   useEffect(() => {
-    if (isAdmin && (section === "users" || section === "sanctions") && users.length === 0) {
+    if (currentRole && (section === "users" || section === "sanctions") && users.length === 0) {
       fetchUsers();
     }
-    if (isAdmin && section === "audit" && auditLogs.length === 0) {
+    if (currentRole && section === "audit" && auditLogs.length === 0) {
       fetchAuditLogs();
     }
   }, [isAdmin, section]);
@@ -262,17 +262,18 @@ export default function AdminReportsPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-text-primary p-6">
-      {isAdmin === null ? (
+      {currentRole === null ? (
         <p className="text-text-secondary">Checking access...</p>
-      ) : isAdmin === false ? (
+      ) : !currentRole ? (
         <div className="bg-red-900/20 border border-red-800/30 rounded-xl p-6 text-center">
           <p className="text-red-400 text-lg font-semibold mb-2">Access Denied</p>
-          <p className="text-text-secondary text-sm">Admin privileges required to view this page.</p>
+          <p className="text-text-secondary text-sm">Admin or Moderator privileges required to view this page.</p>
         </div>
       ) : (
         <>
           <div className="flex items-center gap-4 mb-6">
             <h1 className="text-2xl font-bold">🛡️ Admin</h1>
+            <span className={"text-xs px-2 py-0.5 rounded-full " + (currentRole === "admin" ? "bg-red-900/30 text-red-300" : "bg-blue-900/30 text-blue-300")}>{currentRole}</span>
             <select
               value={section}
               onChange={(e) => setSection(e.target.value as "reports" | "users" | "sanctions" | "audit" | "content")}
@@ -280,7 +281,7 @@ export default function AdminReportsPage() {
             >
               <option value="reports">🚨 Reports</option>
               <option value="users">👥 Users</option>
-              <option value="sanctions">⛔ Sanctions</option>
+              {currentRole === "admin" && <option value="sanctions">⛔ Sanctions</option>}
               <option value="audit">📋 Audit Log</option>
               <option value="content">📦 All Content</option>
             </select>
@@ -562,6 +563,26 @@ export default function AdminReportsPage() {
                           <div><span className="text-text-secondary text-xs">Joined</span><p className="text-text-primary">{formatDate(detailData.user.created_at)}</p></div>
                           <div><span className="text-text-secondary text-xs">Episodes</span><p className="text-text-primary">{detailData.user.episode_watch_count}</p></div>
                         </div>
+                        {/* Role management (admin only) */}
+                        {currentRole === "admin" && detailData.user.role !== "admin" && (
+                          <div className="mt-3 pt-3 border-t border-border">
+                            <p className="text-xs text-text-secondary mb-2">Role: <span className="text-text-primary font-medium">{detailData.user.role}</span></p>
+                            <div className="flex gap-2">
+                              {detailData.user.role !== "moderator" && (
+                                <button onClick={async () => {
+                                  await fetch("/api/admin/users/role", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({username: detailUser, role: "moderator"}) });
+                                  fetchUserDetail(detailUser!); fetchUsers();
+                                }} className="text-xs px-2 py-1 bg-blue-600/20 text-blue-400 border border-blue-800/40 rounded hover:bg-blue-600/30">Promote to Moderator</button>
+                              )}
+                              {detailData.user.role === "moderator" && (
+                                <button onClick={async () => {
+                                  await fetch("/api/admin/users/role", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({username: detailUser, role: "user"}) });
+                                  fetchUserDetail(detailUser!); fetchUsers();
+                                }} className="text-xs px-2 py-1 bg-yellow-600/20 text-yellow-400 border border-yellow-800/40 rounded hover:bg-yellow-600/30">Demote to User</button>
+                              )}
+                            </div>
+                          </div>
+                        )}
                         {detailData.user.sanction_type && (
                           <div className="mt-3 pt-3 border-t border-border">
                             <p className="text-xs text-red-400 font-medium mb-1">⚠️ Active Sanction</p>

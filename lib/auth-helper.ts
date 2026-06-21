@@ -3,8 +3,6 @@ import type { NextRequest } from "next/server";
 
 /**
  * Resolve the effective username for this request.
- * - Requires Supabase session authentication
- * - Returns null if not authenticated
  */
 export async function resolveUsername(req: NextRequest): Promise<string | null> {
   try {
@@ -13,9 +11,12 @@ export async function resolveUsername(req: NextRequest): Promise<string | null> 
     if (data.user?.user_metadata?.username) {
       return data.user.user_metadata.username as string;
     }
-  } catch {
-    // Session fetch failed
-  }
-
+  } catch {}
   return null;
 }
+
+/** Allowed roles for staff actions */
+export const STAFF_ROLES = ["admin", "moderator"] as const;
+
+/** Only admin can sanction */
+export const ADMIN_ONLY = ["admin"] as const;
