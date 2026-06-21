@@ -55,8 +55,6 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
     fetch(url).then(r => r.json()).then(data => { setItems(data.items || []); setLoading(false); }).catch(() => setLoading(false));
   }, [activeTab, localUser]);
 
-  if (!localUser) return <EmptyState icon="🔐" title="Sign in to see your list" description="Create an account to start tracking what you watch." action={{ label: "Sign In / Sign Up", href: "/signup" }} />;
-
   const sortedItems = useMemo(() => {
     const sorted = [...items];
     switch (sort) {
@@ -67,6 +65,8 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
     }
     return sorted;
   }, [items, sort]);
+
+  if (!localUser) return <EmptyState icon="🔐" title="Sign in to see your list" description="Create an account to start tracking what you watch." action={{ label: "Sign In / Sign Up", href: "/signup" }} />;
 
   if (loading) return <ListSkeleton rows={6} />;
   if (items.length === 0) return <EmptyState icon="📚" title={activeTab ? `No ${TABS.find(t=>t.key===activeTab)?.label || "items"} yet` : "Your library is empty"} description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />;
