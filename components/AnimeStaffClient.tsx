@@ -49,7 +49,7 @@ export default function AnimeStaffClient({ staff }: { staff: StaffDetail }) {
       .then(d => setLikeCount(d.count || 0))
       .catch(() => {});
     if (user) {
-      const username = localStorage.getItem("seriez-username") || user.user_metadata?.username;
+      const username = user.user_metadata?.username || localStorage.getItem("seriez-username");
       if (username) {
         fetch(`/api/persons/likes?username=${encodeURIComponent(username)}`)
           .then(r => r.json())
