@@ -20,10 +20,10 @@ export async function GET(req: NextRequest) {
     const target = searchParams.get("username");
     if (!target) return NextResponse.json({ error: "username required" }, { status: 400 });
 
-    // User info
+    // User info (including sanctions)
     const { data: user } = await supabaseAdmin
       .from("users")
-      .select("username, role, is_premium, created_at, avatar_url")
+      .select("username, role, is_premium, created_at, updated_at, avatar_url, sanction_type, sanction_reason, sanction_until, sanctioned_at, sanctioned_by")
       .eq("username", target)
       .maybeSingle();
 
@@ -37,10 +37,10 @@ export async function GET(req: NextRequest) {
       .order("created_at", { ascending: false })
       .limit(50);
 
-    // Library
+    // Tracking (media_trackings)
     const { data: library } = await supabaseAdmin
-      .from("user_library")
-      .select("tmdb_id, media_type, status, rating, title, poster, updated_at")
+      .from("media_trackings")
+      .select("tmdb_id, media_type, status, rating, season_number, updated_at")
       .eq("username", target)
       .order("updated_at", { ascending: false })
       .limit(50);
@@ -53,8 +53,14 @@ export async function GET(req: NextRequest) {
       .order("created_at", { ascending: false })
       .limit(50);
 
+    // Watched episodes count
+    const { count: episodeCount } = await supabaseAdmin
+      .from("episode_watches")
+      .select("*", { count: "exact", head: true })
+      .eq("username", target);
+
     return NextResponse.json({
-      user,
+      user: { ...user, episode_watch_count: episodeCount || 0 },
       reviews: reviews || [],
       library: library || [],
       comments: comments || [],
