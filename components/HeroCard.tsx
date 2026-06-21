@@ -3,11 +3,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { TmdbResult } from "@/lib/tmdb";
+import { createClient } from "@/lib/supabase/client";
 import PosterImage from "@/components/PosterImage";
 import { LockKeyholeOpen } from "lucide-react";
 
 export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResult; nextItem?: TmdbResult; region: string; isPremium?: boolean }) {
   const router = useRouter();
+  const supabase = createClient();
   // Collections state
   const [collections, setCollections] = useState<{ id: string; name: string; itemCount: number }[]>([]);
   const [showCollDropdown, setShowCollDropdown] = useState(false);
@@ -18,17 +20,25 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
   const [activeNoteCollName, setActiveNoteCollName] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [authUsername, setAuthUsername] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
-    const username = localStorage.getItem("seriez-username") || "Anonymous";
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthUsername(session?.user?.user_metadata?.username || null);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!authUsername) return;
+    const username = authUsername;
     fetch(`/api/collections?username=${encodeURIComponent(username)}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.collections) setCollections(data.collections);
       })
       .catch(() => {});
-  }, []);
+  }, [authUsername]);
 
   useEffect(() => {
     if (!showCollDropdown) return;
@@ -42,7 +52,8 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
   }, [showCollDropdown]);
 
   async function addToCollection(listId: string, listName: string, note: string) {
-    const username = localStorage.getItem("seriez-username") || "Anonymous";
+    if (!authUsername) return;
+    const username = authUsername;
     setAddingCollId(listId);
     setCollFeedback(null);
     try {

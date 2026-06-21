@@ -77,8 +77,8 @@ export function Sidebar() {
   // Fetch avatar URL when user is known
   useEffect(() => {
     let u: string | null | undefined = user?.user_metadata?.username;
-    // Fallback: check localStorage + cookie (login doesn't populate metadata)
-    if (!u) {
+    // Fallback: check localStorage + cookie only when user exists (login may not populate metadata)
+    if (!u && user) {
       u = localStorage.getItem("seriez-username");
       if (!u) {
         const match = document.cookie.match(/(?:^| )seriez-username=([^;]+)/);

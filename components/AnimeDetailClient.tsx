@@ -99,8 +99,11 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
   // Fetch current tracking status + collections on mount
   useEffect(() => {
     setMounted(true);
-    supabase.auth.getSession().then(({ data: { session } }) => setAuthUser(session?.user ?? null)).catch(() => {});
-    const username = localStorage.getItem("seriez-username") || "";
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthUser(session?.user ?? null);
+      const uname = session?.user?.user_metadata?.username || localStorage.getItem("seriez-username");
+      if (!uname) return;
+      const username = uname;
 
     fetch(`/api/track?username=${encodeURIComponent(username)}`)
       .then((r) => r.json())
@@ -139,6 +142,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         if (data.collections) setCollections(data.collections);
       })
       .catch(() => {});
+    }).catch(() => {});
   }, [detail.id]);
 
   // Close dropdown on outside click
