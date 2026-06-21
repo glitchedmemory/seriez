@@ -122,7 +122,7 @@ export default function SearchPage() {
 
   return (
     <ErrorBoundary sectionName="Search">
-    <div className="max-w-4xl mx-auto min-h-screen pb-24">
+    <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
       {/* Search input */}
       <div className="sticky top-0 z-20 bg-bg-primary pt-4 pb-3 px-4">
         <div className="relative">

@@ -324,7 +324,7 @@ export default function LibraryClient() {
   }, [authUsername]);
 
   return (
-    <div className="max-w-4xl mx-auto min-h-screen pb-24">
+    <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
       <header className="sticky top-0 z-40 bg-bg-primary/95 backdrop-blur-md px-4 py-3 border-b border-border">
         <h1 className="text-xl font-bold bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">My List</h1>
       </header>

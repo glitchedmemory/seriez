@@ -22,7 +22,7 @@ export function PosterRowSkeleton({ count = 6 }: { count?: number }) {
 
 export function DetailSkeleton() {
   return (
-    <div className="animate-pulse max-w-4xl mx-auto px-4 pt-20 pb-32">
+    <div className="animate-pulse max-w-lg md:max-w-4xl mx-auto px-4 pt-20 pb-32">
       {/* Backdrop */}
       <div className="h-48 md:h-64 rounded-xl bg-bg-card mb-6" />
       {/* Title + meta */}
