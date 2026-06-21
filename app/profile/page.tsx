@@ -1078,8 +1078,11 @@ export default function ProfilePage() {
 }
 
 function AdminPanel() {
+  const [section, setSection] = useState<"reports" | "users">("reports");
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<any[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -1097,53 +1100,127 @@ function AdminPanel() {
     setLoading(false);
   };
 
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const res = await fetch("/api/admin/users");
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data.users || []);
+      }
+    } catch {}
+    setUsersLoading(false);
+  };
+
   useEffect(() => { fetchItems(); }, []);
+  useEffect(() => {
+    if (section === "users" && users.length === 0) fetchUsers();
+  }, [section]);
 
   const handleAction = async (item: any, action: "restore" | "delete") => {
     await fetch(`/api/admin/reports?action=${action}&target_type=${item.type}&target_id=${item.id}`);
     setItems(prev => prev.filter(i => i.id !== item.id || i.type !== item.type));
   };
 
+  const formatDate = (iso: string) => {
+    const d = new Date(iso);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  };
+
   return (
     <div className="px-4 mt-6 pb-24">
-      <h2 className="text-lg font-bold text-text-primary mb-4">🚨 Hidden Content Reports</h2>
-      {loading ? (
-        <p className="text-text-secondary text-sm">Loading...</p>
-      ) : items.length === 0 ? (
-        <p className="text-text-secondary text-sm">No hidden content. Clean! ✅</p>
-      ) : (
-        <div className="space-y-3">
-          {items.map((item: any) => (
-            <div key={`${item.type}-${item.id}`} className="bg-bg-card rounded-xl p-4 border border-red-800/30">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs bg-red-900/50 text-red-300 px-2 py-0.5 rounded">
-                    {item.type === "review" ? "📝 Review" : "💬 Comment"}
-                  </span>
-                  <span className="text-xs text-text-secondary">{item.username}</span>
-                  {(item as any).report_count >= 5 && (
-                    <span className="text-xs bg-red-900/60 text-red-300 px-2 py-0.5 rounded-full font-bold">
-                      🚩 {(item as any).report_count}
-                    </span>
-                  )}
+      {/* Section selector */}
+      <div className="flex items-center gap-3 mb-4">
+        <h2 className="text-lg font-bold text-text-primary">🛡️ Admin</h2>
+        <select
+          value={section}
+          onChange={(e) => setSection(e.target.value as "reports" | "users")}
+          className="bg-bg-card text-text-primary text-xs rounded-lg px-2.5 py-1.5 border border-border focus:border-accent outline-none"
+        >
+          <option value="reports">🚨 Reports</option>
+          <option value="users">👥 Users</option>
+        </select>
+      </div>
+
+      {section === "reports" ? (
+        <>
+          {loading ? (
+            <p className="text-text-secondary text-sm">Loading...</p>
+          ) : items.length === 0 ? (
+            <p className="text-text-secondary text-sm">No hidden content. Clean! ✅</p>
+          ) : (
+            <div className="space-y-3">
+              {items.map((item: any) => (
+                <div key={`${item.type}-${item.id}`} className="bg-bg-card rounded-xl p-4 border border-red-800/30">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs bg-red-900/50 text-red-300 px-2 py-0.5 rounded">
+                        {item.type === "review" ? "📝 Review" : "💬 Comment"}
+                      </span>
+                      <span className="text-xs text-text-secondary">{item.username}</span>
+                      {(item as any).report_count >= 5 && (
+                        <span className="text-xs bg-red-900/60 text-red-300 px-2 py-0.5 rounded-full font-bold">
+                          🚩 {(item as any).report_count}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleAction(item, "restore")}
+                        className="text-xs px-2 py-1 bg-green-600/30 text-green-300 rounded hover:bg-green-600/50">
+                        ✅ Restore
+                      </button>
+                      <button onClick={() => handleAction(item, "delete")}
+                        className="text-xs px-2 py-1 bg-red-600/30 text-red-300 rounded hover:bg-red-600/50">
+                        🗑️ Delete
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-sm text-[#d1d5db] bg-bg-surface p-3 rounded-lg whitespace-pre-wrap">
+                    {item.content}
+                  </p>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => handleAction(item, "restore")}
-                    className="text-xs px-2 py-1 bg-green-600/30 text-green-300 rounded hover:bg-green-600/50">
-                    ✅ Restore
-                  </button>
-                  <button onClick={() => handleAction(item, "delete")}
-                    className="text-xs px-2 py-1 bg-red-600/30 text-red-300 rounded hover:bg-red-600/50">
-                    🗑️ Delete
-                  </button>
-                </div>
-              </div>
-              <p className="text-sm text-[#d1d5db] bg-bg-surface p-3 rounded-lg whitespace-pre-wrap">
-                {item.content}
-              </p>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
+      ) : (
+        /* Users section */
+        <>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-text-secondary">{users.length} users</p>
+            <button
+              onClick={fetchUsers}
+              className="text-xs px-2.5 py-1 bg-bg-card border border-border rounded-lg text-text-secondary hover:text-text-primary transition-colors"
+            >
+              🔄 Refresh
+            </button>
+          </div>
+          {usersLoading ? (
+            <p className="text-text-secondary text-sm">Loading...</p>
+          ) : users.length === 0 ? (
+            <p className="text-text-secondary text-sm">No users found.</p>
+          ) : (
+            <div className="space-y-1">
+              {users.map((u: any, i: number) => (
+                <div key={u.username} className={`flex items-center justify-between py-2 px-3 rounded-lg ${i % 2 === 0 ? "bg-bg-card/30" : ""}`}>
+                  <div>
+                    <span className="text-sm font-medium text-text-primary">{u.username}</span>
+                    <span className="text-xs text-text-secondary ml-2">{formatDate(u.created_at)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {u.role === "admin" && (
+                      <span className="text-[10px] bg-red-900/30 text-red-300 px-1.5 py-0.5 rounded-full">admin</span>
+                    )}
+                    {u.is_premium && (
+                      <span className="text-[10px] bg-gold/10 text-gold px-1.5 py-0.5 rounded-full">⭐</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
