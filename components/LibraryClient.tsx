@@ -13,9 +13,10 @@ interface LibraryItem {
   tmdbId: number; mediaType: string; status: string; rating: number | null;
   progress: number | null; updatedAt: string; title: string; poster: string | null;
   year: number | null; tmdbRating: number;
+  seasonNumber: number; seasonName: string | null; seasonPoster: string | null;
 }
 interface Collection { id: string; name: string; isPublic: boolean; isPublished: boolean; itemCount: number; createdAt: string; }
-interface CollectionItem { tmdbId: number; mediaType: string; title: string; poster: string | null; year: number | null; rating: number; note: string | null; addedAt: string; }
+interface CollectionItem { tmdbId: number; mediaType: string; seasonNumber: number; title: string; poster: string | null; year: number | null; rating: number; note: string | null; addedAt: string; }
 
 const TABS = [
   { key: "plan_to_watch", label: "To Watch" },
@@ -91,18 +92,28 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
       </div>
 
       <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-        {sortedItems.map(item => (
-        <a key={`${item.mediaType}-${item.tmdbId}`} href={`/title/${item.tmdbId}${item.mediaType === "tv" ? "/season/1" : `?type=${item.mediaType}`}`} className="block group">
+        {sortedItems.map(item => {
+        const isSeason = item.seasonNumber > 0;
+        const displayPoster = isSeason && item.seasonPoster ? item.seasonPoster : item.poster;
+        const displayTitle = isSeason && item.seasonName
+          ? `${item.title} — ${item.seasonName}`
+          : item.title;
+        const itemKey = `${item.mediaType}-${item.tmdbId}-${item.seasonNumber}`;
+        const itemHref = isSeason && item.mediaType === "tv"
+          ? `/title/${item.tmdbId}/season/${item.seasonNumber}`
+          : `/title/${item.tmdbId}${item.mediaType === "anime" ? `?type=anime` : ""}`;
+        return (
+        <a key={itemKey} href={itemHref} className="block group">
           <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card">
-            {item.poster ? <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-text-primary/20 text-2xl font-bold">{item.title.slice(0,2)}</div>}
+            {displayPoster ? <PosterImage src={displayPoster} alt={displayTitle} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-text-primary/20 text-2xl font-bold">{displayTitle.slice(0,2)}</div>}
             <div className="absolute top-2 left-2"><span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${item.status==="completed"?"bg-green-500/20 text-green-400":item.status==="watching"?"bg-blue-500/20 text-blue-400":"bg-amber-500/20 text-amber-400"}`}>{item.status==="completed"?"Watched":item.status==="watching"?"Watching":"To Watch"}</span></div>
             {item.tmdbRating > 0 && <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-gold">★ {item.tmdbRating}</div>}
             {item.rating && <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-pink-400">★ {item.rating}</div>}
           </div>
-          <p className="mt-1.5 text-xs font-medium text-text-primary leading-tight line-clamp-2 group-hover:text-accent transition-colors">{item.title}</p>
-          <p className="text-[10px] text-text-secondary">{item.year || "—"} · {item.mediaType==="movie"?"Movie":"TV"}</p>
+          <p className="mt-1.5 text-xs font-medium text-text-primary leading-tight line-clamp-2 group-hover:text-accent transition-colors">{displayTitle}</p>
+          <p className="text-[10px] text-text-secondary">{item.year || "—"} · {item.mediaType==="movie"?"Movie":item.mediaType==="anime"?"Anime":"TV"}{isSeason ? ` · S${item.seasonNumber}` : ""}</p>
         </a>
-      ))}
+        )})}
       </div>
     </div>
   );
@@ -167,8 +178,8 @@ function CollectionsView() {
     fetchCollections();
   };
 
-  const removeItem = async (listId: string, tmdbId: number, mediaType: string) => {
-    await fetch(`/api/collections/${listId}/items`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId, mediaType }) });
+  const removeItem = async (listId: string, tmdbId: number, mediaType: string, seasonNumber: number = 0) => {
+    await fetch(`/api/collections/${listId}/items`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId, mediaType, seasonNumber }) });
     fetchItems(listId); fetchCollections();
   };
 
@@ -203,20 +214,26 @@ function CollectionsView() {
         {itemsLoading ? <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" /></div>
         : items.length === 0 ? <EmptyState icon="🎞️" title="No items yet" description="Add movies and shows to this collection." action={{ label: "Browse titles", href: "/" }} />
         : <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {items.map(item => (
-            <div key={`${item.mediaType}-${item.tmdbId}`} className="relative group">
-              <a href={`/title/${item.tmdbId}${item.mediaType==="tv"?"/season/1":`?type=${item.mediaType}`}`} className="block">
+          {items.map(item => {
+          const isItemSeason = item.seasonNumber > 0;
+          const itemKey = `${item.mediaType}-${item.tmdbId}-${item.seasonNumber}`;
+          const itemHref = isItemSeason && item.mediaType === "tv"
+            ? `/title/${item.tmdbId}/season/${item.seasonNumber}`
+            : `/title/${item.tmdbId}${item.mediaType==="tv"?"/season/1":`?type=${item.mediaType}`}`;
+          return (
+            <div key={itemKey} className="relative group">
+              <a href={itemHref} className="block">
                 <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card">
                   {item.poster ? <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-text-primary/20 text-2xl font-bold">{item.title.slice(0,2)}</div>}
                   {item.rating > 0 && <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-gold">★ {item.rating}</div>}
-                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeItem(selectedId, item.tmdbId, item.mediaType); }} className="absolute top-2 left-2 w-6 h-6 rounded-full bg-red-600/80 hover:bg-red-600 text-white text-xs flex items-center justify-center z-10">✕</button>
+                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeItem(selectedId, item.tmdbId, item.mediaType, item.seasonNumber); }} className="absolute top-2 left-2 w-6 h-6 rounded-full bg-red-600/80 hover:bg-red-600 text-white text-xs flex items-center justify-center z-10">✕</button>
                 </div>
-                <p className="mt-1.5 text-xs font-medium text-text-primary leading-tight line-clamp-2">{item.title}</p>
+                <p className="mt-1.5 text-xs font-medium text-text-primary leading-tight line-clamp-2">{item.title}{isItemSeason ? ` · S${item.seasonNumber}` : ""}</p>
                 <p className="text-[10px] text-text-secondary">{item.year||"—"} · {item.mediaType==="movie"?"Movie":"TV"}</p>
                 {item.note && <p className="text-[10px] text-accent mt-0.5 line-clamp-2">"{item.note}"</p>}
               </a>
             </div>
-          ))}
+          )})}
         </div>}
       </div>
     );

@@ -32,7 +32,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   // Get items
-  const { data: items } = await supabase.from("list_items").select("tmdb_id, media_type, note, added_at").eq("list_id", listId).order("added_at", { ascending: false });
+  const { data: items } = await supabase.from("list_items").select("tmdb_id, media_type, season_number, note, added_at").eq("list_id", listId).order("added_at", { ascending: false });
 
   // Enrich with TMDB
   const enriched = await Promise.all(
@@ -44,6 +44,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         return {
           tmdbId: item.tmdb_id,
           mediaType: item.media_type,
+          seasonNumber: item.season_number || 0,
           title: d.title || d.name || "Unknown",
           poster: d.poster_path ? `${TMDB_IMAGE}${d.poster_path}` : null,
           year: (d.release_date || d.first_air_date || "").slice(0, 4) || null,
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
     const body = await req.json();
-    const { tmdbId, mediaType, note } = body;
+    const { tmdbId, mediaType, seasonNumber, note } = body;
     const { id: listId } = await params;
     if (tmdbId == null || !mediaType) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     if (!note || !note.trim()) return NextResponse.json({ error: "A one-line note is required" }, { status: 400 });
@@ -90,7 +91,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!list) return NextResponse.json({ error: "Collection not found" }, { status: 404 });
     if (list.user_id !== userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { error } = await supabase.from("list_items").insert({ list_id: listId, tmdb_id: tmdbId, media_type: mediaType, note: note.trim() });
+    const sn = seasonNumber ?? 0;
+    const { error } = await supabase.from("list_items").insert({ list_id: listId, tmdb_id: tmdbId, media_type: mediaType, season_number: sn, note: note.trim() });
     if (error) {
       if (error.code === "23505") return NextResponse.json({ error: "Already in collection" }, { status: 409 });
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -110,7 +112,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
     const body = await req.json();
-    const { tmdbId, mediaType } = body;
+    const { tmdbId, mediaType, seasonNumber } = body;
     const { id: listId } = await params;
     if (tmdbId == null || !mediaType) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
@@ -122,7 +124,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     if (!listDel) return NextResponse.json({ error: "Collection not found" }, { status: 404 });
     if (listDel.user_id !== userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { error } = await supabase.from("list_items").delete().eq("list_id", listId).eq("tmdb_id", tmdbId).eq("media_type", mediaType);
+    const sn = seasonNumber ?? 0;
+    const { error } = await supabase.from("list_items").delete().eq("list_id", listId).eq("tmdb_id", tmdbId).eq("media_type", mediaType).eq("season_number", sn);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     return NextResponse.json({ success: true });

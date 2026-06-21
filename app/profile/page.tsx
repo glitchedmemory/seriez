@@ -1083,7 +1083,7 @@ export default function ProfilePage() {
 }
 
 function AdminPanel({ userRole }: { userRole: string | null }) {
-  type Section = "dashboard" | "reports" | "users" | "content" | "sanctions" | "audit";
+  type Section = "dashboard" | "reports" | "users" | "content" | "search" | "popular" | "activity" | "announce" | "sanctions" | "audit";
   const [section, setSection] = useState<Section>("dashboard");
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1107,6 +1107,25 @@ function AdminPanel({ userRole }: { userRole: string | null }) {
   const [auditLoading, setAuditLoading] = useState(false);
   const [roleMsg, setRoleMsg] = useState("");
   const isAdmin = userRole === "admin";
+  // Search analytics
+  const [searchTop, setSearchTop] = useState<any[]>([]);
+  const [searchDaily, setSearchDaily] = useState<any[]>([]);
+  const [searchTotal, setSearchTotal] = useState(0);
+  const [searchLoading, setSearchLoading] = useState(false);
+  // Popular content
+  const [popularTracked, setPopularTracked] = useState<any[]>([]);
+  const [popularReviewed, setPopularReviewed] = useState<any[]>([]);
+  const [popularCollected, setPopularCollected] = useState<any[]>([]);
+  const [popularLoading, setPopularLoading] = useState(false);
+  // User activity
+  const [dau, setDau] = useState<any[]>([]);
+  const [mostActive, setMostActive] = useState<any[]>([]);
+  const [signupTrend, setSignupTrend] = useState<any[]>([]);
+  const [activityLoading, setActivityLoading] = useState(false);
+  // Announce
+  const [announceMessage, setAnnounceMessage] = useState("");
+  const [announceSending, setAnnounceSending] = useState(false);
+  const [announceResult, setAnnounceResult] = useState<string | null>(null);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -1183,6 +1202,72 @@ function AdminPanel({ userRole }: { userRole: string | null }) {
     setAuditLoading(false);
   };
 
+  const fetchSearchAnalytics = async () => {
+    setSearchLoading(true);
+    try {
+      const res = await fetch("/api/admin/search-analytics");
+      if (res.ok) {
+        const data = await res.json();
+        setSearchTop(data.top_queries || []);
+        setSearchDaily(data.daily_volume || []);
+        setSearchTotal(data.total_searches || 0);
+      }
+    } catch {}
+    setSearchLoading(false);
+  };
+
+  const fetchPopularContent = async () => {
+    setPopularLoading(true);
+    try {
+      const res = await fetch("/api/admin/popular-content");
+      if (res.ok) {
+        const data = await res.json();
+        setPopularTracked(data.most_tracked || []);
+        setPopularReviewed(data.most_reviewed || []);
+        setPopularCollected(data.most_collected || []);
+      }
+    } catch {}
+    setPopularLoading(false);
+  };
+
+  const fetchUserActivity = async () => {
+    setActivityLoading(true);
+    try {
+      const res = await fetch("/api/admin/user-activity");
+      if (res.ok) {
+        const data = await res.json();
+        setDau(data.dau || []);
+        setMostActive(data.most_active || []);
+        setSignupTrend(data.signup_trend || []);
+      }
+    } catch {}
+    setActivityLoading(false);
+  };
+
+  const sendAnnounce = async () => {
+    if (!announceMessage.trim() || announceSending) return;
+    setAnnounceSending(true);
+    setAnnounceResult(null);
+    try {
+      const res = await fetch("/api/admin/announce", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: announceMessage.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAnnounceResult(`Sent to ${data.sent_to} users`);
+        setAnnounceMessage("");
+      } else {
+        setAnnounceResult(data.error || "Failed");
+      }
+    } catch {
+      setAnnounceResult("Network error");
+    }
+    setAnnounceSending(false);
+    setTimeout(() => setAnnounceResult(null), 5000);
+  };
+
   const submitSanction = async () => {
     if (!sanctionTarget.trim()) return;
     setSanctionSubmitting(true);
@@ -1233,6 +1318,9 @@ function AdminPanel({ userRole }: { userRole: string | null }) {
     if (section === "reports" && items.length === 0) fetchItems();
     if (section === "users" && users.length === 0) fetchUsers();
     if (section === "audit" && auditLogs.length === 0) fetchAuditLogs();
+    if (section === "search" && searchTop.length === 0 && !searchLoading) fetchSearchAnalytics();
+    if (section === "popular" && popularTracked.length === 0 && !popularLoading) fetchPopularContent();
+    if (section === "activity" && dau.length === 0 && !activityLoading) fetchUserActivity();
   }, [section]);
 
   const handleAction = async (item: any, action: "restore" | "delete") => {
@@ -1275,6 +1363,10 @@ function AdminPanel({ userRole }: { userRole: string | null }) {
           <option value="reports">🚨 Reports</option>
           <option value="users">👥 Users</option>
           <option value="content">🔍 Content</option>
+          <option value="search">🔎 Search</option>
+          <option value="popular">⭐ Popular</option>
+          <option value="activity">📈 Activity</option>
+          <option value="announce">📢 Announce</option>
           {isAdmin && <option value="sanctions">⛔ Sanctions</option>}
           <option value="audit">📋 Audit Log</option>
         </select>
@@ -1586,6 +1678,240 @@ function AdminPanel({ userRole }: { userRole: string | null }) {
             </div>
           )}
         </>
+      )}
+
+      {section === "search" && (
+        <>
+          {searchLoading ? (
+            <p className="text-text-secondary text-sm">Loading...</p>
+          ) : (
+            <div className="space-y-4">
+              {/* Total */}
+              <div className="bg-bg-card rounded-xl p-4">
+                <p className="text-xs text-text-secondary">Total searches (30 days)</p>
+                <p className="text-2xl font-bold text-text-primary mt-1">{searchTotal.toLocaleString()}</p>
+              </div>
+
+              {/* Daily chart — simple bar chart */}
+              <div className="bg-bg-card rounded-xl p-4">
+                <p className="text-xs text-text-secondary mb-3">Daily Search Volume</p>
+                <div className="flex items-end gap-0.5 h-24">
+                  {searchDaily.length === 0 && <p className="text-xs text-text-secondary">No data</p>}
+                  {searchDaily.map((d: any) => {
+                    const max = Math.max(...searchDaily.map((x: any) => x.count), 1);
+                    const pct = (d.count / max) * 100;
+                    const label = d.date.slice(5);
+                    return (
+                      <div key={d.date} className="flex-1 flex flex-col items-center justify-end h-full" title={`${d.date}: ${d.count}`}>
+                        <div className="w-full bg-accent/60 rounded-t" style={{ height: `${Math.max(pct, 2)}%` }} />
+                        <span className="text-[8px] text-text-secondary mt-0.5 rotate-90 origin-left" style={{ transform: "rotate(-45deg)" }}>{label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Top queries */}
+              <div className="bg-bg-card rounded-xl p-4">
+                <p className="text-xs text-text-secondary mb-2">Top Search Queries</p>
+                {searchTop.length === 0 ? (
+                  <p className="text-sm text-text-secondary">No searches recorded yet</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-96 overflow-y-auto">
+                    {searchTop.slice(0, 30).map((q: any, i: number) => (
+                      <div key={q.query} className="flex items-center justify-between text-sm">
+                        <span className="text-text-primary truncate flex-1">
+                          <span className="text-text-secondary text-xs mr-2">#{i + 1}</span>
+                          {q.query}
+                        </span>
+                        <span className="text-text-secondary text-xs ml-2 shrink-0">{q.count.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          <button onClick={fetchSearchAnalytics} className="text-xs mt-3 px-2.5 py-1 bg-bg-card border border-border rounded-lg text-text-secondary hover:text-text-primary transition-colors">Refresh</button>
+        </>
+      )}
+
+      {section === "popular" && (
+        <>
+          {popularLoading ? (
+            <p className="text-text-secondary text-sm">Loading...</p>
+          ) : (
+            <div className="space-y-4">
+              {/* Most Tracked */}
+              <div className="bg-bg-card rounded-xl p-4">
+                <p className="text-xs text-text-secondary mb-2">Most Tracked</p>
+                {popularTracked.length === 0 ? (
+                  <p className="text-sm text-text-secondary">No tracking data yet</p>
+                ) : (
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                    {popularTracked.slice(0, 20).map((t: any, i: number) => (
+                      <div key={`t-${t.tmdb_id}`} className="flex items-center gap-3">
+                        <span className="text-text-secondary text-xs w-5">{i + 1}</span>
+                        {t.poster && <img src={t.poster} alt="" className="w-8 h-12 rounded object-cover shrink-0" />}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-text-primary truncate">{t.title}</p>
+                          <p className="text-[10px] text-text-secondary">{t.count} tracking entries</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Most Reviewed */}
+              <div className="bg-bg-card rounded-xl p-4">
+                <p className="text-xs text-text-secondary mb-2">Most Reviewed</p>
+                {popularReviewed.length === 0 ? (
+                  <p className="text-sm text-text-secondary">No review data yet</p>
+                ) : (
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                    {popularReviewed.slice(0, 20).map((r: any, i: number) => (
+                      <div key={`r-${r.tmdb_id}`} className="flex items-center gap-3">
+                        <span className="text-text-secondary text-xs w-5">{i + 1}</span>
+                        {r.poster && <img src={r.poster} alt="" className="w-8 h-12 rounded object-cover shrink-0" />}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-text-primary truncate">{r.title}</p>
+                          <p className="text-[10px] text-text-secondary">{r.count} reviews · Avg ★ {r.avg_rating}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Most Collected */}
+              <div className="bg-bg-card rounded-xl p-4">
+                <p className="text-xs text-text-secondary mb-2">Most Collected</p>
+                {popularCollected.length === 0 ? (
+                  <p className="text-sm text-text-secondary">No collection data yet</p>
+                ) : (
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                    {popularCollected.slice(0, 20).map((c: any, i: number) => (
+                      <div key={`c-${c.tmdb_id}`} className="flex items-center gap-3">
+                        <span className="text-text-secondary text-xs w-5">{i + 1}</span>
+                        {c.poster && <img src={c.poster} alt="" className="w-8 h-12 rounded object-cover shrink-0" />}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-text-primary truncate">{c.title}</p>
+                          <p className="text-[10px] text-text-secondary">{c.count} collections</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          <button onClick={fetchPopularContent} className="text-xs mt-3 px-2.5 py-1 bg-bg-card border border-border rounded-lg text-text-secondary hover:text-text-primary transition-colors">Refresh</button>
+        </>
+      )}
+
+      {section === "activity" && (
+        <>
+          {activityLoading ? (
+            <p className="text-text-secondary text-sm">Loading...</p>
+          ) : (
+            <div className="space-y-4">
+              {/* DAU chart */}
+              <div className="bg-bg-card rounded-xl p-4">
+                <p className="text-xs text-text-secondary mb-3">Daily Active Users</p>
+                {dau.length === 0 ? (
+                  <p className="text-sm text-text-secondary">No activity data yet</p>
+                ) : (
+                  <div className="flex items-end gap-0.5 h-20">
+                    {dau.map((d: any) => {
+                      const max = Math.max(...dau.map((x: any) => x.count), 1);
+                      const pct = (d.count / max) * 100;
+                      const label = d.date.slice(5);
+                      return (
+                        <div key={d.date} className="flex-1 flex flex-col items-center justify-end h-full" title={`${d.date}: ${d.count}`}>
+                          <div className="w-full bg-green-500/60 rounded-t" style={{ height: `${Math.max(pct, 2)}%` }} />
+                          <span className="text-[7px] text-text-secondary mt-0.5" style={{ transform: "rotate(-45deg)", transformOrigin: "left" }}>{label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Signup trend */}
+              <div className="bg-bg-card rounded-xl p-4">
+                <p className="text-xs text-text-secondary mb-3">New Signups</p>
+                {signupTrend.length === 0 ? (
+                  <p className="text-sm text-text-secondary">No signup data yet</p>
+                ) : (
+                  <div className="flex items-end gap-0.5 h-20">
+                    {signupTrend.map((d: any) => {
+                      const max = Math.max(...signupTrend.map((x: any) => x.count), 1);
+                      const pct = (d.count / max) * 100;
+                      const label = d.date.slice(5);
+                      return (
+                        <div key={d.date} className="flex-1 flex flex-col items-center justify-end h-full" title={`${d.date}: ${d.count}`}>
+                          <div className="w-full bg-blue-500/60 rounded-t" style={{ height: `${Math.max(pct, 2)}%` }} />
+                          <span className="text-[7px] text-text-secondary mt-0.5" style={{ transform: "rotate(-45deg)", transformOrigin: "left" }}>{label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Most active users */}
+              <div className="bg-bg-card rounded-xl p-4">
+                <p className="text-xs text-text-secondary mb-2">Most Active Users (7 days)</p>
+                {mostActive.length === 0 ? (
+                  <p className="text-sm text-text-secondary">No recent activity</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-80 overflow-y-auto">
+                    {mostActive.map((u: any, i: number) => (
+                      <div key={u.username} className="flex items-center justify-between text-sm">
+                        <span className="text-text-primary">
+                          <span className="text-text-secondary text-xs mr-2">#{i + 1}</span>
+                          {u.username}
+                        </span>
+                        <span className="text-text-secondary text-xs">{u.count} actions</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          <button onClick={fetchUserActivity} className="text-xs mt-3 px-2.5 py-1 bg-bg-card border border-border rounded-lg text-text-secondary hover:text-text-primary transition-colors">Refresh</button>
+        </>
+      )}
+
+      {section === "announce" && (
+        <div className="bg-bg-card rounded-xl p-4 space-y-3">
+          <p className="text-xs text-text-secondary">Send a notification to all users. Appears in each user's notification list.</p>
+          <textarea
+            value={announceMessage}
+            onChange={(e) => setAnnounceMessage(e.target.value)}
+            placeholder="Write announcement message..."
+            rows={4}
+            maxLength={500}
+            className="w-full bg-bg-surface text-text-primary text-sm rounded-lg px-3 py-2 border border-border focus:border-accent outline-none resize-none placeholder:text-text-secondary"
+          />
+          <div className="flex items-center gap-3">
+            <button
+              onClick={sendAnnounce}
+              disabled={announceSending || !announceMessage.trim()}
+              className="px-4 py-2 rounded-lg bg-accent text-white text-sm font-medium disabled:opacity-40 hover:bg-[#5558e7] transition-colors"
+            >
+              {announceSending ? "Sending..." : "Send to All Users"}
+            </button>
+            {announceResult && (
+              <span className={`text-xs ${announceResult.startsWith("Sent") ? "text-green-400" : "text-red-400"}`}>
+                {announceResult}
+              </span>
+            )}
+          </div>
+          <p className="text-[10px] text-text-secondary">{announceMessage.length}/500</p>
+        </div>
       )}
 
       {section === "sanctions" && isAdmin && (
