@@ -95,7 +95,7 @@ export default function AnimeStaffClient({ staff }: { staff: StaffDetail }) {
   };
 
   return (
-    <div className="min-h-screen pb-24 px-4">
+    <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24 px-4">
       {/* Header */}
       <div className="flex flex-col md:flex-row gap-6 pt-8">
         {/* Photo */}
