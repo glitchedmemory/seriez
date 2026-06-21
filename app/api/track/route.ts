@@ -27,10 +27,15 @@ export async function GET(req: NextRequest) {
   }
 
   let query = supabaseAdmin
-    .from("media_trackings")
-    .select("*")
-    .eq("username", userId)
-    .order("updated_at", { ascending: false });
+  .from("media_trackings")
+  .select("*")
+  .eq("username", userId)
+  .order("updated_at", { ascending: false });
+
+  const seasonNumber = searchParams.get("seasonNumber");
+  if (seasonNumber !== null) {
+  query = query.eq("season_number", parseInt(seasonNumber));
+  }
 
   if (status) {
     query = query.eq("status", status);
@@ -50,6 +55,7 @@ export async function GET(req: NextRequest) {
       tmdbId: t.tmdb_id,
       anilistId: t.anilist_id,
       mediaType: t.media_type,
+      seasonNumber: t.season_number,
       status: t.status,
       rating: t.rating,
       progress: t.progress,
@@ -67,7 +73,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { tmdbId, mediaType, status, rating, progress } = body;
+    const { tmdbId, mediaType, status, rating, progress, seasonNumber } = body;
 
     if (tmdbId == null || !mediaType || !status) {
       return NextResponse.json(
@@ -88,6 +94,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to resolve user" }, { status: 500 });
     }
 
+    const sn = seasonNumber ?? 0;
+
     // Preserve existing watched_at — only set on first completion
     const existingWatchDate = status === "completed"
       ? ((await supabaseAdmin
@@ -96,6 +104,7 @@ export async function POST(req: NextRequest) {
           .eq("username", userId)
           .eq("tmdb_id", tmdbId)
           .eq("media_type", mediaType)
+          .eq("season_number", sn)
           .maybeSingle())?.data?.watched_at ?? undefined)
       : undefined;
 
@@ -103,6 +112,7 @@ export async function POST(req: NextRequest) {
       username: userId,
       tmdb_id: tmdbId,
       media_type: mediaType,
+      season_number: sn,
       status,
       rating: rating ?? null,
       progress: progress ?? null,
@@ -116,7 +126,7 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabaseAdmin
       .from("media_trackings")
-      .upsert(upsertData, { onConflict: "username,tmdb_id,media_type" })
+      .upsert(upsertData, { onConflict: "username,tmdb_id,media_type,season_number" })
       .select("*")
       .single();
 
@@ -131,6 +141,7 @@ export async function POST(req: NextRequest) {
       tmdbId: data.tmdb_id,
       anilistId: data.anilist_id,
       mediaType: data.media_type,
+      seasonNumber: data.season_number,
       status: data.status,
       rating: data.rating,
       progress: data.progress,
@@ -150,7 +161,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { tmdbId, mediaType } = body;
+    const { tmdbId, mediaType, seasonNumber } = body;
 
     if (tmdbId == null || !mediaType) {
       return NextResponse.json(
@@ -164,12 +175,15 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    const sn = seasonNumber ?? 0;
+
     const { error } = await supabaseAdmin
       .from("media_trackings")
       .delete()
       .eq("username", userId)
       .eq("tmdb_id", tmdbId)
-      .eq("media_type", mediaType);
+      .eq("media_type", mediaType)
+      .eq("season_number", sn);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

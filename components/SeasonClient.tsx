@@ -131,7 +131,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
       if (!uname) return;
       const username = uname;
     // Fetch tracking
-    fetch(`/api/track?username=${encodeURIComponent(username)}`)
+    fetch(`/api/track?username=${encodeURIComponent(username)}&seasonNumber=${data.seasonNumber}`)
       .then((r) => r.json())
       .then((trackData) => {
         if (Array.isArray(trackData)) {
@@ -203,7 +203,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
       await fetch("/api/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, tmdbId: data.id, mediaType: "tv", status: "watching" }),
+        body: JSON.stringify({ username, tmdbId: data.id, mediaType: "tv", seasonNumber: data.seasonNumber, status: "watching" }),
       });
     } else if (!willHaveWatched && trackStatus === "watching") {
       // All episodes unchecked → stop watching
@@ -211,7 +211,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
       await fetch("/api/track", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, tmdbId: data.id, mediaType: "tv" }),
+        body: JSON.stringify({ username, tmdbId: data.id, mediaType: "tv", seasonNumber: data.seasonNumber }),
       });
     }
 
@@ -229,7 +229,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
       fetch("/api/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, tmdbId: data.id, mediaType: "tv", status: "watching" }),
+        body: JSON.stringify({ username, tmdbId: data.id, mediaType: "tv", seasonNumber: data.seasonNumber, status: "watching" }),
       }).catch(() => {});
     }
     // All episodes checked → auto-complete
@@ -240,7 +240,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
       fetch("/api/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, tmdbId: data.id, mediaType: "tv", status: "completed" }),
+        body: JSON.stringify({ username, tmdbId: data.id, mediaType: "tv", seasonNumber: data.seasonNumber, status: "completed" }),
       }).catch(() => {});
     }
   }
@@ -262,6 +262,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
           username,
           tmdbId: data.id,
           mediaType: "tv",
+          seasonNumber: data.seasonNumber,
           status: newStatus,
         };
         if (status === "completed" && effectiveRating > 0) {
@@ -311,6 +312,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
             username,
             tmdbId: data.id,
             mediaType: "tv",
+            seasonNumber: data.seasonNumber,
           }),
         });
         setTrackedAt(null);

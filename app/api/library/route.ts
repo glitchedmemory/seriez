@@ -63,6 +63,7 @@ export async function GET(req: NextRequest) {
         items.push({
           tmdbId: t.tmdb_id,
           mediaType: "anime",
+          seasonNumber: t.season_number,
           status: t.status,
           rating: t.rating,
           progress: t.progress,
@@ -82,6 +83,7 @@ export async function GET(req: NextRequest) {
       items.push({
         tmdbId: t.tmdb_id,
         mediaType: t.media_type,
+        seasonNumber: t.season_number,
         status: t.status,
         rating: t.rating,
         progress: t.progress,

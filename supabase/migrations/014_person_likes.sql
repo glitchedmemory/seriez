@@ -13,11 +13,20 @@ CREATE TABLE IF NOT EXISTS person_likes (
 
 ALTER TABLE person_likes ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can read own likes" ON person_likes
-  FOR SELECT USING (auth.uid()::text = username);
+DO $$ BEGIN
+  CREATE POLICY "Users can read own likes" ON person_likes
+    FOR SELECT USING (auth.uid()::text = username);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
-CREATE POLICY "Users can insert own likes" ON person_likes
-  FOR INSERT WITH CHECK (auth.uid()::text = username);
+DO $$ BEGIN
+  CREATE POLICY "Users can insert own likes" ON person_likes
+    FOR INSERT WITH CHECK (auth.uid()::text = username);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
-CREATE POLICY "Users can delete own likes" ON person_likes
-  FOR DELETE USING (auth.uid()::text = username);
+DO $$ BEGIN
+  CREATE POLICY "Users can delete own likes" ON person_likes
+    FOR DELETE USING (auth.uid()::text = username);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
