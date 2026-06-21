@@ -67,7 +67,7 @@ export default function HistoryClient({ profileUsername, isOwn }: { profileUsern
 
   if (loading && !data) {
     return (
-      <div className="max-w-lg md:max-w-4xl mx-auto pb-32 px-4 pt-6">
+      <div className="pb-32 px-4 pt-6">
         <div className="space-y-4 animate-pulse">
           <div className="h-8 w-40 bg-bg-card rounded-lg" />
           <div className="aspect-square bg-bg-card rounded-2xl" />
@@ -80,7 +80,7 @@ export default function HistoryClient({ profileUsername, isOwn }: { profileUsern
 
   if (error && !data) {
     return (
-      <div className="max-w-lg md:max-w-4xl mx-auto pb-32 px-4 pt-20 text-center">
+      <div className="pb-32 px-4 pt-20 text-center">
         <span className="text-4xl mb-4 block">📭</span>
         <h2 className="text-text-primary text-lg font-bold mb-2">Error</h2>
         <p className="text-text-secondary text-sm">{error}</p>
@@ -105,7 +105,7 @@ export default function HistoryClient({ profileUsername, isOwn }: { profileUsern
   const persona = data.persona;
 
   return (
-    <div className="max-w-lg md:max-w-4xl mx-auto pb-32">
+    <div className="pb-32">
       {/* ── Header nav ── */}
       <div className="pt-6 pb-2 px-4 flex items-center justify-between">
         <div>

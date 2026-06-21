@@ -101,7 +101,7 @@ export default function ChangeProfilePage() {
 
   return (
     <ErrorBoundary sectionName="Change Profile">
-      <div className="max-w-lg md:max-w-4xl mx-auto pb-32">
+      <div className="pb-32">
         {/* Header */}
         <div className="flex items-center gap-4 px-4 pt-4 pb-3">
           <button
