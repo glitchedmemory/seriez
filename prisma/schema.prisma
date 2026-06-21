@@ -36,17 +36,18 @@ model User {
 }
 
 model MediaTracking {
-  id        String   @id @default(uuid())
-  username  String
-  tmdbId    Int      @map("tmdb_id")
-  anilistId Int?     @map("anilist_id")
-  mediaType String   @map("media_type") // movie, tv, anime
-  status    String   // watching, completed, plan_to_watch, on_hold, dropped
-  rating    Float?   // 0.5 ~ 5.0
-  progress  Int?     // episode count for TV
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id           String   @id @default(uuid())
+  username     String
+  tmdbId       Int      @map("tmdb_id")
+  anilistId    Int?     @map("anilist_id")
+  mediaType    String   @map("media_type") // movie, tv, anime
+  seasonNumber Int      @default(0) @map("season_number") // 0=movie, 1+=TV/anime season
+  status       String   // watching, completed, plan_to_watch, on_hold, dropped
+  rating       Float?   // 0.5 ~ 5.0
+  progress     Int?     // episode count for TV
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  @@unique([username, tmdbId, mediaType])
+  @@unique([username, tmdbId, mediaType, seasonNumber])
   @@map("media_trackings")
 }
 
