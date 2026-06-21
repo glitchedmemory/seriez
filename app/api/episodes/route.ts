@@ -120,6 +120,7 @@ export async function POST(req: NextRequest) {
       .eq("username", userId)
       .eq("tmdb_id", tmdbId)
       .eq("media_type", "tv")
+      .eq("season_number", seasonNumber)
       .maybeSingle();
 
     if (!trackData) {
@@ -131,10 +132,11 @@ export async function POST(req: NextRequest) {
             username: userId,
             tmdb_id: tmdbId,
             media_type: "tv",
+            season_number: seasonNumber,
             status: "watching",
             progress,
           },
-          { onConflict: "username,tmdb_id,media_type" }
+          { onConflict: "username,tmdb_id,media_type,season_number" }
         );
     } else {
       // Update progress only
@@ -143,7 +145,8 @@ export async function POST(req: NextRequest) {
         .update({ progress })
         .eq("username", userId)
         .eq("tmdb_id", tmdbId)
-        .eq("media_type", "tv");
+        .eq("media_type", "tv")
+        .eq("season_number", seasonNumber);
     }
 
     return NextResponse.json({ action: "watched", seasonNumber, episodeNumber, progress });
