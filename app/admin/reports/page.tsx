@@ -187,7 +187,7 @@ export default function AdminReportsPage() {
     if (currentRole && section === "audit" && auditLogs.length === 0) {
       fetchAuditLogs();
     }
-  }, [isAdmin, section]);
+  }, [currentRole, section]);
 
   const handleAction = async (item: HiddenItem, action: "restore" | "delete") => {
     const targetId = String(item.id);
