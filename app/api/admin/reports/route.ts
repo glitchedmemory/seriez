@@ -7,10 +7,11 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// GET — fetch hidden items with report counts (admin only)
+const HIGH_RISK_REASONS = ["spam", "obscenity", "hate_speech"];
+
+// GET — fetch hidden items with report details (staff only)
 export async function GET(req: NextRequest) {
   try {
-    // Admin check
     const username = await resolveUsername(req);
     if (!username) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
@@ -59,33 +60,64 @@ export async function GET(req: NextRequest) {
 
     if (commentErr) return NextResponse.json({ error: commentErr.message }, { status: 500 });
 
-    // Get report counts
-    const reportCounts: Record<string, number> = {};
+    // Fetch report details for all hidden items
+    const allTargets = [
+      ...(hiddenReviews || []).map((r: any) => ({ type: "review", id: String(r.id) })),
+      ...(hiddenComments || []).map((c: any) => ({ type: "comment", id: String(c.id) })),
+    ];
 
-    if (hiddenReviews?.length || hiddenComments?.length) {
-      const targets = [
-        ...(hiddenReviews || []).map((r: any) => ({ type: "review", id: String(r.id) })),
-        ...(hiddenComments || []).map((c: any) => ({ type: "comment", id: String(c.id) })),
-      ];
+    // Get all reports in one query for efficiency
+    const reportDetails: Record<string, { reporters: Array<{ username: string; reason: string | null; at: string }>; count: number; highRiskCount: number }> = {};
 
-      for (const t of targets) {
-        const { count } = await supabaseAdmin
+    if (allTargets.length > 0) {
+      // Build OR conditions (Supabase doesn't support OR with many items easily, do in batches)
+      for (const t of allTargets) {
+        const { data: reports, error: repErr } = await supabaseAdmin
           .from("reports")
-          .select("*", { count: "exact", head: true })
+          .select("reporter_username, reason, created_at")
           .eq("target_type", t.type)
-          .eq("target_id", t.id);
-        reportCounts[`${t.type}-${t.id}`] = count || 0;
+          .eq("target_id", t.id)
+          .order("created_at", { ascending: false });
+
+        if (repErr) continue;
+
+        const key = `${t.type}-${t.id}`;
+        const reporters = (reports || []).map((r: any) => ({
+          username: r.reporter_username,
+          reason: r.reason || "other",
+          at: r.created_at,
+        }));
+        const highRiskCount = reporters.filter((r: any) => HIGH_RISK_REASONS.includes(r.reason)).length;
+
+        reportDetails[key] = {
+          reporters,
+          count: reporters.length,
+          highRiskCount,
+        };
       }
     }
 
-    const reviews = (hiddenReviews || []).map((r: any) => ({
-      ...r,
-      report_count: reportCounts[`review-${String(r.id)}`] || 0,
-    }));
-    const comments = (hiddenComments || []).map((c: any) => ({
-      ...c,
-      report_count: reportCounts[`comment-${String(c.id)}`] || 0,
-    }));
+    const reviews = (hiddenReviews || []).map((r: any) => {
+      const key = `review-${String(r.id)}`;
+      const details = reportDetails[key] || { reporters: [], count: 0, highRiskCount: 0 };
+      return {
+        ...r,
+        report_count: details.count,
+        risk_level: details.highRiskCount > 0 ? "high" : details.count > 0 ? "normal" : "none",
+        reporters: details.reporters,
+      };
+    });
+
+    const comments = (hiddenComments || []).map((c: any) => {
+      const key = `comment-${String(c.id)}`;
+      const details = reportDetails[key] || { reporters: [], count: 0, highRiskCount: 0 };
+      return {
+        ...c,
+        report_count: details.count,
+        risk_level: details.highRiskCount > 0 ? "high" : details.count > 0 ? "normal" : "none",
+        reporters: details.reporters,
+      };
+    });
 
     return NextResponse.json({ reviews, comments });
   } catch (err: any) {

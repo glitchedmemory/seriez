@@ -1338,10 +1338,15 @@ function AdminPanel({ userRole }: { userRole: string | null }) {
                         {item.type === "review" ? "📝 Review" : "💬 Comment"}
                       </span>
                       <span className="text-xs text-text-secondary">{item.username}</span>
-                      {(item as any).report_count >= 5 && (
-                        <span className="text-xs bg-red-900/60 text-red-300 px-2 py-0.5 rounded-full font-bold">
-                          🚩 {(item as any).report_count}
+                      {item.report_count > 0 && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                          item.risk_level === "high" ? "bg-red-900/60 text-red-300" : "bg-yellow-900/50 text-yellow-300"
+                        }`}>
+                          🚩 {item.report_count}
                         </span>
+                      )}
+                      {item.risk_level === "high" && (
+                        <span className="text-[10px] bg-red-900/50 text-red-400 px-1.5 py-0.5 rounded">HIGH RISK</span>
                       )}
                     </div>
                     <div className="flex gap-2">
@@ -1352,6 +1357,24 @@ function AdminPanel({ userRole }: { userRole: string | null }) {
                     </div>
                   </div>
                   <p className="text-sm text-[#d1d5db] bg-bg-surface p-3 rounded-lg whitespace-pre-wrap">{item.content}</p>
+                  {/* Report details */}
+                  {item.reporters && item.reporters.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-red-800/20">
+                      <p className="text-[10px] text-text-secondary mb-1">Reported by:</p>
+                      {item.reporters.slice(0, 5).map((r: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2 text-[10px] text-text-secondary ml-2">
+                          <span className="text-accent">{r.username}</span>
+                          <span className={`px-1 py-0.5 rounded text-[9px] ${
+                            ["spam","obscenity","hate_speech"].includes(r.reason) ? "bg-red-900/30 text-red-300" : "bg-bg-surface text-text-secondary"
+                          }`}>{r.reason}</span>
+                          <span className="text-text-secondary/50">{new Date(r.at).toLocaleDateString()}</span>
+                        </div>
+                      ))}
+                      {item.reporters.length > 5 && (
+                        <p className="text-[10px] text-text-secondary ml-2 mt-1">+{item.reporters.length - 5} more</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
