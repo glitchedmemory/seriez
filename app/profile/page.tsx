@@ -80,7 +80,7 @@ export default function ProfilePage() {
   const tab = searchParams.get("tab"); // "followers" | "following" | null
   const ownUsername = user?.user_metadata?.username;
   const localStorageUsername = typeof window !== "undefined" ? localStorage.getItem("seriez-username") : null;
-  const effectiveUsername = profileUsername || ownUsername || localStorageUsername;
+  const effectiveUsername = profileUsername || ownUsername || (user ? localStorageUsername : null);
   const isOwn = !profileUsername || (profileUsername === ownUsername) || (profileUsername === localStorageUsername);
 
   const fetchFollowData = useCallback(async () => {
@@ -340,7 +340,7 @@ export default function ProfilePage() {
   }
 
   // ── Main profile page ──
-  const displayName = profileUsername || ownUsername || localStorageUsername || "Guest";
+  const displayName = profileUsername || ownUsername || (user ? localStorageUsername : null) || "Guest";
   const initial = displayName.slice(0, 1).toUpperCase();
 
   return (
