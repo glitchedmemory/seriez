@@ -20,6 +20,9 @@ interface UserInfo {
   role: string;
   is_premium: boolean;
   created_at: string;
+  sanction_type?: string | null;
+  sanction_until?: string | null;
+  sanctioned_at?: string | null;
 }
 
 function formatDate(iso: string) {
@@ -35,13 +38,18 @@ export default function AdminReportsPage() {
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [section, setSection] = useState<"reports" | "users">("reports");
+  const [section, setSection] = useState<"reports" | "users" | "sanctions">("reports");
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState("");
+  const [sanctionType, setSanctionType] = useState("warned");
+  const [sanctionReason, setSanctionReason] = useState("");
+  const [sanctionDuration, setSanctionDuration] = useState(24);
+  const [sanctioning, setSanctioning] = useState(false);
+  const [sanctionMsg, setSanctionMsg] = useState("");
 
   const supabase = createClient();
 
-  // Admin role check
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       const user = data.session?.user;
@@ -91,21 +99,21 @@ export default function AdminReportsPage() {
   };
 
   useEffect(() => {
-    if (isAdmin && section === "users" && users.length === 0) {
+    if (isAdmin && (section === "users" || section === "sanctions") && users.length === 0) {
       fetchUsers();
     }
   }, [isAdmin, section]);
 
   const handleAction = async (item: HiddenItem, action: "restore" | "delete") => {
     const targetId = String(item.id);
-    const res = await fetch(`/api/admin/reports?action=${action}&target_type=${item.type}&target_id=${targetId}`);
+    const res = await fetch("/api/admin/reports?action=${action}&target_type=${item.type}&target_id=${targetId}");
     if (res.ok) {
       setItems((prev) => prev.filter((i) => i.id !== item.id || i.type !== item.type));
     }
   };
 
   const handleAnalyze = async (item: HiddenItem) => {
-    const key = `${item.type}-${item.id}`;
+    const key = "${item.type}-${item.id}";
     setAnalyzingId(key);
     try {
       const res = await fetch("/api/admin/analyze", {
@@ -121,6 +129,52 @@ export default function AdminReportsPage() {
     setAnalyzingId(null);
   };
 
+  async function applySanction() {
+    if (!selectedUser) return;
+    setSanctioning(true); setSanctionMsg("");
+    try {
+      const res = await fetch("/api/admin/sanction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: selectedUser,
+          sanction_type: sanctionType,
+          reason: sanctionReason || undefined,
+          duration_hours: sanctionType === "suspended" ? sanctionDuration : undefined,
+        }),
+      });
+      if (res.ok) {
+        setSanctionMsg("Sanction applied to " + selectedUser);
+        setSelectedUser(""); setSanctionReason("");
+        fetchUsers();
+      } else {
+        const d = await res.json();
+        setSanctionMsg(d.error);
+      }
+    } catch { setSanctionMsg("Failed"); }
+    setSanctioning(false);
+  }
+
+  async function removeSanction() {
+    if (!selectedUser) return;
+    setSanctioning(true); setSanctionMsg("");
+    try {
+      const res = await fetch("/api/admin/sanction", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: selectedUser }),
+      });
+      if (res.ok) {
+        setSanctionMsg("Sanction removed from " + selectedUser);
+        setSelectedUser(""); fetchUsers();
+      } else {
+        const d = await res.json();
+        setSanctionMsg(d.error);
+      }
+    } catch { setSanctionMsg("Failed"); }
+    setSanctioning(false);
+  }
+
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-text-primary p-6">
       {isAdmin === null ? (
@@ -132,16 +186,16 @@ export default function AdminReportsPage() {
         </div>
       ) : (
         <>
-          {/* Section selector */}
           <div className="flex items-center gap-4 mb-6">
             <h1 className="text-2xl font-bold">🛡️ Admin</h1>
             <select
               value={section}
-              onChange={(e) => setSection(e.target.value as "reports" | "users")}
+              onChange={(e) => setSection(e.target.value as "reports" | "users" | "sanctions")}
               className="bg-bg-card text-text-primary text-sm rounded-xl px-3 py-2 border border-border focus:border-accent outline-none"
             >
               <option value="reports">🚨 Reports</option>
               <option value="users">👥 Users</option>
+              <option value="sanctions">⛔ Sanctions</option>
             </select>
           </div>
 
@@ -155,7 +209,7 @@ export default function AdminReportsPage() {
               ) : (
                 <div className="space-y-4">
                   {items.map((item) => {
-            const key = `${item.type}-${item.id}`;
+            const key = "${item.type}-${item.id}";
             const verdict = verdicts[key] || item.ai_verdict;
             return (
               <div key={key} className="bg-bg-card rounded-xl p-4 border border-red-800/30">
@@ -198,13 +252,13 @@ export default function AdminReportsPage() {
                   {item.content}
                 </p>
                 {verdict && (
-                  <div className={`mt-2 text-xs p-2 rounded ${
+                  <div className={"mt-2 text-xs p-2 rounded ${
                     verdict.includes("DELETE")
                       ? "bg-red-900/30 text-red-300"
                       : verdict.includes("RESTORE")
                       ? "bg-green-900/30 text-green-300"
                       : "bg-yellow-900/30 text-yellow-300"
-                  }`}>
+                  }"}>
                     🤖 {verdict}
                   </div>
                 )}
@@ -213,6 +267,38 @@ export default function AdminReportsPage() {
           })}
         </div>
       )}
+            </>
+          ) : section === "sanctions" ? (
+            /* Sanctions section */
+            <>
+              <div className="bg-bg-card rounded-xl p-5 border border-border max-w-lg">
+                <h3 className="text-text-primary font-semibold mb-4">Apply Sanction</h3>
+                <label className="block text-xs text-text-secondary mb-1">User</label>
+                <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)} className="w-full bg-bg-surface text-text-primary text-sm rounded-lg px-3 py-2 border border-border focus:border-accent outline-none mb-3">
+                  <option value="">Select user...</option>
+                  {users.filter(u => u.role !== "admin").map((u) => (<option key={u.username} value={u.username}>{u.username}</option>))}
+                </select>
+                <label className="block text-xs text-text-secondary mb-1">Type</label>
+                <select value={sanctionType} onChange={(e) => setSanctionType(e.target.value)} className="w-full bg-bg-surface text-text-primary text-sm rounded-lg px-3 py-2 border border-border focus:border-accent outline-none mb-3">
+                  <option value="warned">⚠️ Warning</option>
+                  <option value="suspended">⏸️ Temporary Suspension</option>
+                  <option value="banned">🚫 Permanent Ban</option>
+                  <option value="comment_restricted">💬 Comment Restriction</option>
+                </select>
+                {sanctionType === "suspended" && (
+                  <><label className="block text-xs text-text-secondary mb-1">Duration (hours)</label>
+                  <input type="number" value={sanctionDuration} onChange={(e) => setSanctionDuration(parseInt(e.target.value) || 24)} min={1} max={720} className="w-full bg-bg-surface text-text-primary text-sm rounded-lg px-3 py-2 border border-border focus:border-accent outline-none mb-3" /></>
+                )}
+                <label className="block text-xs text-text-secondary mb-1">Reason</label>
+                <input type="text" value={sanctionReason} onChange={(e) => setSanctionReason(e.target.value)} placeholder="e.g. Repeated spam in reviews" className="w-full bg-bg-surface text-text-primary text-sm rounded-lg px-3 py-2 border border-border focus:border-accent outline-none mb-4" />
+                <button onClick={applySanction} disabled={!selectedUser || sanctioning} className="w-full py-2 text-sm font-medium bg-red-600/20 text-red-400 border border-red-800/40 rounded-lg hover:bg-red-600/30 disabled:opacity-40 transition-colors mb-2">
+                  {sanctioning ? "Applying..." : "Apply Sanction"}
+                </button>
+                <button onClick={removeSanction} disabled={!selectedUser || sanctioning} className="w-full py-2 text-sm font-medium bg-green-600/20 text-green-400 border border-green-800/40 rounded-lg hover:bg-green-600/30 disabled:opacity-40 transition-colors">
+                  Remove Sanction
+                </button>
+                {sanctionMsg && <p className={"text-xs mt-3 " + (sanctionMsg.startsWith("Sanction") ? "text-green-400" : "text-red-400")}>{sanctionMsg}</p>}
+              </div>
             </>
           ) : (
             /* Users section */
@@ -237,18 +323,26 @@ export default function AdminReportsPage() {
                       <tr className="border-b border-border text-text-secondary text-xs uppercase tracking-wide">
                         <th className="text-left py-2 px-3">Username</th>
                         <th className="text-left py-2 px-3">Role</th>
+                        <th className="text-left py-2 px-3">Status</th>
                         <th className="text-left py-2 px-3">Premium</th>
                         <th className="text-left py-2 px-3">Joined</th>
                       </tr>
                     </thead>
                     <tbody>
                       {users.map((u, i) => (
-                        <tr key={u.username} className={`border-b border-border/50 ${i % 2 === 0 ? "bg-bg-card/30" : ""}`}>
+                        <tr key={u.username} className={"border-b border-border/50 " + (i % 2 === 0 ? "bg-bg-card/30" : "")}>
                           <td className="py-2 px-3 font-medium">{u.username}</td>
                           <td className="py-2 px-3">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${u.role === "admin" ? "bg-red-900/30 text-red-300" : "bg-bg-card text-text-secondary"}`}>
+                            <span className={"text-xs px-2 py-0.5 rounded-full " + (u.role === "admin" ? "bg-red-900/30 text-red-300" : "bg-bg-card text-text-secondary")}>
                               {u.role}
                             </span>
+                          </td>
+                          <td className="py-2 px-3">
+                            {u.sanction_type ? (
+                              <span className="text-xs bg-red-900/30 text-red-300 px-2 py-0.5 rounded-full">{u.sanction_type}</span>
+                            ) : (
+                              <span className="text-xs text-green-400">✓</span>
+                            )}
                           </td>
                           <td className="py-2 px-3">
                             {u.is_premium ? (
