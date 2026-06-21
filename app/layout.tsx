@@ -6,6 +6,7 @@ import "./globals.css";
 import TabBar, { Sidebar } from "@/components/TabBar";
 import ScrollToTop from "@/components/ScrollToTop";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/lib/theme";
 
 const geistSans = Geist({
@@ -105,10 +106,11 @@ export default function RootLayout({
       <body className="min-h-full flex bg-bg-primary text-text-primary">
         <ThemeProvider>
           <Sidebar />
-          <main className="flex-1 min-w-0 md:pb-0 pb-16">
+          <main className="flex-1 min-w-0 md:pb-0 pb-16 flex flex-col">
             <ErrorBoundary sectionName="App">
               {children}
             </ErrorBoundary>
+            <Footer />
           </main>
           <TabBar />
           <ScrollToTop />
