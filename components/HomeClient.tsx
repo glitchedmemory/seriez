@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { PosterCard, HorizontalScroll } from "@/components/PosterCard";
 import { HeroCard } from "@/components/HeroCard";
 import { StreamingTop10 } from "@/components/StreamingTop10";
@@ -168,48 +169,20 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
   const [seriezUsername, setSeriezUsername] = useState<string>("");
   const [isPremium, setIsPremium] = useState(false);
 
+  const supabase = createClient();
+
   useEffect(() => {
-    let username = localStorage.getItem("seriez-username");
-    // Fallback: read cookie from magic-link login
-    if (!username) {
-      const match = document.cookie.match(/(?:^| )seriez-username=([^;]+)/);
-      if (match) {
-        username = decodeURIComponent(match[1]);
-        localStorage.setItem("seriez-username", username);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const uname = session?.user?.user_metadata?.username;
+      if (uname) {
+        setSeriezUsername(uname);
+        fetchForYou(uname);
+        fetch(`/api/profile?username=${encodeURIComponent(uname)}`)
+          .then((r) => r.json())
+          .then((data) => setIsPremium(data.is_premium || false))
+          .catch(() => {});
       }
-    }
-    setSeriezUsername(username || "");
-
-    // Check premium status
-    if (username) {
-      fetch(`/api/profile?username=${encodeURIComponent(username)}`)
-        .then((r) => r.json())
-        .then((data) => setIsPremium(data.is_premium || false))
-        .catch(() => {});
-    }
-
-    if (!username) {
-      setForYouItems([]);
-      return;
-    }
-    setForYouLoading(true);
-    fetch(`/api/for-you?username=${encodeURIComponent(username)}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.items?.length) {
-          setForYouItems(data.items);
-          setForYouGenres(data.genres || []);
-          setForYouReasons(data.reasons || {});
-        } else {
-          setForYouItems([]);
-          setForYouReason(data.reason || "Rate some titles to see recommendations");
-        }
-      })
-      .catch(() => {
-        setForYouItems([]);
-        setForYouReason("Recommendations unavailable right now");
-      })
-      .finally(() => setForYouLoading(false));
+    }).catch(() => {});
   }, []);
 
   // Fetch anime trending on toggle

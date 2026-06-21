@@ -125,8 +125,11 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
   // Fetch current tracking status + watched episodes on mount
   useEffect(() => {
     setMounted(true);
-    supabase.auth.getSession().then(({ data: { session } }) => setAuthUser(session?.user ?? null)).catch(() => {});
-    const username = localStorage.getItem("seriez-username") || "";
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthUser(session?.user ?? null);
+      const uname = session?.user?.user_metadata?.username || localStorage.getItem("seriez-username");
+      if (!uname) return;
+      const username = uname;
     // Fetch tracking
     fetch(`/api/track?username=${encodeURIComponent(username)}`)
       .then((r) => r.json())
@@ -163,6 +166,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
       .then((r) => r.json())
       .then((d) => { if (d.collections) setCollections(d.collections); })
       .catch(() => {});
+    }).catch(() => {});
   }, [data.id]);
 
   // Close dropdown on outside click

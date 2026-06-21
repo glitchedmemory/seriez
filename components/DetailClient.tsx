@@ -85,8 +85,11 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
   // Fetch current tracking status + collections on mount
   useEffect(() => {
     setMounted(true);
-    supabase.auth.getSession().then(({ data: { session } }) => setAuthUser(session?.user ?? null)).catch(() => {});
-    const username = localStorage.getItem("seriez-username") || "";
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthUser(session?.user ?? null);
+      const uname = session?.user?.user_metadata?.username || localStorage.getItem("seriez-username");
+      if (!uname) return;
+      const username = uname;
 
     // Track status
     fetch(`/api/track?username=${encodeURIComponent(username)}`)
@@ -113,6 +116,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
         if (data.collections) setCollections(data.collections);
       })
       .catch(() => {});
+    }).catch(() => {});
   }, [detail.id, detail.type]);
 
   // Close dropdown on outside click
