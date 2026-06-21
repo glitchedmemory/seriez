@@ -137,11 +137,12 @@ model UserList {
 }
 
 model ListItem {
-  id        String   @id @default(uuid())
-  listId    String   @map("list_id")
-  tmdbId    Int      @map("tmdb_id")
-  mediaType String   @map("media_type")
-  addedAt   DateTime @default(now()) @map("added_at")
+  id           String   @id @default(uuid())
+  listId       String   @map("list_id")
+  tmdbId       Int      @map("tmdb_id")
+  mediaType    String   @map("media_type")
+  seasonNumber Int      @default(0) @map("season_number")
+  addedAt      DateTime @default(now()) @map("added_at")
 
   list UserList @relation(fields: [listId], references: [id], onDelete: Cascade)
 

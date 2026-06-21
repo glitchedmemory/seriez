@@ -350,7 +350,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
       const res = await fetch(`/api/collections/${listId}/items`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, tmdbId: data.id, mediaType: "tv", note: note.trim() }),
+        body: JSON.stringify({ username, tmdbId: data.id, mediaType: "tv", seasonNumber: data.seasonNumber, note: note.trim() }),
       });
       const json = await res.json();
       if (res.ok) {

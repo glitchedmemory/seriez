@@ -64,6 +64,8 @@ export async function GET(req: NextRequest) {
           tmdbId: t.tmdb_id,
           mediaType: "anime",
           seasonNumber: t.season_number,
+          seasonName: t.season_number > 0 ? `Season ${t.season_number}` : null,
+          seasonPoster: null,
           status: t.status,
           rating: t.rating,
           progress: t.progress,
@@ -80,18 +82,43 @@ export async function GET(req: NextRequest) {
       );
       if (!res.ok) { items.push(null); continue; }
       const detail = await res.json();
+      const title = detail.title || detail.name || "Unknown";
+      const poster = detail.poster_path ? `${TMDB_IMAGE}${detail.poster_path}` : null;
+      const year = (detail.release_date || detail.first_air_date || "").slice(0, 4) || null;
+      const tmdbRating = Math.round((detail.vote_average || 0) * 10) / 10;
+
+      // Fetch season-specific poster + name for TV
+      let seasonPoster: string | null = null;
+      let seasonName: string | null = null;
+      if (t.media_type === "tv" && t.season_number > 0) {
+        try {
+          const sRes = await fetch(
+            `${TMDB_API}/tv/${t.tmdb_id}/season/${t.season_number}?api_key=${TMDB_KEY}`
+          );
+          if (sRes.ok) {
+            const sData = await sRes.json();
+            seasonName = sData.name || `Season ${t.season_number}`;
+            if (sData.poster_path) {
+              seasonPoster = `${TMDB_IMAGE}${sData.poster_path}`;
+            }
+          }
+        } catch { /* use main poster as fallback */ }
+      }
+
       items.push({
         tmdbId: t.tmdb_id,
         mediaType: t.media_type,
         seasonNumber: t.season_number,
+        seasonName,
+        seasonPoster,
         status: t.status,
         rating: t.rating,
         progress: t.progress,
         updatedAt: t.updated_at,
-        title: detail.title || detail.name || "Unknown",
-        poster: detail.poster_path ? `${TMDB_IMAGE}${detail.poster_path}` : null,
-        year: (detail.release_date || detail.first_air_date || "").slice(0, 4) || null,
-        tmdbRating: Math.round((detail.vote_average || 0) * 10) / 10,
+        title,
+        poster,
+        year,
+        tmdbRating,
       });
     } catch {
       items.push(null);
