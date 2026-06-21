@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 interface HiddenItem {
   type: "review" | "comment";
@@ -26,6 +27,26 @@ export default function AdminReportsPage() {
   const [verdicts, setVerdicts] = useState<Record<string, string>>({});
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null); // null = checking
+
+  const supabase = createClient();
+
+  // Admin role check
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const user = data.session?.user;
+      const username = user?.user_metadata?.username;
+      if (username) {
+        supabase.from("users").select("role").eq("username", username).maybeSingle()
+          .then(
+            ({ data: rows }) => setIsAdmin((rows as any)?.role === "admin"),
+            () => setIsAdmin(false)
+          );
+      } else {
+        setIsAdmin(false);
+      }
+    });
+  }, []);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -75,15 +96,24 @@ export default function AdminReportsPage() {
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-text-primary p-6">
       <h1 className="text-2xl font-bold mb-6">🚨 Hidden Content Reports</h1>
-      {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
-      {loading ? (
-        <p className="text-text-secondary">Loading...</p>
-      ) : items.length === 0 ? (
-        <p className="text-text-secondary">No hidden content. Clean! ✅</p>
+      {isAdmin === null ? (
+        <p className="text-text-secondary">Checking access...</p>
+      ) : isAdmin === false ? (
+        <div className="bg-red-900/20 border border-red-800/30 rounded-xl p-6 text-center">
+          <p className="text-red-400 text-lg font-semibold mb-2">Access Denied</p>
+          <p className="text-text-secondary text-sm">Admin privileges required to view this page.</p>
+        </div>
       ) : (
-        <div className="space-y-4">
-          {items.map((item) => {
+        <>
+          {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+          {loading ? (
+            <p className="text-text-secondary">Loading...</p>
+          ) : items.length === 0 ? (
+            <p className="text-text-secondary">No hidden content. Clean! ✅</p>
+          ) : (
+            <div className="space-y-4">
+              {items.map((item) => {
             const key = `${item.type}-${item.id}`;
             const verdict = verdicts[key] || item.ai_verdict;
             return (
@@ -141,6 +171,8 @@ export default function AdminReportsPage() {
             );
           })}
         </div>
+      )}
+        </>
       )}
     </div>
   );

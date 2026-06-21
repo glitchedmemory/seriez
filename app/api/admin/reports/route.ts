@@ -1,14 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { resolveUsername } from "@/lib/auth-helper";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// GET — fetch hidden items with report counts
+// GET — fetch hidden items with report counts (admin only)
 export async function GET(req: NextRequest) {
   try {
+    // Admin check
+    const username = await resolveUsername(req);
+    if (!username) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+    const { data: userData } = await supabaseAdmin
+      .from("users").select("role").eq("username", username).maybeSingle();
+    if (userData?.role !== "admin") {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(req.url);
     const action = searchParams.get("action");
     const targetType = searchParams.get("target_type");
