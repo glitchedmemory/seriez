@@ -1078,11 +1078,20 @@ export default function ProfilePage() {
 }
 
 function AdminPanel() {
-  const [section, setSection] = useState<"reports" | "users">("reports");
+  type Section = "dashboard" | "reports" | "users" | "content";
+  const [section, setSection] = useState<Section>("dashboard");
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<any[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
+  const [stats, setStats] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [contentResults, setContentResults] = useState<any[]>([]);
+  const [contentLoading, setContentLoading] = useState(false);
+  const [contentQ, setContentQ] = useState("");
+  const [contentFilter, setContentFilter] = useState("all");
+  const [userDetail, setUserDetail] = useState<any>(null);
+  const [userDetailLoading, setUserDetailLoading] = useState(false);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -1112,8 +1121,42 @@ function AdminPanel() {
     setUsersLoading(false);
   };
 
-  useEffect(() => { fetchItems(); }, []);
+  const fetchStats = async () => {
+    setStatsLoading(true);
+    try {
+      const res = await fetch("/api/admin/stats");
+      if (res.ok) setStats(await res.json());
+    } catch {}
+    setStatsLoading(false);
+  };
+
+  const fetchContent = async () => {
+    setContentLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (contentQ) params.set("q", contentQ);
+      if (contentFilter !== "all") params.set("hidden", contentFilter);
+      const res = await fetch(`/api/admin/content?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        setContentResults(data.results || []);
+      }
+    } catch {}
+    setContentLoading(false);
+  };
+
+  const fetchUserDetail = async (target: string) => {
+    setUserDetailLoading(true);
+    try {
+      const res = await fetch(`/api/admin/user-detail?username=${encodeURIComponent(target)}`);
+      if (res.ok) setUserDetail(await res.json());
+    } catch {}
+    setUserDetailLoading(false);
+  };
+
+  useEffect(() => { fetchStats(); }, []);
   useEffect(() => {
+    if (section === "reports" && items.length === 0) fetchItems();
     if (section === "users" && users.length === 0) fetchUsers();
   }, [section]);
 
@@ -1122,7 +1165,17 @@ function AdminPanel() {
     setItems(prev => prev.filter(i => i.id !== item.id || i.type !== item.type));
   };
 
+  const handleContentAction = async (item: any, action: "hide" | "show" | "delete") => {
+    if (action === "delete") {
+      await fetch(`/api/admin/reports?action=delete&target_type=${item.content_type}&target_id=${item.id}`);
+    } else {
+      await fetch(`/api/admin/content-action?action=${action}&type=${item.content_type}&id=${item.id}`);
+    }
+    fetchContent();
+  };
+
   const formatDate = (iso: string) => {
+    if (!iso) return "—";
     const d = new Date(iso);
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
@@ -1135,15 +1188,60 @@ function AdminPanel() {
         <h2 className="text-lg font-bold text-text-primary">🛡️ Admin</h2>
         <select
           value={section}
-          onChange={(e) => setSection(e.target.value as "reports" | "users")}
+          onChange={(e) => setSection(e.target.value as Section)}
           className="bg-bg-card text-text-primary text-xs rounded-lg px-2.5 py-1.5 border border-border focus:border-accent outline-none"
         >
+          <option value="dashboard">📊 Dashboard</option>
           <option value="reports">🚨 Reports</option>
           <option value="users">👥 Users</option>
+          <option value="content">🔍 Content</option>
         </select>
+        {userDetail && (
+          <button onClick={() => setUserDetail(null)} className="text-xs text-accent hover:underline ml-auto">
+            ← Back to list
+          </button>
+        )}
       </div>
 
-      {section === "reports" ? (
+      {section === "dashboard" && (
+        <>
+          {statsLoading ? (
+            <p className="text-text-secondary text-sm">Loading...</p>
+          ) : stats ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-text-primary">{stats.totalUsers}</p>
+                <p className="text-[10px] text-text-secondary uppercase mt-1">Total Users</p>
+              </div>
+              <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-green-400">{stats.todaySignups}</p>
+                <p className="text-[10px] text-text-secondary uppercase mt-1">Today</p>
+              </div>
+              <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-blue-400">{stats.weekSignups}</p>
+                <p className="text-[10px] text-text-secondary uppercase mt-1">This Week</p>
+              </div>
+              <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-gold">{stats.premiumUsers}</p>
+                <p className="text-[10px] text-text-secondary uppercase mt-1">Premium</p>
+              </div>
+              <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-text-primary">{stats.totalReviews}</p>
+                <p className="text-[10px] text-text-secondary uppercase mt-1">Reviews</p>
+              </div>
+              <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-text-primary">{stats.totalTracked}</p>
+                <p className="text-[10px] text-text-secondary uppercase mt-1">Tracked</p>
+              </div>
+            </div>
+          ) : null}
+          <button onClick={fetchStats} className="mt-4 text-xs px-3 py-1.5 bg-bg-card border border-border rounded-lg text-text-secondary hover:text-text-primary transition-colors">
+            🔄 Refresh
+          </button>
+        </>
+      )}
+
+      {section === "reports" && (
         <>
           {loading ? (
             <p className="text-text-secondary text-sm">Loading...</p>
@@ -1167,32 +1265,24 @@ function AdminPanel() {
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => handleAction(item, "restore")}
-                        className="text-xs px-2 py-1 bg-green-600/30 text-green-300 rounded hover:bg-green-600/50">
-                        ✅ Restore
-                      </button>
+                        className="text-xs px-2 py-1 bg-green-600/30 text-green-300 rounded hover:bg-green-600/50">✅ Restore</button>
                       <button onClick={() => handleAction(item, "delete")}
-                        className="text-xs px-2 py-1 bg-red-600/30 text-red-300 rounded hover:bg-red-600/50">
-                        🗑️ Delete
-                      </button>
+                        className="text-xs px-2 py-1 bg-red-600/30 text-red-300 rounded hover:bg-red-600/50">🗑️ Delete</button>
                     </div>
                   </div>
-                  <p className="text-sm text-[#d1d5db] bg-bg-surface p-3 rounded-lg whitespace-pre-wrap">
-                    {item.content}
-                  </p>
+                  <p className="text-sm text-[#d1d5db] bg-bg-surface p-3 rounded-lg whitespace-pre-wrap">{item.content}</p>
                 </div>
               ))}
             </div>
           )}
         </>
-      ) : (
-        /* Users section */
+      )}
+
+      {section === "users" && !userDetail && (
         <>
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-text-secondary">{users.length} users</p>
-            <button
-              onClick={fetchUsers}
-              className="text-xs px-2.5 py-1 bg-bg-card border border-border rounded-lg text-text-secondary hover:text-text-primary transition-colors"
-            >
+            <button onClick={fetchUsers} className="text-xs px-2.5 py-1 bg-bg-card border border-border rounded-lg text-text-secondary hover:text-text-primary transition-colors">
               🔄 Refresh
             </button>
           </div>
@@ -1203,18 +1293,141 @@ function AdminPanel() {
           ) : (
             <div className="space-y-1">
               {users.map((u: any, i: number) => (
-                <div key={u.username} className={`flex items-center justify-between py-2 px-3 rounded-lg ${i % 2 === 0 ? "bg-bg-card/30" : ""}`}>
+                <button
+                  key={u.username}
+                  onClick={() => fetchUserDetail(u.username)}
+                  className={`w-full text-left flex items-center justify-between py-2 px-3 rounded-lg hover:bg-bg-card transition-colors ${i % 2 === 0 ? "bg-bg-card/30" : ""}`}
+                >
                   <div>
                     <span className="text-sm font-medium text-text-primary">{u.username}</span>
                     <span className="text-xs text-text-secondary ml-2">{formatDate(u.created_at)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {u.role === "admin" && (
-                      <span className="text-[10px] bg-red-900/30 text-red-300 px-1.5 py-0.5 rounded-full">admin</span>
+                    {u.role === "admin" && <span className="text-[10px] bg-red-900/30 text-red-300 px-1.5 py-0.5 rounded-full">admin</span>}
+                    {u.is_premium && <span className="text-[10px] bg-gold/10 text-gold px-1.5 py-0.5 rounded-full">⭐</span>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {section === "users" && userDetail && (
+        <>
+          {userDetailLoading ? (
+            <p className="text-text-secondary text-sm">Loading...</p>
+          ) : (
+            <div className="space-y-4">
+              {/* User info */}
+              <div className="bg-bg-card border border-border rounded-xl p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg font-bold text-text-primary">{userDetail.user.username.slice(0,1).toUpperCase()}</span>
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold text-text-primary">{userDetail.user.username}</p>
+                    <p className="text-xs text-text-secondary">Joined {formatDate(userDetail.user.created_at)}</p>
+                  </div>
+                  <div className="ml-auto flex items-center gap-2">
+                    {userDetail.user.role === "admin" && <span className="text-xs bg-red-900/30 text-red-300 px-2 py-0.5 rounded-full">admin</span>}
+                    {userDetail.user.is_premium && <span className="text-xs bg-gold/10 text-gold px-2 py-0.5 rounded-full">⭐ Premium</span>}
+                  </div>
+                </div>
+              </div>
+              {/* Reviews */}
+              <div>
+                <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wide mb-2">Reviews ({userDetail.reviews.length})</h3>
+                {userDetail.reviews.length === 0 ? (
+                  <p className="text-xs text-text-secondary">No reviews</p>
+                ) : (
+                  <div className="space-y-2">
+                    {userDetail.reviews.slice(0, 10).map((r: any) => (
+                      <div key={r.id} className={`bg-bg-card border rounded-lg p-3 text-xs ${r.is_hidden ? "border-red-800/30" : "border-border"}`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-yellow-400">{"★".repeat(r.rating)}</span>
+                          {r.is_hidden && <span className="text-[10px] bg-red-900/30 text-red-300 px-1.5 py-0.5 rounded">hidden</span>}
+                          <span className="text-text-secondary ml-auto">{formatDate(r.created_at)}</span>
+                        </div>
+                        {r.content && <p className="text-text-secondary leading-relaxed line-clamp-3">{r.content}</p>}
+                      </div>
+                    ))}
+                    {userDetail.reviews.length > 10 && <p className="text-xs text-text-secondary">+{userDetail.reviews.length - 10} more</p>}
+                  </div>
+                )}
+              </div>
+              {/* Library */}
+              <div>
+                <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wide mb-2">Library ({userDetail.library.length})</h3>
+                {userDetail.library.length === 0 ? (
+                  <p className="text-xs text-text-secondary">No items</p>
+                ) : (
+                  <div className="space-y-1">
+                    {userDetail.library.slice(0, 10).map((l: any) => (
+                      <div key={`${l.mediaType}-${l.tmdbId}`} className="flex items-center gap-2 text-xs py-1">
+                        <span className={l.status === "completed" ? "text-green-400" : l.status === "watching" ? "text-blue-400" : "text-amber-400"}>
+                          {l.status === "completed" ? "✓" : l.status === "watching" ? "▶" : "📌"}
+                        </span>
+                        <span className="text-text-primary truncate flex-1">{l.title}</span>
+                        {l.rating && <span className="text-pink-400">★{l.rating}</span>}
+                      </div>
+                    ))}
+                    {userDetail.library.length > 10 && <p className="text-xs text-text-secondary">+{userDetail.library.length - 10} more</p>}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {section === "content" && (
+        <>
+          <div className="flex gap-2 mb-3">
+            <input
+              value={contentQ}
+              onChange={(e) => setContentQ(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && fetchContent()}
+              placeholder="Search content..."
+              className="flex-1 bg-bg-card text-text-primary text-xs rounded-lg px-3 py-1.5 border border-border focus:border-accent outline-none placeholder:text-text-secondary"
+            />
+            <select
+              value={contentFilter}
+              onChange={(e) => setContentFilter(e.target.value)}
+              className="bg-bg-card text-text-primary text-xs rounded-lg px-2 py-1.5 border border-border focus:border-accent outline-none"
+            >
+              <option value="all">All</option>
+              <option value="no">Visible</option>
+              <option value="yes">Hidden</option>
+            </select>
+            <button onClick={fetchContent} className="text-xs px-3 py-1.5 bg-accent text-white rounded-lg hover:bg-[#5558e7] transition-colors">
+              Search
+            </button>
+          </div>
+          {contentLoading ? (
+            <p className="text-text-secondary text-sm">Searching...</p>
+          ) : contentResults.length === 0 ? (
+            <p className="text-text-secondary text-sm">No results. Try a search term.</p>
+          ) : (
+            <div className="space-y-2">
+              {contentResults.map((item: any) => (
+                <div key={`${item.content_type}-${item.id}`} className={`bg-bg-card border rounded-lg p-3 text-xs ${item.is_hidden ? "border-red-800/30" : "border-border"}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] ${item.content_type === "review" ? "bg-blue-900/30 text-blue-300" : "bg-purple-900/30 text-purple-300"}`}>
+                      {item.content_type === "review" ? "Review" : "Comment"}
+                    </span>
+                    <span className="text-text-secondary">{item.username}</span>
+                    {item.is_hidden && <span className="text-[10px] bg-red-900/30 text-red-300 px-1.5 py-0.5 rounded">hidden</span>}
+                    <span className="text-text-secondary ml-auto">{formatDate(item.created_at)}</span>
+                  </div>
+                  <p className="text-text-secondary leading-relaxed line-clamp-2 mb-2">{item.content}</p>
+                  <div className="flex gap-2">
+                    {item.is_hidden ? (
+                      <button onClick={() => handleContentAction(item, "show")} className="text-[10px] px-2 py-0.5 bg-green-600/20 text-green-300 rounded hover:bg-green-600/40">Show</button>
+                    ) : (
+                      <button onClick={() => handleContentAction(item, "hide")} className="text-[10px] px-2 py-0.5 bg-yellow-600/20 text-yellow-300 rounded hover:bg-yellow-600/40">Hide</button>
                     )}
-                    {u.is_premium && (
-                      <span className="text-[10px] bg-gold/10 text-gold px-1.5 py-0.5 rounded-full">⭐</span>
-                    )}
+                    <button onClick={() => handleContentAction(item, "delete")} className="text-[10px] px-2 py-0.5 bg-red-600/20 text-red-300 rounded hover:bg-red-600/40">Delete</button>
                   </div>
                 </div>
               ))}
