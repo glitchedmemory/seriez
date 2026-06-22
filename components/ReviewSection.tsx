@@ -78,11 +78,16 @@ function CommentCard({
       {/* Header row (avatar + username + actions) — hidden in compact mode */}
       {!compact && (
         <div className="flex items-center gap-2 mb-1.5">
+          <div className="relative flex-shrink-0">
           {avatarUrls?.[c.username] ? (
             <img src={avatarUrls[c.username]!} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
           ) : (
             <img src="/icons/default-avatar.png" alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
           )}
+          <div className="absolute -top-[22px] -left-[22px] w-[84px] h-[84px] pointer-events-none z-10">
+            <img src="/icons/avatar-frame-ornate.png?v=4" alt="" className="w-full h-full" />
+          </div>
+          </div>
           <div className="flex-1 flex items-center gap-1 min-w-0">
             <span className="text-xs font-medium text-text-primary hover:text-accent cursor-pointer transition-colors truncate" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
             {c.isPremium && <img src="/icons/premium-badge-20.png" alt="Golden Ticket" className="w-4 h-2.5 inline-block flex-shrink-0" />}
@@ -926,11 +931,16 @@ export function ReviewSection({
             )}
             <div className="flex items-center justify-between mb-2 relative z-[1]">
               <div className="flex items-center gap-2">
+                <div className="relative flex-shrink-0">
                 {avatarUrls[review.username] ? (
                   <img src={avatarUrls[review.username]!} alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
                 ) : (
                   <img src="/icons/default-avatar.png" alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
                 )}
+                <div className="absolute -top-[22px] -left-[22px] w-[88px] h-[88px] pointer-events-none z-10">
+                  <img src="/icons/avatar-frame-ornate.png?v=4" alt="" className="w-full h-full" />
+                </div>
+                </div>
                 <span className="text-sm font-semibold text-text-primary hover:text-[#a5b4fc] cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${review.username}`)}>
                   {review.username}
                 </span>

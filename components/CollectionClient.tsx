@@ -338,11 +338,16 @@ export default function CollectionClient() {
           <div className="space-y-3">
             {comments.map((c) => (
               <div key={c.id} className="flex gap-2 bg-bg-card border border-border rounded-xl p-3">
+                <div className="relative flex-shrink-0">
                 {avatarUrls[c.username] ? (
                   <img src={avatarUrls[c.username]!} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-0.5" />
                 ) : (
                   <img src="/icons/default-avatar.png" alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-0.5" />
                 )}
+                <div className="absolute -top-[22px] -left-[22px] w-[84px] h-[84px] pointer-events-none z-10">
+                  <img src="/icons/avatar-frame-ornate.png?v=4" alt="" className="w-full h-full" />
+                </div>
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium text-text-primary hover:text-accent cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
