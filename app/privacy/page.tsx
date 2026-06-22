@@ -110,8 +110,8 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-semibold text-text-primary mb-2">8. Contact</h2>
             <p>
               For privacy-related inquiries, contact us at{" "}
-              <a href="mailto:seriez.app@gmail.com" className="text-accent hover:underline">
-                seriez.app@gmail.com
+              <a href="mailto:support@seriez.app" className="text-accent hover:underline">
+                support@seriez.app
               </a>.
             </p>
           </section>
