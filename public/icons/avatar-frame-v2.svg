@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" width="140" height="140" fill="none">
+  <defs>
+    <!-- Metallic gold gradient -->
+    <radialGradient id="goldRing" cx="50%" cy="50%" r="50%">
+      <stop offset="70%" stop-color="#f59e0b"/>
+      <stop offset="85%" stop-color="#d97706"/>
+      <stop offset="95%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </radialGradient>
+    <linearGradient id="goldShine" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fde68a"/>
+      <stop offset="25%" stop-color="#fbbf24"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="75%" stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#92400e"/>
+    </linearGradient>
+    <linearGradient id="goldLight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="40%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="70%" stop-color="#0f0f1a"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+    <filter id="goldShadow">
+      <feDropShadow dx="0" dy="0.5" stdDeviation="1" flood-color="#78350f" flood-opacity="0.5"/>
+    </filter>
+    <filter id="innerShadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
+      <feOffset dx="0" dy="1"/>
+      <feComposite in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- One 45° segment of the ornate border -->
+    <g id="segment">
+      <!-- Main outer C-scroll -->
+      <path d="M36,-36 C30,-24 14,-20 10,-14 C8,-10 12,-4 18,-8 C22,-12 26,-22 32,-30"
+            stroke="url(#goldShine)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <!-- Outer curl branching up -->
+      <path d="M10,-14 C4,-18 0,-12 4,-6 C6,-4 10,-2 12,-6" 
+            stroke="url(#goldLight)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- Acanthus leaf 1 — lobed -->
+      <path d="M14,-20 C6,-22 2,-16 6,-12 C8,-10 12,-10 14,-14 C16,-16 16,-19 14,-20Z" fill="url(#goldLight)"/>
+      <path d="M6,-12 C4,-10 8,-6 10,-10" stroke="#d97706" stroke-width="0.8" fill="none"/>
+      <!-- Tendril curl -->
+      <path d="M24,-26 C28,-30 34,-28 36,-22 C38,-18 34,-16 30,-20" 
+            stroke="url(#goldShine)" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- Small bud -->
+      <circle cx="36" cy="-22" r="2.5" fill="url(#goldLight)"/>
+      <circle cx="36" cy="-22" r="1.2" fill="#fef3c7"/>
+      <!-- Berry cluster -->
+      <circle cx="12" cy="-26" r="2" fill="url(#goldShine)"/>
+      <circle cx="16" cy="-28" r="1.5" fill="url(#goldShine)"/>
+      <!-- Acanthus leaf 2 — lower -->
+      <path d="M6,-28 C0,-30 2,-38 8,-36 C12,-34 10,-28 6,-28Z" fill="url(#goldLight)"/>
+      <path d="M8,-36 C10,-38 14,-34 12,-32" stroke="#d97706" stroke-width="0.8" fill="none"/>
+      <!-- Interconnecting tendril to next segment -->
+      <path d="M32,-30 C36,-34 42,-30 44,-24" stroke="url(#goldShine)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <!-- Connecting scroll to inner ring -->
+      <path d="M18,-8 C22,-2 28,0 32,-4" stroke="url(#goldShine)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </g>
+
+    <!-- Cardinal point cluster (top/bottom/left/right floral accent) -->
+    <g id="cardinal">
+      <!-- Central flower -->
+      <circle cx="0" cy="0" r="4" fill="url(#goldShine)"/>
+      <circle cx="0" cy="0" r="2" fill="#fef3c7"/>
+      <!-- Surrounding petals -->
+      <ellipse cx="0" cy="-7" rx="2.5" ry="4" fill="url(#goldLight)" transform="rotate(0)"/>
+      <ellipse cx="0" cy="-7" rx="2.5" ry="4" fill="url(#goldLight)" transform="rotate(60)"/>
+      <ellipse cx="0" cy="-7" rx="2.5" ry="4" fill="url(#goldLight)" transform="rotate(120)"/>
+      <ellipse cx="0" cy="-7" rx="2.5" ry="4" fill="url(#goldLight)" transform="rotate(180)"/>
+      <ellipse cx="0" cy="-7" rx="2.5" ry="4" fill="url(#goldLight)" transform="rotate(240)"/>
+      <ellipse cx="0" cy="-7" rx="2.5" ry="4" fill="url(#goldLight)" transform="rotate(300)"/>
+    </g>
+  </defs>
+
+  <!-- Background circle (dark, behind the avatar) -->
+  <circle cx="70" cy="70" r="68" fill="#0a0a0f"/>
+  
+  <!-- Outer scalloped base ring -->
+  <circle cx="70" cy="70" r="66" fill="none" stroke="url(#goldRing)" stroke-width="12" filter="url(#goldShadow)"/>
+
+  <!-- 8 ornate segments rotated around center -->
+  <g transform="translate(70,70)" filter="url(#goldShadow)">
+    <use href="#segment" transform="rotate(0)"/>
+    <use href="#segment" transform="rotate(45)"/>
+    <use href="#segment" transform="rotate(90)"/>
+    <use href="#segment" transform="rotate(135)"/>
+    <use href="#segment" transform="rotate(180)"/>
+    <use href="#segment" transform="rotate(225)"/>
+    <use href="#segment" transform="rotate(270)"/>
+    <use href="#segment" transform="rotate(315)"/>
+    
+    <!-- Cardinal floral clusters -->
+    <use href="#cardinal" transform="translate(0,-54)"/>
+    <use href="#cardinal" transform="translate(0,54)"/>
+    <use href="#cardinal" transform="translate(-54,0)"/>
+    <use href="#cardinal" transform="translate(54,0)"/>
+  </g>
+
+  <!-- Inner gold ring (smooth, frames the avatar) -->
+  <circle cx="70" cy="70" r="41" fill="none" stroke="url(#goldShine)" stroke-width="3"/>
+  
+  <!-- Dotted ring just inside the inner gold ring -->
+  <circle cx="70" cy="70" r="38" fill="none" stroke="#fbbf24" stroke-width="1.5" 
+          stroke-dasharray="2 4" opacity="0.7"/>
+
+  <!-- Inner dark circle (avatar goes here, this is the mask/frame) -->
+  <!-- Clip path to create the circular cutout for avatar -->
+  <defs>
+    <clipPath id="avatarClip">
+      <circle cx="70" cy="70" r="35"/>
+    </clipPath>
+  </defs>
+  
+  <!-- Subtle inner shadow on the avatar edge -->
+  <circle cx="70" cy="70" r="35" fill="none" stroke="#000" stroke-width="2" opacity="0.3"/>
+</svg>

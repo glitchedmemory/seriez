@@ -410,14 +410,19 @@ export default function ProfilePage() {
       {/* Avatar + Info */}
       <div className="relative px-4 -mt-10">
         <div className="flex items-end gap-4 mb-4">
-          <div
-            className={`w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 ring-4 ring-bg-primary shadow-xl overflow-hidden ${!avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""}`}
-          >
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-3xl font-bold text-text-primary">{initial}</span>
-            )}
+          <div className="relative flex-shrink-0">
+            <div
+              className={`w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 ring-4 ring-bg-primary shadow-xl overflow-hidden ${!avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""}`}
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-3xl font-bold text-text-primary">{initial}</span>
+              )}
+            </div>
+            <div className="absolute -top-[22px] -left-[22px] w-[124px] h-[124px] pointer-events-none z-10">
+              <img src="/icons/avatar-frame-ornate.png?v=4" alt="" className="w-full h-full" />
+            </div>
           </div>
           <div className="flex-1" />
           {isOwn && user ? (
