@@ -12,6 +12,27 @@ export default function TabBar() {
   const t = useTranslations();
   const pathname = usePathname();
 
+  const [user, setUser] = useState<{ email?: string } | null>(null);
+  const [isStaff, setIsStaff] = useState(false);
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      setUser(data.user ?? null);
+      const username = data.user?.user_metadata?.username;
+      if (username) {
+        fetch(`/api/admin/users?username=${encodeURIComponent(username)}`)
+          .then(r => r.json())
+          .then(d => {
+            if (d.users?.length > 0) {
+              const role = d.users[0].role;
+              setIsStaff(role === "admin" || role === "moderator");
+            }
+          })
+          .catch(() => {});
+      }
+    }).catch(() => {});
+  }, []);
+
   const tabs: { name: string; icon: ReactNode; path: string }[] = [
     { name: t("nav.home"), icon: <Image src="/icons/home.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/" },
     { name: t("nav.search"), icon: <Image src="/icons/search.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/search" },
@@ -26,7 +47,7 @@ export default function TabBar() {
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-bg-primary/95 backdrop-blur-md border-t border-[#1a1a2e]">
       <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
         {tabs.map((tab) => {
-          const active = pathname === tab.path;
+          const active = pathname === tab.path || (tab.path === "/admin" && pathname.startsWith("/admin"));
           return (
             <a
               key={tab.name}
@@ -44,6 +65,17 @@ export default function TabBar() {
             </a>
           );
         })}
+        {isStaff && (
+          <a
+            href="/admin"
+            className={`flex flex-col items-center gap-1 px-3 py-2 text-xs transition-colors ${
+              pathname.startsWith("/admin") ? "text-accent-light" : "text-text-secondary hover:text-white"
+            }`}
+          >
+            <span className="text-xl">⚙</span>
+            <span className="font-medium">Admin</span>
+          </a>
+        )}
       </div>
     </nav>
   );
@@ -55,12 +87,25 @@ export function Sidebar() {
   const [user, setUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
   const [mounted, setMounted] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isStaff, setIsStaff] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
     setMounted(true);
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user ?? null);
+      const username = data.user?.user_metadata?.username;
+      if (username) {
+        fetch(`/api/admin/users?username=${encodeURIComponent(username)}`)
+          .then(r => r.json())
+          .then(d => {
+            if (d.users?.length > 0) {
+              const role = d.users[0].role;
+              setIsStaff(role === "admin" || role === "moderator");
+            }
+          })
+          .catch(() => {});
+      }
     }).catch(() => {
       setMounted(true);
     });
@@ -120,7 +165,7 @@ export function Sidebar() {
 
       <nav className="flex flex-col gap-1">
         {tabs.map((tab) => {
-          const active = pathname === tab.path;
+          const active = pathname === tab.path || (tab.path === "/admin" && pathname.startsWith("/admin"));
           return (
             <a
               key={tab.name}
@@ -138,6 +183,19 @@ export function Sidebar() {
             </a>
           );
         })}
+        {isStaff && (
+          <a
+            href="/admin"
+            className={`flex items-center gap-3 px-1.5 py-2.5 rounded-lg text-sm font-medium transition-all min-w-max ${
+              pathname.startsWith("/admin")
+                ? "bg-accent/10 text-text-primary"
+                : "text-text-secondary hover:text-white hover:bg-bg-card"
+            }`}
+          >
+            <span className="text-lg flex-shrink-0">⚙</span>
+            <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Admin</span>
+          </a>
+        )}
       </nav>
 
       <div className="mt-auto pt-6 border-t border-[#1a1a2e]">
