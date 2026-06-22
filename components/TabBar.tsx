@@ -206,11 +206,16 @@ export function Sidebar() {
         ) : user ? (
           <>
           <a href="/profile" className="flex items-center gap-3 px-1.5 py-2 min-w-max">
+            <div className="relative flex-shrink-0">
             {avatarUrl ? (
               <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             ) : (
               <img src="/icons/default-avatar.png" alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             )}
+            <div className="absolute -top-[22px] -left-[22px] w-[76px] h-[76px] pointer-events-none z-10">
+              <img src="/icons/avatar-frame-ornate.png?v=4" alt="" className="w-full h-full" />
+            </div>
+            </div>
             <div className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <p className="text-sm font-medium text-text-primary">{displayName}</p>
               <p className="text-xs text-text-secondary">{t("nav.profile")} →</p>
