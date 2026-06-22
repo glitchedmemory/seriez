@@ -33,7 +33,7 @@
 - Year in Review statistics
 - Unlimited custom lists
 - Premium badge on profile
-- Data export (CSV/JSON)
+- Data export (JSON)
 - AI-powered recommendations
 - Early access to new features
 

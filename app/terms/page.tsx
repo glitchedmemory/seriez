@@ -56,7 +56,7 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold text-text-primary mb-2">5. Golden Ticket Subscriptions</h2>
             <p>
               Golden Ticket is a recurring subscription at $4.99/month or
-              $35/year. Payments are processed through Stripe. You may cancel at
+              $49/year. Payments are processed through Stripe. You may cancel at
               any time; cancellation takes effect at the end of the current
               billing period. No refunds for partial months.
             </p>
