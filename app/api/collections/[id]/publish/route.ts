@@ -25,6 +25,13 @@ export async function POST(
   if (!list) return NextResponse.json({ error: "Collection not found" }, { status: 404 });
   if (list.user_id !== userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  // Premium check — only Golden Ticket members can publish
+  const { data: premiumRow } = await supabase
+    .from("users").select("is_premium").eq("username", username).maybeSingle();
+  if (!premiumRow?.is_premium) {
+    return NextResponse.json({ error: "Golden Ticket required to publish collections. Upgrade at /pro" }, { status: 402 });
+  }
+
   // Count items
   const { count } = await supabase
     .from("list_items").select("*", { count: "exact", head: true }).eq("list_id", listId);

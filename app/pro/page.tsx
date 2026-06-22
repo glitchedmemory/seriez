@@ -10,6 +10,7 @@ export const metadata: Metadata = {
 
 const features = [
   "Unlimited custom collections — organize your library your way",
+  "Publish Collections — share your curated lists with the community",
   "Tonight's Pick — a curated recommendation delivered daily",
   "Roulette Discovery — spin to find your next watch",
   "Yearly Recap — your watching year in review",
