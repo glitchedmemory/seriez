@@ -396,8 +396,8 @@ export default function ProfilePage() {
     <div className="w-[896px] max-w-full mx-auto pb-32">
       {/* Cover area */}
       <div
-        className={`relative h-48 md:h-72 ${backgroundUrl ? "" : "bg-gradient-to-br from-[#6366f1] via-[#7c3aed] to-[#a855f7]"}`}
-        style={backgroundUrl ? { backgroundImage: `url(${backgroundUrl})`, backgroundSize: `${bgScale}%`, backgroundPosition: `${bgPositionX}% ${bgPositionY}%`, backgroundRepeat: "no-repeat" } : undefined}
+        className={`relative w-full h-48 md:h-72 overflow-hidden ${backgroundUrl ? "" : "bg-gradient-to-br from-[#6366f1] via-[#7c3aed] to-[#a855f7]"}`}
+        style={backgroundUrl ? { backgroundImage: `url(${backgroundUrl})`, backgroundSize: "cover", backgroundPosition: `${bgPositionX}% ${bgPositionY}%`, backgroundRepeat: "no-repeat" } : undefined}
       >
         {!backgroundUrl && (
           <div className="absolute inset-0 overflow-hidden opacity-20">
