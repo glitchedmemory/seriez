@@ -44,7 +44,7 @@ export default function CollectionClient() {
   const [reportingComments, setReportingComments] = useState<Set<string>>(new Set());
   const [reportCounts, setReportCounts] = useState<Record<string, number>>({});
 
-  // Detect auth
+  // Detect auth first, then load
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       const u = data.session?.user?.user_metadata?.username;
@@ -52,7 +52,7 @@ export default function CollectionClient() {
     });
   }, []);
 
-  // Load collection
+  // Load collection — called once, after auth is ready or when id changes
   const loadCollection = useCallback(async () => {
     try {
       const res = await fetch(`/api/collections/${id}/items`);
@@ -71,14 +71,18 @@ export default function CollectionClient() {
       .then((r) => r.json())
       .then((d) => setComments(d.comments || []))
       .catch(() => {});
-    // Check if current user liked
+  }, [id]);
+
+  // Trigger load when id changes (not authUser — avoids double-fetch)
+  useEffect(() => { loadCollection(); }, [loadCollection]);
+
+  // Check like status separately when authUser becomes available
+  useEffect(() => {
     if (authUser) {
       supabase.from("collection_likes").select("id").eq("list_id", id).eq("username", authUser).single()
         .then(({ data }) => setLiked(!!data));
     }
   }, [id, authUser]);
-
-  useEffect(() => { loadCollection(); }, [loadCollection]);
 
   // Fetch avatar URLs when comments change
   useEffect(() => {
