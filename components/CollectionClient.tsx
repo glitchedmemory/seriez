@@ -58,7 +58,7 @@ export default function CollectionClient() {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
     try {
-      const res = await fetch(`/api/collections/${id}/items`, { cache: 'no-store' });
+      const res = await fetch(`/api/collections/${id}/items?_t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error("not found");
       const data = await res.json();
       setCollection(data);
