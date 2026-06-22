@@ -19,6 +19,8 @@ interface RouletteResult {
   runtime: string | null;
   tagline: string;
   spunType?: string;
+  reason?: string;
+  tier?: number;
 }
 
 const TYPE_EMOJI: Record<string, string> = {
@@ -201,6 +203,13 @@ export default function RouletteCard() {
             )}
             {result!.overview}
           </p>
+
+          {/* Recommendation reason */}
+          {result!.reason && (
+            <p className="text-[10px] text-accent/70 mt-2 italic">
+              🎯 {result!.reason}
+            </p>
+          )}
         </div>
       </button>
     </div>

@@ -1,23 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  getWatchedInLastDays,
+  getAllWatchedIds,
+  analyzeTopGenres,
+  analyzeYearRange,
+  genresToTMDBIds,
+  searchTMDBWithFilters,
+  searchAniListWithFilters,
+} from "@/lib/roulette-user";
 
 export const dynamic = "force-dynamic";
 
 const TMDB_KEY = process.env.TMDB_API_KEY!;
 const TMDB_API = "https://api.themoviedb.org/3";
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w780";
-
-/**
- * SPIN LOGIC:
- * - Current date in H1 (Jan–Jun) → pick from last year's H2 (Jul–Dec)
- * - Current date in H2 (Jul–Dec) → pick from this year's H1 (Jan–Jun)
- * - Randomly chooses from Movies, TV Shows, or Anime
- * - Fetches top 20 popular from TMDB Discover for that period
- * - Picks one at random with full details
- */
+const ANILIST_API = "https://graphql.anilist.co";
 
 export async function GET(_req: NextRequest) {
   try {
-    // Auth check — login required
+    // ─── Auth check ───
     const { createClient: createServerClient } = await import("@/lib/supabase/server");
     const supabase = await createServerClient();
     const { data: authData } = await supabase.auth.getUser();
@@ -26,70 +27,118 @@ export async function GET(_req: NextRequest) {
       return NextResponse.json({ empty: true, message: "Sign in to spin!" }, { status: 200 });
     }
 
+    // ─── Period: opposite half-year ───
     const now = new Date();
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // 1–12
+    const currentMonth = now.getMonth() + 1;
 
     let startDate: string;
     let endDate: string;
     let periodLabel: string;
 
     if (currentMonth <= 6) {
-      // H1: use last year's H2
       startDate = `${currentYear - 1}-07-01`;
       endDate = `${currentYear - 1}-12-31`;
       periodLabel = `${currentYear - 1} H2`;
     } else {
-      // H2: use this year's H1
       startDate = `${currentYear}-01-01`;
       endDate = `${currentYear}-06-30`;
       periodLabel = `${currentYear} H1`;
     }
 
-    // Randomly pick media type: movie, tv, or anime
+    // ─── Random media type ───
     const types = ["movie", "tv", "anime"] as const;
     const mediaType = types[Math.floor(Math.random() * types.length)];
 
-    let discoverUrl: string;
-    let dateField: string;
+    // ─── Fetch user data in parallel ───
+    const [recentWatched, watchedIds] = await Promise.all([
+      getWatchedInLastDays(currentUser, 3),
+      getAllWatchedIds(currentUser),
+    ]);
 
-const ANILIST_API = "https://graphql.anilist.co";
+    const [topGenres, yearRange] = await Promise.all([
+      analyzeTopGenres(recentWatched),
+      analyzeYearRange(recentWatched),
+    ]);
 
-    if (mediaType === "movie") {
-      dateField = "primary_release_date";
-      discoverUrl = `${TMDB_API}/discover/movie?sort_by=popularity.desc&${dateField}.gte=${startDate}&${dateField}.lte=${endDate}&vote_count.gte=100&language=en-US`;
-    } else if (mediaType === "anime") {
-      // Anime → AniList (NOT TMDB)
+    const genreIds = genresToTMDBIds(topGenres);
+
+    // ─── Tier search ───
+    let results: any[] = [];
+    let tier = 4;
+    let reason = "";
+
+    if (mediaType === "anime") {
+      // ─── Anime path ───
       const seasons = currentMonth <= 6
-        ? ["SUMMER", "FALL"]   // H1 → last year's H2 = Summer/Fall
-        : ["WINTER", "SPRING"]; // H2 → this year's H1 = Winter/Spring
+        ? ["SUMMER", "FALL"]
+        : ["WINTER", "SPRING"];
       const searchYear = currentMonth <= 6 ? currentYear - 1 : currentYear;
 
-      let animeResults: any[] = [];
-      for (const season of seasons) {
-        try {
-          const query = `query($year:Int,$season:MediaSeason){Page(perPage:20){media(seasonYear:$year,season:$season,type:ANIME,sort:POPULARITY_DESC){id title{romaji english}coverImage{extraLarge}bannerImage startDate{year}averageScore genres description}}}`;
-          const res = await fetch(ANILIST_API, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query, variables: { year: searchYear, season } }),
-          });
-          if (res.ok) {
-            const json = await res.json();
-            animeResults.push(...(json.data?.Page?.media || []));
-          }
-        } catch {}
+      // Tier 1: genre + year + exclude
+      if (topGenres.length > 0 && yearRange) {
+        results = await searchAniListWithFilters({
+          genres: topGenres,
+          yearGte: yearRange.minYear,
+          yearLte: yearRange.maxYear,
+          excludeIds: watchedIds.anilistIds,
+          seasons,
+          searchYear,
+        });
+        if (results.length >= 5) {
+          tier = 1;
+          reason = `You've been into ${topGenres.join(" & ")} lately`;
+        }
       }
 
-      if (animeResults.length === 0) {
+      // Tier 2: genre + exclude
+      if (results.length < 5 && topGenres.length > 0) {
+        results = await searchAniListWithFilters({
+          genres: topGenres,
+          excludeIds: watchedIds.anilistIds,
+          seasons,
+          searchYear,
+        });
+        if (results.length >= 5) {
+          tier = 2;
+          reason = `You've been into ${topGenres.join(" & ")} lately`;
+        }
+      }
+
+      // Tier 3: year + exclude
+      if (results.length < 5 && yearRange) {
+        results = await searchAniListWithFilters({
+          yearGte: yearRange.minYear,
+          yearLte: yearRange.maxYear,
+          excludeIds: watchedIds.anilistIds,
+          seasons,
+          searchYear,
+        });
+        if (results.length >= 5) {
+          tier = 3;
+          reason = "From your era";
+        }
+      }
+
+      // Tier 4: exclude only (original logic)
+      if (results.length === 0) {
+        results = await searchAniListWithFilters({
+          excludeIds: watchedIds.anilistIds,
+          seasons,
+          searchYear,
+        });
+        tier = 4;
+        reason = "Just something different";
+      }
+
+      if (results.length === 0) {
         return NextResponse.json({
           empty: true,
           message: `No popular anime found for ${periodLabel}. Try again!`,
         }, { status: 200 });
       }
 
-      // Pick random from results
-      const random = animeResults[Math.floor(Math.random() * animeResults.length)];
+      const random = results[Math.floor(Math.random() * results.length)];
       const runtimeStr = `${(random.episodes || "?")} eps`;
 
       return NextResponse.json({
@@ -107,33 +156,85 @@ const ANILIST_API = "https://graphql.anilist.co";
         tagline: "",
         periodLabel,
         spunType: "anime",
+        reason,
+        tier,
       });
-    } else {
-      // TV (non-anime)
-      dateField = "first_air_date";
-      discoverUrl = `${TMDB_API}/discover/tv?sort_by=popularity.desc&${dateField}.gte=${startDate}&${dateField}.lte=${endDate}&vote_count.gte=50&language=en-US&without_genres=16`;
     }
 
-    // Fetch top 20
-    const discoverRes = await fetch(`${discoverUrl}&api_key=${TMDB_KEY}`);
-    if (!discoverRes.ok) {
-      return NextResponse.json({ error: "TMDB discover failed" }, { status: 500 });
-    }
-    const discoverData = await discoverRes.json();
+    // ─── TMDB path (movie / tv) ───
+    const tmdbType = mediaType as "movie" | "tv";
 
-    if (!discoverData.results || discoverData.results.length === 0) {
+    // Tier 1: genre + year + exclude
+    if (genreIds.length > 0 && yearRange) {
+      results = await searchTMDBWithFilters({
+        mediaType: tmdbType,
+        genreIds,
+        yearGte: yearRange.minYear,
+        yearLte: yearRange.maxYear,
+        excludeIds: watchedIds.tmdbIds,
+        periodStart: startDate,
+        periodEnd: endDate,
+      });
+      if (results.length >= 5) {
+        tier = 1;
+        reason = `You've been into ${topGenres.join(" & ")} lately`;
+      }
+    }
+
+    // Tier 2: genre + exclude
+    if (results.length < 5 && genreIds.length > 0) {
+      results = await searchTMDBWithFilters({
+        mediaType: tmdbType,
+        genreIds,
+        excludeIds: watchedIds.tmdbIds,
+        periodStart: startDate,
+        periodEnd: endDate,
+      });
+      if (results.length >= 5) {
+        tier = 2;
+        reason = `You've been into ${topGenres.join(" & ")} lately`;
+      }
+    }
+
+    // Tier 3: year + exclude
+    if (results.length < 5 && yearRange) {
+      results = await searchTMDBWithFilters({
+        mediaType: tmdbType,
+        yearGte: yearRange.minYear,
+        yearLte: yearRange.maxYear,
+        excludeIds: watchedIds.tmdbIds,
+        periodStart: startDate,
+        periodEnd: endDate,
+      });
+      if (results.length >= 5) {
+        tier = 3;
+        reason = "From your era";
+      }
+    }
+
+    // Tier 4: exclude only (original logic)
+    if (results.length === 0) {
+      results = await searchTMDBWithFilters({
+        mediaType: tmdbType,
+        excludeIds: watchedIds.tmdbIds,
+        periodStart: startDate,
+        periodEnd: endDate,
+      });
+      tier = 4;
+      reason = "Just something different";
+    }
+
+    if (results.length === 0) {
       return NextResponse.json({
         empty: true,
-        message: `No popular ${mediaType === "anime" ? "anime" : mediaType === "movie" ? "movies" : "TV shows"} found for ${periodLabel}. Try again!`,
+        message: `No popular ${tmdbType === "movie" ? "movies" : "TV shows"} found for ${periodLabel}. Try again!`,
       }, { status: 200 });
     }
 
-    // Pick random from top 20
-    const pool = discoverData.results.slice(0, 20);
-    const random = pool[Math.floor(Math.random() * pool.length)];
+    // ─── Random pick + detail ───
+    const random = results[Math.floor(Math.random() * results.length)];
 
     // Fetch full details + credits
-    const tmdbType = mediaType === "anime" ? "tv" : mediaType;
     const detailRes = await fetch(
       `${TMDB_API}/${tmdbType}/${random.id}?api_key=${TMDB_KEY}&language=en-US`
     );
@@ -142,7 +243,7 @@ const ANILIST_API = "https://graphql.anilist.co";
     }
     const detail = await detailRes.json();
 
-    // Fetch credits for director
+    // Credits for director
     let director = "Unknown";
     try {
       const creditsRes = await fetch(
@@ -179,6 +280,8 @@ const ANILIST_API = "https://graphql.anilist.co";
       tagline: detail.tagline || "",
       periodLabel,
       spunType: mediaType,
+      reason,
+      tier,
     });
   } catch {
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
