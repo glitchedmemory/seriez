@@ -396,7 +396,7 @@ export default function ProfilePage() {
     <div className="w-[896px] max-w-full mx-auto pb-32">
       {/* Cover area */}
       <div
-        className={`relative h-40 ${backgroundUrl ? "" : "bg-gradient-to-br from-[#6366f1] via-[#7c3aed] to-[#a855f7]"}`}
+        className={`relative h-48 md:h-72 ${backgroundUrl ? "" : "bg-gradient-to-br from-[#6366f1] via-[#7c3aed] to-[#a855f7]"}`}
         style={backgroundUrl ? { backgroundImage: `url(${backgroundUrl})`, backgroundSize: `${bgScale}%`, backgroundPosition: `${bgPositionX}% ${bgPositionY}%`, backgroundRepeat: "no-repeat" } : undefined}
       >
         {!backgroundUrl && (
