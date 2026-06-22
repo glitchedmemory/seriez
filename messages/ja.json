@@ -1,16 +1,159 @@
 {
-  "nav": { "home": "ホーム", "search": "検索", "myList": "マイリスト", "feed": "フィード", "profile": "プロフィール" },
-  "auth": { "signIn": "ログイン", "signUp": "登録", "signOut": "ログアウト", "email": "メール", "emailPlaceholder": "メールアドレス", "password": "パスワード", "username": "ユーザー名", "createAccount": "アカウント作成", "guest": "ゲスト" },
-  "library": { "signInTitle": "リストを見るにはログイン", "signInDesc": "視聴履歴を記録するにはアカウントを作成してください。", "signInAction": "ログイン / 登録", "collectionsSignInTitle": "コレクションを作成するにはログイン", "collectionsSignInDesc": "カスタムコレクションを作成して共有するにはアカウントを作成してください。", "collectionsSignInAction": "アカウント作成", "collectionsLimit": "無料プランは最大3つのコレクションまでです。", "upgrade": "Golden Ticketにアップグレード" },
-  "tracking": { "watching": "視聴中", "watched": "視聴済み", "toWatch": "視聴予定", "watchNow": "トラッキング", "signInToTrack": "トラッキングするにはログイン", "signInToSave": "視聴履歴を保存するには", "markUnwatched": "未視聴にする", "markWatched": "視聴済みにする", "watchedOn": "{date}に視聴済み", "signInEpisodes": "エピソードをトラッキングするにはログイン" },
-  "streaming": { "title": "ストリーミング Top 10", "movies": "映画", "tvShows": "テレビ番組", "failedToLoad": "読み込み失敗", "loading": "読み込み中..." },
-  "search": { "placeholder": "映画、テレビ番組、アニメを検索...", "trendingSearches": "急上昇検索", "emptyTitle": "映画、テレビ & アニメを検索", "emptyDesc": "次に見る作品を見つけましょう。ジャンル、俳優、監督で検索してみてください。" },
-  "feed": { "title": "フィード" },
-  "collections": { "signInToLike": "いいねするにはログイン", "signInToComment": "コメントするにはログイン", "signInToWrite": "レビューを書くにはログイン", "signInToReply": "返信するにはログイン", "createOne": "作成 →", "addToCollection": "コレクションに追加", "addedTo": "\"{name}\"に追加 ✓", "publishedCollections": "公開コレクション", "yourThought": "あなたの考え", "add": "追加" },
-  "history": { "topGenres": "人気ジャンル", "days": ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"] },
-  "profile": { "watched": "視聴済み", "reviews": "レビュー", "reviewsEmpty": "書いたレビューがここに表示されます。", "settings": "設定", "changeProfile": "プロフィール変更", "resetRatings": "評価・レビューをリセット", "language": "言語" },
-  "home": { "trending": "トレンド", "nowPlaying": "上映中", "popular": "人気", "upcoming": "公開予定", "trendingNow": "トレンド中", "tonightsPick": "今夜のおすすめ" },
-  "footer": { "about": "概要", "goldenTicket": "Golden Ticket", "terms": "利用規約", "privacy": "プライバシー" },
-  "common": { "error": "エラー", "back": "戻る", "cancel": "キャンセル", "confirm": "確認", "save": "保存", "delete": "削除", "edit": "編集", "none": "なし", "unknown": "不明", "anime": "アニメ", "movie": "映画", "tv": "テレビ", "season": "シーズン", "seasons": "シーズン", "episodes": "エピソード", "rating": "評価", "year": "年", "genre": "ジャンル", "genres": "ジャンル", "overview": "概要", "cast": "キャスト", "crew": "スタッフ", "reviews": "レビュー", "noOverview": "概要はありません。", "noReviews": "まだレビューはありません。" },
-  "onboarding": { "watched": "視聴済み", "add": "追加", "done": "完了", "skip": "スキップ", "step1Title": "何を観ましたか？", "step1Desc": "すでに観た作品を検索して選択してください。好みの分析に役立ちます。", "step2Title": "観た作品を評価してください", "step2Desc": "評価がより良いおすすめにつながります。", "step3Title": "準備完了！", "step3Desc": "あなただけの映画、テレビ番組、アニメを発見しましょう。", "searchPlaceholder": "作品を検索..." }
+  "nav": {
+    "home": "ホーム",
+    "search": "検索",
+    "myList": "マイリスト",
+    "feed": "フィード",
+    "profile": "プロフィール"
+  },
+  "auth": {
+    "signIn": "ログイン",
+    "signUp": "登録",
+    "signOut": "ログアウト",
+    "email": "メール",
+    "emailPlaceholder": "メールアドレス",
+    "password": "パスワード",
+    "username": "ユーザー名",
+    "createAccount": "アカウント作成",
+    "guest": "ゲスト"
+  },
+  "library": {
+    "signInTitle": "リストを見るにはログイン",
+    "signInDesc": "視聴履歴を記録するにはアカウントを作成してください。",
+    "signInAction": "ログイン / 登録",
+    "collectionsSignInTitle": "コレクションを作成するにはログイン",
+    "collectionsSignInDesc": "カスタムコレクションを作成して共有するにはアカウントを作成してください。",
+    "collectionsSignInAction": "アカウント作成",
+    "collectionsLimit": "無料プランは最大3つのコレクションまでです。",
+    "upgrade": "Golden Ticketにアップグレード"
+  },
+  "tracking": {
+    "watching": "視聴中",
+    "watched": "視聴済み",
+    "toWatch": "視聴予定",
+    "watchNow": "トラッキング",
+    "signInToTrack": "トラッキングするにはログイン",
+    "signInToSave": "視聴履歴を保存するには",
+    "markUnwatched": "未視聴にする",
+    "markWatched": "視聴済みにする",
+    "watchedOn": "{date}に視聴済み",
+    "signInEpisodes": "エピソードをトラッキングするにはログイン"
+  },
+  "streaming": {
+    "title": "ストリーミング Top 10",
+    "movies": "映画",
+    "tvShows": "テレビ番組",
+    "failedToLoad": "読み込み失敗",
+    "loading": "読み込み中..."
+  },
+  "search": {
+    "placeholder": "映画、テレビ番組、アニメを検索...",
+    "trendingSearches": "急上昇検索",
+    "emptyTitle": "映画、テレビ & アニメを検索",
+    "emptyDesc": "次に見る作品を見つけましょう。ジャンル、俳優、監督で検索してみてください。"
+  },
+  "feed": {
+    "title": "フィード"
+  },
+  "collections": {
+    "signInToLike": "いいねするにはログイン",
+    "signInToComment": "コメントするにはログイン",
+    "signInToWrite": "レビューを書くにはログイン",
+    "signInToReply": "返信するにはログイン",
+    "createOne": "作成 →",
+    "addToCollection": "コレクションに追加",
+    "addedTo": "\"{name}\"に追加 ✓",
+    "publishedCollections": "公開コレクション",
+    "yourThought": "あなたの考え",
+    "add": "追加"
+  },
+  "history": {
+    "topGenres": "人気ジャンル",
+    "days": [
+      "日曜日",
+      "月曜日",
+      "火曜日",
+      "水曜日",
+      "木曜日",
+      "金曜日",
+      "土曜日"
+    ]
+  },
+  "profile": {
+    "watched": "視聴済み",
+    "reviews": "レビュー",
+    "reviewsEmpty": "書いたレビューがここに表示されます。",
+    "settings": "設定",
+    "changeProfile": "プロフィール変更",
+    "resetRatings": "評価・レビューをリセット",
+    "language": "言語"
+  },
+  "home": {
+    "trending": "トレンド",
+    "nowPlaying": "上映中",
+    "popular": "人気",
+    "upcoming": "公開予定",
+    "trendingNow": "トレンド中",
+    "tonightsPick": "今夜のおすすめ"
+  },
+  "footer": {
+    "about": "概要",
+    "goldenTicket": "Golden Ticket",
+    "terms": "利用規約",
+    "privacy": "プライバシー"
+  },
+  "common": {
+    "error": "エラー",
+    "back": "戻る",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "none": "なし",
+    "unknown": "不明",
+    "anime": "アニメ",
+    "movie": "映画",
+    "tv": "テレビ",
+    "season": "シーズン",
+    "seasons": "シーズン",
+    "episodes": "エピソード",
+    "rating": "評価",
+    "year": "年",
+    "genre": "ジャンル",
+    "genres": "ジャンル",
+    "overview": "概要",
+    "cast": "キャスト",
+    "crew": "スタッフ",
+    "reviews": "レビュー",
+    "noOverview": "概要はありません。",
+    "noReviews": "まだレビューはありません。"
+  },
+  "onboarding": {
+    "watched": "視聴済み",
+    "add": "追加",
+    "done": "完了",
+    "skip": "スキップ",
+    "step1Title": "何を観ましたか？",
+    "step1Desc": "すでに観た作品を検索して選択してください。好みの分析に役立ちます。",
+    "step2Title": "観た作品を評価してください",
+    "step2Desc": "評価がより良いおすすめにつながります。",
+    "step3Title": "準備完了！",
+    "step3Desc": "あなただけの映画、テレビ番組、アニメを発見しましょう。",
+    "searchPlaceholder": "作品を検索..."
+  },
+  "about": {
+    "title": "Seriezについて",
+    "description": "Seriezは映画、TV番組、アニメのトラッキングプラットフォームです。視聴した作品を記録し、評価し、レビューを書いて、自分だけのライブラリを作りましょう。",
+    "whatYouCanDo": "できること",
+    "trackLibrary": "映画・TV番組・アニメを1つのライブラリで一元管理",
+    "rateReview": "視聴した全作品を評価・レビュー",
+    "createCollections": "カスタムコレクションでライブラリを自由に整理",
+    "boxOffice": "9カ国の興行収入ランキングを探索",
+    "discover": "ルーレットとムード検索で新しい作品を発見",
+    "smartRoulette": "見れば見るほど賢くなるルーレット — あなたの好きなジャンルを学習して、ぴったりの作品をおすすめします",
+    "community": "レビューやコメントで他の視聴者と交流",
+    "goldenTicket": "ゴールデンチケット",
+    "goldenTicketDesc": "月額$4.99でプレミアム機能をアンロック。プロメンバーは無制限コレクション、年間リキャップなどが利用可能です。"
+  }
 }

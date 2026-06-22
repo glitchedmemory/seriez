@@ -1,41 +1,37 @@
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: "About — Seriez",
-  description: "About Seriez — track movies, TV shows, and anime.",
-  openGraph: { title: "About — Seriez" },
-  twitter: { title: "About — Seriez" },
-};
+import { useTranslations } from "next-intl";
 
 export default function AboutPage() {
+  const t = useTranslations("about");
+
   return (
     <div className="flex-1 bg-bg-primary">
       <div className="max-w-lg md:max-w-4xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold text-text-primary mb-8">About Seriez</h1>
+        <h1 className="text-3xl font-bold text-text-primary mb-8">
+          {t("title")}
+        </h1>
 
         <section className="space-y-6 text-text-secondary leading-relaxed">
-          <p>
-            Seriez is a tracking platform for movies, TV shows, and anime. Log
-            what you watch, rate it, write reviews, and build your personal
-            library — all in one place.
-          </p>
+          <p>{t("description")}</p>
 
-          <h2 className="text-xl font-semibold text-text-primary mt-8 mb-3">What you can do</h2>
+          <h2 className="text-xl font-semibold text-text-primary mt-8 mb-3">
+            {t("whatYouCanDo")}
+          </h2>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Track movies, TV shows, and anime in a unified library</li>
-            <li>Rate and review everything you watch</li>
-            <li>Create custom collections to organize your library</li>
-            <li>Explore box office charts across 9 countries</li>
-            <li>Discover new titles with Roulette and mood-based search</li>
-            <li>Connect with other viewers through shared reviews and comments</li>
+            <li>{t("trackLibrary")}</li>
+            <li>{t("rateReview")}</li>
+            <li>{t("createCollections")}</li>
+            <li>{t("boxOffice")}</li>
+            <li>{t("discover")}</li>
+            <li>{t("smartRoulette")}</li>
+            <li>{t("community")}</li>
           </ul>
 
-          <h2 className="text-xl font-semibold text-text-primary mt-8 mb-3">Golden Ticket</h2>
-          <p>
-            Unlock premium features with a Golden Ticket for $4.99/month. Pro
-            members get unlimited collections, yearly recaps,
-            and more.
-          </p>
+          <h2 className="text-xl font-semibold text-text-primary mt-8 mb-3">
+            {t("goldenTicket")}
+          </h2>
+          <p>{t("goldenTicketDesc")}</p>
         </section>
       </div>
     </div>

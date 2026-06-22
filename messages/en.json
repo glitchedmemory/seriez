@@ -69,7 +69,15 @@
   },
   "history": {
     "topGenres": "Top Genres",
-    "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    "days": [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
+    ]
   },
   "profile": {
     "watched": "Watched",
@@ -133,5 +141,19 @@
     "step3Title": "You're all set!",
     "step3Desc": "Start discovering new movies, TV shows, and anime tailored to you.",
     "searchPlaceholder": "Search for a title..."
+  },
+  "about": {
+    "title": "About Seriez",
+    "description": "Seriez is a tracking platform for movies, TV shows, and anime. Log what you watch, rate it, write reviews, and build your personal library — all in one place.",
+    "whatYouCanDo": "What you can do",
+    "trackLibrary": "Track movies, TV shows, and anime in a unified library",
+    "rateReview": "Rate and review everything you watch",
+    "createCollections": "Create custom collections to organize your library",
+    "boxOffice": "Explore box office charts across 9 countries",
+    "discover": "Discover new titles with Roulette and mood-based search",
+    "smartRoulette": "The more you watch, the better Roulette gets — it learns your favorite genres and recommends titles you’ll love",
+    "community": "Connect with other viewers through shared reviews and comments",
+    "goldenTicket": "Golden Ticket",
+    "goldenTicketDesc": "Unlock premium features with a Golden Ticket for $4.99/month. Pro members get unlimited collections, yearly recaps, and more."
   }
 }
