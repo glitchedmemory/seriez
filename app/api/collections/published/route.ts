@@ -110,7 +110,6 @@ export async function GET() {
 const ANILIST_API = "https://graphql.anilist.co";
 
 async function getThumbnails(items: { tmdb_id: number; media_type: string }[]): Promise<(string | null)[]> {
-  console.log("[getThumbnails] called with", items.length, "items:", JSON.stringify(items.map(i => ({id: i.tmdb_id, type: i.media_type}))));
   if (items.length === 0) return [];
 
   // Split: anime → AniList, everything else → TMDB
@@ -128,7 +127,6 @@ async function getThumbnails(items: { tmdb_id: number; media_type: string }[]): 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query, variables: { ids } }),
-        next: { revalidate: 86400 },
       });
       if (res.ok) {
         const json = await res.json();
