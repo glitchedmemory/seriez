@@ -54,22 +54,16 @@ export default function CollectionClient() {
 
   // Load collection — called once, after auth is ready or when id changes
   const loadCollection = useCallback(async () => {
-    const callId = Math.random().toString(36).slice(2, 6);
-    console.log(`[loadCollection#${callId}] START id=${id}`);
     try {
       const res = await fetch(`/api/collections/${id}/items`);
-      console.log(`[loadCollection#${callId}] res.ok=${res.ok}`);
       if (!res.ok) throw new Error("not found");
       const data = await res.json();
-      console.log(`[loadCollection#${callId}] items=${data.items?.length} collection=${!!data}`);
       setCollection(data);
       setItems(data.items || []);
       setLikesCount(data.likesCount || 0);
-    } catch(e) {
-      console.log(`[loadCollection#${callId}] ERROR:`, e);
+    } catch {
       setCollection(null);
     } finally {
-      console.log(`[loadCollection#${callId}] finally`);
       setLoading(false);
     }
   // Load comments
