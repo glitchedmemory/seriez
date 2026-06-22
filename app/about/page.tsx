@@ -33,7 +33,7 @@ export default function AboutPage() {
           <h2 className="text-xl font-semibold text-text-primary mt-8 mb-3">Golden Ticket</h2>
           <p>
             Unlock premium features with a Golden Ticket for $4.99/month. Pro
-            members get unlimited collections, yearly recaps, CSV data exports,
+            members get unlimited collections, yearly recaps,
             and more.
           </p>
         </section>

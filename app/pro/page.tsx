@@ -12,13 +12,7 @@ const features = [
   "Unlimited custom collections — organize your library your way",
   "Roulette Discovery — spin to find your next watch",
   "Yearly Recap — your watching year in review",
-  "CSV Data Export — download your full library as a spreadsheet",
   "Golden Ticket badge on your profile",
-];
-
-const comingSoon = [
-  "Advanced Stats Dashboard — genre trends, director rankings, and more",
-  "Ad-free experience",
 ];
 
 export default function ProPage() {
@@ -36,7 +30,7 @@ export default function ProPage() {
             <span className="text-3xl font-bold text-text-primary">$4.99</span>
             <span className="text-text-secondary">/ month</span>
           </div>
-          <p className="text-text-secondary text-sm">Or $35 / year — save 40%</p>
+          <p className="text-text-secondary text-sm">Or $49 / year — save 35%</p>
         </div>
 
         {/* Features */}
@@ -45,17 +39,6 @@ export default function ProPage() {
           {features.map((f) => (
             <li key={f} className="flex items-start gap-3 text-text-secondary">
               <span className="text-gold mt-0.5 shrink-0">✦</span>
-              {f}
-            </li>
-          ))}
-        </ul>
-
-        {/* Coming Soon */}
-        <h2 className="text-xl font-semibold text-text-primary mb-4">Coming Soon</h2>
-        <ul className="space-y-3 mb-8">
-          {comingSoon.map((f) => (
-            <li key={f} className="flex items-start gap-3 text-text-secondary">
-              <span className="text-text-secondary mt-0.5 shrink-0">◇</span>
               {f}
             </li>
           ))}
