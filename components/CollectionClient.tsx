@@ -344,9 +344,11 @@ export default function CollectionClient() {
                 ) : (
                   <img src="/icons/default-avatar.png" alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-0.5" />
                 )}
+                {c.username === "seriez" && (
                 <div className="absolute -top-[8px] -left-[8px] w-[57px] h-[57px] pointer-events-none z-10">
                   <img src="/icons/avatar-ring.svg" alt="" className="w-full h-full" />
                 </div>
+                )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
