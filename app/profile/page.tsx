@@ -73,6 +73,9 @@ export default function ProfilePage() {
   const [favoriteActors, setFavoriteActors] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -203,6 +206,38 @@ export default function ProfilePage() {
       setIsAdmin(false);
     }
   }, [ownUsername]);
+
+  // Fetch notifications (own profile only)
+  useEffect(() => {
+    if (!isOwn || !ownUsername) return;
+    fetch("/api/notifications")
+      .then(r => r.json())
+      .then(d => {
+        setNotifications(d.notifications || []);
+        setUnreadCount(d.unread || 0);
+      })
+      .catch(() => {});
+  }, [ownUsername, isOwn]);
+
+  async function markAllRead() {
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mark_all_read: true }),
+    });
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setUnreadCount(0);
+  }
+
+  async function markOneRead(id: string) {
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  }
 
   useEffect(() => {
     if (mounted) {
@@ -378,7 +413,67 @@ export default function ProfilePage() {
             )}
           </div>
           <div className="flex-1" />
-          {!isOwn && user ? (
+          {isOwn && user ? (
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative px-3 py-2 rounded-xl text-sm font-medium bg-bg-card border border-border hover:border-accent/40 transition-colors mb-1"
+              >
+                <span className="text-lg">🔔</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-bg-card border border-border rounded-xl shadow-2xl z-50 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                    <h3 className="text-sm font-semibold text-text-primary">Notifications</h3>
+                    {unreadCount > 0 && (
+                      <button onClick={markAllRead} className="text-xs text-accent hover:underline">
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="px-4 py-8 text-center text-text-secondary text-sm">
+                        No notifications yet.
+                      </div>
+                    ) : (
+                      notifications.slice(0, 20).map((n: any) => (
+                        <div
+                          key={n.id}
+                          className={`px-4 py-3 border-b border-border/50 hover:bg-bg-surface transition-colors cursor-pointer ${!n.read ? "bg-accent/5" : ""}`}
+                          onClick={() => markOneRead(n.id)}
+                        >
+                          <div className="flex items-start gap-2">
+                            <span className="text-sm mt-0.5">
+                              {n.type === "announcement" ? "📢" : n.type === "like" ? "❤️" : n.type === "follow" ? "👤" : n.type === "comment" ? "💬" : "🔔"}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-text-primary leading-snug">{n.title_name || n.message || "Notification"}</p>
+                              {n.actor_username && n.type !== "announcement" && (
+                                <p className="text-xs text-text-secondary mt-0.5">from @{n.actor_username}</p>
+                              )}
+                              <p className="text-[10px] text-text-secondary mt-1">
+                                {new Date(n.created_at).toLocaleDateString()}{" "}
+                                {new Date(n.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                            </div>
+                            {!n.read && (
+                              <span className="w-2 h-2 bg-accent rounded-full flex-shrink-0 mt-2" />
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : !isOwn && user ? (
             <button onClick={handleFollow}
               className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 mb-1 ${
                 bounce ? "scale-110" : "scale-100"
