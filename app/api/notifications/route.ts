@@ -79,3 +79,30 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: err?.message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const username = await resolveUsername(req);
+    if (!username) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "id required" }, { status: 400 });
+    }
+
+    const { error } = await supabaseAdmin
+      .from("notifications")
+      .delete()
+      .eq("id", id)
+      .eq("target_username", username.trim().slice(0, 20));
+
+    if (error) throw error;
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message }, { status: 500 });
+  }
+}

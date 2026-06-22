@@ -239,6 +239,13 @@ export default function ProfilePage() {
     setUnreadCount(prev => Math.max(0, prev - 1));
   }
 
+  async function deleteNotification(id: string) {
+    const wasUnread = notifications.find(n => n.id === id)?.read === false;
+    await fetch(`/api/notifications?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    if (wasUnread) setUnreadCount(prev => Math.max(0, prev - 1));
+  }
+
   useEffect(() => {
     if (mounted) {
       fetchFollowData();
@@ -445,26 +452,44 @@ export default function ProfilePage() {
                       notifications.slice(0, 20).map((n: any) => (
                         <div
                           key={n.id}
-                          className={`px-4 py-3 border-b border-border/50 hover:bg-bg-surface transition-colors cursor-pointer ${!n.read ? "bg-accent/5" : ""}`}
-                          onClick={() => markOneRead(n.id)}
+                          className={`px-4 py-3 border-b border-border/50 hover:bg-bg-surface transition-colors group ${!n.read ? "bg-accent/5" : "opacity-60"}`}
                         >
                           <div className="flex items-start gap-2">
                             <span className="text-sm mt-0.5">
                               {n.type === "announcement" ? "📢" : n.type === "like" ? "❤️" : n.type === "follow" ? "👤" : n.type === "comment" ? "💬" : "🔔"}
                             </span>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm text-text-primary leading-snug">{n.title_name || n.message || "Notification"}</p>
+                              <p className={`text-sm text-text-primary leading-snug line-clamp-3 ${n.read ? "line-through decoration-text-secondary/40" : ""}`}>
+                                {n.title_name || n.message || "Notification"}
+                              </p>
                               {n.actor_username && n.type !== "announcement" && (
                                 <p className="text-xs text-text-secondary mt-0.5">from @{n.actor_username}</p>
                               )}
-                              <p className="text-[10px] text-text-secondary mt-1">
-                                {new Date(n.created_at).toLocaleDateString()}{" "}
-                                {new Date(n.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                              </p>
+                              <div className="flex items-center gap-3 mt-1">
+                                <p className="text-[10px] text-text-secondary">
+                                  {new Date(n.created_at).toLocaleDateString()}{" "}
+                                  {new Date(n.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                </p>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); markOneRead(n.id); }}
+                                  className={`text-[10px] hover:underline ${n.read ? "text-text-secondary" : "text-accent"}`}
+                                >
+                                  {n.read ? "Read" : "Mark read"}
+                                </button>
+                              </div>
                             </div>
-                            {!n.read && (
-                              <span className="w-2 h-2 bg-accent rounded-full flex-shrink-0 mt-2" />
-                            )}
+                            <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                              {!n.read && (
+                                <span className="w-2 h-2 bg-accent rounded-full mt-2" />
+                              )}
+                              <button
+                                onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
+                                className="text-text-secondary hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 text-sm leading-none"
+                                title="Delete"
+                              >
+                                ✕
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))
