@@ -5,30 +5,21 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 
-const tabs: { name: string; icon: ReactNode; path: string }[] = [
-  {
-    name: "Home",
-    icon: <Image src="/icons/home.png" alt="Home" width={24} height={24} style={{ imageRendering: "pixelated" }} />,
-    path: "/",
-  },
-  { name: "Search", icon: <Image src="/icons/search.png" alt="Search" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/search" },
-  { name: "My List", icon: <Image src="/icons/library.png" alt="My List" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/library" },
-  {
-    name: "Feed",
-    icon: <Image src="/icons/feed.png" alt="Feed" width={24} height={24} style={{ imageRendering: "pixelated" }} unoptimized />,
-    path: "/feed",
-  },
-  {
-    name: "Profile",
-    icon: <Image src="/icons/profile.png" alt="Profile" width={24} height={24} style={{ imageRendering: "pixelated" }} />,
-    path: "/profile",
-  },
-];
-
 export default function TabBar() {
+  const t = useTranslations();
   const pathname = usePathname();
+
+  const tabs: { name: string; icon: ReactNode; path: string }[] = [
+    { name: t("nav.home"), icon: <Image src="/icons/home.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/" },
+    { name: t("nav.search"), icon: <Image src="/icons/search.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/search" },
+    { name: t("nav.myList"), icon: <Image src="/icons/library.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/library" },
+    { name: t("nav.feed"), icon: <Image src="/icons/feed.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} unoptimized />, path: "/feed" },
+    { name: t("nav.profile"), icon: <Image src="/icons/profile.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/profile" },
+  ];
+
   if (pathname === "/onboarding") return null;
 
   return (
@@ -59,6 +50,7 @@ export default function TabBar() {
 }
 
 export function Sidebar() {
+  const t = useTranslations();
   const pathname = usePathname();
   const [user, setUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -103,8 +95,16 @@ export function Sidebar() {
 
   if (pathname === "/onboarding") return null;
 
-  const displayName = user?.user_metadata?.username || user?.email?.split("@")[0] || "Guest";
+  const displayName = user?.user_metadata?.username || user?.email?.split("@")[0] || t("auth.guest");
   const initial = displayName.slice(0, 1).toUpperCase();
+
+  const tabs: { name: string; icon: ReactNode; path: string }[] = [
+    { name: t("nav.home"), icon: <Image src="/icons/home.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/" },
+    { name: t("nav.search"), icon: <Image src="/icons/search.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/search" },
+    { name: t("nav.myList"), icon: <Image src="/icons/library.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/library" },
+    { name: t("nav.feed"), icon: <Image src="/icons/feed.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} unoptimized />, path: "/feed" },
+    { name: t("nav.profile"), icon: <Image src="/icons/profile.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/profile" },
+  ];
 
   return (
     <aside className="hidden md:flex flex-col h-screen sticky top-0 border-r border-[#1a1a2e] px-3 py-6 transition-all duration-200 w-14 hover:w-56 group overflow-hidden hover:overflow-visible z-50 bg-bg-primary">
@@ -157,7 +157,7 @@ export function Sidebar() {
             )}
             <div className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <p className="text-sm font-medium text-text-primary">{displayName}</p>
-              <p className="text-xs text-text-secondary">Profile →</p>
+              <p className="text-xs text-text-secondary">{t("nav.profile")} →</p>
             </div>
           </a>
           <button
@@ -165,7 +165,7 @@ export function Sidebar() {
             className="flex items-center gap-3 px-1.5 py-1.5 rounded-lg text-xs text-text-secondary hover:text-red-400 transition-colors min-w-max"
           >
             <span className="text-sm flex-shrink-0">🚪</span>
-            <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Sign out</span>
+            <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">{t("auth.signOut")}</span>
           </button>
           </>
         ) : (
@@ -174,8 +174,8 @@ export function Sidebar() {
               <span className="text-xs font-bold text-text-primary">G</span>
             </div>
             <div className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <p className="text-sm font-medium text-text-primary">Guest</p>
-              <p className="text-xs text-text-secondary">Sign in →</p>
+              <p className="text-sm font-medium text-text-primary">{t("auth.guest")}</p>
+              <p className="text-xs text-text-secondary">{t("auth.signIn")} →</p>
             </div>
           </a>
         )}

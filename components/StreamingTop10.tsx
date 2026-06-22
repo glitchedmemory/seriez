@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 interface Top10Item {
   rank: number;
@@ -73,6 +74,7 @@ function proxyPoster(url: string | undefined): string | undefined {
 }
 
 export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
+  const t = useTranslations();
   const [activeTab, setActiveTab] = useState("netflix");
   const [category, setCategory] = useState<Category>("movies");
   const [data, setData] = useState<Record<string, PlatformData>>({});
@@ -118,7 +120,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
 
   const platformData = data[activeTab];
   const currentData: Top10Item[] = loading
-    ? Array.from({ length: 5 }, (_, i) => ({ rank: i + 1, title: "Loading...", score: 0 }))
+    ? Array.from({ length: 5 }, (_, i) => ({ rank: i + 1, title: t("streaming.loading"), score: 0 }))
     : (platformData?.[category] || []);
 
   // DEBUG
@@ -138,8 +140,8 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
     return (
       <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
         <div className="p-3 text-center">
-          <h3 className="text-xs font-semibold text-text-primary mb-1">📺 Streaming Top 10</h3>
-          <p className="text-[10px] text-text-secondary">Failed to load</p>
+          <h3 className="text-xs font-semibold text-text-primary mb-1">📺 {t("streaming.title")}</h3>
+          <p className="text-[10px] text-text-secondary">{t("streaming.failedToLoad")}</p>
         </div>
       </div>
     );
@@ -153,7 +155,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
         {/* Header row: title + Movies/TV Shows toggle */}
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
-            <span>📺</span> Streaming Top 10
+            <span>📺</span> {t("streaming.title")}
           </h3>
 
           {/* Movies / TV Shows toggle */}
@@ -166,7 +168,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
                 color: category === "movies" ? "#fff" : "#6b7280",
               }}
             >
-              Movies
+              {t("streaming.movies")}
             </button>
             <button
               onClick={() => setCategory("tv")}
@@ -176,7 +178,7 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
                 color: category === "tv" ? "#fff" : "#6b7280",
               }}
             >
-              TV Shows
+              {t("streaming.tvShows")}
             </button>
           </div>
         </div>

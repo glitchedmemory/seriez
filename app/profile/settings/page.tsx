@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useTheme, type ThemeMode } from "@/lib/theme";
@@ -20,6 +21,10 @@ function validatePassword(pw: string): string | null {
 }
 
 export default function SettingsPage() {
+  const t_ = useTranslations();
+  const locale = useLocale();
+  const [language, setLanguage] = useState(locale);
+  const [changing, setChanging] = useState(false);
   const router = useRouter();
   const supabase = createClient();
   const { theme, setTheme } = useTheme();
@@ -166,6 +171,43 @@ export default function SettingsPage() {
               Avatar · Background →
             </span>
           </button>
+
+          {/* ── Language ── */}
+          <div className="bg-bg-card border border-border rounded-xl px-4 py-3.5">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-lg">🌐</span>
+              <span className="text-sm text-text-primary">{t_("profile.language")}</span>
+            </div>
+            <select
+              value={language}
+              onChange={async (e) => {
+                const lang = e.target.value;
+                setLanguage(lang);
+                setChanging(true);
+                try {
+                  await fetch("/api/users/language", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ language: lang }),
+                  });
+                  // Reload to apply new locale
+                  window.location.reload();
+                } catch {
+                  setChanging(false);
+                }
+              }}
+              disabled={changing}
+              className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+            >
+              <option value="en">English</option>
+              <option value="ko">한국어</option>
+              <option value="ja">日本語</option>
+              <option value="zh">中文</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+              <option value="es">Español</option>
+            </select>
+          </div>
 
           {/* ── Appearance ── */}
           <div className="bg-bg-card border border-border rounded-xl px-4 py-3.5">

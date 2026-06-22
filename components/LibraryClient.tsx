@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { ListSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -34,6 +35,7 @@ type SortKey = typeof SORT_OPTIONS[number]["key"];
 
 // ─── Tracking grid ───
 function TrackingGrid({ activeTab }: { activeTab: string }) {
+  const t = useTranslations();
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<SortKey>("recent");
@@ -72,7 +74,7 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
     return sorted;
   }, [items, sort]);
 
-  if (!localUser) return <EmptyState icon="🔐" title="Sign in to see your list" description="Create an account to start tracking what you watch." action={{ label: "Sign In / Sign Up", href: "/signup" }} />;
+  if (!localUser) return <EmptyState icon="🔐" title={t("library.signInTitle")} description={t("library.signInDesc")} action={{ label: t("library.signInAction"), href: "/signup" }} />;
 
   if (loading) return <ListSkeleton rows={6} />;
   if (items.length === 0) return <EmptyState icon="📚" title={activeTab ? `No ${TABS.find(t=>t.key===activeTab)?.label || "items"} yet` : "Your library is empty"} description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />;
@@ -126,6 +128,7 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
 
 // ─── Collections view ───
 function CollectionsView() {
+  const t = useTranslations();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
@@ -247,7 +250,7 @@ function CollectionsView() {
   return (
     <div className="max-w-4xl mx-auto px-4 mt-4">
       {!authUser ? (
-        <EmptyState icon="🔐" title="Sign in to create collections" description="Create an account to make custom collections and share them." action={{ label: "Create account", href: "/signup" }} />
+        <EmptyState icon="🔐" title={t("library.collectionsSignInTitle")} description={t("library.collectionsSignInDesc")} action={{ label: t("library.collectionsSignInAction"), href: "/signup" }} />
       ) : (
       <>
       {(() => {

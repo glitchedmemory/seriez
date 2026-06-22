@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Fix Turbopack CSS chunk mismatch
-  if (path === "/_next/static/chunks/259_-80kt8mhh.css") {
+  if (path === "/_next/static/chunks/259_-80ktmhh.css") {
     const newUrl = new URL("/_next/static/chunks/2urolxst4sso2.css", request.url);
     return NextResponse.rewrite(newUrl);
   }
@@ -60,7 +60,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/_next/static/chunks/259_-80kt8mhh.css",
+    "/_next/static/chunks/259_-80ktmhh.css",
     "/((?!_next/static|_next/image|favicon.ico|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

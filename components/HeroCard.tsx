@@ -2,12 +2,14 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import type { TmdbResult } from "@/lib/tmdb";
 import { createClient } from "@/lib/supabase/client";
 import PosterImage from "@/components/PosterImage";
 import { LockKeyholeOpen } from "lucide-react";
 
 export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResult; nextItem?: TmdbResult; region: string; isPremium?: boolean }) {
+  const t = useTranslations();
   const router = useRouter();
   const supabase = createClient();
   // Collections state
@@ -123,7 +125,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
         {/* Top badges */}
         <div className="absolute top-4 left-4">
           <span className="px-2.5 py-1 rounded-full bg-white text-black text-[11px] font-semibold">
-            TRENDING NOW
+            {t("home.trendingNow")}
           </span>
         </div>
 
@@ -133,7 +135,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
           <div className="flex items-center gap-2 mb-2">
             <span className="text-gold text-sm">★ {item.rating}</span>
             <span className="text-white/60 text-xs">
-              {item.year} · {item.type === "movie" ? "Movie" : item.type === "anime" ? "Anime" : "TV"}
+              {item.year} · {item.type === "movie" ? t("common.movie") : item.type === "anime" ? t("common.anime") : t("common.tv")}
             </span>
             {item.genres.slice(0, 3).map((g) => (
               <span key={g} className="text-[11px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/80">
@@ -160,7 +162,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
               onClick={handleWatchNow}
               className="px-5 py-2 rounded-full bg-white text-black text-sm font-semibold hover:bg-gray-200 transition-colors inline-flex items-center gap-1.5 border-none cursor-pointer"
             >
-              <LockKeyholeOpen className="w-4 h-4" /> Track Now
+              <LockKeyholeOpen className="w-4 h-4" /> {t("tracking.watchNow")}
             </button>
             <button
               onClick={handlePlusClick}
@@ -183,9 +185,9 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
                       onClick={() => { setActiveNoteCollId(null); setActiveNoteCollName(""); setNoteText(""); }}
                       className="text-[10px] text-text-secondary hover:text-text-primary mb-2 border-none bg-transparent cursor-pointer"
                     >
-                      ← Back
+                      ← {t("common.back")}
                     </button>
-                    <p className="text-[11px] text-text-secondary mb-1.5">Your thought</p>
+                    <p className="text-[11px] text-text-secondary mb-1.5">{t("collections.yourThought")}</p>
                     <div className="flex gap-1.5">
                       <input
                         type="text"
@@ -217,7 +219,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
                         disabled={!noteText.trim() || addingCollId !== null}
                         className="px-2.5 py-1.5 text-xs bg-accent text-white rounded-lg font-medium hover:bg-accent-hover disabled:opacity-40 transition-colors border-none cursor-pointer"
                       >
-                        Add
+                        {t("collections.add")}
                       </button>
                     </div>
                   </div>
@@ -263,13 +265,13 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] text-accent uppercase tracking-wide font-medium">
-                Tonight&apos;s Pick
+                {t("home.tonightsPick")}
               </p>
               <p className="text-sm font-semibold text-text-primary truncate">
                 {nextItem.title}
               </p>
               <p className="text-xs text-text-secondary">
-                {nextItem.type === "movie" ? "Movie" : nextItem.type === "anime" ? "Anime" : "TV"} · {nextItem.year} · ★ {nextItem.rating}
+                {nextItem.type === "movie" ? t("common.movie") : nextItem.type === "anime" ? t("common.anime") : t("common.tv")} · {nextItem.year} · ★ {nextItem.rating}
               </p>
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-text-secondary flex-shrink-0">

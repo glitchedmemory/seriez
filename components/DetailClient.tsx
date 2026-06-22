@@ -5,6 +5,7 @@ import type { TmdbDetail } from "@/lib/tmdb";
 import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
+import { useTranslations } from "next-intl";
 import PosterImage from "@/components/PosterImage";
 
 // ─── Inline SVG icon components ───
@@ -55,6 +56,7 @@ function formatDate(iso: string) {
 }
 
 export default function DetailClient({ detail }: { detail: TmdbDetail }) {
+  const t = useTranslations();
   const [showAllCast, setShowAllCast] = useState(false);
   const [showAllDirectors, setShowAllDirectors] = useState(false);
   const [trackStatus, setTrackStatus] = useState<string | null>(null);

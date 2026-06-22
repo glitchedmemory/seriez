@@ -7,6 +7,7 @@ import { getAnimeSagas, type AnimeSaga } from "@/lib/anilist";
 import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
+import { useTranslations } from "next-intl";
 import PosterImage from "@/components/PosterImage";
 
 // ─── Icons (same as DetailClient) ───
@@ -44,6 +45,7 @@ function formatDate(iso: string) {
 // ─── Main component ───
 
 export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeDetail; episodes: AnimeEpisode[] }) {
+  const t = useTranslations();
   const [showAllCast, setShowAllCast] = useState(false);
   const [showAllDirectors, setShowAllDirectors] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);

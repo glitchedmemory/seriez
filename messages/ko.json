@@ -1,0 +1,137 @@
+{
+  "nav": {
+    "home": "홈",
+    "search": "검색",
+    "myList": "내 리스트",
+    "feed": "피드",
+    "profile": "프로필"
+  },
+  "auth": {
+    "signIn": "로그인",
+    "signUp": "회원가입",
+    "signOut": "로그아웃",
+    "email": "이메일",
+    "emailPlaceholder": "이메일 주소",
+    "password": "비밀번호",
+    "username": "사용자 이름",
+    "createAccount": "계정 만들기",
+    "guest": "게스트"
+  },
+  "library": {
+    "signInTitle": "리스트를 보려면 로그인하세요",
+    "signInDesc": "시청 기록을 추적하려면 계정을 만드세요.",
+    "signInAction": "로그인 / 회원가입",
+    "collectionsSignInTitle": "컬렉션을 만들려면 로그인하세요",
+    "collectionsSignInDesc": "맞춤 컬렉션을 만들고 공유하려면 계정을 만드세요.",
+    "collectionsSignInAction": "계정 만들기",
+    "collectionsLimit": "무료 플랜은 최대 3개 컬렉션까지 가능합니다.",
+    "upgrade": "Golden Ticket으로 업그레이드"
+  },
+  "tracking": {
+    "watching": "보는 중",
+    "watched": "시청 완료",
+    "toWatch": "볼 예정",
+    "signInToTrack": "추적하려면 로그인",
+    "signInToSave": "시청 기록을 저장하려면",
+    "markUnwatched": "미시청으로 표시",
+    "markWatched": "시청 완료로 표시",
+    "watchedOn": "{date}에 시청 완료",
+    "watchNow": "트래킹 시작",
+    "signInEpisodes": "에피소드 추적하려면 로그인"
+  },
+  "streaming": {
+    "title": "스트리밍 Top 10",
+    "movies": "영화",
+    "tvShows": "TV 프로그램",
+    "failedToLoad": "로드 실패",
+    "loading": "로딩 중..."
+  },
+  "search": {
+    "placeholder": "영화, TV 프로그램, 애니 검색...",
+    "trendingSearches": "인기 검색어",
+    "emptyTitle": "영화, TV & 애니 검색",
+    "emptyDesc": "다음으로 볼 작품을 찾아보세요. 장르, 배우, 감독으로 검색해보세요."
+  },
+  "feed": {
+    "title": "피드"
+  },
+  "collections": {
+    "signInToLike": "좋아요하려면 로그인",
+    "signInToComment": "댓글을 남기려면 로그인",
+    "signInToWrite": "리뷰를 작성하려면 로그인",
+    "signInToReply": "댓글을 달려면 로그인",
+    "createOne": "만들기 →",
+    "addToCollection": "컬렉션에 추가",
+    "addedTo": "\"{name}\"에 추가됨 ✓",
+    "publishedCollections": "공개 컬렉션",
+    "yourThought": "생각을 적어보세요",
+    "add": "추가"
+  },
+  "history": {
+    "topGenres": "인기 장르",
+    "days": ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
+  },
+  "profile": {
+    "watched": "시청 완료",
+    "reviews": "리뷰",
+    "reviewsEmpty": "작성한 리뷰가 여기에 표시됩니다.",
+    "settings": "설정",
+    "changeProfile": "프로필 변경",
+    "resetRatings": "평점 및 리뷰 초기화",
+    "language": "언어"
+  },
+  "home": {
+    "trending": "트렌드",
+    "nowPlaying": "현재 상영",
+    "popular": "인기",
+    "upcoming": "개봉 예정",
+    "trendingNow": "지금 트렌드",
+    "tonightsPick": "오늘의 추천"
+  },
+  "footer": {
+    "about": "소개",
+    "goldenTicket": "Golden Ticket",
+    "terms": "이용약관",
+    "privacy": "개인정보"
+  },
+  "common": {
+    "error": "오류",
+    "back": "뒤로",
+    "cancel": "취소",
+    "confirm": "확인",
+    "save": "저장",
+    "delete": "삭제",
+    "edit": "편집",
+    "none": "없음",
+    "unknown": "알 수 없음",
+    "anime": "애니메",
+    "movie": "영화",
+    "tv": "TV",
+    "season": "시즌",
+    "seasons": "시즌",
+    "episodes": "에피소드",
+    "rating": "평점",
+    "year": "년",
+    "genre": "장르",
+    "genres": "장르",
+    "overview": "줄거리",
+    "cast": "출연진",
+    "crew": "제작진",
+    "reviews": "리뷰",
+    "noOverview": "줄거리 정보가 없습니다.",
+    "noReviews": "아직 리뷰가 없습니다."
+  },
+  "onboarding": {
+    "watched": "시청 완료",
+    "add": "추가",
+    "done": "완료",
+    "skip": "건너뛰기",
+    "step1Title": "어떤 작품을 보셨나요?",
+    "step1Desc": "이미 본 작품을 검색해서 선택해주세요. 취향 분석에 도움이 됩니다.",
+    "step2Title": "본 작품에 평점을 매겨주세요",
+    "step2Desc": "평점이 더 나은 추천을 만듭니다.",
+    "step3Title": "준비 완료!",
+    "step3Desc": "이제 당신만을 위한 영화, TV 프로그램, 애니메를 발견해보세요.",
+    "searchPlaceholder": "작품 검색..."
+  }
+}
