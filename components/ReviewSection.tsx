@@ -84,7 +84,7 @@ function CommentCard({
           ) : (
             <img src="/icons/default-avatar.png" alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
           )}
-          <div className="absolute -top-[7px] -left-[7px] w-[54px] h-[54px] pointer-events-none z-10">
+          <div className="absolute -top-[4px] -left-[4px] w-[48px] h-[48px] pointer-events-none z-10">
             <img src="/icons/avatar-frame-ornate.png?v=4" alt="" className="w-full h-full" />
           </div>
           </div>
@@ -937,7 +937,7 @@ export function ReviewSection({
                 ) : (
                   <img src="/icons/default-avatar.png" alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
                 )}
-                <div className="absolute -top-[8px] -left-[8px] w-[60px] h-[60px] pointer-events-none z-10">
+                <div className="absolute -top-[4px] -left-[4px] w-[52px] h-[52px] pointer-events-none z-10">
                   <img src="/icons/avatar-frame-ornate.png?v=4" alt="" className="w-full h-full" />
                 </div>
                 </div>
