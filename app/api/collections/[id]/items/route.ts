@@ -37,15 +37,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 const ANILIST_ITEMS_API = "https://graphql.anilist.co";
 
   // Enrich: anime → batch AniList (single query), everything else → TMDB
+  // Fallback: always return items with DB data, enrich with AniList/TMDB if available
   const itemList = items || [];
-  const animeIndices: number[] = [];
-  const animeIds: number[] = [];
-  itemList.forEach((item, i) => {
-    if (item.media_type === "anime") { animeIndices.push(i); animeIds.push(item.tmdb_id); }
-  });
-
+  
   // Batch AniList query for all anime items at once
   const animeMap = new Map<number, any>();
+  const animeIds = itemList.filter(i => i.media_type === "anime").map(i => i.tmdb_id);
   if (animeIds.length > 0) {
     try {
       const gql = `query($ids:[Int]){Page(perPage:50){media(id_in:$ids,type:ANIME){id title{romaji english}coverImage{extraLarge}startDate{year}averageScore}}}`;
@@ -64,38 +61,42 @@ const ANILIST_ITEMS_API = "https://graphql.anilist.co";
   }
 
   const enriched = await Promise.all(
-    itemList.map(async (item, i) => {
+    itemList.map(async (item) => {
+      // Fallback base — always returned, enrichment is optional
+      const base = {
+        tmdbId: item.tmdb_id,
+        mediaType: item.media_type,
+        seasonNumber: item.season_number || 0,
+        title: item.media_type === "anime" ? `Anime #${item.tmdb_id}` : `${item.media_type} #${item.tmdb_id}`,
+        poster: null as string | null,
+        year: null as string | null,
+        rating: 0,
+        note: item.note || null,
+        addedAt: item.added_at,
+      };
       try {
         if (item.media_type === "anime") {
           const m = animeMap.get(item.tmdb_id);
-          if (!m) return null;
+          if (!m) return base; // AniList failed, use fallback
           return {
-            tmdbId: item.tmdb_id,
-            mediaType: item.media_type,
-            seasonNumber: item.season_number || 0,
-            title: m.title?.english || m.title?.romaji || "Unknown",
+            ...base,
+            title: m.title?.english || m.title?.romaji || base.title,
             poster: m.coverImage?.extraLarge || null,
             year: m.startDate?.year ? String(m.startDate.year) : null,
             rating: m.averageScore ? Math.round(m.averageScore) / 10 : 0,
-            note: item.note || null,
-            addedAt: item.added_at,
           };
         }
         const res = await fetch(`${TMDB_API}/${item.media_type}/${item.tmdb_id}?api_key=${TMDB_KEY}`);
-        if (!res.ok) return null;
+        if (!res.ok) return base;
         const d = await res.json();
         return {
-          tmdbId: item.tmdb_id,
-          mediaType: item.media_type,
-          seasonNumber: item.season_number || 0,
-          title: d.title || d.name || "Unknown",
+          ...base,
+          title: d.title || d.name || base.title,
           poster: d.poster_path ? `${TMDB_IMAGE}${d.poster_path}` : null,
           year: (d.release_date || d.first_air_date || "").slice(0, 4) || null,
           rating: Math.round((d.vote_average || 0) * 10) / 10,
-          note: item.note || null,
-          addedAt: item.added_at,
         };
-      } catch { return null; }
+      } catch { return base; }
     })
   );
 
