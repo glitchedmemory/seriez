@@ -165,7 +165,7 @@ export default function ChangeProfilePage() {
                   )}
                 </button>
                 <div className="absolute -top-[17px] -left-[17px] w-[114px] h-[114px] pointer-events-none z-10">
-                  <img src="/icons/avatar-frame-neon.svg" alt="" className="w-full h-full" />
+                  <img src="/icons/avatar-ring.svg" alt="" className="w-full h-full" />
                 </div>
                 {avatarUrl && (
                   <button
