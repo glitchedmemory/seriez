@@ -420,7 +420,7 @@ export default function ProfilePage() {
                 <img src="/icons/default-avatar.png" alt="" className="w-full h-full object-cover" />
               )}
             </div>
-            <div className="absolute -top-[10px] -left-[10px] w-[100px] h-[100px] pointer-events-none z-10">
+            <div className="absolute -top-[5px] -left-[5px] w-[91px] h-[91px] pointer-events-none z-10">
               <img src="/icons/avatar-frame-neon.svg" alt="" className="w-full h-full" />
             </div>
           </div>
