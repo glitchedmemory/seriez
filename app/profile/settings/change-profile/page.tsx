@@ -161,7 +161,7 @@ export default function ChangeProfilePage() {
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
                   ) : (
-                    <span className="text-3xl font-bold text-text-primary">{initial}</span>
+                    <img src="/icons/default-avatar.png" alt="" className="w-full h-full object-cover rounded-full" />
                   )}
                 </button>
                 {avatarUrl && (

@@ -417,7 +417,7 @@ export default function ProfilePage() {
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-3xl font-bold text-text-primary">{initial}</span>
+                <img src="/icons/default-avatar.png" alt="" className="w-full h-full object-cover" />
               )}
             </div>
             <div className="absolute -top-[22px] -left-[22px] w-[124px] h-[124px] pointer-events-none z-10">

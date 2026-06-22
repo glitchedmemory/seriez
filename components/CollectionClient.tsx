@@ -341,9 +341,7 @@ export default function CollectionClient() {
                 {avatarUrls[c.username] ? (
                   <img src={avatarUrls[c.username]!} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-0.5" />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center text-sm font-bold text-text-primary flex-shrink-0 mt-0.5">
-                    {c.username[0]?.toUpperCase()}
-                  </div>
+                  <img src="/icons/default-avatar.png" alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-0.5" />
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
