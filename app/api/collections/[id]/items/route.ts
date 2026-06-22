@@ -109,6 +109,8 @@ const ANILIST_ITEMS_API = "https://graphql.anilist.co";
     isOwner, createdAt: list.created_at,
     likesCount: likesCount || 0, itemCount: (items || []).length,
     items: enriched.filter(Boolean),
+  }, {
+    headers: { 'Cache-Control': 'no-store, max-age=0' },
   });
 }
 
