@@ -117,12 +117,12 @@ export default function ChangeProfilePage() {
         <div className="relative">
           <button
             onClick={(e) => { e.stopPropagation(); bgInputRef.current?.click(); }}
-            className={`relative w-full h-40 block cursor-pointer active:scale-[0.99] transition-transform ${
+            className={`relative w-full h-48 md:h-72 block cursor-pointer active:scale-[0.99] transition-transform ${
               !backgroundUrl ? "bg-gradient-to-br from-[#6366f1] via-[#7c3aed] to-[#a855f7]" : ""
             }`}
             style={backgroundUrl ? {
               backgroundImage: `url(${backgroundUrl})`,
-              backgroundSize: `${bgScale}%`,
+              backgroundSize: "cover",
               backgroundPosition: `${bgPositionX}% ${bgPositionY}%`,
               backgroundRepeat: "no-repeat",
             } : undefined}
