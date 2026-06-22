@@ -84,8 +84,8 @@ function CommentCard({
           ) : (
             <img src="/icons/default-avatar.png" alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
           )}
-          <div className="absolute -top-[7px] -left-[7px] w-[55px] h-[55px] pointer-events-none z-10">
-            <img src="/icons/avatar-frame-ornate.png?v=4" alt="" className="w-full h-full" />
+          <div className="absolute -top-[10px] -left-[10px] w-[60px] h-[60px] pointer-events-none z-10">
+            <img src="/icons/avatar-frame-neon.png" alt="" className="w-full h-full" />
           </div>
           </div>
           <div className="flex-1 flex items-center gap-1 min-w-0">
@@ -937,8 +937,8 @@ export function ReviewSection({
                 ) : (
                   <img src="/icons/default-avatar.png" alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
                 )}
-                <div className="absolute -top-[8px] -left-[8px] w-[60px] h-[60px] pointer-events-none z-10">
-                  <img src="/icons/avatar-frame-ornate.png?v=4" alt="" className="w-full h-full" />
+                <div className="absolute -top-[11px] -left-[11px] w-[66px] h-[66px] pointer-events-none z-10">
+                  <img src="/icons/avatar-frame-neon.png" alt="" className="w-full h-full" />
                 </div>
                 </div>
                 <span className="text-sm font-semibold text-text-primary hover:text-[#a5b4fc] cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${review.username}`)}>
