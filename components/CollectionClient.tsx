@@ -344,8 +344,8 @@ export default function CollectionClient() {
                 ) : (
                   <img src="/icons/default-avatar.png" alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-0.5" />
                 )}
-                <div className="absolute -top-[10px] -left-[10px] w-[60px] h-[60px] pointer-events-none z-10">
-                  <img src="/icons/avatar-frame-neon.png" alt="" className="w-full h-full" />
+                <div className="absolute -top-[5px] -left-[5px] w-[50px] h-[50px] pointer-events-none z-10">
+                  <img src="/icons/avatar-frame-neon.svg" alt="" className="w-full h-full" />
                 </div>
                 </div>
                 <div className="flex-1 min-w-0">
