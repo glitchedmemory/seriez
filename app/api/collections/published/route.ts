@@ -107,20 +107,66 @@ export async function GET() {
   }
 }
 
+const ANILIST_API = "https://graphql.anilist.co";
+
 async function getThumbnails(items: { tmdb_id: number; media_type: string }[]): Promise<(string | null)[]> {
-  if (!TMDB_KEY) return items.map(() => null);
-  return Promise.all(
-    items.map(async (item) => {
-      try {
-        const res = await fetch(`${TMDB_API}/${item.media_type}/${item.tmdb_id}?api_key=${TMDB_KEY}`, {
-          next: { revalidate: 86400 },
-        });
-        if (!res.ok) return null;
-        const d = await res.json();
-        return d.poster_path ? `${TMDB_IMAGE}${d.poster_path}` : null;
-      } catch {
-        return null;
+  if (items.length === 0) return [];
+
+  // Split: anime → AniList, everything else → TMDB
+  const animeItems = items.filter((i) => i.media_type === "anime");
+  const tmdbItems = items.filter((i) => i.media_type !== "anime");
+
+  const posterMap = new Map<string, string | null>();
+
+  // ── Anime: batch AniList query ──
+  if (animeItems.length > 0) {
+    try {
+      const ids = animeItems.map((i) => i.tmdb_id);
+      const query = `query($ids:[Int]){Page(perPage:50){media(id_in:$ids,type:ANIME){id coverImage{extraLarge}}}}`;
+      const res = await fetch(ANILIST_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, variables: { ids } }),
+        next: { revalidate: 86400 },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        for (const m of json.data?.Page?.media || []) {
+          posterMap.set(`anime:${m.id}`, m.coverImage?.extraLarge || null);
+        }
       }
-    })
-  );
+    } catch {}
+    // Fill missing with null
+    for (const item of animeItems) {
+      if (!posterMap.has(`anime:${item.tmdb_id}`)) {
+        posterMap.set(`anime:${item.tmdb_id}`, null);
+      }
+    }
+  }
+
+  // ── TMDB: keep existing logic ──
+  if (tmdbItems.length > 0 && TMDB_KEY) {
+    await Promise.all(
+      tmdbItems.map(async (item) => {
+        try {
+          const res = await fetch(`${TMDB_API}/${item.media_type}/${item.tmdb_id}?api_key=${TMDB_KEY}`, {
+            next: { revalidate: 86400 },
+          });
+          if (!res.ok) { posterMap.set(`tmdb:${item.tmdb_id}:${item.media_type}`, null); return; }
+          const d = await res.json();
+          posterMap.set(`tmdb:${item.tmdb_id}:${item.media_type}`, d.poster_path ? `${TMDB_IMAGE}${d.poster_path}` : null);
+        } catch {
+          posterMap.set(`tmdb:${item.tmdb_id}:${item.media_type}`, null);
+        }
+      })
+    );
+  }
+
+  // ── Reassemble in original order ──
+  return items.map((item) => {
+    if (item.media_type === "anime") {
+      return posterMap.get(`anime:${item.tmdb_id}`) ?? null;
+    }
+    return posterMap.get(`tmdb:${item.tmdb_id}:${item.media_type}`) ?? null;
+  });
 }

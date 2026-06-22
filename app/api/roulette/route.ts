@@ -53,13 +53,61 @@ export async function GET(_req: NextRequest) {
     let discoverUrl: string;
     let dateField: string;
 
+const ANILIST_API = "https://graphql.anilist.co";
+
     if (mediaType === "movie") {
       dateField = "primary_release_date";
       discoverUrl = `${TMDB_API}/discover/movie?sort_by=popularity.desc&${dateField}.gte=${startDate}&${dateField}.lte=${endDate}&vote_count.gte=100&language=en-US`;
     } else if (mediaType === "anime") {
-      // Anime = TV animation + Japanese language
-      dateField = "first_air_date";
-      discoverUrl = `${TMDB_API}/discover/tv?sort_by=popularity.desc&${dateField}.gte=${startDate}&${dateField}.lte=${endDate}&with_genres=16&with_original_language=ja&vote_count.gte=50&language=en-US`;
+      // Anime → AniList (NOT TMDB)
+      const seasons = currentMonth <= 6
+        ? ["SUMMER", "FALL"]   // H1 → last year's H2 = Summer/Fall
+        : ["WINTER", "SPRING"]; // H2 → this year's H1 = Winter/Spring
+      const searchYear = currentMonth <= 6 ? currentYear - 1 : currentYear;
+
+      let animeResults: any[] = [];
+      for (const season of seasons) {
+        try {
+          const query = `query($year:Int,$season:MediaSeason){Page(perPage:20){media(seasonYear:$year,season:$season,type:ANIME,sort:POPULARITY_DESC){id title{romaji english}coverImage{extraLarge}bannerImage startDate{year}averageScore genres description}}}`;
+          const res = await fetch(ANILIST_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query, variables: { year: searchYear, season } }),
+          });
+          if (res.ok) {
+            const json = await res.json();
+            animeResults.push(...(json.data?.Page?.media || []));
+          }
+        } catch {}
+      }
+
+      if (animeResults.length === 0) {
+        return NextResponse.json({
+          empty: true,
+          message: `No popular anime found for ${periodLabel}. Try again!`,
+        }, { status: 200 });
+      }
+
+      // Pick random from results
+      const random = animeResults[Math.floor(Math.random() * animeResults.length)];
+      const runtimeStr = `${(random.episodes || "?")} eps`;
+
+      return NextResponse.json({
+        id: random.id,
+        mediaType: "anime",
+        title: random.title?.english || random.title?.romaji || "Unknown",
+        poster: random.coverImage?.extraLarge || random.coverImage?.large || null,
+        backdrop: random.bannerImage || null,
+        year: random.startDate?.year ? String(random.startDate.year) : "",
+        rating: random.averageScore ? Math.round(random.averageScore) / 10 : 0,
+        genres: (random.genres || []).slice(0, 3),
+        overview: random.description || "",
+        director: "",
+        runtime: runtimeStr,
+        tagline: "",
+        periodLabel,
+        spunType: "anime",
+      });
     } else {
       // TV (non-anime)
       dateField = "first_air_date";
