@@ -44,6 +44,7 @@ export type TmdbItem = {
   release_date?: string;
   first_air_date?: string;
   media_type?: "movie" | "tv";
+  original_language?: string;
 };
 
 export type TmdbResult = {
@@ -148,6 +149,7 @@ export async function searchMulti(query: string): Promise<TmdbResult[]> {
   const data = await get("/search/multi", { query, include_adult: "false" });
   return (data.results as TmdbItem[])
     .filter((item) => item.media_type === "movie" || item.media_type === "tv")
+    .filter((item) => !((item.genre_ids || []).includes(16) && item.original_language === "ja"))
     .map(format)
     .slice(0, 10);
 }
@@ -159,7 +161,9 @@ export async function getPopularMovies(): Promise<TmdbResult[]> {
 
 export async function getPopularTV(): Promise<TmdbResult[]> {
   const data = await get("/tv/popular");
-  return (data.results as TmdbItem[]).slice(0, 10).map(format);
+  return (data.results as TmdbItem[])
+    .filter((item) => !((item.genre_ids || []).includes(16) && item.original_language === "ja"))
+    .slice(0, 10).map(format);
 }
 
 export async function discoverByGenres(genreIds: number[]): Promise<TmdbResult[]> {
@@ -278,7 +282,8 @@ function formatSimilar(
       if (type === "movie") return item.media_type === "movie" || !!item.title;
       return item.media_type === "tv" || !!item.name;
     })
-    .filter((item) => sourceIsAnimated || !(item.genre_ids || []).includes(16));
+    .filter((item) => sourceIsAnimated || !(item.genre_ids || []).includes(16))
+    .filter((item) => !((item.genre_ids || []).includes(16) && item.original_language === "ja"));
 
   // Multi-pass with fallback: section must never be empty
   let result = runPass(base, genreSet, minGenreMatch, 2000);
@@ -352,6 +357,7 @@ async function discoverPass(
     const data = await get(endpoint, params);
     return (data.results as TmdbItem[])
       .filter((item) => item.id !== excludeId)
+      .filter((item) => !((item.genre_ids || []).includes(16) && item.original_language === "ja"))
       .filter((item) => {
         const overlap = (item.genre_ids || []).filter((gid) => genreIds.includes(gid));
         return overlap.length >= minGenre;
