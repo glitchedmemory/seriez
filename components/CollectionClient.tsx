@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import PosterImage from "@/components/PosterImage";
@@ -53,7 +53,10 @@ export default function CollectionClient() {
   }, []);
 
   // Load collection — called once, after auth is ready or when id changes
+  const fetchedRef = useRef(false);
   const loadCollection = useCallback(async () => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
     try {
       const res = await fetch(`/api/collections/${id}/items`);
       if (!res.ok) throw new Error("not found");
