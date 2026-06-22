@@ -2,23 +2,15 @@
   <defs>
     <radialGradient id="tealGlow" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#0d9488" stop-opacity="0"/>
-      <stop offset="74%" stop-color="#2dd4bf" stop-opacity="0.3"/>
-      <stop offset="77%" stop-color="#5eead4" stop-opacity="1"/>
-      <stop offset="81%" stop-color="#14b8a6" stop-opacity="0.6"/>
-      <stop offset="85%" stop-color="#0f766e" stop-opacity="0.1"/>
-      <stop offset="100%" stop-color="#0d9488" stop-opacity="0"/>
+      <stop offset="73%" stop-color="#5eead4" stop-opacity="0.2"/>
+      <stop offset="75%" stop-color="#5eead4" stop-opacity="1"/>
+      <stop offset="78%" stop-color="#14b8a6" stop-opacity="0.5"/>
+      <stop offset="82%" stop-color="#0d9488" stop-opacity="0"/>
     </radialGradient>
     <filter id="glowFilter" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="blur1"/>
-      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur2"/>
-      <feMerge>
-        <feMergeNode in="blur2"/>
-        <feMergeNode in="blur1"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="0.8"/>
     </filter>
   </defs>
-  <circle cx="100" cy="100" r="85" fill="url(#tealGlow)" filter="url(#glowFilter)"/>
-  <circle cx="100" cy="100" r="72" fill="none" stroke="#5eead4" stroke-width="0.5" opacity="0.8"/>
+  <circle cx="100" cy="100" r="80" fill="url(#tealGlow)" filter="url(#glowFilter)"/>
   <circle cx="100" cy="100" r="70" fill="none"/>
 </svg>
