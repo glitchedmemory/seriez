@@ -344,7 +344,7 @@ export default function CollectionClient() {
                 ) : (
                   <img src="/icons/default-avatar.png" alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-0.5" />
                 )}
-                <div className="absolute -top-[22px] -left-[22px] w-[84px] h-[84px] pointer-events-none z-10">
+                <div className="absolute -top-[7px] -left-[7px] w-[54px] h-[54px] pointer-events-none z-10">
                   <img src="/icons/avatar-frame-ornate.png?v=4" alt="" className="w-full h-full" />
                 </div>
                 </div>

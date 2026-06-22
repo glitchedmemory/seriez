@@ -212,7 +212,7 @@ export function Sidebar() {
             ) : (
               <img src="/icons/default-avatar.png" alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             )}
-            <div className="absolute -top-[22px] -left-[22px] w-[76px] h-[76px] pointer-events-none z-10">
+            <div className="absolute -top-[5px] -left-[5px] w-[43px] h-[43px] pointer-events-none z-10">
               <img src="/icons/avatar-frame-ornate.png?v=4" alt="" className="w-full h-full" />
             </div>
             </div>

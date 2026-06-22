@@ -164,7 +164,7 @@ export default function ChangeProfilePage() {
                     <img src="/icons/default-avatar.png" alt="" className="w-full h-full object-cover rounded-full" />
                   )}
                 </button>
-                <div className="absolute -top-[22px] -left-[22px] w-[124px] h-[124px] pointer-events-none z-10">
+                <div className="absolute -top-[14px] -left-[14px] w-[109px] h-[109px] pointer-events-none z-10">
                   <img src="/icons/avatar-frame-ornate.png?v=4" alt="" className="w-full h-full" />
                 </div>
                 {avatarUrl && (
