@@ -134,8 +134,12 @@ async function getThumbnails(items: { tmdb_id: number; media_type: string }[]): 
         for (const m of json.data?.Page?.media || []) {
           posterMap.set(`anime:${m.id}`, m.coverImage?.extraLarge || null);
         }
+      } else {
+        console.error("[getThumbnails] AniList fetch failed:", res.status, await res.text());
       }
-    } catch {}
+    } catch (e) {
+      console.error("[getThumbnails] AniList error:", e);
+    }
     // Fill missing with null
     for (const item of animeItems) {
       if (!posterMap.has(`anime:${item.tmdb_id}`)) {
