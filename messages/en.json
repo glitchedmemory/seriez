@@ -155,5 +155,122 @@
     "community": "Connect with other viewers through shared reviews and comments",
     "goldenTicket": "Golden Ticket",
     "goldenTicketDesc": "Unlock premium features with a Golden Ticket for $4.99/month. Golden Ticket members get unlimited collections, yearly recaps, and more."
+  },
+  "pro": {
+    "title": "✨ Golden Ticket",
+    "subtitle": "Unlock the full Seriez experience.",
+    "priceMonthly": "$4.99",
+    "perMonth": "/ month",
+    "priceYearly": "Or $49 / year — save 35%",
+    "includedFeatures": "Included Features",
+    "features": [
+      "Unlimited custom collections — organize your library your way",
+      "Publish Collections — share your curated lists with the community",
+      "Tonight's Pick — a curated recommendation delivered daily",
+      "Roulette Discovery — spin to find your next watch",
+      "Yearly Recap — your watching year in review",
+      "Viewer DNA — your watching personality decoded from your ratings",
+      "Advanced Stats — genre breakdowns, top actors, and watching patterns",
+      "Golden Ticket badge on your profile"
+    ],
+    "stripeNotice": "Golden Ticket purchases are processed securely through Stripe.",
+    "upgradeButton": "Upgrade to Golden Ticket"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: June 20, 2026",
+    "sections": {
+      "info": {
+        "title": "1. Information We Collect",
+        "items": {
+          "account": "<strong>Account data:</strong> username, email address, and profile information you provide.",
+          "usage": "<strong>Usage data:</strong> your watch history, ratings, reviews, collections, and interactions on the platform.",
+          "technical": "<strong>Technical data:</strong> IP address, browser type, and device information collected automatically for security and performance purposes."
+        }
+      },
+      "usage": {
+        "title": "2. How We Use Your Data",
+        "items": {
+          "provide": "To provide and maintain the Seriez platform.",
+          "display": "To display your public profile, reviews, and activity.",
+          "communicate": "To send essential account-related communications.",
+          "improve": "To improve the service and fix issues."
+        }
+      },
+      "sharing": {
+        "title": "3. Data Sharing",
+        "intro": "We do <strong>not</strong> sell your personal data to third parties. We share data only:",
+        "stripe": "With Stripe for payment processing — Stripe receives your email and payment details under <a>their privacy policy</a>.",
+        "legal": "When required by law or to protect our rights."
+      },
+      "storage": {
+        "title": "4. Data Storage and Security",
+        "content": "Your data is stored on secure servers with industry-standard encryption. We take reasonable measures to protect your information, but no method of electronic storage is 100% secure."
+      },
+      "rights": {
+        "title": "5. Your Rights",
+        "intro": "You have the right to:",
+        "items": {
+          "access": "Access the personal data we hold about you.",
+          "correct": "Request correction or deletion of your data.",
+          "export": "Export your data (available in Settings).",
+          "delete": "Delete your account (available in Settings)."
+        }
+      },
+      "cookies": {
+        "title": "6. Cookies",
+        "content": "We use essential cookies for authentication and session management. We do not use tracking or advertising cookies. No cookie consent banner is required as we only use strictly necessary cookies."
+      },
+      "changes": {
+        "title": "7. Changes to This Policy",
+        "content": "We may update this policy from time to time. Material changes will be communicated via email or a notice on the platform."
+      },
+      "contact": {
+        "title": "8. Contact",
+        "content": "For privacy-related inquiries, contact us at <a>support@seriez.app</a>."
+      }
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: June 20, 2026",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptance of Terms",
+        "content": "By using Seriez, you agree to these Terms of Service. If you do not agree, do not use the service."
+      },
+      "accounts": {
+        "title": "2. User Accounts",
+        "content": "You are responsible for maintaining the confidentiality of your account credentials and for all activity under your account."
+      },
+      "content": {
+        "title": "3. User Content",
+        "content": "You retain ownership of the reviews, ratings, comments, and other content you post. By posting, you grant Seriez a non-exclusive, royalty-free license to display and distribute your content on the platform. You are solely responsible for the content you post and warrant that it does not violate any laws or third-party rights."
+      },
+      "use": {
+        "title": "4. Acceptable Use",
+        "content": "You agree not to post content that is unlawful, harassing, defamatory, abusive, threatening, obscene, or otherwise objectionable. Seriez reserves the right to remove any content and suspend or terminate accounts at its sole discretion."
+      },
+      "goldenTicket": {
+        "title": "5. Golden Ticket Subscriptions",
+        "content": "Golden Ticket is a recurring subscription at $4.99/month or $49/year. Payments are processed through Stripe. You may cancel at any time; cancellation takes effect at the end of the current billing period. No refunds for partial months."
+      },
+      "thirdParty": {
+        "title": "6. Third-Party Content",
+        "content": "Seriez displays movie, TV, and anime metadata from TMDB and AniList. Seriez is not affiliated with or endorsed by these services. All movie and TV show images and data are provided by TMDB under their terms."
+      },
+      "liability": {
+        "title": "7. Limitation of Liability",
+        "content": "Seriez is provided \"as is\" without warranties of any kind. Seriez shall not be liable for any damages arising from the use or inability to use the service."
+      },
+      "changes": {
+        "title": "8. Changes to Terms",
+        "content": "We reserve the right to modify these terms at any time. Continued use after changes constitutes acceptance of the new terms."
+      },
+      "contact": {
+        "title": "9. Contact",
+        "content": "For questions about these terms, contact us at <a>support@seriez.app</a>."
+      }
+    }
   }
 }

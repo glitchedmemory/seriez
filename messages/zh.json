@@ -155,5 +155,122 @@
     "community": "通过评论和回复与其他观众交流",
     "goldenTicket": "金票",
     "goldenTicketDesc": "每月$4.99解锁高级功能。Golden Ticket会员可享受无限收藏夹、年度回顾等更多功能。"
+  },
+  "pro": {
+    "title": "✨ Golden Ticket",
+    "subtitle": "解锁完整的 Seriez 体验。",
+    "priceMonthly": "$4.99",
+    "perMonth": "/ 月",
+    "priceYearly": "或 $49 / 年 — 节省35%",
+    "includedFeatures": "包含功能",
+    "features": [
+      "无限自定义收藏夹 — 自由整理你的图书馆",
+      "发布收藏夹 — 与社区分享你的精选列表",
+      "今日推荐 — 每日精选推荐",
+      "轮盘发现 — 旋转发现下一部作品",
+      "年度回顾 — 全年观影记录总结",
+      "观影者DNA — 从评分中解读你的观影个性",
+      "高级统计 — 类型分析、热门演员、观影模式",
+      "个人资料上的 Golden Ticket 徽章"
+    ],
+    "stripeNotice": "Golden Ticket 购买通过 Stripe 安全处理。",
+    "upgradeButton": "升级到 Golden Ticket"
+  },
+  "privacy": {
+    "title": "隐私政策",
+    "lastUpdated": "最后更新: 2026年6月20日",
+    "sections": {
+      "info": {
+        "title": "1. 我们收集的信息",
+        "items": {
+          "account": "<strong>账户数据:</strong> 用户名、电子邮箱、个人资料信息。",
+          "usage": "<strong>使用数据:</strong> 观看历史、评分、评论、收藏夹以及平台上的互动。",
+          "technical": "<strong>技术数据:</strong> IP地址、浏览器类型和设备信息（自动收集）。"
+        }
+      },
+      "usage": {
+        "title": "2. 我们如何使用您的数据",
+        "items": {
+          "provide": "提供和维护 Seriez 平台。",
+          "display": "显示您的公开个人资料、评论和活动。",
+          "communicate": "发送必要的账户相关通知。",
+          "improve": "改进服务并修复问题。"
+        }
+      },
+      "sharing": {
+        "title": "3. 数据共享",
+        "intro": "我们<strong>不会</strong>将您的个人数据出售给第三方。我们仅在以下情况共享数据：",
+        "stripe": "通过 Stripe 进行支付处理 — Stripe 根据<a>其隐私政策</a>接收您的电子邮箱和支付信息。",
+        "legal": "法律要求或为保护我们的权利时。"
+      },
+      "storage": {
+        "title": "4. 数据存储与安全",
+        "content": "您的数据存储在采用行业标准加密的安全服务器上。我们采取合理措施保护您的信息，但无法保证电子存储100%安全。"
+      },
+      "rights": {
+        "title": "5. 您的权利",
+        "intro": "您有权：",
+        "items": {
+          "access": "访问我们持有的您的个人数据。",
+          "correct": "请求更正或删除您的数据。",
+          "export": "导出您的数据（可在设置中操作）。",
+          "delete": "删除您的账户（可在设置中操作）。"
+        }
+      },
+      "cookies": {
+        "title": "6. Cookie",
+        "content": "我们仅使用认证和会话管理所必需的Cookie。我们不使用追踪或广告Cookie。由于仅使用严格必要的Cookie，因此无需Cookie同意横幅。"
+      },
+      "changes": {
+        "title": "7. 政策变更",
+        "content": "我们可能会不时更新本政策。重大变更将通过电子邮件或平台通知告知。"
+      },
+      "contact": {
+        "title": "8. 联系我们",
+        "content": "隐私相关问题请联系 <a>support@seriez.app</a>。"
+      }
+    }
+  },
+  "terms": {
+    "title": "服务条款",
+    "lastUpdated": "最后更新: 2026年6月20日",
+    "sections": {
+      "acceptance": {
+        "title": "1. 条款接受",
+        "content": "使用 Seriez 即表示您同意本服务条款。如果您不同意，请勿使用本服务。"
+      },
+      "accounts": {
+        "title": "2. 用户账户",
+        "content": "您有责任维护账户凭据的机密性，并对账户下的所有活动负责。"
+      },
+      "content": {
+        "title": "3. 用户内容",
+        "content": "您拥有所发布的评论、评分、留言和其他内容的所有权。发布即表示您授予 Seriez 非独占、免版税的许可，可在平台上显示和分发您的内容。您对发布的内容负全部责任，并保证其不违反任何法律或第三方权利。"
+      },
+      "use": {
+        "title": "4. 可接受使用",
+        "content": "您同意不发布非法、骚扰、诽谤、辱骂、威胁、淫秽或其他不当内容。Seriez 保留自行决定删除任何内容、暂停或终止账户的权利。"
+      },
+      "goldenTicket": {
+        "title": "5. Golden Ticket 订阅",
+        "content": "Golden Ticket 为每月$4.99或每年$49的循环订阅。付款通过 Stripe 处理。您可随时取消；取消在当前计费周期结束时生效。不支持部分月份退款。"
+      },
+      "thirdParty": {
+        "title": "6. 第三方内容",
+        "content": "Seriez 显示来自 TMDB 和 AniList 的电影、电视剧和动漫元数据。Seriez 与这些服务无关联或背书关系。所有影视图片和数据均依据 TMDB 条款提供。"
+      },
+      "liability": {
+        "title": "7. 责任限制",
+        "content": "Seriez 按\"原样\"提供，不作任何形式的保证。Seriez 不对因使用或无法使用服务而产生的任何损害承担责任。"
+      },
+      "changes": {
+        "title": "8. 条款变更",
+        "content": "我们保留随时修改本条款的权利。变更后继续使用即表示接受新条款。"
+      },
+      "contact": {
+        "title": "9. 联系我们",
+        "content": "有关本条款的问题，请联系 <a>support@seriez.app</a>。"
+      }
+    }
   }
 }
