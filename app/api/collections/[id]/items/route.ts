@@ -36,20 +36,38 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 const ANILIST_ITEMS_API = "https://graphql.anilist.co";
 
-  // Enrich: anime → AniList, everything else → TMDB
+  // Enrich: anime → batch AniList (single query), everything else → TMDB
+  const itemList = items || [];
+  const animeIndices: number[] = [];
+  const animeIds: number[] = [];
+  itemList.forEach((item, i) => {
+    if (item.media_type === "anime") { animeIndices.push(i); animeIds.push(item.tmdb_id); }
+  });
+
+  // Batch AniList query for all anime items at once
+  const animeMap = new Map<number, any>();
+  if (animeIds.length > 0) {
+    try {
+      const gql = `query($ids:[Int]){Page(perPage:50){media(id_in:$ids,type:ANIME){id title{romaji english}coverImage{extraLarge}startDate{year}averageScore}}}`;
+      const res = await fetch(ANILIST_ITEMS_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: gql, variables: { ids: animeIds } }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        for (const m of json.data?.Page?.media || []) {
+          animeMap.set(m.id, m);
+        }
+      }
+    } catch {}
+  }
+
   const enriched = await Promise.all(
-    (items || []).map(async (item) => {
+    itemList.map(async (item, i) => {
       try {
         if (item.media_type === "anime") {
-          const gql = `query($id:Int){Media(id:$id){title{romaji english}coverImage{extraLarge}startDate{year}averageScore}}`;
-          const res = await fetch(ANILIST_ITEMS_API, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query: gql, variables: { id: item.tmdb_id } }),
-          });
-          if (!res.ok) return null;
-          const json = await res.json();
-          const m = json.data?.Media;
+          const m = animeMap.get(item.tmdb_id);
           if (!m) return null;
           return {
             tmdbId: item.tmdb_id,
