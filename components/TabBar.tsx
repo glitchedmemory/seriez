@@ -209,9 +209,7 @@ export function Sidebar() {
             {avatarUrl ? (
               <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-bold text-text-primary">{initial}</span>
-              </div>
+              <img src="/icons/default-avatar.png" alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             )}
             <div className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <p className="text-sm font-medium text-text-primary">{displayName}</p>

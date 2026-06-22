@@ -81,9 +81,7 @@ function CommentCard({
           {avatarUrls?.[c.username] ? (
             <img src={avatarUrls[c.username]!} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
           ) : (
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-text-primary flex-shrink-0 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
-              {c.username[0]?.toUpperCase()}
-            </div>
+            <img src="/icons/default-avatar.png" alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
           )}
           <div className="flex-1 flex items-center gap-1 min-w-0">
             <span className="text-xs font-medium text-text-primary hover:text-accent cursor-pointer transition-colors truncate" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
@@ -931,9 +929,7 @@ export function ReviewSection({
                 {avatarUrls[review.username] ? (
                   <img src={avatarUrls[review.username]!} alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
                 ) : (
-                  <div className="w-11 h-11 rounded-full flex items-center justify-center text-base font-bold text-text-primary flex-shrink-0 bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
-                    {review.username[0].toUpperCase()}
-                  </div>
+                  <img src="/icons/default-avatar.png" alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
                 )}
                 <span className="text-sm font-semibold text-text-primary hover:text-[#a5b4fc] cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${review.username}`)}>
                   {review.username}
