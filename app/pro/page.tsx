@@ -10,8 +10,11 @@ export const metadata: Metadata = {
 
 const features = [
   "Unlimited custom collections — organize your library your way",
+  "Tonight's Pick — a curated recommendation delivered daily",
   "Roulette Discovery — spin to find your next watch",
   "Yearly Recap — your watching year in review",
+  "Viewer DNA — your watching personality decoded from your ratings",
+  "Advanced Stats — genre breakdowns, top actors, and watching patterns",
   "Golden Ticket badge on your profile",
 ];
 
