@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default function LoginPage() {
+  const t = useTranslations();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -65,7 +67,7 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-sm mx-auto px-4 pt-20 pb-32">
-      <h1 className="text-2xl font-bold text-text-primary mb-2">Sign in</h1>
+      <h1 className="text-2xl font-bold text-text-primary mb-2">{t("auth.signIn")}</h1>
       <p className="text-sm text-text-secondary mb-6">Save your watch data across devices</p>
 
       {sent ? (
@@ -78,7 +80,7 @@ export default function LoginPage() {
           <form onSubmit={handleMagicLink} className="mb-4">
             <input
               type="email"
-              placeholder="Email address"
+              placeholder={t("auth.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-bg-card text-text-primary rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-3"
@@ -102,7 +104,7 @@ export default function LoginPage() {
           <form onSubmit={handleEmailLogin}>
             <input
               type="email"
-              placeholder="Email"
+              placeholder={t("auth.email")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-bg-card text-text-primary rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-3"
@@ -110,7 +112,7 @@ export default function LoginPage() {
             />
             <input
               type="password"
-              placeholder="Password"
+              placeholder={t("auth.password")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-bg-card text-text-primary rounded-xl px-4 py-3 outline-none border border-border focus:border-accent mb-1"
@@ -122,7 +124,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-3 rounded-xl bg-white text-black font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50 mb-3"
             >
-              Sign in
+              {t("auth.signIn")}
             </button>
           </form>
 

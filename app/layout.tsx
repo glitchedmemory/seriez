@@ -2,6 +2,8 @@ export const dynamic = "force-dynamic";
 
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 import TabBar, { Sidebar } from "@/components/TabBar";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -70,14 +72,17 @@ export const viewport: Viewport = {
   themeColor: "#0f0f1a",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
@@ -104,17 +109,19 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex bg-bg-primary text-text-primary">
-        <ThemeProvider>
-          <Sidebar />
-          <main className="flex-1 min-w-0 md:pb-0 pb-16 flex flex-col">
-            <ErrorBoundary sectionName="App">
-              {children}
-            </ErrorBoundary>
-            <Footer />
-          </main>
-          <TabBar />
-          <ScrollToTop />
-        </ThemeProvider>
+        <NextIntlClientProvider messages={messages}>
+          <ThemeProvider>
+            <Sidebar />
+            <main className="flex-1 min-w-0 md:pb-0 pb-16 flex flex-col">
+              <ErrorBoundary sectionName="App">
+                {children}
+              </ErrorBoundary>
+              <Footer />
+            </main>
+            <TabBar />
+            <ScrollToTop />
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

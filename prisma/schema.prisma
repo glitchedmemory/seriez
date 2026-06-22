@@ -21,6 +21,7 @@ model User {
   email        String   @unique
   role         String   @default("user") // user | admin
   isPremium    Boolean  @default(false) @map("is_premium")
+  language     String   @default("en")
   avatarUrl    String?
   backgroundUrl String?
   createdAt    DateTime @default(now()) @map("created_at")

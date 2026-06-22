@@ -22,10 +22,10 @@ export const GENRE_MAP: Record<number, string> = {
   10765: "Sci-Fi", 10766: "Soap", 10767: "Talk", 10768: "War",
 };
 
-async function get(endpoint: string, params: Record<string, string> = {}) {
+async function get(endpoint: string, params: Record<string, string> = {}, locale: string = "en-US") {
   const url = new URL(`${TMDB_BASE}${endpoint}`);
   url.searchParams.set("api_key", API_KEY);
-  url.searchParams.set("language", "en-US");
+  url.searchParams.set("language", locale);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   const res = await fetch(url, { next: { revalidate: 3600 } });
   if (!res.ok) throw new Error(`TMDB ${res.status}: ${endpoint}`);

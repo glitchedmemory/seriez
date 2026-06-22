@@ -1,0 +1,16 @@
+{
+  "nav": { "home": "首页", "search": "搜索", "myList": "我的列表", "feed": "动态", "profile": "个人资料" },
+  "auth": { "signIn": "登录", "signUp": "注册", "signOut": "退出", "email": "邮箱", "emailPlaceholder": "邮箱地址", "password": "密码", "username": "用户名", "createAccount": "创建账户", "guest": "游客" },
+  "library": { "signInTitle": "登录查看列表", "signInDesc": "创建账户以追踪你的观看记录。", "signInAction": "登录 / 注册", "collectionsSignInTitle": "登录创建收藏集", "collectionsSignInDesc": "创建账户以制作和分享自定义收藏集。", "collectionsSignInAction": "创建账户", "collectionsLimit": "免费计划最多 3 个收藏集。", "upgrade": "升级到 Golden Ticket" },
+  "tracking": { "watching": "在看", "watched": "已看", "toWatch": "想看", "watchNow": "开始追踪", "signInToTrack": "登录以追踪", "signInToSave": "保存观看记录", "markUnwatched": "标记未看", "markWatched": "标记已看", "watchedOn": "已于 {date} 观看", "signInEpisodes": "登录以追踪剧集" },
+  "streaming": { "title": "流媒体 Top 10", "movies": "电影", "tvShows": "电视剧", "failedToLoad": "加载失败", "loading": "加载中..." },
+  "search": { "placeholder": "搜索电影、电视剧、动漫...", "trendingSearches": "热门搜索", "emptyTitle": "搜索电影、电视剧和动漫", "emptyDesc": "找到你的下一部最爱。试试按类型、演员或导演搜索。" },
+  "feed": { "title": "动态" },
+  "collections": { "signInToLike": "登录以点赞", "signInToComment": "登录以评论", "signInToWrite": "登录以写评论", "signInToReply": "登录以回复", "createOne": "创建一个 →", "addToCollection": "添加到收藏集", "addedTo": "已添加到 \"{name}\" ✓", "publishedCollections": "公开收藏集", "yourThought": "你的想法", "add": "添加" },
+  "history": { "topGenres": "热门类型", "days": ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"] },
+  "profile": { "watched": "已看", "reviews": "评论", "reviewsEmpty": "你写的评论会显示在这里。", "settings": "设置", "changeProfile": "修改资料", "resetRatings": "重置评分和评论", "language": "语言" },
+  "home": { "trending": "热门", "nowPlaying": "正在上映", "popular": "流行", "upcoming": "即将上映", "trendingNow": "正在流行", "tonightsPick": "今晚精选" },
+  "footer": { "about": "关于", "goldenTicket": "Golden Ticket", "terms": "条款", "privacy": "隐私" },
+  "common": { "error": "错误", "back": "返回", "cancel": "取消", "confirm": "确认", "save": "保存", "delete": "删除", "edit": "编辑", "none": "无", "unknown": "未知", "anime": "动漫", "movie": "电影", "tv": "电视剧", "season": "季", "seasons": "季", "episodes": "集", "rating": "评分", "year": "年份", "genre": "类型", "genres": "类型", "overview": "简介", "cast": "演员", "crew": "制作人员", "reviews": "评论", "noOverview": "暂无简介。", "noReviews": "暂无评论。" },
+  "onboarding": { "watched": "已看", "add": "添加", "done": "完成", "skip": "跳过", "step1Title": "你看过哪些？", "step1Desc": "搜索并选择你看过的作品，帮助我们了解你的口味。", "step2Title": "为你已看的作品评分", "step2Desc": "评分让我们能更好地推荐。", "step3Title": "一切就绪！", "step3Desc": "开始探索为你定制的电影、电视剧和动漫。", "searchPlaceholder": "搜索作品..." }
+}

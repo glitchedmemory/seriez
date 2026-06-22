@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Fragment } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import PosterImage from "@/components/PosterImage";
 
@@ -68,6 +69,7 @@ function RatingStars({ rating }: { rating: number }) {
 }
 
 export default function FeedPage() {
+  const t = useTranslations();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +95,7 @@ export default function FeedPage() {
     <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
       <header className="sticky top-0 z-40 bg-bg-primary/95 backdrop-blur-md px-4 py-3 border-b border-border">
         <h1 className="text-xl font-bold bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">
-          Feed
+          {t("feed.title")}
         </h1>
       </header>
 

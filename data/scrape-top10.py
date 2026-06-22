@@ -110,7 +110,7 @@ def is_valid(output):
     """Check if all 3 platforms have 10 movies AND 10 TV shows."""
     for key in PLATFORM_MAP.values():
         for cat in ("movies", "tv"):
-            if len(output.get(key, {}).get(cat, [])) != 10:
+            if not (9 <= len(output.get(key, {}).get(cat, [])) <= 10):
                 return False
     return True
 

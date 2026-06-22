@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 import withPWA from "next-pwa";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin("./i18n.ts");
 
 const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
@@ -118,4 +121,4 @@ const pwaOptions: any = {
   ],
 };
 
-export default withPWA(pwaOptions)(nextConfig);
+export default withNextIntl(withPWA(pwaOptions)(nextConfig));

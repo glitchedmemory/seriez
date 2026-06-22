@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { SearchSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -11,6 +12,7 @@ import PublishedCollections from "@/components/PublishedCollections";
 export const dynamic = "force-dynamic";
 
 export default function SearchPage() {
+  const t = useTranslations();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
@@ -140,7 +142,7 @@ export default function SearchPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search movies, TV shows & anime..."
+            placeholder={t("search.placeholder")}
             aria-label="Search movies, TV shows and anime"
             className="w-full bg-bg-card text-text-primary text-sm rounded-xl pl-10 pr-4 py-3 outline-none border border-transparent focus:border-accent transition-colors placeholder:text-text-secondary"
           />
@@ -180,7 +182,7 @@ export default function SearchPage() {
           <>
             {trendingSearches.length > 0 ? (
               <div>
-                <p className="text-xs text-text-secondary mb-3 font-medium">🔥 Trending Searches</p>
+                <p className="text-xs text-text-secondary mb-3 font-medium">🔥 {t("search.trendingSearches")}</p>
                 <div className="flex flex-wrap gap-2">
                   {trendingSearches.slice(0, 8).map((item) => (
                     <button

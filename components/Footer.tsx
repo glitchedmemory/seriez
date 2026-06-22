@@ -1,13 +1,15 @@
 import Link from "next/link";
-
-const footerLinks = [
-  { href: "/about", label: "About" },
-  { href: "/pro", label: "Golden Ticket" },
-  { href: "/terms", label: "Terms" },
-  { href: "/privacy", label: "Privacy" },
-];
+import { useTranslations } from "next-intl";
 
 export default function Footer() {
+  const t = useTranslations();
+
+  const footerLinks = [
+    { href: "/about", label: t("footer.about") },
+    { href: "/pro", label: t("footer.goldenTicket") },
+    { href: "/terms", label: t("footer.terms") },
+    { href: "/privacy", label: t("footer.privacy") },
+  ];
   return (
     <footer className="border-t border-border bg-bg-card mt-auto">
       <div className="max-w-4xl mx-auto px-4 py-6 flex flex-col items-center gap-2">

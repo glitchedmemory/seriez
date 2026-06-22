@@ -1,0 +1,137 @@
+{
+  "nav": {
+    "home": "Home",
+    "search": "Search",
+    "myList": "My List",
+    "feed": "Feed",
+    "profile": "Profile"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "signOut": "Sign out",
+    "email": "Email",
+    "emailPlaceholder": "Email address",
+    "password": "Password",
+    "username": "Username",
+    "createAccount": "Create account",
+    "guest": "Guest"
+  },
+  "library": {
+    "signInTitle": "Sign in to see your list",
+    "signInDesc": "Create an account to start tracking what you watch.",
+    "signInAction": "Sign In / Sign Up",
+    "collectionsSignInTitle": "Sign in to create collections",
+    "collectionsSignInDesc": "Create an account to make custom collections and share them.",
+    "collectionsSignInAction": "Create account",
+    "collectionsLimit": "Free plan limited to 3 collections.",
+    "upgrade": "Upgrade to Golden Ticket"
+  },
+  "tracking": {
+    "watching": "Watching",
+    "watched": "Watched",
+    "toWatch": "To Watch",
+    "watchNow": "Track Now",
+    "signInToTrack": "Sign in to track",
+    "signInToSave": "to save your watch history",
+    "markUnwatched": "Mark unwatched",
+    "markWatched": "Mark watched",
+    "watchedOn": "Watched {date}",
+    "signInEpisodes": "to track watched episodes"
+  },
+  "streaming": {
+    "title": "Streaming Top 10",
+    "movies": "Movies",
+    "tvShows": "TV Shows",
+    "failedToLoad": "Failed to load",
+    "loading": "Loading..."
+  },
+  "search": {
+    "placeholder": "Search movies, TV shows & anime...",
+    "trendingSearches": "Trending Searches",
+    "emptyTitle": "Search movies, TV & anime",
+    "emptyDesc": "Find your next favorite title. Try searching for a genre, actor, or director."
+  },
+  "feed": {
+    "title": "Feed"
+  },
+  "collections": {
+    "signInToLike": "Sign in to like",
+    "signInToComment": "Sign in to leave a comment",
+    "signInToWrite": "Sign in to write a review",
+    "signInToReply": "Sign in to comment",
+    "createOne": "Create one →",
+    "addToCollection": "Add to collection",
+    "addedTo": "Added to \"{name}\" ✓",
+    "publishedCollections": "Published Collections",
+    "yourThought": "Your thought",
+    "add": "Add"
+  },
+  "history": {
+    "topGenres": "Top Genres",
+    "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+  },
+  "profile": {
+    "watched": "Watched",
+    "reviews": "Reviews",
+    "reviewsEmpty": "Reviews you write will appear here.",
+    "settings": "Settings",
+    "changeProfile": "Change Profile",
+    "resetRatings": "Reset Ratings & Reviews",
+    "language": "Language"
+  },
+  "home": {
+    "trending": "Trending",
+    "nowPlaying": "Now Playing",
+    "popular": "Popular",
+    "upcoming": "Upcoming",
+    "trendingNow": "TRENDING NOW",
+    "tonightsPick": "Tonight's Pick"
+  },
+  "footer": {
+    "about": "About",
+    "goldenTicket": "Golden Ticket",
+    "terms": "Terms",
+    "privacy": "Privacy"
+  },
+  "common": {
+    "error": "Error",
+    "back": "Back",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "none": "None",
+    "unknown": "Unknown",
+    "anime": "Anime",
+    "movie": "Movie",
+    "tv": "TV",
+    "season": "Season",
+    "seasons": "Seasons",
+    "episodes": "Episodes",
+    "rating": "Rating",
+    "year": "Year",
+    "genre": "Genre",
+    "genres": "Genres",
+    "overview": "Overview",
+    "cast": "Cast",
+    "crew": "Crew",
+    "reviews": "Reviews",
+    "noOverview": "No overview available.",
+    "noReviews": "No reviews yet."
+  },
+  "onboarding": {
+    "watched": "Watched",
+    "add": "Add",
+    "done": "Done",
+    "skip": "Skip",
+    "step1Title": "What have you watched?",
+    "step1Desc": "Search and select titles you've already seen. This helps us learn your taste.",
+    "step2Title": "Rate what you've watched",
+    "step2Desc": "Your ratings help us find better recommendations.",
+    "step3Title": "You're all set!",
+    "step3Desc": "Start discovering new movies, TV shows, and anime tailored to you.",
+    "searchPlaceholder": "Search for a title..."
+  }
+}
