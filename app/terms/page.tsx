@@ -93,8 +93,8 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold text-text-primary mb-2">9. Contact</h2>
             <p>
               For questions about these terms, contact us at{" "}
-              <a href="mailto:seriez.app@gmail.com" className="text-accent hover:underline">
-                seriez.app@gmail.com
+              <a href="mailto:support@seriez.app" className="text-accent hover:underline">
+                support@seriez.app
               </a>.
             </p>
           </section>
