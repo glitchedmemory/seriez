@@ -34,10 +34,35 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   // Get items
   const { data: items } = await supabase.from("list_items").select("tmdb_id, media_type, season_number, note, added_at").eq("list_id", listId).order("added_at", { ascending: false });
 
-  // Enrich with TMDB
+const ANILIST_ITEMS_API = "https://graphql.anilist.co";
+
+  // Enrich: anime → AniList, everything else → TMDB
   const enriched = await Promise.all(
     (items || []).map(async (item) => {
       try {
+        if (item.media_type === "anime") {
+          const gql = `query($id:Int){Media(id:$id){title{romaji english}coverImage{extraLarge}startDate{year}averageScore}}`;
+          const res = await fetch(ANILIST_ITEMS_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: gql, variables: { id: item.tmdb_id } }),
+          });
+          if (!res.ok) return null;
+          const json = await res.json();
+          const m = json.data?.Media;
+          if (!m) return null;
+          return {
+            tmdbId: item.tmdb_id,
+            mediaType: item.media_type,
+            seasonNumber: item.season_number || 0,
+            title: m.title?.english || m.title?.romaji || "Unknown",
+            poster: m.coverImage?.extraLarge || null,
+            year: m.startDate?.year ? String(m.startDate.year) : null,
+            rating: m.averageScore ? Math.round(m.averageScore) / 10 : 0,
+            note: item.note || null,
+            addedAt: item.added_at,
+          };
+        }
         const res = await fetch(`${TMDB_API}/${item.media_type}/${item.tmdb_id}?api_key=${TMDB_KEY}`);
         if (!res.ok) return null;
         const d = await res.json();
