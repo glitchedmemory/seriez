@@ -155,5 +155,122 @@
     "community": "Conéctate con otros espectadores a través de reseñas y comentarios",
     "goldenTicket": "Golden Ticket",
     "goldenTicketDesc": "Desbloquea funciones premium con un Golden Ticket por $4.99/mes. Los miembros Golden Ticket obtienen colecciones ilimitadas, resúmenes anuales y más."
+  },
+  "pro": {
+    "title": "✨ Golden Ticket",
+    "subtitle": "Desbloquea la experiencia completa de Seriez.",
+    "priceMonthly": "$4.99",
+    "perMonth": "/ mes",
+    "priceYearly": "O $49 / año — ahorra 35%",
+    "includedFeatures": "Funciones incluidas",
+    "features": [
+      "Colecciones personalizadas ilimitadas — organiza tu biblioteca a tu manera",
+      "Publicar Colecciones — comparte tus listas con la comunidad",
+      "La Elección de Hoy — una recomendación diaria seleccionada",
+      "Ruleta de Descubrimiento — gira para encontrar tu próximo visionado",
+      "Resumen Anual — tu año de visionado en revisión",
+      "ADN del Espectador — tu personalidad de visionado descifrada",
+      "Estadísticas Avanzadas — desgloses por género, actores favoritos, patrones",
+      "Insignia Golden Ticket en tu perfil"
+    ],
+    "stripeNotice": "Las compras de Golden Ticket se procesan de forma segura a través de Stripe.",
+    "upgradeButton": "Actualizar a Golden Ticket"
+  },
+  "privacy": {
+    "title": "Política de Privacidad",
+    "lastUpdated": "Última actualización: 20 de junio de 2026",
+    "sections": {
+      "info": {
+        "title": "1. Información que recopilamos",
+        "items": {
+          "account": "<strong>Datos de cuenta:</strong> nombre de usuario, correo electrónico e información de perfil.",
+          "usage": "<strong>Datos de uso:</strong> historial de visualización, calificaciones, reseñas, colecciones e interacciones.",
+          "technical": "<strong>Datos técnicos:</strong> dirección IP, tipo de navegador e información del dispositivo (automático)."
+        }
+      },
+      "usage": {
+        "title": "2. Cómo usamos tus datos",
+        "items": {
+          "provide": "Proveer y mantener la plataforma Seriez.",
+          "display": "Mostrar tu perfil público, reseñas y actividad.",
+          "communicate": "Enviar comunicaciones esenciales relacionadas con la cuenta.",
+          "improve": "Mejorar el servicio y solucionar problemas."
+        }
+      },
+      "sharing": {
+        "title": "3. Compartición de datos",
+        "intro": "<strong>No vendemos</strong> tus datos personales a terceros. Solo compartimos datos:",
+        "stripe": "Con Stripe para procesar pagos — Stripe recibe tu correo según <a>su política de privacidad</a>.",
+        "legal": "Cuando lo exija la ley o para proteger nuestros derechos."
+      },
+      "storage": {
+        "title": "4. Almacenamiento y seguridad",
+        "content": "Tus datos se almacenan en servidores seguros con cifrado estándar. Tomamos medidas razonables, pero ningún método electrónico es 100% seguro."
+      },
+      "rights": {
+        "title": "5. Tus derechos",
+        "intro": "Tienes derecho a:",
+        "items": {
+          "access": "Acceder a los datos personales que tenemos sobre ti.",
+          "correct": "Solicitar la corrección o eliminación de tus datos.",
+          "export": "Exportar tus datos (disponible en Configuración).",
+          "delete": "Eliminar tu cuenta (disponible en Configuración)."
+        }
+      },
+      "cookies": {
+        "title": "6. Cookies",
+        "content": "Usamos cookies esenciales para autenticación. No usamos cookies de seguimiento ni publicitarias. No se requiere banner de consentimiento."
+      },
+      "changes": {
+        "title": "7. Cambios en esta política",
+        "content": "Podemos actualizar esta política. Los cambios importantes se comunicarán por correo o mediante aviso en la plataforma."
+      },
+      "contact": {
+        "title": "8. Contacto",
+        "content": "Para consultas de privacidad, contáctanos en <a>support@seriez.app</a>."
+      }
+    }
+  },
+  "terms": {
+    "title": "Términos de Servicio",
+    "lastUpdated": "Última actualización: 20 de junio de 2026",
+    "sections": {
+      "acceptance": {
+        "title": "1. Aceptación de los términos",
+        "content": "Al usar Seriez, aceptas estos Términos de Servicio. Si no estás de acuerdo, no uses el servicio."
+      },
+      "accounts": {
+        "title": "2. Cuentas de usuario",
+        "content": "Eres responsable de mantener la confidencialidad de tus credenciales y de toda la actividad en tu cuenta."
+      },
+      "content": {
+        "title": "3. Contenido del usuario",
+        "content": "Conservas la propiedad de tus reseñas, calificaciones y comentarios. Al publicar, otorgas a Seriez una licencia no exclusiva y gratuita para mostrar tu contenido. Eres el único responsable del contenido que publicas."
+      },
+      "use": {
+        "title": "4. Uso aceptable",
+        "content": "Aceptas no publicar contenido ilegal, acosador, difamatorio, abusivo, amenazante u obsceno. Seriez se reserva el derecho de eliminar contenido y suspender cuentas."
+      },
+      "goldenTicket": {
+        "title": "5. Suscripción Golden Ticket",
+        "content": "Golden Ticket es una suscripción de $4.99/mes o $49/año a través de Stripe. Cancelación en cualquier momento, efectiva al final del período actual. Sin reembolsos parciales."
+      },
+      "thirdParty": {
+        "title": "6. Contenido de terceros",
+        "content": "Seriez muestra metadatos de TMDB y AniList. Seriez no está afiliado a estos servicios. Las imágenes y datos se proporcionan según los términos de TMDB."
+      },
+      "liability": {
+        "title": "7. Limitación de responsabilidad",
+        "content": "Seriez se proporciona \"tal cual\" sin garantías. Seriez no será responsable por daños derivados del uso del servicio."
+      },
+      "changes": {
+        "title": "8. Cambios en los términos",
+        "content": "Nos reservamos el derecho de modificar estos términos. El uso continuado después de los cambios constituye la aceptación."
+      },
+      "contact": {
+        "title": "9. Contacto",
+        "content": "Para preguntas sobre estos términos, contáctanos en <a>support@seriez.app</a>."
+      }
+    }
   }
 }

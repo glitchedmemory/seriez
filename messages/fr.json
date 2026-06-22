@@ -155,5 +155,122 @@
     "community": "Connectez-vous avec d'autres spectateurs via les critiques et commentaires",
     "goldenTicket": "Golden Ticket",
     "goldenTicketDesc": "Débloquez les fonctionnalités premium avec un Golden Ticket à 4,99 $/mois. Les membres Golden Ticket bénéficient de collections illimitées, de récaps annuels et plus encore."
+  },
+  "pro": {
+    "title": "✨ Golden Ticket",
+    "subtitle": "Débloquez l'expérience Seriez complète.",
+    "priceMonthly": "4,99 $",
+    "perMonth": "/ mois",
+    "priceYearly": "Ou 49 $ / an — économisez 35 %",
+    "includedFeatures": "Fonctionnalités incluses",
+    "features": [
+      "Collections personnalisées illimitées — organisez votre bibliothèque à votre façon",
+      "Publier des Collections — partagez vos listes avec la communauté",
+      "Le Choix du Soir — une recommandation quotidienne",
+      "Roulette Découverte — tournez pour trouver votre prochain visionnage",
+      "Récap Annuel — votre année de visionnage en revue",
+      "ADN du Spectateur — votre personnalité de visionnage décodée",
+      "Stats Avancées — analyses par genre, acteurs favoris, habitudes",
+      "Badge Golden Ticket sur votre profil"
+    ],
+    "stripeNotice": "Les achats Golden Ticket sont traités en toute sécurité via Stripe.",
+    "upgradeButton": "Passer au Golden Ticket"
+  },
+  "privacy": {
+    "title": "Politique de confidentialité",
+    "lastUpdated": "Dernière mise à jour : 20 juin 2026",
+    "sections": {
+      "info": {
+        "title": "1. Informations collectées",
+        "items": {
+          "account": "<strong>Données de compte :</strong> nom d'utilisateur, adresse e-mail et informations de profil.",
+          "usage": "<strong>Données d'utilisation :</strong> historique de visionnage, notes, avis, collections et interactions.",
+          "technical": "<strong>Données techniques :</strong> adresse IP, type de navigateur et informations sur l'appareil (automatique)."
+        }
+      },
+      "usage": {
+        "title": "2. Utilisation de vos données",
+        "items": {
+          "provide": "Fournir et maintenir la plateforme Seriez.",
+          "display": "Afficher votre profil public, vos avis et votre activité.",
+          "communicate": "Envoyer des communications essentielles liées au compte.",
+          "improve": "Améliorer le service et corriger les problèmes."
+        }
+      },
+      "sharing": {
+        "title": "3. Partage des données",
+        "intro": "Nous <strong>ne vendons pas</strong> vos données personnelles à des tiers. Nous partageons les données uniquement :",
+        "stripe": "Avec Stripe pour le traitement des paiements — Stripe reçoit votre e-mail et vos informations de paiement selon <a>sa politique de confidentialité</a>.",
+        "legal": "Lorsque la loi l'exige ou pour protéger nos droits."
+      },
+      "storage": {
+        "title": "4. Stockage et sécurité",
+        "content": "Vos données sont stockées sur des serveurs sécurisés avec un chiffrement standard. Nous prenons des mesures raisonnables, mais aucun stockage électronique n'est 100 % sûr."
+      },
+      "rights": {
+        "title": "5. Vos droits",
+        "intro": "Vous avez le droit de :",
+        "items": {
+          "access": "Accéder aux données personnelles que nous détenons.",
+          "correct": "Demander la correction ou la suppression de vos données.",
+          "export": "Exporter vos données (disponible dans les Paramètres).",
+          "delete": "Supprimer votre compte (disponible dans les Paramètres)."
+        }
+      },
+      "cookies": {
+        "title": "6. Cookies",
+        "content": "Nous utilisons des cookies essentiels pour l'authentification. Aucun cookie de suivi ou publicitaire. Aucune bannière de consentement requise."
+      },
+      "changes": {
+        "title": "7. Modifications de cette politique",
+        "content": "Nous pouvons mettre à jour cette politique. Les modifications importantes seront communiquées par e-mail ou via la plateforme."
+      },
+      "contact": {
+        "title": "8. Contact",
+        "content": "Pour toute question relative à la confidentialité, contactez-nous à <a>support@seriez.app</a>."
+      }
+    }
+  },
+  "terms": {
+    "title": "Conditions d'utilisation",
+    "lastUpdated": "Dernière mise à jour : 20 juin 2026",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptation des conditions",
+        "content": "En utilisant Seriez, vous acceptez ces conditions d'utilisation. Si vous n'êtes pas d'accord, n'utilisez pas le service."
+      },
+      "accounts": {
+        "title": "2. Comptes utilisateur",
+        "content": "Vous êtes responsable de la confidentialité de vos identifiants et de toute activité sur votre compte."
+      },
+      "content": {
+        "title": "3. Contenu utilisateur",
+        "content": "Vous conservez la propriété de vos avis, notes et commentaires. En publiant, vous accordez à Seriez une licence non exclusive et gratuite pour afficher votre contenu. Vous êtes seul responsable du contenu que vous publiez."
+      },
+      "use": {
+        "title": "4. Usage acceptable",
+        "content": "Vous acceptez de ne pas publier de contenu illégal, harcelant, diffamatoire, abusif, menaçant, obscène ou autrement répréhensible. Seriez se réserve le droit de supprimer tout contenu."
+      },
+      "goldenTicket": {
+        "title": "5. Abonnement Golden Ticket",
+        "content": "Golden Ticket est un abonnement à 4,99 $/mois ou 49 $/an via Stripe. Annulation possible à tout moment, prenant effet à la fin de la période en cours. Pas de remboursement partiel."
+      },
+      "thirdParty": {
+        "title": "6. Contenu tiers",
+        "content": "Seriez affiche des métadonnées de TMDB et AniList. Seriez n'est pas affilié à ces services. Les images et données sont fournies selon les conditions de TMDB."
+      },
+      "liability": {
+        "title": "7. Limitation de responsabilité",
+        "content": "Seriez est fourni « en l'état » sans garantie. Seriez ne peut être tenu responsable des dommages liés à l'utilisation du service."
+      },
+      "changes": {
+        "title": "8. Modification des conditions",
+        "content": "Nous nous réservons le droit de modifier ces conditions. L'utilisation continue après modification vaut acceptation."
+      },
+      "contact": {
+        "title": "9. Contact",
+        "content": "Pour toute question, contactez-nous à <a>support@seriez.app</a>."
+      }
+    }
   }
 }
