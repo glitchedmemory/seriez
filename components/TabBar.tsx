@@ -220,14 +220,17 @@ export function Sidebar() {
             </div>
             <div className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <p className="text-sm font-medium text-text-primary">{displayName}</p>
-              <p className="text-xs text-text-secondary">{t("nav.profile")} →</p>
             </div>
           </a>
           <button
             onClick={async () => { await supabase.auth.signOut(); localStorage.removeItem("seriez-username"); window.location.href = "/"; }}
             className="flex items-center gap-3 px-1.5 py-1.5 rounded-lg text-xs text-text-secondary hover:text-red-400 transition-colors min-w-max"
           >
-            <span className="text-sm flex-shrink-0">🚪</span>
+            <span className="text-sm flex-shrink-0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+            </span>
             <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">{t("auth.signOut")}</span>
           </button>
           </>
