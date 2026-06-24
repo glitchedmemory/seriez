@@ -2,6 +2,7 @@ import SeasonClient from "@/components/SeasonClient";
 import { fetchKitsuThumbnails } from "@/lib/anilist";
 import { validateAndReplaceTrailers } from "@/lib/yt-validator";
 import { notFound } from "next/navigation";
+import { generateTVJsonLd, StructuredDataScript } from "@/lib/structured-data";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const ANILIST_API = "https://graphql.anilist.co";
@@ -281,7 +282,26 @@ export default async function SeasonPage({ params }: Props) {
       if (diff > 0) data.daysUntil = diff;
     }
 
-    return <SeasonClient data={data} />;
+    const jsonLd = generateTVJsonLd({
+      title: data.title,
+      description: data.overview,
+      posterUrl: data.posterPath,
+      rating: data.rating,
+      ratingCount: data.voteCount,
+      releaseYear: data.year,
+      genres: data.genres,
+      url: `/title/${seriesId}/season/${seasonNum}`,
+      totalSeasons: data.totalSeasons,
+      status: data.status,
+      networks: data.networks,
+    });
+
+    return (
+      <>
+        <StructuredDataScript data={jsonLd} />
+        <SeasonClient data={data} />
+      </>
+    );
   } catch (e: any) {
     console.error("Season page error:", e.message);
     notFound();
