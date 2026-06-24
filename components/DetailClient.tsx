@@ -274,6 +274,9 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
               <span className="bg-bg-card px-2 py-0.5 rounded-full">
                 {detail.status}
               </span>
+              <span className="bg-accent/15 text-accent px-2 py-0.5 rounded-full font-semibold">
+                Seriez Score: {detail.rating}/10
+              </span>
               {detail.type === "tv" && detail.seasons && (
                 <span className="bg-bg-card px-2 py-0.5 rounded-full">
                   {detail.seasons} Season{detail.seasons > 1 ? "s" : ""}
@@ -613,6 +616,13 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
 
         {/* Recommended */}
         <SimilarSection items={detail.similar} />
+
+        {/* Powered by Seriez */}
+        <div className="mt-8 pt-4 border-t border-white/5 text-center">
+          <p className="text-[10px] text-text-secondary">
+            <a href="https://seriez.app" className="text-accent hover:underline font-medium">Seriez</a> — Track Movies, TV Shows &amp; Anime in One Place
+          </p>
+        </div>
       </div>
     </div>
   );

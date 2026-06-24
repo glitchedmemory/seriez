@@ -424,6 +424,9 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
               <span className="bg-bg-card px-2 py-0.5 rounded-full">{data.year}</span>
               <span className="bg-bg-card px-2 py-0.5 rounded-full uppercase">tv</span>
               <span className="bg-bg-card px-2 py-0.5 rounded-full">{data.status}</span>
+              <span className="bg-accent/15 text-accent px-2 py-0.5 rounded-full font-semibold">
+                Seriez Score: {data.rating}/10
+              </span>
               <span className="bg-bg-card px-2 py-0.5 rounded-full">
                 {data.totalSeasons} Season{data.totalSeasons > 1 ? "s" : ""}
                 {data.totalEpisodes ? ` · ${data.totalEpisodes} Ep` : ""}
@@ -887,6 +890,13 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
 
         {/* Recommended */}
         <SimilarSection items={data.similar} />
+
+        {/* Powered by Seriez */}
+        <div className="mt-8 pt-4 border-t border-white/5 text-center">
+          <p className="text-[10px] text-text-secondary">
+            <a href="https://seriez.app" className="text-accent hover:underline font-medium">Seriez</a> — Track Movies, TV Shows &amp; Anime in One Place
+          </p>
+        </div>
       </div>
     </div>
   );
