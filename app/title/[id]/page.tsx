@@ -3,6 +3,7 @@ import DetailClient from "@/components/DetailClient";
 import { getAnimeDetail, getAnimeEpisodes, enrichAnimeRelations } from "@/lib/anilist";
 import AnimeDetailClient from "@/components/AnimeDetailClient";
 import { notFound, redirect } from "next/navigation";
+import { generateMovieJsonLd, StructuredDataScript } from "@/lib/structured-data";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const API_KEY = process.env.TMDB_API_KEY!;
@@ -124,7 +125,22 @@ export default async function TitlePage({ params, searchParams }: Props) {
 
   try {
     const detail = await getMovieDetail(numId);
-    return <DetailClient detail={detail} />;
+    const jsonLd = generateMovieJsonLd({
+      title: detail.title || "Unknown",
+      description: detail.overview || "",
+      posterUrl: detail.posterPath || null,
+      rating: detail.rating || 0,
+      ratingCount: detail.voteCount || 0,
+      releaseYear: detail.releaseDate ? parseInt(detail.releaseDate.slice(0, 4)) : 0,
+      genres: detail.genres?.map((g: any) => g.name) || [],
+      url: `/title/${numId}`,
+    });
+    return (
+      <>
+        <StructuredDataScript data={jsonLd} />
+        <DetailClient detail={detail} />
+      </>
+    );
   } catch {
     notFound();
   }

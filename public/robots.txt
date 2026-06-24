@@ -1,0 +1,36 @@
+User-agent: *
+Allow: /
+
+# AI Crawler Policies
+User-agent: GPTBot
+Disallow:
+ai-train: yes
+ai-input: yes
+
+User-agent: ClaudeBot
+Disallow:
+ai-train: yes
+ai-input: yes
+
+User-agent: CCBot
+Disallow:
+ai-train: yes
+ai-input: yes
+
+User-agent: Google-Extended
+Disallow:
+ai-train: yes
+ai-input: yes
+
+User-agent: PerplexityBot
+Disallow:
+ai-train: yes
+ai-input: yes
+
+User-agent: OAI-SearchBot
+Disallow:
+ai-input: yes
+
+# Block known spam referrers
+User-agent: *
+Disallow: /api/
