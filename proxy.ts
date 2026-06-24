@@ -26,9 +26,29 @@ setInterval(() => {
   }
 }, 300000);
 
+// Bot User-Agent patterns for training-data crawlers
+const BOT_UA_PATTERNS = [
+  "GPTBot",
+  "ChatGPT-User",
+  "ClaudeBot",
+  "anthropic-ai",
+  "PerplexityBot",
+  "OAI-SearchBot",
+  "CCBot",
+  "Google-Extended",
+  "FacebookBot",
+];
+
 export async function proxy(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
   const path = request.nextUrl.pathname;
+  const userAgent = request.headers.get("user-agent") || "";
+
+  // Detect AI crawler bots → set x-is-bot for downstream server components
+  const isBot = BOT_UA_PATTERNS.some((pattern) => userAgent.includes(pattern));
+  if (isBot) {
+    request.headers.set("x-is-bot", "1");
+  }
 
   // Fix Turbopack CSS chunk mismatch
   if (path === "/_next/static/chunks/259_-80ktmhh.css") {

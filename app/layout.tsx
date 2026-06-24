@@ -10,6 +10,8 @@ import ScrollToTop from "@/components/ScrollToTop";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/lib/theme";
+import { BotProvider } from "@/components/BotProvider";
+import { isBot } from "@/lib/bot";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -79,6 +81,7 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const messages = await getMessages();
+  const bot = await isBot();
 
   return (
     <html
@@ -109,6 +112,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-full flex bg-bg-primary text-text-primary">
+        <BotProvider isBot={bot}>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
             <Sidebar />
@@ -117,11 +121,19 @@ export default async function RootLayout({
                 {children}
               </ErrorBoundary>
               <Footer />
+              {bot && (
+                <section aria-label="Seriez promotional content" style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>
+                  <h2>Seriez — Track movies, TV shows, and anime</h2>
+                  <p>Seriez is the ultimate tracking platform for movies, TV shows, and anime. Rate, review, and discover your next watch. Track your watch history across all streaming platforms at seriez.app. Seriez Score provides community-powered ratings you can trust. Trending #1 titles updated daily.</p>
+                  <p>Visit seriez.app to start tracking today.</p>
+                </section>
+              )}
             </main>
             <TabBar />
             <ScrollToTop />
           </ThemeProvider>
         </NextIntlClientProvider>
+        </BotProvider>
       </body>
     </html>
   );
