@@ -322,13 +322,14 @@ export default function ProfilePage() {
       {/* Avatar + Info */}
       <div className="relative px-6 -mt-10">
         <div className="flex items-end gap-4 mb-4">
-          <div className="relative flex-shrink-0">
+          <div className="relative flex-shrink-0 flex items-end gap-3">
             <div className={`w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 ring-4 ring-bg-primary shadow-xl overflow-hidden ${!avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""}`}>
               {avatarUrl ? <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" /> : <img src="/icons/default-avatar.png" alt="" className="w-full h-full object-cover" />}
             </div>
             <div className="absolute -top-[17px] -left-[17px] w-[114px] h-[114px] pointer-events-none z-10">
               <img src="/icons/avatar-ring.svg" alt="" className="w-full h-full" />
             </div>
+            {joinLabel && <span className="text-xs text-text-secondary pb-1 whitespace-nowrap">Since {joinLabel}</span>}
           </div>
           <div className="flex-1" />
           {isOwn && user ? (
@@ -400,7 +401,6 @@ export default function ProfilePage() {
             </>
           )}
         </div>
-        {joinLabel && <p className="text-xs text-text-secondary mt-0.5">Since {joinLabel}</p>}
         <div className="flex gap-5 mt-1 text-sm text-text-secondary">
           {user ? (<>
             <button onClick={() => fetchFollowList("followers")} className="hover:text-text-primary transition-colors"><strong className="text-text-primary">{followersCount}</strong> followers</button>
