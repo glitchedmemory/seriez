@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 
-type Section = "dashboard" | "reports" | "users" | "content" | "search" | "popular" | "activity" | "announce" | "sanctions" | "audit";
-
-export default function AdminPanel({ userRole }: { userRole: string | null }) {
+function AdminPanel({ userRole }: { userRole: string | null }) {
+  type Section = "dashboard" | "reports" | "users" | "content" | "search" | "popular" | "activity" | "announce" | "sanctions" | "audit";
   const [section, setSection] = useState<Section>("dashboard");
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +15,7 @@ export default function AdminPanel({ userRole }: { userRole: string | null }) {
   const [contentLoading, setContentLoading] = useState(false);
   const [contentQ, setContentQ] = useState("");
   const [contentFilter, setContentFilter] = useState("all");
-  const [contentType, setContentType] = useState("all");
+  const [contentType, setContentType] = useState("all"); // "all" | "review" | "comment" | "collection"
   const [userDetail, setUserDetail] = useState<any>(null);
   const [userDetailLoading, setUserDetailLoading] = useState(false);
   const [sanctionTarget, setSanctionTarget] = useState("");
@@ -28,21 +27,32 @@ export default function AdminPanel({ userRole }: { userRole: string | null }) {
   const [auditLoading, setAuditLoading] = useState(false);
   const [roleMsg, setRoleMsg] = useState("");
   const isAdmin = userRole === "admin";
+  // Search analytics
   const [searchTop, setSearchTop] = useState<any[]>([]);
   const [searchDaily, setSearchDaily] = useState<any[]>([]);
   const [searchTotal, setSearchTotal] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
+  // Popular content
   const [popularTracked, setPopularTracked] = useState<any[]>([]);
   const [popularReviewed, setPopularReviewed] = useState<any[]>([]);
   const [popularCollected, setPopularCollected] = useState<any[]>([]);
   const [popularLoading, setPopularLoading] = useState(false);
+  // User activity
   const [dau, setDau] = useState<any[]>([]);
   const [mostActive, setMostActive] = useState<any[]>([]);
   const [signupTrend, setSignupTrend] = useState<any[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
+  // Announce
   const [announceMessage, setAnnounceMessage] = useState("");
   const [announceSending, setAnnounceSending] = useState(false);
   const [announceResult, setAnnounceResult] = useState<string | null>(null);
+
+  const fetchItems = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/reports");
+      if (res.ok) {
+        const data = await res.json();
         const all = [
           ...(data.reviews || []).map((r: any) => ({ ...r, type: "review" })),
           ...(data.comments || []).map((c: any) => ({ ...c, type: "comment" })),
@@ -913,3 +923,5 @@ function StatBadge({ value, label, color, prefix = "" }: { value: string | numbe
     </div>
   );
 }
+
+export default AdminPanel;
