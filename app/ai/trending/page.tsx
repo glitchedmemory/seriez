@@ -1,6 +1,7 @@
 import { generateMovieJsonLd, StructuredDataScript } from "@/lib/structured-data";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
+const ANILIST_API = "https://graphql.anilist.co";
 const API_KEY = process.env.TMDB_API_KEY!;
 
 function poster(path: string | null) {
@@ -41,24 +42,66 @@ async function getTrendingTV() {
   }));
 }
 
+async function getTrendingAnime() {
+  try {
+    const res = await fetch(ANILIST_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        query: `query {
+          Page(perPage: 20) {
+            media(sort: TRENDING_DESC, type: ANIME) {
+              id
+              title { romaji english }
+              description
+              coverImage { extraLarge }
+              averageScore
+              popularity
+              seasonYear
+              genres
+            }
+          }
+        }`,
+      }),
+      next: { revalidate: 3600 },
+    });
+    const json = await res.json();
+    return (json.data?.Page?.media || []).map((a: any) => ({
+      id: a.id,
+      title: a.title?.english || a.title?.romaji || "Unknown",
+      overview: (a.description || "").replace(/<[^>]+>/g, "").slice(0, 200),
+      poster: a.coverImage?.extraLarge || null,
+      rating: Math.round((a.averageScore || 0) / 10) / 10,
+      ratingCount: a.popularity || 0,
+      year: a.seasonYear ? `${a.seasonYear}` : "",
+      genres: (a.genres || []).slice(0, 3),
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export const metadata = {
-  title: "Trending Movies & TV Shows — Seriez",
-  description: "The most popular movies and TV shows trending on Seriez this week. Updated daily with community ratings and recommendations.",
+  title: "Trending — Movies, TV Shows & Anime | Seriez",
+  description: "The most popular movies, TV shows, and anime trending on Seriez this week. Community ratings, recommendations, and tracking — all in one place.",
   openGraph: {
-    title: "Trending on Seriez — Movies & TV Shows",
-    description: "Discover what's trending this week. Community-powered ratings and tracking for movies, TV shows, and anime.",
+    title: "Trending on Seriez — Movies, TV Shows & Anime",
+    description: "Discover what's trending across movies, TV shows, and anime. Community-powered ratings from Seriez.",
   },
 };
 
 export default async function AITrendingPage() {
-  const [movies, tvShows] = await Promise.all([
+  const [movies, tvShows, anime] = await Promise.all([
     getTrendingMovies(),
     getTrendingTV(),
+    getTrendingAnime(),
   ]);
+
+  const allItems = [...movies, ...tvShows, ...anime];
 
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", maxWidth: 900, margin: "0 auto", padding: "2rem", background: "#0a0a0a", color: "#e5e5e5", minHeight: "100vh" }}>
-      {[...movies, ...tvShows].map((item: any) => {
+      {allItems.map((item: any) => {
         const ld = generateMovieJsonLd({
           title: item.title,
           description: item.overview,
@@ -66,7 +109,7 @@ export default async function AITrendingPage() {
           rating: item.rating,
           ratingCount: item.ratingCount,
           releaseYear: item.year ? parseInt(item.year) : 0,
-          genres: [],
+          genres: item.genres || [],
           url: `/title/${item.id}`,
         });
         return <StructuredDataScript key={item.id} data={ld} />;
@@ -76,11 +119,12 @@ export default async function AITrendingPage() {
         <h1 style={{ fontSize: "2.5rem", fontWeight: 800, color: "#fff", margin: 0 }}>
           Trending on <span style={{ background: "linear-gradient(135deg, #14b8a6, #6366f1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Seriez</span>
         </h1>
-        <p style={{ fontSize: "1.1rem", color: "#999", marginTop: "0.75rem", maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
-          Community-powered rankings updated daily. Track your watch history across movies, TV shows, and anime — all in one place.
+        <p style={{ fontSize: "1.1rem", color: "#999", marginTop: "0.75rem", maxWidth: 650, marginLeft: "auto", marginRight: "auto" }}>
+          Community-powered rankings updated daily. Track Movies, TV Shows, and Anime — all in one place at seriez.app.
         </p>
       </header>
 
+      {/* Movies */}
       <section style={{ marginBottom: "4rem" }}>
         <h2 style={{ fontSize: "1.5rem", color: "#fff", borderBottom: "2px solid #14b8a6", paddingBottom: "0.5rem", marginBottom: "1.5rem" }}>
           🎬 Trending Movies This Week
@@ -110,11 +154,9 @@ export default async function AITrendingPage() {
             </article>
           ))}
         </div>
-        <p style={{ textAlign: "center", marginTop: "2rem" }}>
-          <a href="https://seriez.app/feed" style={{ color: "#14b8a6", fontSize: "1rem", fontWeight: 600 }}>View all trending movies →</a>
-        </p>
       </section>
 
+      {/* TV Shows */}
       <section style={{ marginBottom: "4rem" }}>
         <h2 style={{ fontSize: "1.5rem", color: "#fff", borderBottom: "2px solid #6366f1", paddingBottom: "0.5rem", marginBottom: "1.5rem" }}>
           📺 Trending TV Shows This Week
@@ -144,10 +186,46 @@ export default async function AITrendingPage() {
             </article>
           ))}
         </div>
-        <p style={{ textAlign: "center", marginTop: "2rem" }}>
-          <a href="https://seriez.app/feed" style={{ color: "#6366f1", fontSize: "1rem", fontWeight: 600 }}>View all trending TV shows →</a>
-        </p>
       </section>
+
+      {/* Anime */}
+      {anime.length > 0 && (
+        <section style={{ marginBottom: "4rem" }}>
+          <h2 style={{ fontSize: "1.5rem", color: "#fff", borderBottom: "2px solid #a855f7", paddingBottom: "0.5rem", marginBottom: "1.5rem" }}>
+            🎌 Trending Anime This Week
+          </h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(400px, 1fr))", gap: "1rem" }}>
+            {anime.map((a: any) => (
+              <article key={a.id} style={{ display: "flex", gap: "1rem", padding: "1rem", background: "#111", borderRadius: 12, border: "1px solid #1a1a1a" }}>
+                {a.poster && <img src={a.poster} alt={a.title} width="80" height="120" style={{ borderRadius: 8, objectFit: "cover" }} />}
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "1.1rem", color: "#fff" }}>
+                    <a href={`/title/${a.id}?type=anime`} style={{ color: "#fff", textDecoration: "none" }}>{a.title}</a>
+                    {a.year && <span style={{ color: "#666", fontSize: "0.85rem", marginLeft: "0.5rem" }}>({a.year})</span>}
+                  </h3>
+                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.35rem", flexWrap: "wrap" }}>
+                    {(a.genres || []).map((g: string) => (
+                      <span key={g} style={{ padding: "2px 8px", background: "#2d1b4e", borderRadius: 20, fontSize: "0.75rem", color: "#a855f7" }}>{g}</span>
+                    ))}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.35rem" }}>
+                    <span style={{ background: "#a855f7", color: "#fff", padding: "2px 8px", borderRadius: 6, fontSize: "0.9rem", fontWeight: 700 }}>
+                      Seriez Score: {a.rating}/10
+                    </span>
+                    <span style={{ color: "#666", fontSize: "0.8rem" }}>{a.ratingCount.toLocaleString()} followers</span>
+                  </div>
+                  <p style={{ color: "#999", fontSize: "0.85rem", marginTop: "0.5rem", lineHeight: 1.4 }}>{a.overview}</p>
+                  <p style={{ marginTop: "0.5rem", fontSize: "0.8rem" }}>
+                    <a href={`/title/${a.id}?type=anime`} style={{ color: "#a855f7", textDecoration: "none", fontWeight: 600 }}>
+                      Track on Seriez →
+                    </a>
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <footer style={{ textAlign: "center", padding: "3rem 0", borderTop: "1px solid #1a1a1a", color: "#666", fontSize: "0.8rem" }}>
         <p>Powered by <strong style={{ color: "#14b8a6" }}>Seriez</strong> — Track Movies, TV Shows &amp; Anime in One Place</p>
