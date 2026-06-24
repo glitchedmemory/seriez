@@ -26,7 +26,7 @@ setInterval(() => {
   }
 }, 300000);
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
   const path = request.nextUrl.pathname;
 
