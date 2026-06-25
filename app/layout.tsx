@@ -110,6 +110,21 @@ export default async function RootLayout({
             `,
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Seriez",
+              url: "https://seriez.app",
+              logo: "https://seriez.app/icons/icon-192.png",
+              description: "Seriez is a tracking platform for movies, TV shows, and anime. Rate, review, and discover your next watch. Community-powered ratings and personalized recommendations.",
+              sameAs: ["https://seriez.app"],
+              knowsAbout: ["Movies", "TV Shows", "Anime", "Streaming", "Filmography", "Watch Tracking"],
+            }),
+          }}
+        />
       </head>
       <body className="min-h-full flex bg-bg-primary text-text-primary">
         <BotProvider isBot={bot}>
