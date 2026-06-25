@@ -13,7 +13,7 @@ export function PosterCard({ item, showReason }: { item: MediaItem; showReason?:
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
         <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-semibold text-gold">
-          ★ {item.rating}
+                    <span className="sr-only">Seriez Rating: </span>★ {item.rating}/10
         </div>
         <div className="absolute bottom-2 left-2 right-2">
           <p className="text-[11px] font-medium text-text-primary leading-tight line-clamp-2">

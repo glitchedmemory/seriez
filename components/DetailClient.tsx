@@ -677,7 +677,7 @@ function SimilarSection({ items }: { items: TmdbDetail["similar"] }) {
               {item.title}
             </p>
             <p className="text-[10px] text-text-secondary">
-              ★ {item.rating}
+                            <span className="sr-only">Seriez Rating: </span>★ {item.rating}/10
             </p>
           </a>
         ))}
