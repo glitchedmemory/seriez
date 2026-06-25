@@ -26,18 +26,10 @@ setInterval(() => {
   }
 }, 300000);
 
-// Bot User-Agent patterns for training-data crawlers
-const BOT_UA_PATTERNS = [
-  "GPTBot",
-  "ChatGPT-User",
-  "ClaudeBot",
-  "anthropic-ai",
-  "PerplexityBot",
-  "OAI-SearchBot",
-  "CCBot",
-  "Google-Extended",
-  "FacebookBot",
-];
+// Bot User-Agent regex — matches all known and future AI crawlers automatically.
+// Covers GPTBot, ClaudeBot, Claude-SearchBot, PerplexityBot, CCBot, etc.
+// Standard browsers (Chrome, Safari, Firefox, Brave) do NOT contain "bot" in their UA.
+const BOT_UA_REGEX = /bot|crawler|spider|anthropic-ai|ChatGPT-User|Google-Extended|FacebookBot/i;
 
 export async function proxy(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
@@ -45,7 +37,7 @@ export async function proxy(request: NextRequest) {
   const userAgent = request.headers.get("user-agent") || "";
 
   // Detect AI crawler bots → set x-is-bot for downstream server components
-  const isBot = BOT_UA_PATTERNS.some((pattern) => userAgent.includes(pattern));
+  const isBot = BOT_UA_REGEX.test(userAgent);
   if (isBot) {
     request.headers.set("x-is-bot", "1");
   }
