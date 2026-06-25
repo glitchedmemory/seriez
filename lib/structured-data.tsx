@@ -1,5 +1,5 @@
-// Generates Schema.org JSON-LD structured data for movies, TV shows, and anime.
-// Used by AI search engines (Google SGE, Bing Chat, Perplexity) to understand content.
+// Generates Schema.org JSON-LD structured data for movies, TV shows, anime, and persons.
+// Used by AI search engines (Google SGE, Bing Chat, Perplexity, Claude) to understand content.
 export interface MovieSchema {
   title: string;
   description: string;
@@ -15,6 +15,19 @@ export interface TVSchema extends MovieSchema {
   totalSeasons: number;
   status: string;
   networks: string[];
+}
+
+export interface PersonSchema {
+  name: string;
+  image: string | null;
+  birthDate: string;
+  deathDate: string;
+  birthPlace: string;
+  jobTitle: string;
+  description: string;
+  url: string;
+  sameAs: string;
+  knownCredits: { title: string; role: string; year: number }[];
 }
 
 export function generateMovieJsonLd(data: MovieSchema) {
@@ -58,6 +71,24 @@ export function generateTVJsonLd(data: TVSchema) {
     numberOfSeasons: data.totalSeasons,
     productionStatus: data.status,
     sameAs: `https://seriez.app${data.url}`,
+  };
+}
+
+export function generatePersonJsonLd(data: PersonSchema) {
+  const topCredits = data.knownCredits.slice(0, 10).map(c => `${c.title} (${c.year}) as ${c.role}`);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: data.name,
+    image: data.image,
+    birthDate: data.birthDate || undefined,
+    deathDate: data.deathDate || undefined,
+    birthPlace: data.birthPlace || undefined,
+    jobTitle: data.jobTitle,
+    description: data.description,
+    url: `https://seriez.app${data.url}`,
+    sameAs: data.sameAs,
+    knowsAbout: topCredits,
   };
 }
 

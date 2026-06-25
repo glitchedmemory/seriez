@@ -25,7 +25,10 @@ function CreditCard({ item, type }: { item: { id: number; title: string; charact
         <p className="text-xs text-text-secondary">{item.year}</p>
         <p className="text-[11px] text-accent-light truncate">{item.character}</p>
       </div>
-      <div className="text-xs text-gold">★ {item.rating}</div>
+      <div className="text-xs text-gold">
+        <span className="sr-only">Seriez Rating: </span>
+        ★ {item.rating}/10
+      </div>
     </a>
   );
 }

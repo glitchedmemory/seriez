@@ -13,22 +13,27 @@ export async function GET(request: Request) {
     );
     const { data: authData, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error && authData.user) {
-      const response = NextResponse.redirect(`${origin}${next}`);
-      // Store username cookie so client knows who's logged in
+      // check if user has a username — if not, send to welcome
+      let username: string | null = null;
       try {
         const { data } = await supabase
           .from("users")
           .select("username")
           .eq("id", authData.user.id)
           .single();
-        if (data?.username) {
-          response.cookies.set("seriez-username", data.username, {
-            path: "/",
-            maxAge: 60 * 60 * 24 * 365,
-            sameSite: "lax",
-          });
-        }
+        username = data?.username ?? null;
       } catch {}
+
+      const target = username ? next : "/welcome";
+      const response = NextResponse.redirect(`${origin}${target}`);
+
+      if (username) {
+        response.cookies.set("seriez-username", username, {
+          path: "/",
+          maxAge: 60 * 60 * 24 * 365,
+          sameSite: "lax",
+        });
+      }
       return response;
     }
   }
