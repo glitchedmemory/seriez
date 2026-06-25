@@ -133,7 +133,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
         <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
           {/* Rating */}
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-gold text-sm">★ {item.rating}</span>
+            <span className="text-gold text-sm"><span className="sr-only">Seriez Rating: </span>★ {item.rating}/10</span>
             <span className="text-white/60 text-xs">
               {item.year} · {item.type === "movie" ? t("common.movie") : item.type === "anime" ? t("common.anime") : t("common.tv")}
             </span>

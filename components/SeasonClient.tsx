@@ -741,7 +741,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                     <div className="flex items-center gap-3 mt-1 text-[10px] text-text-secondary">
                       {ep.runtime > 0 && <span>{formatRuntime(ep.runtime)}</span>}
                       {ep.airDate && <span>{ep.airDate}</span>}
-                      {ep.rating > 0 && <span className="text-gold">★ {ep.rating}</span>}
+                      {ep.rating > 0 && <span className="text-gold"><span className="sr-only">Seriez Rating: </span>★ {ep.rating}/10</span>}
                     </div>
                     {ep.overview && (
                       <p className="mt-1 text-xs text-text-secondary leading-relaxed line-clamp-2">
@@ -933,7 +933,7 @@ function SimilarSection({ items }: { items: SimilarItem[] }) {
               />
             </div>
             <p className="text-[11px] text-text-primary mt-1 line-clamp-1">{item.title}</p>
-            <p className="text-[10px] text-text-secondary">★ {item.rating}</p>
+            <p className="text-[10px] text-text-secondary"><span className="sr-only">Seriez Rating: </span>★ {item.rating}/10</p>
           </a>
         ))}
       </div>
