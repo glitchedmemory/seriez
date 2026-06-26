@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default function LoginPage() {
+function LoginContent() {
   const t = useTranslations();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +15,9 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+  const pwChanged = searchParams.get("pw_changed") === "1";
 
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -78,6 +80,12 @@ export default function LoginPage() {
     <div className="max-w-sm mx-auto px-4 pt-20 pb-32">
       <h1 className="text-2xl font-bold text-text-primary mb-2">{t("auth.signIn")}</h1>
       <p className="text-sm text-text-secondary mb-6">Save your watch data across devices</p>
+
+      {pwChanged && (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 mb-5 text-center">
+          <p className="text-emerald-400 font-medium text-sm">Password changed successfully. Please sign in with your new password.</p>
+        </div>
+      )}
 
       {sent ? (
         <div className="bg-bg-card border border-border rounded-xl p-5 text-center">
@@ -159,5 +167,13 @@ export default function LoginPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="max-w-sm mx-auto px-4 pt-20 pb-32"><div className="animate-pulse h-40 bg-bg-card rounded-xl" /></div>}>
+      <LoginContent />
+    </Suspense>
   );
 }
