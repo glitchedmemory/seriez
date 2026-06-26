@@ -154,7 +154,7 @@ export default function ChangeProfilePage() {
               <div className="relative">
                 <button
                   onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                  className={`w-20 h-20 rounded-full flex items-center justify-center ring-4 ring-[#0f0f1a] shadow-xl flex-shrink-0 transition-transform active:scale-95 overflow-hidden ${
+                  className={`w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 transition-transform active:scale-95 overflow-hidden ${
                     !avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""
                   }`}
                 >
@@ -164,9 +164,6 @@ export default function ChangeProfilePage() {
                     <img src="/icons/default-avatar.png" alt="" className="w-full h-full object-cover rounded-full" />
                   )}
                 </button>
-                <div className="absolute -top-[17px] -left-[17px] w-[114px] h-[114px] pointer-events-none z-10">
-                  <img src="/icons/avatar-ring.svg" alt="" className="w-full h-full" />
-                </div>
                 {avatarUrl && (
                   <button
                     onClick={(e) => { e.stopPropagation(); handleAvatarDelete(); }}

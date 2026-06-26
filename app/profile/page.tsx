@@ -323,11 +323,8 @@ export default function ProfilePage() {
       <div className="relative px-6 -mt-10">
         <div className="flex items-end gap-4 mb-4">
           <div className="relative flex-shrink-0 flex items-end gap-3">
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 ring-4 ring-bg-primary shadow-xl overflow-hidden ${!avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""}`}>
+            <div className={`w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden ${!avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""}`}>
               {avatarUrl ? <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" /> : <img src="/icons/default-avatar.png" alt="" className="w-full h-full object-cover" />}
-            </div>
-            <div className="absolute -top-[17px] -left-[17px] w-[114px] h-[114px] pointer-events-none z-10">
-              <img src="/icons/avatar-ring.svg" alt="" className="w-full h-full" />
             </div>
             {joinLabel && <span className="text-xs text-text-secondary pb-1 whitespace-nowrap">Since {joinLabel}</span>}
           </div>
