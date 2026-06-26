@@ -8,7 +8,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import HistoryClient from "@/app/history/HistoryClient";
 import YearlyRecapSlideshow from "@/components/YearlyRecapSlideshow";
 import { StreamingTop10 } from "@/components/StreamingTop10";
-import AdminPanel from "@/components/AdminPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +65,7 @@ export default function ProfilePage() {
   const [selectedMediaType, setSelectedMediaType] = useState<"movie" | "tv" | "anime">("movie");
   const [isPremium, setIsPremium] = useState(false);
   const [reviewsMap, setReviewsMap] = useState<Record<string, string>>({});
-  const [activeView, setActiveView] = useState<"profile" | "insights" | "ott" | "reviews" | "admin">("profile");
+  const [activeView, setActiveView] = useState<"profile" | "insights" | "ott" | "reviews">("profile");
   const [userReviews, setUserReviews] = useState<any[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [isFavoriteMode, setIsFavoriteMode] = useState(false);
@@ -429,15 +428,6 @@ export default function ProfilePage() {
               {activeView === tab.id && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-full" />}
             </button>
           ))}
-          {isAdmin && (
-            <button onClick={() => setActiveView("admin")}
-              className={`relative px-5 py-3 text-sm font-medium transition-all duration-200 ${
-                activeView === "admin" ? "text-red-400" : "text-text-secondary hover:text-red-400"
-              }`}>
-              Admin
-              {activeView === "admin" && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-400 rounded-full" />}
-            </button>
-          )}
         </div>
       </div>
 
@@ -657,8 +647,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* ── Admin View ── */}
-      {activeView === "admin" && isAdmin && <AdminPanel userRole={userRole} />}
     </div>
     </ErrorBoundary>
   );

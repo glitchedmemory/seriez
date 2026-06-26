@@ -38,7 +38,7 @@ export default async function AdminDashboard() {
     {
       label: "Sanctioned",
       value: sanctionedUsers ?? 0,
-      href: "/admin/reports?tab=sanctions",
+      href: "/admin/sanctions",
       accent: "#ef4444",
       bg: "from-[#ef4444]/10 to-[#ef4444]/5",
       border: "border-[#ef4444]/20",
@@ -107,7 +107,7 @@ export default async function AdminDashboard() {
         </Link>
 
         <Link
-          href="/admin/reports?tab=audit"
+          href="/admin/audit"
           className="rounded-2xl border border-[#1a1a2e] bg-[#0a0a14] p-6 hover:border-[#a855f7]/30 transition-all duration-200 group"
         >
           <div className="w-10 h-10 rounded-xl bg-[#a855f7]/10 flex items-center justify-center mb-4 group-hover:bg-[#a855f7]/20 transition-colors">
