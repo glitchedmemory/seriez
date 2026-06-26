@@ -6,8 +6,11 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
 
+  // Use production origin regardless of proxy
+  const origin = "https://seriez.app";
+
   if (!code) {
-    return NextResponse.redirect(new URL("/login?error=no_code", requestUrl.origin));
+    return NextResponse.redirect(new URL("/login?error=no_code", origin));
   }
 
   try {
@@ -37,14 +40,14 @@ export async function GET(request: Request) {
 
     if (error) {
       return NextResponse.redirect(
-        new URL(`/login?error=${encodeURIComponent(error.message)}`, requestUrl.origin)
+        new URL(`/login?error=${encodeURIComponent(error.message)}`, origin)
       );
     }
 
-    return NextResponse.redirect(new URL("/", requestUrl.origin));
+    return NextResponse.redirect(new URL("/", origin));
   } catch (err: any) {
     return NextResponse.redirect(
-      new URL(`/login?error=${encodeURIComponent(err?.message || "unknown")}`, requestUrl.origin)
+      new URL(`/login?error=${encodeURIComponent(err?.message || "unknown")}`, origin)
     );
   }
 }
