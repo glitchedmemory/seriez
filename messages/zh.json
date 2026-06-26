@@ -15,7 +15,8 @@
     "password": "密码",
     "username": "用户名",
     "createAccount": "创建账户",
-    "guest": "游客"
+    "guest": "游客",
+    "passwordChanged": "密码已更改。请使用新密码重新登录。"
   },
   "library": {
     "signInTitle": "登录查看列表",

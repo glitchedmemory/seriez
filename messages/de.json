@@ -15,7 +15,8 @@
     "password": "Passwort",
     "username": "Benutzername",
     "createAccount": "Konto erstellen",
-    "guest": "Gast"
+    "guest": "Gast",
+    "passwordChanged": "Passwort erfolgreich geändert. Bitte melden Sie sich mit Ihrem neuen Passwort an."
   },
   "library": {
     "signInTitle": "Anmelden, um deine Liste zu sehen",

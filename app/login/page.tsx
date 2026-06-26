@@ -83,7 +83,7 @@ function LoginContent() {
 
       {pwChanged && (
         <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 mb-5 text-center">
-          <p className="text-emerald-400 font-medium text-sm">Password changed successfully. Please sign in with your new password.</p>
+          <p className="text-emerald-400 font-medium text-sm">{t("auth.passwordChanged")}</p>
         </div>
       )}
 
