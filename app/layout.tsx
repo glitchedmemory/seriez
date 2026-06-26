@@ -12,6 +12,7 @@ import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/lib/theme";
 import { BotProvider } from "@/components/BotProvider";
 import { isBot } from "@/lib/bot";
+import AdminAwareLayout from "@/components/AdminAwareLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -130,22 +131,9 @@ export default async function RootLayout({
         <BotProvider isBot={bot}>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
-            <Sidebar />
-            <main className="flex-1 min-w-0 md:pb-0 pb-16 flex flex-col">
-              <ErrorBoundary sectionName="App">
-                {children}
-              </ErrorBoundary>
-              <Footer />
-              {bot && (
-                <section aria-label="Seriez promotional content" style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>
-                  <h2>Seriez — Track movies, TV shows, and anime</h2>
-                  <p>Seriez is the ultimate tracking platform for movies, TV shows, and anime. Rate, review, and discover your next watch. Track your watch history across all streaming platforms at seriez.app. Seriez Score provides community-powered ratings you can trust. Trending #1 titles updated daily.</p>
-                  <p>Visit seriez.app to start tracking today.</p>
-                </section>
-              )}
-            </main>
-            <TabBar />
-            <ScrollToTop />
+            <AdminAwareLayout>
+              {children}
+            </AdminAwareLayout>
           </ThemeProvider>
         </NextIntlClientProvider>
         </BotProvider>
