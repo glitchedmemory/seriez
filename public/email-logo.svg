@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 200" width="160" height="200">
+  <!-- Left ticket stub -->
+  <g transform="translate(20,8)">
+    <rect width="52" height="54" rx="5" fill="none" stroke="#e8ecf1" stroke-width="4.5"/>
+    <!-- Notches (inner curve cuts) -->
+    <circle cx="52" cy="16" r="5.5" fill="#0f0f1a"/>
+    <circle cx="52" cy="27" r="5.5" fill="#e8ecf1"/>
+    <circle cx="52" cy="38" r="5.5" fill="#0f0f1a"/>
+    <!-- Perforation dots -->
+    <rect x="12" y="12" width="4.5" height="4.5" rx="1" fill="#e8ecf1"/>
+    <rect x="12" y="24" width="4.5" height="4.5" rx="1" fill="#e8ecf1"/>
+    <rect x="12" y="36" width="4.5" height="4.5" rx="1" fill="#e8ecf1"/>
+  </g>
+
+  <!-- Right ticket stub -->
+  <g transform="translate(72,14)">
+    <rect width="52" height="54" rx="5" fill="none" stroke="#e8ecf1" stroke-width="4.5"/>
+    <!-- Notches -->
+    <circle cx="0" cy="18" r="5.5" fill="#0f0f1a"/>
+    <circle cx="0" cy="29" r="5.5" fill="#e8ecf1"/>
+    <circle cx="0" cy="40" r="5.5" fill="#0f0f1a"/>
+    <!-- Perforation dots -->
+    <rect x="36" y="14" width="4.5" height="4.5" rx="1" fill="#e8ecf1"/>
+    <rect x="36" y="26" width="4.5" height="4.5" rx="1" fill="#e8ecf1"/>
+    <rect x="36" y="38" width="4.5" height="4.5" rx="1" fill="#e8ecf1"/>
+  </g>
+
+  <!-- Play triangle (center, bridging both stubs) -->
+  <polygon points="72,29 72,51 88,40" fill="#818cf8"/>
+
+  <!-- Divider line -->
+  <line x1="50" y1="84" x2="110" y2="84" stroke="#2a2a45" stroke-width="1"/>
+
+  <!-- Text -->
+  <text x="80" y="108" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="15" font-weight="700" letter-spacing="5" fill="#e8ecf1">SERIEZ</text>
+</svg>
