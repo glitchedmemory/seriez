@@ -22,7 +22,9 @@
   if (code) {
     var res = await sb.auth.exchangeCodeForSession(code);
     if (res.error || !res.data.user) {
-      msg.textContent = 'Could not verify. Please try signing up again.';
+      msg.textContent = 'Error: ' + (res.error ? res.error.message : 'no user') + 
+        ' | code=' + code.substring(0,8) + '... | status=' + (res.error ? res.error.status : 'N/A');
+      console.log('exchangeCodeForSession error:', JSON.stringify(res.error));
       return;
     }
     // Save username
