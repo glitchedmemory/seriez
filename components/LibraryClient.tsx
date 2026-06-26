@@ -266,7 +266,7 @@ function CollectionsView() {
                 className="px-4 py-2 rounded-xl bg-accent text-white text-sm font-medium disabled:opacity-40 hover:bg-[#5558e7] transition-colors">Create</button>
             </div>
             {atLimit && (
-              <p className="mt-2 text-xs text-amber-400">Free plan limited to 3 collections. <a href="/profile/settings" className="underline hover:text-amber-300">Upgrade to Golden Ticket</a> for unlimited.</p>
+              <p className="mt-2 text-xs text-amber-400">Free plan limited to 3 collections. <a href="/pro" className="underline hover:text-amber-300">Upgrade to Golden Ticket</a> for unlimited.</p>
             )}
             {errorMsg && (
               <p className="mt-2 text-xs text-red-400">{errorMsg}</p>
