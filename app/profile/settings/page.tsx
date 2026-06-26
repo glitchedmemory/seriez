@@ -113,7 +113,12 @@ export default function SettingsPage() {
     try {
       const res = await fetch("/api/auth/change-password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currentPassword: currentPw, newPassword: newPw }) }).then(r => r.json());
       if (res.error) { setPwMsg({ ok: false, text: res.error }); }
-      else { setPwMsg({ ok: true, text: "Password changed" }); setCurrentPw(""); setNewPw(""); setShowPwForm(false); }
+      else {
+        // Supabase invalidates all sessions on password change — force re-login
+        await supabase.auth.signOut();
+        localStorage.removeItem("seriez-username");
+        router.push("/login?pw_changed=1");
+      }
     } catch { setPwMsg({ ok: false, text: "Something went wrong" }); }
     setPwLoading(false);
   }
