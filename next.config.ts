@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
   turbopack: {},
   allowedDevOrigins: ["*.trycloudflare.com"],
   // sw.js MUST bypass all caching — browser SW update check uses this
+  async rewrites() {
+    return [
+      { source: "/auth/callback", destination: "/auth/callback.html" },
+    ];
+  },
   async headers() {
     return [
       {
