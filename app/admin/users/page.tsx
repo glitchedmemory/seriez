@@ -74,7 +74,8 @@ export default function AdminUsersPage() {
   });
 
   return (
-    <div className="p-8">
+    <>
+      <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
@@ -191,8 +192,6 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
-
-      {/* Delete Confirmation Modal */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="bg-[#0a0a14] border border-[#1a1a2e] rounded-2xl p-6 w-full max-w-sm mx-4">
@@ -226,6 +225,6 @@ export default function AdminUsersPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
