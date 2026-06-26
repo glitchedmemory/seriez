@@ -31,6 +31,12 @@ export default function TabBar() {
           .catch(() => {});
       }
     }).catch(() => {});
+
+    const { data: { subscription } } = createClient().auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const tabs: { name: string; icon: ReactNode; path: string }[] = [
@@ -109,6 +115,12 @@ export function Sidebar() {
     }).catch(() => {
       setMounted(true);
     });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // Fetch avatar URL when user is known
