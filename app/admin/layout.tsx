@@ -19,7 +19,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         supabase.from("users").select("role").eq("username", uname).maybeSingle().then(
           ({ data: row }) => {
             const r = (row as any)?.role;
-            if (r === "admin" || r === "moderator") { setRole(r); setAuthorized("yes"); }
+            if (r === "admin" && uname === "Seriez") { setRole(r); setAuthorized("yes"); }
             else { router.push("/"); }
           },
           () => { router.push("/"); }
