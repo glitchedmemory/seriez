@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Preview — Seriez</title>
+<style>
+  body { margin:0;padding:40px 20px;background:#0f0f1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;display:flex;justify-content:center }
+  .container { max-width:480px;width:100% }
+  .card { background:#1a1a2e;border-radius:16px;padding:40px 32px;border:1px solid #2a2a45 }
+  h1 { margin:0 0 12px;font-size:24px;font-weight:700;color:#fff;text-align:center }
+  .subtitle { margin:0 0 28px;font-size:15px;color:#9ca3af;line-height:1.6;text-align:center }
+  .btn { display:block;width:fit-content;margin:0 auto 28px;background:#6366f1;color:#fff;font-size:15px;font-weight:600;padding:14px 36px;border-radius:12px;text-decoration:none;text-align:center }
+  .divider { border-top:1px solid #2a2a45;margin-bottom:20px }
+  .fallback-label { font-size:12px;color:#6b7280;text-align:center;margin:0 0 4px }
+  .fallback-link { font-size:12px;color:#6366f1;text-align:center;word-break:break-all;margin:0 }
+  .footer { margin-top:24px;text-align:center;font-size:11px;color:#4b5563 }
+  .logo { text-align:center;margin-bottom:32px }
+  .logo img { width:80px;height:auto }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">
+    <img src="https://seriez.app/seriez-logo-white.png" alt="Seriez" width="80">
+  </div>
+  <div class="card">
+    <h1>Welcome to Seriez</h1>
+    <p class="subtitle">One click and you're in. Start tracking everything you watch.</p>
+    <a href="#" class="btn">Confirm your email</a>
+    <div class="divider"></div>
+    <p class="fallback-label">Button not working? Copy and paste this link:</p>
+    <p class="fallback-link">https://seriez.app/auth/callback?code=xxx...</p>
+  </div>
+  <p class="footer">If you didn't create this account, you can ignore this email.</p>
+</div>
+</body>
+</html>
