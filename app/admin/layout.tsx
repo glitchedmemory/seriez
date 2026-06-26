@@ -2,15 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [authorized, setAuthorized] = useState<"loading" | "yes" | "no">("loading");
   const [role, setRole] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
   const router = useRouter();
-  const pathname = usePathname();
   const supabase = createClient();
 
   useEffect(() => {
@@ -19,7 +16,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (!user) { router.push("/login"); return; }
       const uname = user.user_metadata?.username;
       if (uname) {
-        setUsername(uname);
         supabase.from("users").select("role").eq("username", uname).maybeSingle().then(
           ({ data: row }) => {
             const r = (row as any)?.role;
@@ -32,9 +28,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     });
   }, []);
 
-  if (authorized === "loading") return <div className="min-h-screen bg-[#08080f] flex items-center justify-center"><p className="text-[#71717a] text-sm">Checking access...</p></div>;
+  if (authorized === "loading") {
+    return (
+      <div className="min-h-screen bg-[#08080f] flex items-center justify-center">
+        <p className="text-[#71717a] text-sm">Checking access...</p>
+      </div>
+    );
+  }
   if (authorized === "no") return null;
 
+  return (
+    <div className="min-h-screen bg-[#08080f] flex">
+      {/* Admin Sidebar */}
+      {authorized === "yes" && <AdminSidebar role={role!} />}
+      <main className="flex-1 overflow-auto">{children}</main>
+    </div>
+  );
+}
+
+function AdminSidebar({ role }: { role: string }) {
   const isAdmin = role === "admin";
 
   const navItems = [
@@ -51,45 +63,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-[#08080f] flex">
-      <aside className="w-56 shrink-0 border-r border-[#1a1a2e] bg-[#0a0a14] flex flex-col">
-        <div className="px-5 py-5 border-b border-[#1a1a2e]">
-          <Link href="/" className="text-base font-bold tracking-tight text-white">
-            seriez<span className="text-[#6366f1]"> admin</span>
-          </Link>
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-              isAdmin ? "bg-[#ef4444]/15 text-[#ef4444]" : "bg-[#3b82f6]/15 text-[#3b82f6]"
-            }`}>{role}</span>
-            <span className="text-[11px] text-[#71717a]">{username}</span>
-          </div>
-        </div>
+    <aside className="w-56 shrink-0 border-r border-[#1a1a2e] bg-[#0a0a14] flex flex-col min-h-screen">
+      <div className="px-5 py-5 border-b border-[#1a1a2e]">
+        <a href="/" className="text-base font-bold tracking-tight text-white">
+          seriez<span className="text-[#6366f1]"> admin</span>
+        </a>
+        <span className={`inline-block mt-1.5 text-[10px] px-2 py-0.5 rounded-full font-medium ${
+          isAdmin ? "bg-[#ef4444]/15 text-[#ef4444]" : "bg-[#3b82f6]/15 text-[#3b82f6]"
+        }`}>{role}</span>
+      </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
-                pathname === item.href || (item.href.includes("?tab=") && pathname + (typeof window !== "undefined" ? window.location.search : "") === item.href)
-                  ? "text-white bg-[#1a1a2e]"
-                  : "text-[#a1a1aa] hover:text-white hover:bg-[#1a1a2e]"
-              }`}
-            >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d={item.icon} />
-              </svg>
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
+        {navItems.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#a1a1aa] hover:text-white hover:bg-[#1a1a2e] transition-all duration-150"
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d={item.icon} />
+            </svg>
+            {item.label}
+          </a>
+        ))}
+      </nav>
 
-        <div className="px-5 py-4 border-t border-[#1a1a2e]">
-          <Link href="/" className="text-xs text-[#71717a] hover:text-[#a1a1aa] transition-colors">← Back to site</Link>
-        </div>
-      </aside>
-
-      <main className="flex-1 overflow-auto">{children}</main>
-    </div>
+      <div className="px-5 py-4 border-t border-[#1a1a2e]">
+        <a href="/" className="text-xs text-[#71717a] hover:text-[#a1a1aa] transition-colors">← Back to site</a>
+      </div>
+    </aside>
   );
 }
