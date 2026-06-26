@@ -6,43 +6,61 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 
 export default function AuthCallbackPage() {
-  const [status, setStatus] = useState<"loading" | "error">("loading");
+  const [debug, setDebug] = useState<string[]>([]);
 
   useEffect(() => {
-    let cancelled = false;
+    async function run() {
+      const log = (msg: string) => setDebug((prev) => [...prev, msg]);
 
-    async function handleCallback() {
-      if (typeof window === "undefined" || !window.location.hash) {
-        if (!cancelled) setStatus("error");
+      log("1. useEffect started");
+
+      if (typeof window === "undefined") {
+        log("FAIL: no window");
         return;
       }
 
-      const hash = window.location.hash.substring(1);
-      const params = new URLSearchParams(hash);
-      const accessToken = params.get("access_token");
-      const refreshToken = params.get("refresh_token");
+      const hash = window.location.hash;
+      log(`2. hash present: ${hash.length > 0} (len=${hash.length})`);
 
-      if (!accessToken || !refreshToken) {
-        if (!cancelled) setStatus("error");
+      if (!hash) {
+        log("FAIL: empty hash");
         return;
       }
 
+      const params = new URLSearchParams(hash.substring(1));
+      const at = params.get("access_token");
+      const rt = params.get("refresh_token");
+      log(`3. access_token: ${at ? at.substring(0, 20) + "..." : "MISSING"}`);
+      log(`4. refresh_token: ${rt ? rt.substring(0, 10) + "..." : "MISSING"}`);
+
+      if (!at || !rt) {
+        log("FAIL: missing tokens");
+        return;
+      }
+
+      log("5. creating supabase client...");
       const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        "https://zntyjtjodyzizoafxord.supabase.co",
+        "sb_publishable_6_O4sP7ZZBT4wxHMVwVtGg_rIgRD1NH"
       );
 
+      log("6. calling setSession...");
       const { data, error } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
+        access_token: at,
+        refresh_token: rt,
       });
 
-      if (cancelled) return;
-
-      if (error || !data.user) {
-        setStatus("error");
+      if (error) {
+        log(`FAIL setSession: ${error.message}`);
         return;
       }
+
+      if (!data.user) {
+        log("FAIL setSession: no user in data");
+        return;
+      }
+
+      log(`7. setSession OK. user.id=${data.user.id.substring(0, 8)}...`);
 
       // Get username
       let username: string | null = null;
@@ -53,40 +71,33 @@ export default function AuthCallbackPage() {
           .eq("id", data.user.id)
           .single();
         username = userData?.username ?? null;
-      } catch {}
+        log(`8. username: ${username || "null"}`);
+      } catch (e: any) {
+        log(`8. username query failed: ${e.message}`);
+      }
 
       if (username) {
-        document.cookie =
-          `seriez-username=${username};path=/;max-age=31536000;SameSite=Lax`;
+        document.cookie = `seriez-username=${username};path=/;max-age=31536000;SameSite=Lax`;
         localStorage.setItem("seriez-username", username);
       }
 
-      // Use window.location for reliable redirect
+      log("9. redirecting...");
       window.location.replace(username ? "/" : "/welcome");
     }
 
-    handleCallback();
-
-    return () => { cancelled = true; };
+    run();
   }, []);
 
-  if (status === "error") {
-    return (
-      <div className="max-w-sm mx-auto px-4 pt-20 text-center">
-        <p className="text-red-400 text-lg mb-4">
-          Could not verify your email. Please try again.
-        </p>
-        <a href="/login" className="text-accent hover:underline">
-          Go to login
-        </a>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-sm mx-auto px-4 pt-20 text-center">
-      <div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full mx-auto mb-4" />
-      <p className="text-text-secondary">Verifying your email...</p>
+    <div className="max-w-sm mx-auto px-4 pt-20">
+      <h1 className="text-lg font-bold text-text-primary mb-4">Auth Debug</h1>
+      {debug.length === 0 ? (
+        <p className="text-text-secondary">Starting...</p>
+      ) : (
+        <pre className="text-xs text-text-secondary bg-bg-card p-4 rounded-xl whitespace-pre-wrap">
+          {debug.join("\n")}
+        </pre>
+      )}
     </div>
   );
 }
