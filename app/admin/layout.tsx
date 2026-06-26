@@ -1,23 +1,39 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+"use client";
+
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [authorized, setAuthorized] = useState<"loading" | "yes" | "no">("loading");
+  const [role, setRole] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const supabase = createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const user = data.session?.user;
+      if (!user) { router.push("/login"); return; }
+      const uname = user.user_metadata?.username;
+      if (uname) {
+        setUsername(uname);
+        supabase.from("users").select("role").eq("username", uname).maybeSingle().then(
+          ({ data: row }) => {
+            const r = (row as any)?.role;
+            if (r === "admin" || r === "moderator") { setRole(r); setAuthorized("yes"); }
+            else { router.push("/"); }
+          },
+          () => { router.push("/"); }
+        );
+      } else { router.push("/"); }
+    });
+  }, []);
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("role, username")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  const role = profile?.role;
-  if (role !== "admin" && role !== "moderator") {
-    redirect("/");
-  }
+  if (authorized === "loading") return <div className="min-h-screen bg-[#08080f] flex items-center justify-center"><p className="text-[#71717a] text-sm">Checking access...</p></div>;
+  if (authorized === "no") return null;
 
   const isAdmin = role === "admin";
 
@@ -36,7 +52,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-[#08080f] flex">
-      {/* Sidebar */}
       <aside className="w-56 shrink-0 border-r border-[#1a1a2e] bg-[#0a0a14] flex flex-col">
         <div className="px-5 py-5 border-b border-[#1a1a2e]">
           <Link href="/" className="text-base font-bold tracking-tight text-white">
@@ -45,10 +60,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="flex items-center gap-2 mt-1.5">
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
               isAdmin ? "bg-[#ef4444]/15 text-[#ef4444]" : "bg-[#3b82f6]/15 text-[#3b82f6]"
-            }`}>
-              {role}
-            </span>
-            <span className="text-[11px] text-[#71717a]">{profile?.username}</span>
+            }`}>{role}</span>
+            <span className="text-[11px] text-[#71717a]">{username}</span>
           </div>
         </div>
 
@@ -57,7 +70,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#a1a1aa] hover:text-white hover:bg-[#1a1a2e] transition-all duration-150"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
+                pathname === item.href || (item.href.includes("?tab=") && pathname + (typeof window !== "undefined" ? window.location.search : "") === item.href)
+                  ? "text-white bg-[#1a1a2e]"
+                  : "text-[#a1a1aa] hover:text-white hover:bg-[#1a1a2e]"
+              }`}
             >
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                 <path d={item.icon} />
@@ -68,16 +85,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </nav>
 
         <div className="px-5 py-4 border-t border-[#1a1a2e]">
-          <Link href="/" className="text-xs text-[#71717a] hover:text-[#a1a1aa] transition-colors">
-            ← Back to site
-          </Link>
+          <Link href="/" className="text-xs text-[#71717a] hover:text-[#a1a1aa] transition-colors">← Back to site</Link>
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+      <main className="flex-1 overflow-auto">{children}</main>
     </div>
   );
 }
