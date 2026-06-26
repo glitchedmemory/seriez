@@ -84,11 +84,7 @@ function CommentCard({
           ) : (
             <img src="/icons/default-avatar.png" alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
           )}
-          {c.username === "seriez" && (
-          <div className="absolute -top-[8px] -left-[8px] w-[57px] h-[57px] pointer-events-none z-10">
-            <img src="/icons/avatar-ring.svg" alt="" className="w-full h-full" />
-          </div>
-          )}
+          
           </div>
           <div className="flex-1 flex items-center gap-1 min-w-0">
             <span className="text-xs font-medium text-text-primary hover:text-accent cursor-pointer transition-colors truncate" onClick={() => router.push(`/profile?username=${c.username}`)}>{c.username}</span>
@@ -939,11 +935,7 @@ export function ReviewSection({
                 ) : (
                   <img src="/icons/default-avatar.png" alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
                 )}
-                {review.username === "seriez" && (
-                <div className="absolute -top-[9px] -left-[9px] w-[63px] h-[63px] pointer-events-none z-10">
-                  <img src="/icons/avatar-ring.svg" alt="" className="w-full h-full" />
-                </div>
-                )}
+                
                 </div>
                 <span className="text-sm font-semibold text-text-primary hover:text-[#a5b4fc] cursor-pointer transition-colors" onClick={() => router.push(`/profile?username=${review.username}`)}>
                   {review.username}
