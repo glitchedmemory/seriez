@@ -79,7 +79,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         data: {
           username: username.trim(),
           migrated_from: oldUsername || null,

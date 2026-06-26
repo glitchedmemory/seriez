@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Verifying...</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body style="background:#050508;color:#f1f5f9;font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0">
+<p id="msg" style="font-size:16px">Verifying your email...</p>
+<script>
+(async function() {
+  var msg = document.getElementById('msg');
+  var hash = window.location.hash;
+  if (!hash || hash.length < 10) {
+    msg.textContent = 'Could not verify. Please try signing up again.';
+    return;
+  }
+  var p = new URLSearchParams(hash.substring(1));
+  var at = p.get('access_token');
+  var rt = p.get('refresh_token');
+  if (!at || !rt) {
+    msg.textContent = 'Could not verify. Please try signing up again.';
+    return;
+  }
+  var sb = supabase.createClient(
+    'https://zntyjtjodyzizoafxord.supabase.co',
+    'sb_publishable_6_O4sP7ZZBT4wxHMVwVtGg_rIgRD1NH'
+  );
+  var res = await sb.auth.setSession({ access_token: at, refresh_token: rt });
+  if (res.error || !res.data.user) {
+    msg.textContent = 'Could not verify. Please try signing up again.';
+    return;
+  }
+  // Save to localStorage
+  try {
+    var ud = await sb.from('users').select('username').eq('id', res.data.user.id).single();
+    if (ud.data && ud.data.username) {
+      localStorage.setItem('seriez-username', ud.data.username);
+      document.cookie = 'seriez-username=' + ud.data.username + ';path=/;max-age=31536000;SameSite=Lax;secure';
+    }
+  } catch(e) {}
+  window.location.replace('/');
+})();
+</script>
+</body>
+</html>
