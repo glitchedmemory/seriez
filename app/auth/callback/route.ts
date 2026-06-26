@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+const SITE_URL = "https://seriez.app";
+
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=no-code`);
+    return NextResponse.redirect(`${SITE_URL}/login?error=no-code`);
   }
 
   const supabase = createClient(
@@ -18,10 +20,9 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code);
 
   if (error || !authData.user) {
-    return NextResponse.redirect(`${origin}/login?error=auth-failed`);
+    return NextResponse.redirect(`${SITE_URL}/login?error=auth-failed`);
   }
 
-  // Get username from public.users
   let username: string | null = null;
   try {
     const { data: userData } = await supabase
@@ -33,13 +34,15 @@ export async function GET(request: Request) {
   } catch {}
 
   const target = username ? "/" : "/welcome";
-  const response = NextResponse.redirect(`${origin}${target}`);
+  const response = NextResponse.redirect(`${SITE_URL}${target}`);
 
   if (username) {
     response.cookies.set("seriez-username", username, {
       path: "/",
       maxAge: 60 * 60 * 24 * 365,
       sameSite: "lax",
+      secure: true,
+      domain: "seriez.app",
     });
   }
 
