@@ -3,44 +3,59 @@
 <head>
 <meta charset="utf-8">
 <title>Verifying...</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
-<body style="background:#050508;color:#f1f5f9;font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0">
-<p id="msg" style="font-size:16px">Verifying your email...</p>
+<body style="background:#050508;color:#f1f5f9;font-family:monospace;padding:40px;margin:0">
+<pre id="log" style="white-space:pre-wrap;word-break:break-all;font-size:14px"></pre>
 <script>
-(async function() {
-  var msg = document.getElementById('msg');
-  var hash = window.location.hash;
-  if (!hash || hash.length < 10) {
-    msg.textContent = 'Could not verify. Please try signing up again.';
-    return;
-  }
+var log = document.getElementById('log');
+function L(m) { log.textContent += m + '\n'; }
+
+L('URL: ' + window.location.href.substring(0, 200));
+L('hash length: ' + window.location.hash.length);
+L('hash: ' + window.location.hash.substring(0, 300));
+
+var hash = window.location.hash;
+if (!hash || hash.length < 10) {
+  L('FAIL: empty or short hash');
+} else {
   var p = new URLSearchParams(hash.substring(1));
   var at = p.get('access_token');
   var rt = p.get('refresh_token');
-  if (!at || !rt) {
-    msg.textContent = 'Could not verify. Please try signing up again.';
-    return;
+  L('access_token: ' + (at ? at.substring(0,30)+'...' : 'MISSING'));
+  L('refresh_token: ' + (rt ? rt.substring(0,10)+'...' : 'MISSING'));
+  
+  if (at && rt) {
+    L('Loading supabase-js...');
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    s.onload = function() {
+      L('supabase-js loaded');
+      var sb = supabase.createClient(
+        'https://zntyjtjodyzifoafxord.supabase.co',
+        'sb_publishable_6_O4sP7ZZBT4wxHMVwVtGg_rIgRD1NH'
+      );
+      sb.auth.setSession({access_token:at, refresh_token:rt}).then(function(res) {
+        if (res.error) { L('setSession error: '+res.error.message); return; }
+        if (!res.data.user) { L('setSession: no user'); return; }
+        L('setSession OK: ' + res.data.user.id.substring(0,8) + '...');
+        sb.from('users').select('username').eq('id',res.data.user.id).single()
+          .then(function(ud) {
+            if (ud.data && ud.data.username) {
+              localStorage.setItem('seriez-username', ud.data.username);
+              document.cookie = 'seriez-username='+ud.data.username+';path=/;max-age=31536000;SameSite=Lax;secure';
+              L('username: ' + ud.data.username);
+            }
+            L('Redirecting...');
+            window.location.replace('/');
+          }).catch(function(e) { L('user lookup err: '+e); });
+      }).catch(function(e) { L('setSession err: '+e); });
+    };
+    s.onerror = function() { L('FAIL: supabase-js CDN load error'); };
+    document.head.appendChild(s);
+  } else {
+    L('FAIL: missing tokens');
   }
-  var sb = supabase.createClient(
-    'https://zntyjtjodyzizoafxord.supabase.co',
-    'sb_publishable_6_O4sP7ZZBT4wxHMVwVtGg_rIgRD1NH'
-  );
-  var res = await sb.auth.setSession({ access_token: at, refresh_token: rt });
-  if (res.error || !res.data.user) {
-    msg.textContent = 'Could not verify. Please try signing up again.';
-    return;
-  }
-  // Save to localStorage
-  try {
-    var ud = await sb.from('users').select('username').eq('id', res.data.user.id).single();
-    if (ud.data && ud.data.username) {
-      localStorage.setItem('seriez-username', ud.data.username);
-      document.cookie = 'seriez-username=' + ud.data.username + ';path=/;max-age=31536000;SameSite=Lax;secure';
-    }
-  } catch(e) {}
-  window.location.replace('/');
-})();
+}
 </script>
 </body>
 </html>
