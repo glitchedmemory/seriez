@@ -1,4 +1,5 @@
 import { updateSession } from "@/lib/supabase/middleware";
+import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 // In-memory rate limiter
@@ -26,9 +27,7 @@ setInterval(() => {
   }
 }, 300000);
 
-// Bot User-Agent regex — matches all known and future AI crawlers automatically.
-// Covers GPTBot, ClaudeBot, Claude-SearchBot, PerplexityBot, CCBot, etc.
-// Standard browsers (Chrome, Safari, Firefox, Brave) do NOT contain "bot" in their UA.
+// Bot User-Agent regex
 const BOT_UA_REGEX = /bot|crawler|spider|anthropic-ai|ChatGPT-User|Google-Extended|FacebookBot/i;
 
 export async function proxy(request: NextRequest) {
@@ -36,7 +35,7 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const userAgent = request.headers.get("user-agent") || "";
 
-  // Detect AI crawler bots → set x-is-bot for downstream server components
+  // Detect AI crawler bots
   const isBot = BOT_UA_REGEX.test(userAgent);
   if (isBot) {
     request.headers.set("x-is-bot", "1");
@@ -64,6 +63,19 @@ export async function proxy(request: NextRequest) {
   else {
     if (!rateLimit(ip + ":page", 100, 60000)) {
       return new NextResponse("Too many requests. Please wait.", { status: 429 });
+    }
+  }
+
+  // Admin route protection — only Seriez account
+  if (path.startsWith("/admin")) {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { getAll: () => request.cookies.getAll(), setAll: () => {} } }
+    );
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || user.user_metadata?.username !== "Seriez") {
+      return NextResponse.rewrite(new URL("/404", request.url));
     }
   }
 
