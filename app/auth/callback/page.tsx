@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
@@ -12,72 +12,55 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     async function handleCallback() {
-      const supabase = createClient();
+      // Use regular supabase-js client (not ssr) — handles localStorage natively
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
 
-      // Try getting session — Supabase SSR client auto-picks up hash tokens
-      const { data: sessionData, error: sessionErr } =
-        await supabase.auth.getSession();
-
-      if (sessionData.session) {
-        const uid = sessionData.session.user.id;
-
-        let username: string | null = null;
-        try {
-          const { data: userData } = await supabase
-            .from("users")
-            .select("username")
-            .eq("id", uid)
-            .single();
-          username = userData?.username ?? null;
-        } catch {}
-
-        if (username) {
-          // Set cookie for backward compatibility
-          document.cookie =
-            `seriez-username=${username};path=/;max-age=31536000;SameSite=Lax`;
-        }
-
-        router.replace(username ? "/" : "/welcome");
+      if (typeof window === "undefined" || !window.location.hash) {
+        setStatus("error");
         return;
       }
 
-      // If getSession failed, try manual hash parsing
-      if (typeof window !== "undefined" && window.location.hash) {
-        const hash = window.location.hash.substring(1);
-        const params = new URLSearchParams(hash);
-        const accessToken = params.get("access_token");
-        const refreshToken = params.get("refresh_token");
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
 
-        if (accessToken && refreshToken) {
-          const { data, error: setErr } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (!setErr && data.user) {
-            let username: string | null = null;
-            try {
-              const { data: userData } = await supabase
-                .from("users")
-                .select("username")
-                .eq("id", data.user.id)
-                .single();
-              username = userData?.username ?? null;
-            } catch {}
-
-            if (username) {
-              document.cookie =
-                `seriez-username=${username};path=/;max-age=31536000;SameSite=Lax`;
-            }
-
-            router.replace(username ? "/" : "/welcome");
-            return;
-          }
-        }
+      if (!accessToken || !refreshToken) {
+        setStatus("error");
+        return;
       }
 
-      // All attempts failed
-      setStatus("error");
+      const { data, error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+
+      if (error || !data.user) {
+        setStatus("error");
+        return;
+      }
+
+      // Get username from public.users
+      let username: string | null = null;
+      try {
+        const { data: userData } = await supabase
+          .from("users")
+          .select("username")
+          .eq("id", data.user.id)
+          .single();
+        username = userData?.username ?? null;
+      } catch {}
+
+      // Set cookie for SSR middleware
+      if (username) {
+        document.cookie =
+          `seriez-username=${username};path=/;max-age=31536000;SameSite=Lax`;
+      }
+
+      router.replace(username ? "/" : "/welcome");
     }
 
     handleCallback();
