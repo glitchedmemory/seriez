@@ -20,7 +20,7 @@ export default function AuthCallbackPage() {
       }
 
       const hash = window.location.hash;
-      log(`2. hash present: ${hash.length > 0} (len=${hash.length})`);
+      log(`2. hash: ${hash.substring(0, 200)}`);
 
       if (!hash) {
         log("FAIL: empty hash");
