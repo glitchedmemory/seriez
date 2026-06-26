@@ -211,6 +211,7 @@ export function Sidebar() {
               <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             ) : (
               <img src="/icons/default-avatar.png" alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+            )}
             </div>
             <div className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <p className="text-sm font-medium text-text-primary">{displayName}</p>
