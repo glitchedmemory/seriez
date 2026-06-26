@@ -74,14 +74,21 @@ export default function AdminUsersPage() {
   });
 
   return (
-    <div className="flex-1 bg-bg-primary">
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-bold text-text-primary">Users</h1>
-          <Link href="/admin" className="text-sm text-text-secondary hover:text-text-primary transition-colors">
-            ← Dashboard
-          </Link>
+    <div className="p-8">
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Users</h1>
+            <p className="text-sm text-[#71717a] mt-1">{users.length} users</p>
+          </div>
+          <button
+            onClick={loadUsers}
+            className="text-xs px-3 py-1.5 rounded-lg border border-[#1a1a2e] text-[#71717a] hover:text-white hover:border-[#2a2a45] transition-colors"
+          >
+            Refresh
+          </button>
         </div>
+      </div>
 
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <input
@@ -89,12 +96,12 @@ export default function AdminUsersPage() {
             placeholder="Search users..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="flex-1 bg-bg-card border border-border rounded-lg px-4 py-2 text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-accent"
+            className="flex-1 bg-[#0a0a14] border border-[#1a1a2e] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#6366f1] transition-colors"
           />
           <select
             value={filter}
             onChange={e => setFilter(e.target.value as typeof filter)}
-            className="bg-bg-card border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
+            className="bg-[#0a0a14] border border-[#1a1a2e] rounded-xl px-3 py-2.5 text-sm text-[#a1a1aa] focus:outline-none focus:border-[#6366f1] transition-colors"
           >
             <option value="all">All Users</option>
             <option value="premium">Premium</option>
@@ -106,60 +113,60 @@ export default function AdminUsersPage() {
         </div>
 
         {loading ? (
-          <div className="text-text-secondary text-sm">Loading...</div>
+          <div className="text-sm text-[#71717a]">Loading...</div>
         ) : (
-          <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
+          <div className="rounded-2xl border border-[#1a1a2e] bg-[#0a0a14] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left px-4 py-3 text-text-secondary font-medium">Username</th>
-                    <th className="text-left px-4 py-3 text-text-secondary font-medium">Role</th>
-                    <th className="text-left px-4 py-3 text-text-secondary font-medium">Premium</th>
-                    <th className="text-left px-4 py-3 text-text-secondary font-medium hidden sm:table-cell">Joined</th>
-                    <th className="text-left px-4 py-3 text-text-secondary font-medium">Status</th>
-                    <th className="text-left px-4 py-3 text-text-secondary font-medium w-12"></th>
+                  <tr className="border-b border-[#1a1a2e]">
+                    <th className="text-left px-4 py-3 text-[11px] font-medium text-[#71717a] uppercase tracking-wider">Username</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-medium text-[#71717a] uppercase tracking-wider">Role</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-medium text-[#71717a] uppercase tracking-wider">Premium</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-medium text-[#71717a] uppercase tracking-wider hidden sm:table-cell">Joined</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-medium text-[#71717a] uppercase tracking-wider">Status</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-medium text-[#71717a] uppercase tracking-wider w-12"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map(u => (
-                    <tr key={u.username} className="border-b border-border/50 hover:bg-bg-surface/50 transition-colors">
+                    <tr key={u.username} className="border-b border-[#1a1a2e]/50 hover:bg-[#111118]/50 transition-colors">
                       <td className="px-4 py-3">
-                        <Link href={`/admin/users/${u.username}`} className="text-accent hover:underline font-medium">
+                        <Link href={`/admin/users/${u.username}`} className="text-[#6366f1] hover:underline font-medium text-sm">
                           {u.username}
                         </Link>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          u.role === "admin" ? "bg-red-500/10 text-red-400" :
-                          u.role === "moderator" ? "bg-blue-500/10 text-blue-400" :
-                          "bg-bg-surface text-text-secondary"
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                          u.role === "admin" ? "bg-[#ef4444]/10 text-[#ef4444]" :
+                          u.role === "moderator" ? "bg-[#3b82f6]/10 text-[#3b82f6]" :
+                          "bg-[#1a1a2e] text-[#a1a1aa]"
                         }`}>
                           {u.role}
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         {u.is_premium ? (
-                          <span className="text-xs text-gold">★ Gold</span>
+                          <span className="text-[11px] text-[#f59e0b] font-medium">Gold</span>
                         ) : (
-                          <span className="text-xs text-text-secondary">Free</span>
+                          <span className="text-[11px] text-[#52525b]">Free</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-text-secondary hidden sm:table-cell">
+                      <td className="px-4 py-3 text-xs text-[#71717a] hidden sm:table-cell">
                         {new Date(u.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3">
                         {u.sanction_type ? (
-                          <span className="text-xs text-red-400">Sanctioned</span>
+                          <span className="text-[11px] text-[#ef4444]">Sanctioned</span>
                         ) : (
-                          <span className="text-xs text-text-secondary">—</span>
+                          <span className="text-[11px] text-[#52525b]">—</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
                         {u.role !== "admin" && (
                           <button
                             onClick={() => { setDeleteTarget(u.username); setDeleteConfirm(""); setDeleteError(""); }}
-                            className="text-text-secondary hover:text-red-400 transition-colors p-1"
+                            className="text-[#52525b] hover:text-[#ef4444] transition-colors p-1"
                             title="Delete user"
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -177,7 +184,7 @@ export default function AdminUsersPage() {
               </table>
             </div>
             {filtered.length === 0 && (
-              <div className="px-4 py-8 text-center text-text-secondary text-sm">
+              <div className="px-4 py-10 text-center text-sm text-[#71717a]">
                 No users found.
               </div>
             )}
@@ -187,31 +194,31 @@ export default function AdminUsersPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-bg-card border border-border rounded-2xl p-6 w-full max-w-sm mx-4">
-            <h2 className="text-lg font-semibold text-text-primary mb-2">Delete User</h2>
-            <p className="text-sm text-text-secondary mb-4">
-              This will permanently delete <span className="text-red-400 font-medium">@{deleteTarget}</span> and all their data. Type the username to confirm.
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#0a0a14] border border-[#1a1a2e] rounded-2xl p-6 w-full max-w-sm mx-4">
+            <h2 className="text-lg font-semibold text-white mb-2">Delete User</h2>
+            <p className="text-sm text-[#71717a] mb-4">
+              Permanently delete <span className="text-[#ef4444] font-medium">@{deleteTarget}</span> and all their data. Type the username to confirm.
             </p>
             <input
               type="text"
               placeholder={deleteTarget}
               value={deleteConfirm}
               onChange={e => { setDeleteConfirm(e.target.value); setDeleteError(""); }}
-              className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-accent mb-3"
+              className="w-full bg-[#111118] border border-[#1a1a2e] rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#ef4444] transition-colors mb-3"
             />
-            {deleteError && <p className="text-xs text-red-400 mb-3">{deleteError}</p>}
+            {deleteError && <p className="text-xs text-[#ef4444] mb-3">{deleteError}</p>}
             <div className="flex gap-3">
               <button
                 onClick={() => { setDeleteTarget(null); setDeleteConfirm(""); setDeleteError(""); }}
-                className="flex-1 py-2 text-sm font-medium text-text-secondary hover:text-text-primary bg-bg-surface rounded-xl transition-colors"
+                className="flex-1 py-2 text-sm font-medium text-[#a1a1aa] hover:text-white bg-[#111118] rounded-xl transition-colors border border-[#1a1a2e]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting || deleteConfirm !== deleteTarget}
-                className="flex-1 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 rounded-xl transition-colors"
+                className="flex-1 py-2 text-sm font-medium text-white bg-[#ef4444] hover:bg-[#dc2626] disabled:opacity-40 rounded-xl transition-colors"
               >
                 {deleting ? "Deleting..." : "Delete"}
               </button>

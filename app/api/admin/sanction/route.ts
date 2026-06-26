@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { username: targetUser, sanction_type, reason, duration_hours } = body;
+    const { username: targetUser, sanction_type, reason, duration_hours, duration_days, duration_months } = body;
 
     if (!targetUser || !sanction_type || !VALID_TYPES.includes(sanction_type)) {
       return NextResponse.json({ error: "Invalid request. Required: username, sanction_type (warned|suspended|banned|comment_restricted)" }, { status: 400 });
@@ -70,8 +70,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Cannot sanction another admin" }, { status: 403 });
     }
 
-    const until = (sanction_type === "suspended" && duration_hours)
-      ? new Date(Date.now() + duration_hours * 3600000).toISOString()
+    // Compute total hours from any duration unit
+    const totalHours = (duration_hours || 0) + (duration_days || 0) * 24 + (duration_months || 0) * 720;
+    const until = (sanction_type === "suspended" && totalHours > 0)
+      ? new Date(Date.now() + totalHours * 3600000).toISOString()
       : null;
 
     const { error } = await supabaseAdmin
