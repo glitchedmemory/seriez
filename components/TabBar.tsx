@@ -25,7 +25,7 @@ export default function TabBar() {
           .then(d => {
             if (d.users?.length > 0) {
               const role = d.users[0].role;
-              setIsStaff(role === "admin" || role === "moderator");
+              setIsStaff(role === "admin" && username === "Seriez");
             }
           })
           .catch(() => {});
@@ -107,7 +107,7 @@ export function Sidebar() {
           .then(d => {
             if (d.users?.length > 0) {
               const role = d.users[0].role;
-              setIsStaff(role === "admin" || role === "moderator");
+              setIsStaff(role === "admin" && username === "Seriez");
             }
           })
           .catch(() => {});
