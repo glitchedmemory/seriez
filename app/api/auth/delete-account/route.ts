@@ -37,6 +37,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Password is incorrect" }, { status: 403 });
     }
 
+    // Prevent deletion of admin accounts
+    const { data: userRecord } = await supabaseAdmin
+      .from("users").select("role").eq("username", username).maybeSingle();
+    if (userRecord?.role === "admin") {
+      return NextResponse.json({ error: "Admin accounts cannot be deleted" }, { status: 403 });
+    }
+
     // Delete all user data from every table
     const tablesToCleanUser = ["notifications", "search_logs"];
     const tablesToCleanUsername = ["media_trackings", "episode_watches"];
