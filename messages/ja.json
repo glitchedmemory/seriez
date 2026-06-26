@@ -15,7 +15,8 @@
     "password": "パスワード",
     "username": "ユーザー名",
     "createAccount": "アカウント作成",
-    "guest": "ゲスト"
+    "guest": "ゲスト",
+    "passwordChanged": "パスワードが変更されました。新しいパスワードでログインしてください。"
   },
   "library": {
     "signInTitle": "リストを見るにはログイン",

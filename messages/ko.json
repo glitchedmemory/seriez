@@ -15,7 +15,8 @@
     "password": "비밀번호",
     "username": "사용자 이름",
     "createAccount": "계정 만들기",
-    "guest": "게스트"
+    "guest": "게스트",
+    "passwordChanged": "비밀번호가 변경되었습니다. 새 비밀번호로 다시 로그인해 주세요."
   },
   "library": {
     "signInTitle": "리스트를 보려면 로그인하세요",

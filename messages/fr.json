@@ -15,7 +15,8 @@
     "password": "Mot de passe",
     "username": "Nom d'utilisateur",
     "createAccount": "Créer un compte",
-    "guest": "Invité"
+    "guest": "Invité",
+    "passwordChanged": "Mot de passe modifié avec succès. Veuillez vous reconnecter avec votre nouveau mot de passe."
   },
   "library": {
     "signInTitle": "Connectez-vous pour voir votre liste",

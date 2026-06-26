@@ -15,7 +15,8 @@
     "password": "Contraseña",
     "username": "Usuario",
     "createAccount": "Crear cuenta",
-    "guest": "Invitado"
+    "guest": "Invitado",
+    "passwordChanged": "Contraseña cambiada correctamente. Inicia sesión con tu nueva contraseña."
   },
   "library": {
     "signInTitle": "Inicia sesión para ver tu lista",
