@@ -53,7 +53,7 @@ export default function ProPage() {
             </>
           ) : (
             <>
-              <p className="text-text-secondary mb-4">{t("stripeNotice")}</p>
+              <p className="text-text-secondary mb-4">{t("paddleNotice")}</p>
               <Link href="/profile/settings?upgrade=pro" className="inline-flex items-center gap-2 bg-accent hover:bg-accent-light text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                 {t("upgradeButton")}
               </Link>

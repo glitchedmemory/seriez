@@ -28,10 +28,6 @@ export default function AboutPage() {
             <li>{t("community")}</li>
           </ul>
 
-          <h2 className="text-xl font-semibold text-text-primary mt-8 mb-3">
-            {t("goldenTicket")}
-          </h2>
-          <p>{t("goldenTicketDesc")}</p>
         </section>
       </div>
     </div>

@@ -6,7 +6,7 @@ export default function TermsPage() {
   const t = useTranslations("terms");
 
   const sectionKeys = [
-    "acceptance", "accounts", "content", "use", "goldenTicket",
+    "acceptance", "accounts", "content", "use",
     "thirdParty", "liability", "changes", "contact",
   ];
 

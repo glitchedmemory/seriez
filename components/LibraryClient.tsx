@@ -254,20 +254,15 @@ function CollectionsView() {
       ) : (
       <>
       {(() => {
-        const atLimit = !isPremium && collections.length >= 3;
         return (
           <div className="mb-4">
             <div className="flex gap-2">
               <input value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key==="Enter" && createCollection()}
-                placeholder={atLimit ? "Collection limit reached" : "New collection name..."}
-                disabled={atLimit}
-                className="flex-1 bg-bg-card text-text-primary text-sm rounded-xl px-3 py-2 outline-none border border-border focus:border-accent placeholder:text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed" maxLength={50} />
-              <button onClick={createCollection} disabled={creating || !newName.trim() || atLimit}
+                placeholder={"New collection name..."}
+                className="flex-1 bg-bg-card text-text-primary text-sm rounded-xl px-3 py-2 outline-none border border-border focus:border-accent placeholder:text-text-secondary" maxLength={50} />
+              <button onClick={createCollection} disabled={creating || !newName.trim()}
                 className="px-4 py-2 rounded-xl bg-accent text-white text-sm font-medium disabled:opacity-40 hover:bg-[#5558e7] transition-colors">Create</button>
             </div>
-            {atLimit && (
-              <p className="mt-2 text-xs text-amber-400">Free plan limited to 3 collections. <a href="/pro" className="underline hover:text-amber-300">Upgrade to Golden Ticket</a> for unlimited.</p>
-            )}
             {errorMsg && (
               <p className="mt-2 text-xs text-red-400">{errorMsg}</p>
             )}
