@@ -60,10 +60,10 @@ export default function PrivacyPage() {
             </p>
             <ul className="list-disc pl-6 space-y-1">
               <li>
-                {t.rich("sections.sharing.stripe", {
+                {t.rich("sections.sharing.paddle", {
                   a: (chunks) => (
                     <a
-                      href="https://stripe.com/privacy"
+                      href="https://paddle.com/privacy"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-accent hover:underline"

@@ -101,6 +101,7 @@
     "about": "Über",
     "goldenTicket": "Golden Ticket",
     "terms": "AGB",
+    "refund": "Rückerstattung",
     "privacy": "Datenschutz"
   },
   "common": {
@@ -174,7 +175,7 @@
       "Erweiterte Statistiken — Genre-Analysen, Top-Schauspieler, Seh-Muster",
       "Golden-Ticket-Badge auf deinem Profil"
     ],
-    "stripeNotice": "Golden-Ticket-Käufe werden sicher über Stripe abgewickelt.",
+    "paddleNotice": "Golden-Ticket-Käufe werden sicher über Paddle abgewickelt.",
     "upgradeButton": "Zum Golden Ticket upgraden"
   },
   "privacy": {
@@ -201,7 +202,7 @@
       "sharing": {
         "title": "3. Datenweitergabe",
         "intro": "Wir <strong>verkaufen</strong> Ihre Daten <strong>nicht</strong> an Dritte. Wir geben Daten nur weiter:",
-        "stripe": "An Stripe zur Zahlungsabwicklung — Stripe erhält Ihre E-Mail gemäß <a>deren Datenschutzerklärung</a>.",
+        "paddle": "An Paddle zur Zahlungsabwicklung — Paddle erhält Ihre E-Mail gemäß <a>deren Datenschutzerklärung</a>.",
         "legal": "Wenn gesetzlich vorgeschrieben oder zum Schutz unserer Rechte."
       },
       "storage": {
@@ -254,7 +255,7 @@
       },
       "goldenTicket": {
         "title": "5. Golden-Ticket-Abonnement",
-        "content": "Golden Ticket kostet 4,99 $/Monat oder 49 $/Jahr via Stripe. Jederzeit kündbar, wirksam zum Ende der aktuellen Abrechnungsperiode. Keine anteilige Rückerstattung."
+        "content": "Golden Ticket kostet 4,99 $/Monat oder 49 $/Jahr via Paddle. Jederzeit kündbar, wirksam zum Ende der aktuellen Abrechnungsperiode. Keine anteilige Rückerstattung."
       },
       "thirdParty": {
         "title": "6. Inhalte Dritter",

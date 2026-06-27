@@ -101,6 +101,7 @@
     "about": "关于",
     "goldenTicket": "Golden Ticket",
     "terms": "条款",
+    "refund": "退款政策",
     "privacy": "隐私"
   },
   "common": {
@@ -174,7 +175,7 @@
       "高级统计 — 类型分析、热门演员、观影模式",
       "个人资料上的 Golden Ticket 徽章"
     ],
-    "stripeNotice": "Golden Ticket 购买通过 Stripe 安全处理。",
+    "paddleNotice": "Golden Ticket 购买通过 Paddle 安全处理。",
     "upgradeButton": "升级到 Golden Ticket"
   },
   "privacy": {
@@ -201,7 +202,7 @@
       "sharing": {
         "title": "3. 数据共享",
         "intro": "我们<strong>不会</strong>将您的个人数据出售给第三方。我们仅在以下情况共享数据：",
-        "stripe": "通过 Stripe 进行支付处理 — Stripe 根据<a>其隐私政策</a>接收您的电子邮箱和支付信息。",
+        "paddle": "通过 Paddle 进行支付处理 — Paddle 根据<a>其隐私政策</a>接收您的电子邮箱和支付信息。",
         "legal": "法律要求或为保护我们的权利时。"
       },
       "storage": {
@@ -254,7 +255,7 @@
       },
       "goldenTicket": {
         "title": "5. Golden Ticket 订阅",
-        "content": "Golden Ticket 为每月$4.99或每年$49的循环订阅。付款通过 Stripe 处理。您可随时取消；取消在当前计费周期结束时生效。不支持部分月份退款。"
+        "content": "Golden Ticket 为每月$4.99或每年$49的循环订阅。付款通过 Paddle 处理。您可随时取消；取消在当前计费周期结束时生效。不支持部分月份退款。"
       },
       "thirdParty": {
         "title": "6. 第三方内容",

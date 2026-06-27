@@ -247,53 +247,36 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
         </div>
       </a>
 
-      {/* Tonight's Pick (premium) or Ad (free) */}
+      {/* Tonight's Pick */}
       {nextItem && (
-        isPremium ? (
-          <a
-            href={`/title/${nextItem.id}?type=${nextItem.type}`}
-            className="mt-3 mx-4 md:mx-0 flex items-center gap-3 bg-bg-card hover:bg-bg-surface rounded-xl p-2.5 transition-colors cursor-pointer"
-          >
-            <div className="flex-shrink-0 w-12 h-[72px] rounded-lg overflow-hidden bg-bg-primary relative">
-              <PosterImage
-                src={nextItem.poster}
-                alt={nextItem.title}
-                fill
-                className="rounded-lg"
-                sizes="48px"
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-accent uppercase tracking-wide font-medium">
-                {t("home.tonightsPick")}
-              </p>
-              <p className="text-sm font-semibold text-text-primary truncate">
-                {nextItem.title}
-              </p>
-              <p className="text-xs text-text-secondary">
-                {nextItem.type === "movie" ? t("common.movie") : nextItem.type === "anime" ? t("common.anime") : t("common.tv")} · {nextItem.year} · ★ {nextItem.rating}
-              </p>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-text-secondary flex-shrink-0">
-              <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-            </svg>
-          </a>
-        ) : (
-          <a href="/signup" className="mt-3 mx-4 md:mx-0 block bg-bg-card rounded-xl overflow-hidden hover:ring-1 hover:ring-accent/30 transition-all" style={{ minHeight: 100 }}>
-            <img
-              src="/seriez-banner.jpg?v=3"
-              alt="Seriez — Never lose track of what to watch"
-              className="w-full h-auto block object-contain mx-auto md:hidden"
-              style={{ maxHeight: 100 }}
+        <a
+          href={`/title/${nextItem.id}?type=${nextItem.type}`}
+          className="mt-3 mx-4 md:mx-0 flex items-center gap-3 bg-bg-card hover:bg-bg-surface rounded-xl p-2.5 transition-colors cursor-pointer"
+        >
+          <div className="flex-shrink-0 w-12 h-[72px] rounded-lg overflow-hidden bg-bg-primary relative">
+            <PosterImage
+              src={nextItem.poster}
+              alt={nextItem.title}
+              fill
+              className="rounded-lg"
+              sizes="48px"
             />
-            <img
-              src="/seriez-banner-desktop.jpg?v=2"
-              alt="Seriez — Never lose track of what to watch"
-              className="w-full h-auto hidden md:block object-contain mx-auto"
-              style={{ maxHeight: 100 }}
-            />
-          </a>
-        )
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] text-accent uppercase tracking-wide font-medium">
+              {t("home.tonightsPick")}
+            </p>
+            <p className="text-sm font-semibold text-text-primary truncate">
+              {nextItem.title}
+            </p>
+            <p className="text-xs text-text-secondary">
+              {nextItem.type === "movie" ? t("common.movie") : nextItem.type === "anime" ? t("common.anime") : t("common.tv")} · {nextItem.year} · ★ {nextItem.rating}
+            </p>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-text-secondary flex-shrink-0">
+            <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+          </svg>
+        </a>
       )}
     </div>
   );

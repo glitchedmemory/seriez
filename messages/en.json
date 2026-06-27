@@ -101,6 +101,7 @@
     "about": "About",
     "goldenTicket": "Golden Ticket",
     "terms": "Terms",
+    "refund": "Refund",
     "privacy": "Privacy"
   },
   "common": {
@@ -174,7 +175,7 @@
       "Advanced Stats — genre breakdowns, top actors, and watching patterns",
       "Golden Ticket badge on your profile"
     ],
-    "stripeNotice": "Golden Ticket purchases are processed securely through Stripe.",
+    "paddleNotice": "Golden Ticket purchases are processed securely through Paddle.",
     "upgradeButton": "Upgrade to Golden Ticket"
   },
   "privacy": {
@@ -201,7 +202,7 @@
       "sharing": {
         "title": "3. Data Sharing",
         "intro": "We do <strong>not</strong> sell your personal data to third parties. We share data only:",
-        "stripe": "With Stripe for payment processing — Stripe receives your email and payment details under <a>their privacy policy</a>.",
+        "paddle": "With Paddle for payment processing — Paddle receives your email and payment details under <a>their privacy policy</a>.",
         "legal": "When required by law or to protect our rights."
       },
       "storage": {
@@ -254,7 +255,7 @@
       },
       "goldenTicket": {
         "title": "5. Golden Ticket Subscriptions",
-        "content": "Golden Ticket is a recurring subscription at $4.99/month or $49/year. Payments are processed through Stripe. You may cancel at any time; cancellation takes effect at the end of the current billing period. No refunds for partial months."
+        "content": "Golden Ticket is a recurring subscription at $4.99/month or $49/year. Payments are processed through Paddle. You may cancel at any time; cancellation takes effect at the end of the current billing period. No refunds for partial months."
       },
       "thirdParty": {
         "title": "6. Third-Party Content",

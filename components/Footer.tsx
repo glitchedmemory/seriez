@@ -6,8 +6,8 @@ export default function Footer() {
 
   const footerLinks = [
     { href: "/about", label: t("footer.about") },
-    { href: "/pro", label: t("footer.goldenTicket") },
     { href: "/terms", label: t("footer.terms") },
+    { href: "/refund", label: t("footer.refund") },
     { href: "/privacy", label: t("footer.privacy") },
   ];
   return (

@@ -48,6 +48,11 @@ const IconTrash = () => (
     <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
   </svg>
 );
+const IconCard = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+  </svg>
+);
 const IconChevronRight = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="9 18 15 12 9 6"/>
@@ -103,6 +108,19 @@ export default function SettingsPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
+
+  async function handleManageSubscription() {
+    setBillingLoading(true);
+    try {
+      const res = await fetch("/api/billing/portal").then(r => r.json());
+      if (res.url) window.location.href = res.url;
+      else alert(res.error || "Billing is not available yet");
+    } catch {
+      alert("Something went wrong");
+    }
+    setBillingLoading(false);
+  }
 
   async function handleChangePassword() {
     if (!currentPw || !newPw) { setPwMsg({ ok: false, text: "Please fill in all fields" }); return; }
@@ -286,6 +304,27 @@ export default function SettingsPage() {
                   </div>
                 )}
               </div>
+            </div>
+          </section>
+
+          {/* ─── SECTION: Billing ─── */}
+          <section>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary/60 mb-3 ml-1">Billing</h2>
+            <div className="bg-bg-card rounded-2xl border border-border/60 overflow-hidden divide-y divide-border/40">
+              <button
+                onClick={handleManageSubscription}
+                disabled={billingLoading}
+                className="w-full flex items-center gap-4 px-5 py-4 hover:bg-bg-surface transition-colors group"
+              >
+                <span className="text-accent"><IconCard /></span>
+                <div className="flex-1 text-left">
+                  <span className="text-sm font-medium text-text-primary">Manage Subscription</span>
+                  <p className="text-[11px] text-text-secondary mt-0.5">
+                    {billingLoading ? "Opening Paddle customer portal..." : "Cancel, update payment method, or view invoices"}
+                  </p>
+                </div>
+                <span className="text-text-secondary/30 group-hover:text-text-secondary transition-colors"><IconChevronRight /></span>
+              </button>
             </div>
           </section>
 

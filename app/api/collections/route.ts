@@ -51,20 +51,6 @@ export async function POST(req: NextRequest) {
     const userId = await resolveUserId(username);
     if (!userId) return NextResponse.json({ error: "Failed to resolve user" }, { status: 500 });
 
-    // ─── check collection limit for free users ───
-    const { data: premiumRow } = await supabase
-      .from("users").select("is_premium").eq("username", username).maybeSingle();
-    const isPremium = premiumRow?.is_premium === true;
-
-    if (!isPremium) {
-      const { count } = await supabase
-        .from("user_lists").select("id", { count: "exact", head: true }).eq("user_id", userId);
-      if ((count || 0) >= 3) {
-        return NextResponse.json({ error: "Free plan limited to 3 collections. Upgrade to Golden Ticket for unlimited." }, { status: 402 });
-      }
-    }
-    // ─── end limit check ───
-
     const { data, error } = await supabase
       .from("user_lists")
       .insert({ user_id: userId, name: name.trim().slice(0, 50), is_public: true })

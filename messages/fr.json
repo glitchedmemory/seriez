@@ -101,6 +101,7 @@
     "about": "À propos",
     "goldenTicket": "Golden Ticket",
     "terms": "Conditions",
+    "refund": "Remboursement",
     "privacy": "Confidentialité"
   },
   "common": {
@@ -174,7 +175,7 @@
       "Stats Avancées — analyses par genre, acteurs favoris, habitudes",
       "Badge Golden Ticket sur votre profil"
     ],
-    "stripeNotice": "Les achats Golden Ticket sont traités en toute sécurité via Stripe.",
+    "paddleNotice": "Les achats Golden Ticket sont traités en toute sécurité via Paddle.",
     "upgradeButton": "Passer au Golden Ticket"
   },
   "privacy": {
@@ -201,7 +202,7 @@
       "sharing": {
         "title": "3. Partage des données",
         "intro": "Nous <strong>ne vendons pas</strong> vos données personnelles à des tiers. Nous partageons les données uniquement :",
-        "stripe": "Avec Stripe pour le traitement des paiements — Stripe reçoit votre e-mail et vos informations de paiement selon <a>sa politique de confidentialité</a>.",
+        "paddle": "Avec Paddle pour le traitement des paiements — Paddle reçoit votre e-mail et vos informations de paiement selon <a>sa politique de confidentialité</a>.",
         "legal": "Lorsque la loi l'exige ou pour protéger nos droits."
       },
       "storage": {
@@ -254,7 +255,7 @@
       },
       "goldenTicket": {
         "title": "5. Abonnement Golden Ticket",
-        "content": "Golden Ticket est un abonnement à 4,99 $/mois ou 49 $/an via Stripe. Annulation possible à tout moment, prenant effet à la fin de la période en cours. Pas de remboursement partiel."
+        "content": "Golden Ticket est un abonnement à 4,99 $/mois ou 49 $/an via Paddle. Annulation possible à tout moment, prenant effet à la fin de la période en cours. Pas de remboursement partiel."
       },
       "thirdParty": {
         "title": "6. Contenu tiers",
