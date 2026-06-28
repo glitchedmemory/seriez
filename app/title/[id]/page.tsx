@@ -3,7 +3,7 @@ import DetailClient from "@/components/DetailClient";
 import { getAnimeDetail, getAnimeEpisodes, enrichAnimeRelations } from "@/lib/anilist";
 import AnimeDetailClient from "@/components/AnimeDetailClient";
 import { notFound, redirect } from "next/navigation";
-import { generateMovieJsonLd, StructuredDataScript } from "@/lib/structured-data";
+import { generateMovieJsonLd, generateTVJsonLd, StructuredDataScript } from "@/lib/structured-data";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const API_KEY = process.env.TMDB_API_KEY!;
@@ -120,7 +120,37 @@ export default async function TitlePage({ params, searchParams }: Props) {
       detail.titleNative,
       detail.duration
     );
-    return <AnimeDetailClient detail={detail} episodes={episodes} />;
+    const isAnimeMovie = detail.format === "MOVIE";
+    const animeJsonLd = isAnimeMovie
+      ? generateMovieJsonLd({
+          title: detail.title,
+          description: detail.overview || "",
+          posterUrl: detail.poster,
+          rating: detail.rating,
+          ratingCount: detail.popularity,
+          releaseYear: detail.year,
+          genres: detail.genres,
+          url: `/title/${numId}?type=anime`,
+        })
+      : generateTVJsonLd({
+          title: detail.title,
+          description: detail.overview || "",
+          posterUrl: detail.poster,
+          rating: detail.rating,
+          ratingCount: detail.popularity,
+          releaseYear: detail.year,
+          genres: detail.genres,
+          url: `/title/${numId}?type=anime`,
+          totalSeasons: 1,
+          status: detail.status,
+          networks: [],
+        });
+    return (
+      <>
+        <StructuredDataScript data={animeJsonLd} />
+        <AnimeDetailClient detail={detail} episodes={episodes} />
+      </>
+    );
   }
 
   try {
