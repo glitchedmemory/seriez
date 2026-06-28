@@ -74,10 +74,10 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
     return sorted;
   }, [items, sort]);
 
-  if (!localUser) return <EmptyState icon="🔐" title={t("library.signInTitle")} description={t("library.signInDesc")} action={{ label: t("library.signInAction"), href: "/signup" }} />;
+  if (!localUser) return <EmptyState icon="signin" title={t("library.signInTitle")} description={t("library.signInDesc")} action={{ label: t("library.signInAction"), href: "/signup" }} />;
 
   if (loading) return <ListSkeleton rows={6} />;
-  if (items.length === 0) return <EmptyState icon="📚" title={activeTab ? `No ${TABS.find(t=>t.key===activeTab)?.label || "items"} yet` : "Your library is empty"} description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />;
+  if (items.length === 0) return <EmptyState icon="empty" title={activeTab ? `No ${TABS.find(t=>t.key===activeTab)?.label || "items"} yet` : "Your library is empty"} description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />;
 
   return (
     <div className="max-w-4xl mx-auto px-4 mt-4">
@@ -220,7 +220,7 @@ function CollectionsView() {
           <span className="text-xs text-text-secondary">{items.length} items</span>
         </div>
         {itemsLoading ? <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" /></div>
-        : items.length === 0 ? <EmptyState icon="🎞️" title="No items yet" description="Add movies and shows to this collection." action={{ label: "Browse titles", href: "/" }} />
+        : items.length === 0 ? <EmptyState icon="noitems" title="No items yet" description="Add movies and shows to this collection." action={{ label: "Browse titles", href: "/" }} />
         : <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {items.map(item => {
           const isItemSeason = item.seasonNumber > 0;
@@ -250,7 +250,7 @@ function CollectionsView() {
   return (
     <div className="max-w-4xl mx-auto px-4 mt-4">
       {!authUser ? (
-        <EmptyState icon="🔐" title={t("library.collectionsSignInTitle")} description={t("library.collectionsSignInDesc")} action={{ label: t("library.collectionsSignInAction"), href: "/signup" }} />
+        <EmptyState icon="signin" title={t("library.collectionsSignInTitle")} description={t("library.collectionsSignInDesc")} action={{ label: t("library.collectionsSignInAction"), href: "/signup" }} />
       ) : (
       <>
       {(() => {
@@ -270,7 +270,7 @@ function CollectionsView() {
         );
       })()}
       {loading ? <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" /></div>
-      : collections.length === 0 ? <EmptyState icon="🗂️" title="No collections yet" description="Create your first collection to organize your favorite titles." />
+      : collections.length === 0 ? <EmptyState icon="collections" title="No collections yet" description="Create your first collection to organize your favorite titles." />
       : <div className="space-y-2">
         {collections.map(c => (
           <div key={c.id} className="flex items-center gap-3 bg-bg-card rounded-xl p-3 hover:bg-bg-surface transition-colors cursor-pointer group" onClick={() => { setSelectedId(c.id); fetchItems(c.id); }}>
@@ -390,7 +390,7 @@ export default function LibraryClient() {
       {/* Content */}
       {!activeFilter ? (
         <div className="max-w-4xl mx-auto px-4 mt-4">
-          <EmptyState icon="📚" title="Your list is empty" description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />
+          <EmptyState icon="empty" title="Your list is empty" description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />
         </div>
       ) : activeFilter === "collections" ? (
         <CollectionsView />
