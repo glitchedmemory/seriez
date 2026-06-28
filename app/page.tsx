@@ -4,6 +4,7 @@ import { getTrending, getUpcoming } from "@/lib/tmdb";
 import type { TmdbResult } from "@/lib/tmdb";
 import { getAnimeUpcoming } from "@/lib/anilist";
 import { getBoxOffice, getCountryName } from "@/lib/box-office";
+import { getTonightsPick } from "@/lib/curation";
 import HomeClient from "@/components/HomeClient";
 import { headers } from "next/headers";
 
@@ -70,5 +71,9 @@ export default async function Home() {
     [allUpcoming[i], allUpcoming[j]] = [allUpcoming[j], allUpcoming[i]];
   }
 
-  return <HomeClient trending={trending} upcoming={allUpcoming} animeUpcoming={[]} boxOffice={boxOffice} region={region} randomSeed={Date.now()} />;
+  // ponytail: separate try/catch so curation failure doesn't break the page
+  let curated: Awaited<ReturnType<typeof getTonightsPick>> = null;
+  try { curated = await getTonightsPick(); } catch {}
+
+  return <HomeClient trending={trending} upcoming={allUpcoming} animeUpcoming={[]} boxOffice={boxOffice} region={region} randomSeed={Date.now()} curatedHero={curated?.hero} curatedNextHero={curated?.nextHero} />;
 }
