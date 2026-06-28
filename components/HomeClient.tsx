@@ -99,6 +99,8 @@ interface Props {
   boxOffice: TmdbResult[];
   region: string;
   randomSeed: number;
+  curatedHero?: TmdbResult;
+  curatedNextHero?: TmdbResult;
 }
 
 type TrendingMode = "movie" | "tv" | "anime";
@@ -110,7 +112,7 @@ function getStoredMode(): TrendingMode {
   return "anime";
 }
 
-export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffice, region, randomSeed }: Props) {
+export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffice, region, randomSeed, curatedHero, curatedNextHero }: Props) {
   const [trendingMode, setTrendingMode] = useState<TrendingMode>(getStoredMode);
   const [animeTrending, setAnimeTrending] = useState<TmdbResult[]>([]);
   const [animeLoading, setAnimeLoading] = useState(false);
@@ -195,13 +197,13 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
       .catch(() => setAnimeLoading(false));
   }, [trendingMode, animeTrending.length]);
 
-  // Random hero pick using server-provided seed
+  // hero: use curated pick when available, fall back to random seed
   const heroPick = useMemo(() => {
     if (trending.length === 0) return 0;
     return randomSeed % trending.length;
   }, [randomSeed, trending.length]);
-  const hero = trending[heroPick];
-  const nextHero = trending.filter((_, i) => i !== heroPick).slice(0, 1)[0];
+  const hero = curatedHero || trending[heroPick];
+  const nextHero = curatedNextHero || trending.filter((_, i) => i !== heroPick).slice(0, 1)[0];
 
   // Shared search results dropdown
   const searchDropdown = searchOpen && searchQuery.trim() ? (
