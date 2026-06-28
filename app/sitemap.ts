@@ -3,15 +3,28 @@ import { MetadataRoute } from "next";
 const BASE_URL = "https://seriez.app";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const API_KEY = process.env.TMDB_API_KEY!;
-const PAGES = 25; // 25 pages × 20 = 500 titles each
-const PRIORITY_CUTOFF = 100; // first 100 titles get priority 0.9, rest 0.7
+const PAGES = 25;
+const PRIORITY_CUTOFF = 100;
 
-async function fetchTMDBPage(endpoint: string, page: number) {
-  const url = `${TMDB_BASE}${endpoint}?api_key=${API_KEY}&language=en-US&page=${page}`;
-  const res = await fetch(url, { next: { revalidate: 86400 } });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return (data.results || []).map((item: any) => item.id) as number[];
+async function fetchTMDBIds(endpoint: string): Promise<number[]> {
+  const ids = new Set<number>();
+  for (let page = 1; page <= PAGES; page++) {
+    try {
+      const url = `${TMDB_BASE}${endpoint}?api_key=${API_KEY}&language=en-US&page=${page}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        console.error(`[sitemap] TMDB ${endpoint} page ${page}: ${res.status}`);
+        continue;
+      }
+      const data = await res.json();
+      for (const item of data.results || []) {
+        ids.add(item.id as number);
+      }
+    } catch (e) {
+      console.error(`[sitemap] TMDB ${endpoint} page ${page} fetch error:`, e);
+    }
+  }
+  return Array.from(ids);
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -22,14 +35,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/privacy`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
   ];
 
-  // Fetch popular movies & TV in parallel
-  const moviePages = Array.from({ length: PAGES }, (_, i) => fetchTMDBPage("/movie/popular", i + 1));
-  const tvPages = Array.from({ length: PAGES }, (_, i) => fetchTMDBPage("/tv/popular", i + 1));
-
   const [movieIds, tvIds] = await Promise.all([
-    Promise.all(moviePages).then(arrs => [...new Set(arrs.flat())]),
-    Promise.all(tvPages).then(arrs => [...new Set(arrs.flat())]),
+    fetchTMDBIds("/movie/popular"),
+    fetchTMDBIds("/tv/popular"),
   ]);
+
+  console.log(`[sitemap] movies: ${movieIds.length}, tv: ${tvIds.length}`);
 
   const movieUrls: MetadataRoute.Sitemap = movieIds.map((id, i) => ({
     url: `${BASE_URL}/title/${id}?type=movie`,
