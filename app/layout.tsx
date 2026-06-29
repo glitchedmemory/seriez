@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
+import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import "./globals.css";
 import TabBar, { Sidebar } from "@/components/TabBar";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -24,52 +24,72 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
-  title: "Seriez — MOVIES. TV SHOWS. ANIME. TRACKED.",
-  description: "Track movies, TV shows, and anime. Save what you watch.",
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "48x48" },
-      { url: "/icons/icon-32.png", type: "image/png", sizes: "32x32" },
-      { url: "/icons/icon-16.png", type: "image/png", sizes: "16x16" },
-    ],
-    apple: [
-      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
-    ],
-    other: [
-      { url: "/icons/icon-192.png", sizes: "192x192" },
-      { url: "/icons/icon-512.png", sizes: "512x512" },
-    ],
-  },
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    title: "Seriez",
-    statusBarStyle: "black-translucent",
-  },
-  openGraph: {
-    title: "Seriez — MOVIES. TV SHOWS. ANIME. TRACKED.",
-    description: "Track movies, TV shows, and anime. Rate, review, and discover your next watch.",
-    type: "website",
-    siteName: "Seriez",
-    locale: "en_US",
-    images: [
-      {
-        url: "/og-image.svg",
-        width: 1200,
-        height: 630,
-        alt: "Seriez — MOVIES. TV SHOWS. ANIME. TRACKED.",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Seriez — MOVIES. TV SHOWS. ANIME. TRACKED.",
-    description: "Track movies, TV shows, and anime. Rate, review, and discover your next watch.",
-    images: ["/og-image.svg"],
-  },
-};
+const locales = ["en", "ko", "ja", "zh", "fr", "de", "es"] as const;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://seriez.app";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const t = await getTranslations("meta");
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      template: "%s — Seriez",
+      default: t("title"),
+    },
+    description: t("description"),
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "48x48" },
+        { url: "/icons/icon-32.png", type: "image/png", sizes: "32x32" },
+        { url: "/icons/icon-16.png", type: "image/png", sizes: "16x16" },
+      ],
+      apple: [
+        { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+      ],
+      other: [
+        { url: "/icons/icon-192.png", sizes: "192x192" },
+        { url: "/icons/icon-512.png", sizes: "512x512" },
+      ],
+    },
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      title: "Seriez",
+      statusBarStyle: "black-translucent",
+    },
+    alternates: {
+      canonical: `${SITE_URL}`,
+      languages: Object.fromEntries(
+        locales.map((l) => [
+          l,
+          l === "en" ? `${SITE_URL}` : `${SITE_URL}/${l}`,
+        ])
+      ),
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      type: "website",
+      siteName: "Seriez",
+      locale: locale === "en" ? "en_US" : locale,
+      images: [
+        {
+          url: "/og-image.svg",
+          width: 1200,
+          height: 630,
+          alt: t("title"),
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+      images: ["/og-image.svg"],
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#0f0f1a",

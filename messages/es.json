@@ -158,6 +158,10 @@
     "goldenTicket": "Golden Ticket",
     "goldenTicketDesc": "Desbloquea funciones premium con un Golden Ticket por $4.99/mes. Los miembros Golden Ticket obtienen colecciones ilimitadas, resúmenes anuales y más."
   },
+  "meta": {
+    "title": "Seriez — Rastrea Películas, Series & Anime",
+    "description": "Registra, califica y descubre películas, series y anime. Disponible en 7 idiomas."
+  },
   "pro": {
     "title": "✨ Golden Ticket",
     "subtitle": "Desbloquea la experiencia completa de Seriez.",

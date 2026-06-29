@@ -12,7 +12,7 @@ import es from './messages/es.json';
 export const routing = defineRouting({
   locales: ['en', 'ko', 'ja', 'zh', 'fr', 'de', 'es'],
   defaultLocale: 'en',
-  localePrefix: 'never',
+  localePrefix: 'as-needed',
 });
 
 const messages: Record<string, any> = { en, ko, ja, zh, fr, de, es };
