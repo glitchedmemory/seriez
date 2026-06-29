@@ -158,6 +158,10 @@
     "goldenTicket": "Golden Ticket",
     "goldenTicketDesc": "Unlock premium features with a Golden Ticket for $4.99/month. Golden Ticket members get unlimited collections, yearly recaps, and more."
   },
+  "meta": {
+    "title": "Seriez — Track Movies, TV Shows & Anime",
+    "description": "Track movies, TV shows, and anime. Rate, review, and discover your next watch — in 7 languages."
+  },
   "pro": {
     "title": "✨ Golden Ticket",
     "subtitle": "Unlock the full Seriez experience.",

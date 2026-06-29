@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 
 const BASE_URL = "https://seriez.app";
+const LOCALES = ["en", "ko", "ja", "zh", "fr", "de", "es"] as const;
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const API_KEY = process.env.TMDB_API_KEY!;
 const PAGES = 25;
@@ -27,13 +28,37 @@ async function fetchTMDBIds(endpoint: string): Promise<number[]> {
   return Array.from(ids);
 }
 
+function urlWithAlternates(path: string, priority: number, changeFreq: MetadataRoute.Sitemap[number]["changeFrequency"]): any {
+  const entry: any = {
+    url: `${BASE_URL}${path}`,
+    lastModified: new Date(),
+    changeFrequency: changeFreq,
+    priority,
+  };
+  // Add hreflang alternates
+  entry.alternates = {
+    languages: Object.fromEntries(
+      LOCALES.map((l) => [
+        l,
+        l === "en" ? `${BASE_URL}${path}` : `${BASE_URL}/${l}${path}`,
+      ])
+    ),
+  };
+  return entry;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticPages: MetadataRoute.Sitemap = [
-    { url: BASE_URL, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },
-    { url: `${BASE_URL}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE_URL}/terms`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE_URL}/privacy`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+  const staticPaths = [
+    { path: "", priority: 1.0, freq: "daily" as const },
+    { path: "/about", priority: 0.8, freq: "monthly" as const },
+    { path: "/terms", priority: 0.5, freq: "monthly" as const },
+    { path: "/privacy", priority: 0.5, freq: "monthly" as const },
+    { path: "/search", priority: 0.6, freq: "weekly" as const },
   ];
+
+  const staticEntries: MetadataRoute.Sitemap = staticPaths.map((s) =>
+    urlWithAlternates(s.path, s.priority, s.freq)
+  );
 
   const [movieIds, tvIds] = await Promise.all([
     fetchTMDBIds("/movie/popular"),
@@ -42,19 +67,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   console.log(`[sitemap] movies: ${movieIds.length}, tv: ${tvIds.length}`);
 
-  const movieUrls: MetadataRoute.Sitemap = movieIds.map((id, i) => ({
-    url: `${BASE_URL}/title/${id}?type=movie`,
-    lastModified: new Date(),
-    changeFrequency: "weekly" as const,
-    priority: i < PRIORITY_CUTOFF ? 0.9 : 0.7,
-  }));
+  const movieEntries: MetadataRoute.Sitemap = movieIds.map((id, i) =>
+    urlWithAlternates(
+      `/title/${id}?type=movie`,
+      i < PRIORITY_CUTOFF ? 0.9 : 0.7,
+      "weekly"
+    )
+  );
 
-  const tvUrls: MetadataRoute.Sitemap = tvIds.map((id, i) => ({
-    url: `${BASE_URL}/title/${id}?type=tv`,
-    lastModified: new Date(),
-    changeFrequency: "weekly" as const,
-    priority: i < PRIORITY_CUTOFF ? 0.9 : 0.7,
-  }));
+  const tvEntries: MetadataRoute.Sitemap = tvIds.map((id, i) =>
+    urlWithAlternates(
+      `/title/${id}?type=tv`,
+      i < PRIORITY_CUTOFF ? 0.9 : 0.7,
+      "weekly"
+    )
+  );
 
-  return [...staticPages, ...movieUrls, ...tvUrls];
+  return [...staticEntries, ...movieEntries, ...tvEntries];
 }

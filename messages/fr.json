@@ -156,7 +156,11 @@
     "smartRoulette": "Suivez ce que vous regardez et nous apprendrons vos goûts — des recommandations For You plus intelligentes à mesure que vous suivez.",
     "community": "Connectez-vous avec d'autres spectateurs via les critiques et commentaires",
     "goldenTicket": "Golden Ticket",
-    "goldenTicketDesc": "Débloquez les fonctionnalités premium avec un Golden Ticket à 4,99 $/mois. Les membres Golden Ticket bénéficient de collections illimitées, de récaps annuels et plus encore."
+    "goldenTicketDesc": "Débloquez les fonctionnalités premium avec un Golden Ticket à 4,99 $/mois. Les membres Golden Ticket bénéficient de collections illimitées, de récaps annuels et plus encore."
+  },
+  "meta": {
+    "title": "Seriez — Suivez Films, Séries & Anime",
+    "description": "Suivez, notez et découvrez films, séries et anime. Disponible en 7 langues."
   },
   "pro": {
     "title": "✨ Golden Ticket",

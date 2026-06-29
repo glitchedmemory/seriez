@@ -158,6 +158,10 @@
     "goldenTicket": "金票",
     "goldenTicketDesc": "每月$4.99解锁高级功能。Golden Ticket会员可享受无限收藏夹、年度回顾等更多功能。"
   },
+  "meta": {
+    "title": "Seriez — 追踪电影、电视剧、动漫",
+    "description": "记录、评价你观看的内容。用7种语言发现你的下一部作品。"
+  },
   "pro": {
     "title": "✨ Golden Ticket",
     "subtitle": "解锁完整的 Seriez 体验。",
