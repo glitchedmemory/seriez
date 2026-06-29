@@ -19,12 +19,12 @@ export default function AboutPage() {
             {t("whatYouCanDo")}
           </h2>
           <ul className="list-disc pl-6 space-y-2">
+            <li>{t("smartRoulette")}</li>
             <li>{t("trackLibrary")}</li>
             <li>{t("rateReview")}</li>
             <li>{t("createCollections")}</li>
             <li>{t("boxOffice")}</li>
             <li>{t("discover")}</li>
-            <li>{t("smartRoulette")}</li>
             <li>{t("community")}</li>
           </ul>
 

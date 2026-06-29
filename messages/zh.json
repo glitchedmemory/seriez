@@ -146,14 +146,14 @@
   },
   "about": {
     "title": "关于Seriez",
-    "description": "Seriez是一个电影、电视剧和动漫的追踪平台。记录你观看的内容，评分，写评论，打造属于你的个人图书馆。",
+    "description": "Seriez是一个电影、电视剧和动漫的追踪平台。记录你观看的内容，评分，写评论，打造属于你的个人图书馆。我们会学习你的品味，为你推荐接下来要看的内容。",
     "whatYouCanDo": "你可以做什么",
     "trackLibrary": "在一个统一的图书馆中追踪电影、电视剧和动漫",
     "rateReview": "为你观看的所有内容评分和评论",
     "createCollections": "创建自定义收藏夹来整理你的图书馆",
     "boxOffice": "浏览9个国家的票房排行榜",
     "discover": "通过轮盘和心情搜索发现新作品",
-    "smartRoulette": "观影记录越多，For You推荐就越精准。现在就开始记录吧！",
+    "smartRoulette": "追踪你的观影记录，我们会学习你的品味 — 记录越多，For You推荐越智能。",
     "community": "通过评论和回复与其他观众交流",
     "goldenTicket": "金票",
     "goldenTicketDesc": "每月$4.99解锁高级功能。Golden Ticket会员可享受无限收藏夹、年度回顾等更多功能。"
