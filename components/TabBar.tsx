@@ -19,6 +19,8 @@ export default function TabBar() {
     createClient().auth.getUser().then(({ data }) => {
       setUser(data.user ?? null);
       const username = data.user?.user_metadata?.username;
+      // Optimistic: show admin button immediately if username matches
+      if (username === "Seriez") setIsStaff(true);
       if (username) {
         fetch(`/api/admin/users?username=${encodeURIComponent(username)}`)
           .then(r => r.json())
@@ -26,6 +28,8 @@ export default function TabBar() {
             if (d.users?.length > 0) {
               const role = d.users[0].role;
               setIsStaff(role === "admin" && username === "Seriez");
+            } else {
+              setIsStaff(false);
             }
           })
           .catch(() => {});
@@ -101,6 +105,8 @@ export function Sidebar() {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user ?? null);
       const username = data.user?.user_metadata?.username;
+      // Optimistic: show admin button immediately if username matches
+      if (username === "Seriez") setIsStaff(true);
       if (username) {
         fetch(`/api/admin/users?username=${encodeURIComponent(username)}`)
           .then(r => r.json())
@@ -108,6 +114,8 @@ export function Sidebar() {
             if (d.users?.length > 0) {
               const role = d.users[0].role;
               setIsStaff(role === "admin" && username === "Seriez");
+            } else {
+              setIsStaff(false);
             }
           })
           .catch(() => {});
