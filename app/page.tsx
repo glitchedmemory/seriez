@@ -55,38 +55,43 @@ export default async function Home() {
     { id: 291350, type: "tv" as const },    // Anna Pigeon (USA Network, Aug 7)
   ];
 
-  const injected: TmdbResult[] = [];
-  for (const { id, type } of injectIds) {
-    try {
-      const ep = type === "tv" ? "/tv" : "/movie";
-      const res = await fetch(
-        `https://api.themoviedb.org/3${ep}/${id}?api_key=${KEY}`,
-        { next: { revalidate: 3600 } }
-      );
-      const j = await res.json();
-      if (!j.id) continue;
+  const injected: TmdbResult[] = (
+    await Promise.all(
+      injectIds.map(async ({ id, type }) => {
+        try {
+          const ep = type === "tv" ? "/tv" : "/movie";
+          const res = await fetch(
+            `https://api.themoviedb.org/3${ep}/${id}?api_key=${KEY}`,
+            { next: { revalidate: 3600 } }
+          );
+          const j = await res.json();
+          if (!j.id) return null;
 
-      const dateStr = type === "tv"
-        ? j.next_episode_to_air?.air_date || j.first_air_date
-        : j.release_date;
-      const daysUntil = dateStr
-        ? Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000)
-        : null;
+          const dateStr = type === "tv"
+            ? j.next_episode_to_air?.air_date || j.first_air_date
+            : j.release_date;
+          const daysUntil = dateStr
+            ? Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000)
+            : null;
 
-      injected.push({
-        id: j.id,
-        title: j.title || j.name || "Unknown",
-        poster: j.poster_path ? `https://image.tmdb.org/t/p/w500${j.poster_path}` : null,
-        backdrop: j.backdrop_path ? `https://image.tmdb.org/t/p/w1280${j.backdrop_path}` : null,
-        rating: Math.round((j.vote_average || 0) * 10) / 10,
-        year: dateStr ? parseInt(dateStr.slice(0, 4)) : 0,
-        type,
-        overview: j.overview || "",
-        genres: (j.genres || []).slice(0, 3).map((g: any) => g.name),
-        daysUntil: daysUntil && daysUntil > 0 ? daysUntil : null,
-      } as TmdbResult);
-    } catch {}
-  }
+          return {
+            id: j.id,
+            title: j.title || j.name || "Unknown",
+            poster: j.poster_path ? `https://image.tmdb.org/t/p/w500${j.poster_path}` : null,
+            backdrop: j.backdrop_path ? `https://image.tmdb.org/t/p/w1280${j.backdrop_path}` : null,
+            rating: Math.round((j.vote_average || 0) * 10) / 10,
+            year: dateStr ? parseInt(dateStr.slice(0, 4)) : 0,
+            type,
+            overview: j.overview || "",
+            genres: (j.genres || []).slice(0, 3).map((g: any) => g.name),
+            daysUntil: daysUntil && daysUntil > 0 ? daysUntil : null,
+          } as TmdbResult;
+        } catch {
+          return null;
+        }
+      })
+    )
+  ).filter(Boolean) as TmdbResult[];
 
   upcoming = [...injected, ...upcoming];
 
