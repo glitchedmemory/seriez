@@ -33,22 +33,11 @@ const handleI18n = createIntlMiddleware({
 });
 
 export async function proxy(request: NextRequest) {
-  // ── 0. Let next-intl handle locale routing first ──
-  const intlRes = handleI18n(request);
-  // Only intercept if intl middleware actually rewrites/redirects (locale prefix change)
-  const rewriteHeader = intlRes.headers.get("x-middleware-rewrite");
-  if (rewriteHeader) {
-    const ua = request.headers.get("user-agent") || "";
-    if (BOT_UA_REGEX.test(ua)) {
-      intlRes.headers.set("x-is-bot", "1");
-    }
-    return intlRes;
-  }
-
   const path = request.nextUrl.pathname;
   const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
   const userAgent = request.headers.get("user-agent") || "";
 
+  // Bot detection
   if (BOT_UA_REGEX.test(userAgent)) {
     request.headers.set("x-is-bot", "1");
   }
@@ -58,7 +47,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(new URL("/_next/static/chunks/2urolxst4sso2.css", request.url));
   }
 
-  // Rate limiting
+  // Rate limiting (before i18n to block early)
   if (path.startsWith("/api/") && (path.includes("auth") || path.includes("login") || path.includes("signup"))) {
     if (!rateLimit(ip + ":auth", 10, 60000)) {
       return new NextResponse("Too many login attempts.", { status: 429 });
@@ -86,7 +75,26 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return await updateSession(request);
+  // Apply i18n and updateSession, merge headers
+  const intlRes = handleI18n(request);
+  const sessionRes = await updateSession(request);
+
+  // Copy i18n headers (locale cookie, rewrite) to session response
+  intlRes.headers.forEach((value, key) => {
+    if (key.toLowerCase() !== "x-middleware-rewrite") {
+      sessionRes.headers.set(key, value);
+    }
+  });
+  // Copy i18n cookies
+  intlRes.cookies.getAll().forEach((cookie) => {
+    sessionRes.cookies.set(cookie.name, cookie.value, {
+      path: cookie.path,
+      maxAge: cookie.maxAge,
+      sameSite: cookie.sameSite as any,
+    });
+  });
+
+  return sessionRes;
 }
 
 export const config = {
