@@ -13,6 +13,7 @@ import { ThemeProvider } from "@/lib/theme";
 import { BotProvider } from "@/components/BotProvider";
 import { isBot } from "@/lib/bot";
 import AdminAwareLayout from "@/components/AdminAwareLayout";
+import FeedbackWidget from "@/components/FeedbackWidget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -154,6 +155,7 @@ export default async function RootLayout({
             <AdminAwareLayout>
               {children}
             </AdminAwareLayout>
+            <FeedbackWidget />
           </ThemeProvider>
         </NextIntlClientProvider>
         </BotProvider>
