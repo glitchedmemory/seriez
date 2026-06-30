@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { getTrending, getUpcoming } from "@/lib/tmdb";
 import type { TmdbResult } from "@/lib/tmdb";
-import { getAnimeUpcoming } from "@/lib/anilist";
+import { getAnimeUpcoming, getAnimeTrending } from "@/lib/anilist";
 import { getBoxOffice, getCountryName } from "@/lib/box-office";
 import { getTonightsPick } from "@/lib/curation";
 import HomeClient from "@/components/HomeClient";
@@ -12,6 +12,7 @@ export default async function Home() {
   let trending: Awaited<ReturnType<typeof getTrending>> = [];
   let upcoming: Awaited<ReturnType<typeof getUpcoming>> = [];
   let animeUpcoming: Awaited<ReturnType<typeof getAnimeUpcoming>> = [];
+  let animeTrending: Awaited<ReturnType<typeof getAnimeTrending>> = [];
   let boxOffice: Awaited<ReturnType<typeof getBoxOffice>> = [];
 
   // Detect country from Cloudflare or Vercel headers
@@ -20,15 +21,19 @@ export default async function Home() {
   const region = getCountryName(countryCode);
 
   try {
-    [trending, upcoming, animeUpcoming, boxOffice] = await Promise.all([
+    [trending, upcoming, animeUpcoming, animeTrending, boxOffice] = await Promise.all([
       getTrending(),
       getUpcoming(),
       getAnimeUpcoming(),
+      getAnimeTrending(),
       getBoxOffice(countryCode),
     ]);
   } catch {
     // fallback: empty arrays, HomeClient shows empty states
   }
+
+  // Merge anime trending into the pool
+  trending = [...trending, ...animeTrending];
 
   // Remove Pritam and Pedro (TMDB TV 243206), inject Spider-Man: Brand New Day (TMDB 969681)
   const PRITAM_ID = 243206;

@@ -1,5 +1,6 @@
 const ANILIST_API = "https://graphql.anilist.co";
 
+import type { TmdbResult } from "./tmdb";
 import { validateAndReplaceTrailers } from "./yt-validator";
 
 // ─── Retry wrapper ───
@@ -1151,4 +1152,50 @@ export const ONE_PIECE_SAGAS: AnimeSaga[] = [
 export function getAnimeSagas(anilistId: number): AnimeSaga[] | null {
   if (anilistId === 21) return ONE_PIECE_SAGAS;
   return null;
+}
+
+// ─── Trending anime ───
+
+const TRENDING_QUERY = `
+query TrendingAnime($page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
+    media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
+      id
+      title { romaji english }
+      coverImage { extraLarge }
+      bannerImage
+      averageScore
+      seasonYear
+      description
+      genres
+    }
+  }
+}`;
+
+export async function getAnimeTrending(): Promise<TmdbResult[]> {
+  try {
+    const res = await fetch(ANILIST_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: TRENDING_QUERY, variables: { page: 1, perPage: 14 } }),
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const media = json.data?.Page?.media || [];
+    return media.map((m: any) => ({
+      id: m.id,
+      title: m.title?.english || m.title?.romaji || "Unknown",
+      poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
+      backdrop: m.bannerImage || null,
+      rating: Math.round((m.averageScore / 10) * 10) / 10 || 0,
+      year: m.seasonYear || 0,
+      type: "anime" as const,
+      overview: m.description?.replace(/<[^>]*>/g, "").slice(0, 300) || "",
+      genres: m.genres?.slice(0, 5) || [],
+      daysUntil: null,
+    }));
+  } catch {
+    return [];
+  }
 }
