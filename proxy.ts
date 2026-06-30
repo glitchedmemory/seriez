@@ -35,9 +35,9 @@ const handleI18n = createIntlMiddleware({
 export async function proxy(request: NextRequest) {
   // ── 0. Let next-intl handle locale routing first ──
   const intlRes = handleI18n(request);
-  // If intl middleware returned a redirect/rewrite, pass it through
-  // but also apply bot header if needed
-  if (intlRes) {
+  // Only intercept if intl middleware actually rewrites/redirects (locale prefix change)
+  const rewriteHeader = intlRes.headers.get("x-middleware-rewrite");
+  if (rewriteHeader) {
     const ua = request.headers.get("user-agent") || "";
     if (BOT_UA_REGEX.test(ua)) {
       intlRes.headers.set("x-is-bot", "1");
