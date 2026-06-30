@@ -221,8 +221,10 @@ export async function POST(req: NextRequest) {
       }
     } catch { /* non-blocking */ }
 
+    const posterUrl = body.posterUrl || null;
+
     const { data, error } = await supabaseAdmin
-      .from("reviews").insert({ tmdb_id: tmdbId, media_type: mediaType, username: user, content: trimmed, rating: dbRating })
+      .from("reviews").insert({ tmdb_id: tmdbId, media_type: mediaType, username: user, content: trimmed, rating: dbRating, poster_url: posterUrl })
       .select("id, username, content, rating, likes_count, created_at").single();
 
     if (error) {
@@ -231,6 +233,16 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "You've already reviewed this title" }, { status: 409 });
       }
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Fetch & store poster if not provided by client (non-blocking)
+    if (!posterUrl) {
+      (async () => {
+        try {
+          const p = await fetchPosterUrl(tmdbId, mediaType);
+          if (p) await supabaseAdmin.from("reviews").update({ poster_url: p }).eq("id", data.id);
+        } catch {}
+      })();
     }
 
     // Log to rate_log (best-effort)
@@ -244,7 +256,34 @@ export async function POST(req: NextRequest) {
   } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
 }
 
-// Helper: count recent actions by user
+// Helper: fetch poster URL from TMDB/AniList
+const TMDB_URL = "https://api.themoviedb.org/3";
+const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
+const TMDB_KEY = process.env.TMDB_API_KEY;
+
+async function fetchPosterUrl(tmdbId: number, mediaType: string): Promise<string | null> {
+  try {
+    if (mediaType === "anime") {
+      const res = await fetch("https://graphql.anilist.co", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ query: `query($id:Int){Media(id:$id){coverImage{extraLarge}}}`, variables: { id: tmdbId } }),
+      });
+      if (res.ok) {
+        const j = await res.json();
+        return j.data?.Media?.coverImage?.extraLarge || null;
+      }
+    } else {
+      const ep = mediaType === "tv" ? "tv" : "movie";
+      const res = await fetch(`${TMDB_URL}/${ep}/${tmdbId}?api_key=${TMDB_KEY}`);
+      if (res.ok) {
+        const d = await res.json();
+        return d.poster_path ? `${TMDB_IMG}${d.poster_path}` : null;
+      }
+    }
+  } catch {}
+  return null;
+}
 async function getRecentCount(action: string, username: string, minutes: number): Promise<number> {
   try {
     const { count } = await supabaseAdmin

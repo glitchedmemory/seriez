@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
           // Get real reviews
           const { data: reviews } = await supabase
             .from("reviews")
-            .select("username, tmdb_id, media_type, content, rating, created_at")
+            .select("username, tmdb_id, media_type, content, rating, created_at, poster_url")
             .in("username", followingUsernames)
             .order("created_at", { ascending: false })
             .limit(30);
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
           // Get real tracking
           const { data: tracking } = await supabase
             .from("media_trackings")
-            .select("username, tmdb_id, media_type, status, rating, updated_at")
+            .select("username, tmdb_id, media_type, status, rating, updated_at, poster_url")
             .in("username", followingUsernames)
             .order("updated_at", { ascending: false })
             .limit(30);
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
                 username: r.username,
                 tmdbId: r.tmdb_id,
                 mediaType: r.media_type,
-                title: "", poster: null, year: null,
+                title: "", poster: r.poster_url || null, year: null,
                 rating: r.rating >= 10 ? r.rating / 10 : r.rating,
                 content: r.content?.slice(0, 200),
                 createdAt: r.created_at,
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
                 username: r.username,
                 tmdbId: r.tmdb_id,
                 mediaType: r.media_type,
-                title: "", poster: null, year: null,
+                title: "", poster: r.poster_url || null, year: null,
                 content: r.content.slice(0, 200),
                 rating: r.rating >= 10 ? r.rating / 10 : r.rating || undefined,
                 createdAt: r.created_at,
@@ -100,7 +100,7 @@ export async function GET(req: NextRequest) {
               username: t.username,
               tmdbId: t.tmdb_id,
               mediaType: t.media_type,
-              title: "", poster: null, year: null,
+              title: "", poster: t.poster_url || null, year: null,
               rating: t.rating || undefined,
               createdAt: t.updated_at,
             });
@@ -156,18 +156,42 @@ export async function GET(req: NextRequest) {
     return true;
   }).slice(0, 20);
 
-  // Enrich ALL entries — anime goes through AniList→Jikan→Kitsu chain, others through TMDB
+  // Enrich — skip fallback chains for items that already have poster_url
   const enriched = await Promise.all(
     unique.map(async (a) => {
       if (a.type === "collection" || a.tmdbId === 0) return a;
       
-      // Anime: use dedicated 3-source chain (no TMDB fallback)
+      // Already has poster from DB — just need title/year (fast single API call)
+      if (a.poster) {
+        try {
+          if (a.mediaType === "anime") {
+            const res = await fetch("https://graphql.anilist.co", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Accept": "application/json" },
+              body: JSON.stringify({ query: `query($id:Int){Media(id:$id){title{romaji english}seasonYear}}`, variables: { id: a.tmdbId } }),
+            });
+            if (res.ok) {
+              const j = await res.json();
+              const m = j.data?.Media;
+              if (m) return { ...a, title: m.title?.english || m.title?.romaji || "", year: m.seasonYear?.toString() || null };
+            }
+          } else {
+            const ep = a.mediaType === "tv" ? "tv" : "movie";
+            const res = await fetch(`${TMDB_API}/${ep}/${a.tmdbId}?api_key=${TMDB_KEY}`);
+            if (res.ok) {
+              const d = await res.json();
+              return { ...a, title: d.title || d.name || "", year: (d.release_date || d.first_air_date || "").slice(0, 4) || null };
+            }
+          }
+        } catch {}
+        return a;
+      }
+      
+      // No poster in DB — full enrichment chain
       if (a.mediaType === "anime") {
         const result = await enrichAnime(a.tmdbId);
         return { ...a, title: result.title || a.title, poster: result.poster, year: result.year || a.year };
       }
-      
-      // Movies / TV: TMDB → Wikipedia → Wikidata → TVMaze(TV only) chain
       const result = await enrichMovieTV(a.tmdbId, a.mediaType);
       return { ...a, title: result.title || a.title, poster: result.poster, year: result.year || a.year };
     })
