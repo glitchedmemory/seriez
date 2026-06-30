@@ -95,7 +95,7 @@
     "popular": "Popular",
     "upcoming": "Upcoming",
     "trendingNow": "TRENDING NOW",
-    "tonightsPick": "Tonight's Pick"
+    "tonightsPick": "Right Now"
   },
   "footer": {
     "about": "About",
@@ -172,7 +172,7 @@
     "features": [
       "Unlimited custom collections — organize your library your way",
       "Publish Collections — share your curated lists with the community",
-      "Tonight's Pick — a curated recommendation delivered daily",
+      "Right Now — a curated recommendation delivered daily",
       "Roulette Discovery — spin to find your next watch",
       "Yearly Recap — your watching year in review",
       "Viewer DNA — your watching personality decoded from your ratings",
