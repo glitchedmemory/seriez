@@ -18,6 +18,20 @@ export default async function AdminDashboard() {
     .from("users").select("*", { count: "exact", head: true })
     .not("sanction_type", "is", null);
 
+  // Today / this week signups
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+
+  const { count: todaySignups } = await supabase
+    .from("users").select("*", { count: "exact", head: true })
+    .gte("created_at", today.toISOString());
+
+  const { count: weekSignups } = await supabase
+    .from("users").select("*", { count: "exact", head: true })
+    .gte("created_at", weekAgo.toISOString());
+
   const stats = [
     {
       label: "Total Users",
@@ -26,6 +40,22 @@ export default async function AdminDashboard() {
       accent: "#6366f1",
       bg: "from-[#6366f1]/10 to-[#6366f1]/5",
       border: "border-[#6366f1]/20",
+    },
+    {
+      label: "Today",
+      value: todaySignups ?? 0,
+      href: "/admin/users",
+      accent: "#22c55e",
+      bg: "from-[#22c55e]/10 to-[#22c55e]/5",
+      border: "border-[#22c55e]/20",
+    },
+    {
+      label: "This Week",
+      value: weekSignups ?? 0,
+      href: "/admin/users",
+      accent: "#3b82f6",
+      bg: "from-[#3b82f6]/10 to-[#3b82f6]/5",
+      border: "border-[#3b82f6]/20",
     },
     {
       label: "Premium",
