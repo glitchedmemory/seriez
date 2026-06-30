@@ -244,6 +244,11 @@ export default async function SeasonPage({ params }: Props) {
         .slice(0, 12);
     }
 
+    // YouTube thumbnail fallback for missing TMDB backdrop
+    const youtubeBackdrop = (!seriesData.backdrop_path && validatedTrailers.length > 0)
+      ? `https://img.youtube.com/vi/${validatedTrailers[0].key}/maxresdefault.jpg`
+      : null;
+
     const data = {
       // Series info
       id: seriesData.id,
@@ -252,6 +257,7 @@ export default async function SeasonPage({ params }: Props) {
       overview: seriesData.overview || "",
       posterPath: poster(seriesData.poster_path),
       backdropPath: backdrop(seriesData.backdrop_path),
+      youtubeBackdrop,
       anilistBanner: anilistBanner || null,
       rating: Math.round(seriesData.vote_average * 10) / 10,
       voteCount: seriesData.vote_count || 0,
