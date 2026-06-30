@@ -197,12 +197,12 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
       .catch(() => setAnimeLoading(false));
   }, [trendingMode, animeTrending.length]);
 
-  // hero: use curated pick when available, fall back to random seed
+  // hero: random pick from trending pool (includes movies + TV + anime)
   const heroPick = useMemo(() => {
     if (trending.length === 0) return 0;
     return randomSeed % trending.length;
   }, [randomSeed, trending.length]);
-  const hero = curatedHero || trending[heroPick];
+  const hero = trending[heroPick];
   const nextHero = curatedNextHero || trending.filter((_, i) => i !== heroPick).slice(0, 1)[0];
 
   // Shared search results dropdown
