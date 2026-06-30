@@ -18,6 +18,28 @@ export default async function AdminDashboard() {
     .from("users").select("*", { count: "exact", head: true })
     .not("sanction_type", "is", null);
 
+  // Signup tracking
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+
+  const { count: todaySignups } = await supabase
+    .from("users").select("*", { count: "exact", head: true })
+    .gte("created_at", today.toISOString());
+
+  const { count: weekSignups } = await supabase
+    .from("users").select("*", { count: "exact", head: true })
+    .gte("created_at", weekAgo.toISOString());
+
+  // Deletion tracking
+  const { count: totalDeleted } = await supabase
+    .from("deleted_users").select("*", { count: "exact", head: true });
+
+  const { count: deletedThisWeek } = await supabase
+    .from("deleted_users").select("*", { count: "exact", head: true })
+    .gte("deleted_at", weekAgo.toISOString());
+
   const stats = [
     {
       label: "Total Users",
@@ -26,6 +48,38 @@ export default async function AdminDashboard() {
       accent: "#6366f1",
       bg: "from-[#6366f1]/10 to-[#6366f1]/5",
       border: "border-[#6366f1]/20",
+    },
+    {
+      label: "Today",
+      value: todaySignups ?? 0,
+      href: "/admin/users",
+      accent: "#22c55e",
+      bg: "from-[#22c55e]/10 to-[#22c55e]/5",
+      border: "border-[#22c55e]/20",
+    },
+    {
+      label: "This Week",
+      value: weekSignups ?? 0,
+      href: "/admin/users",
+      accent: "#3b82f6",
+      bg: "from-[#3b82f6]/10 to-[#3b82f6]/5",
+      border: "border-[#3b82f6]/20",
+    },
+    {
+      label: "Deleted (Total)",
+      value: totalDeleted ?? 0,
+      href: "/admin/audit",
+      accent: "#ef4444",
+      bg: "from-[#ef4444]/10 to-[#ef4444]/5",
+      border: "border-[#ef4444]/20",
+    },
+    {
+      label: "Deleted (Week)",
+      value: deletedThisWeek ?? 0,
+      href: "/admin/audit",
+      accent: "#dc2626",
+      bg: "from-[#dc2626]/10 to-[#dc2626]/5",
+      border: "border-[#dc2626]/20",
     },
     {
       label: "Premium",
@@ -39,17 +93,17 @@ export default async function AdminDashboard() {
       label: "Sanctioned",
       value: sanctionedUsers ?? 0,
       href: "/admin/sanctions",
-      accent: "#ef4444",
-      bg: "from-[#ef4444]/10 to-[#ef4444]/5",
-      border: "border-[#ef4444]/20",
+      accent: "#f97316",
+      bg: "from-[#f97316]/10 to-[#f97316]/5",
+      border: "border-[#f97316]/20",
     },
     {
       label: "Open Reports",
       value: openReports ?? 0,
       href: "/admin/reports",
-      accent: "#f97316",
-      bg: "from-[#f97316]/10 to-[#f97316]/5",
-      border: "border-[#f97316]/20",
+      accent: "#f59e0b",
+      bg: "from-[#f59e0b]/10 to-[#f59e0b]/5",
+      border: "border-[#f59e0b]/20",
     },
   ];
 

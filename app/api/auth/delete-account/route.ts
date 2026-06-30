@@ -44,6 +44,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Admin accounts cannot be deleted" }, { status: 403 });
     }
 
+    // Log deletion for admin tracking
+    await supabaseAdmin.from("deleted_users").insert({ username });
+
     // Delete all user data from every table
     const tablesToCleanUser = ["notifications", "search_logs"];
     const tablesToCleanUsername = ["media_trackings", "episode_watches"];
