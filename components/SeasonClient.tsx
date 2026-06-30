@@ -40,6 +40,7 @@ interface SeasonData {
   overview: string;
   posterPath: string | null;
   backdropPath: string | null;
+  youtubeBackdrop?: string | null;
   anilistBanner?: string | null;
   rating: number;
   voteCount: number;
@@ -377,22 +378,22 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
 
   return (
     <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
-      {/* Backdrop — TMDB > AniList > poster blur */}
-      {(data.backdropPath || data.anilistBanner || data.posterPath) && (
+      {/* Backdrop — TMDB > YouTube trailer thumbnail > AniList > poster blur */}
+      {(data.backdropPath || data.youtubeBackdrop || data.anilistBanner || data.posterPath) && (
         <div className="relative w-full h-48 md:h-72 overflow-hidden">
           <PosterImage
-            src={data.backdropPath?.replace("w342", "w1280") || data.anilistBanner || data.posterPath?.replace("w342", "w1280") || ""}
+            src={data.backdropPath?.replace("w342", "w1280") || data.youtubeBackdrop || data.anilistBanner || data.posterPath?.replace("w342", "w1280") || ""}
             alt=""
             fill
             priority
             unoptimized
-            className={(!data.backdropPath && !data.anilistBanner) ? "blur-2xl scale-125 opacity-50" : ""}
+            className={(!data.backdropPath && !data.youtubeBackdrop && !data.anilistBanner) ? "blur-2xl scale-125 opacity-50" : ""}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
         </div>
       )}
 
-      <div className={`relative px-4 md:px-0 z-10 ${(data.backdropPath || data.anilistBanner || data.posterPath) ? '-mt-20 md:-mt-32' : ''}`}>
+      <div className={`relative px-4 md:px-0 z-10 ${(data.backdropPath || data.youtubeBackdrop || data.anilistBanner || data.posterPath) ? '-mt-20 md:-mt-32' : ''}`}>
         <div className="flex flex-col md:flex-row gap-6">
           {/* Poster */}
           <div className="flex-shrink-0 w-36 md:w-48 mx-auto md:mx-0">

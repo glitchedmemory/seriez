@@ -29,7 +29,7 @@ const BOT_UA_REGEX = /bot|crawler|spider|anthropic-ai|ChatGPT-User|Google-Extend
 const handleI18n = createIntlMiddleware({
   locales: ["en", "ko", "ja", "zh", "fr", "de", "es"],
   defaultLocale: "en",
-  localePrefix: "as-needed",
+  localePrefix: "never",
 });
 
 export async function proxy(request: NextRequest) {

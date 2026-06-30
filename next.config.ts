@@ -1,17 +1,13 @@
 import type { NextConfig } from "next";
 import withPWA from "next-pwa";
-import createNextIntlPlugin from "next-intl/plugin";
-
-const withNextIntl = createNextIntlPlugin("./i18n.ts");
+import createNextIntlPlugin from 'next-intl/plugin';
 
 const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
   turbopack: {},
   allowedDevOrigins: ["*.trycloudflare.com"],
-  // sw.js MUST bypass all caching — browser SW update check uses this
   async rewrites() {
-    return [
-    ];
+    return [];
   },
   async headers() {
     return [
@@ -45,13 +41,8 @@ const pwaOptions: any = {
   clientsClaim: true,
   selfDestroying: true,
   disable: process.env.NODE_ENV === "development",
-  // Exclude Turbopack-generated CSS chunks from precache
-  // (chunk names are non-deterministic — precaching them causes
-  //  stale references that result in CSS chunk mismatch 404s)
-  // sw.js MUST NOT be cached — if old SW caches it, new SW can never install
   buildExcludes: [/chunks\/.*\.css$/, /chunks\/.*\.css\.map$/, /^\/sw\.js$/],
   runtimeCaching: [
-    // JS: network-first (must update on new deploys)
     {
       urlPattern: /\.js(\?.*)?$/,
       handler: "NetworkFirst",
@@ -61,7 +52,6 @@ const pwaOptions: any = {
         networkTimeoutSeconds: 3,
       },
     },
-    // Static fonts, icons: cache-first (deterministic names)
     {
       urlPattern: /\.(?:woff2?|ttf|otf|png|svg|ico)$/,
       handler: "CacheFirst",
@@ -70,7 +60,6 @@ const pwaOptions: any = {
         expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 },
       },
     },
-    // CSS: network-first (Turbopack chunk names change every build)
     {
       urlPattern: /\.css(\?.*)?$/,
       handler: "NetworkFirst",
@@ -80,7 +69,6 @@ const pwaOptions: any = {
         networkTimeoutSeconds: 3,
       },
     },
-    // TMDB images: stale-while-revalidate (show cached, update bg)
     {
       urlPattern: /^https:\/\/image\.tmdb\.org\/.*/,
       handler: "StaleWhileRevalidate",
@@ -89,7 +77,6 @@ const pwaOptions: any = {
         expiration: { maxEntries: 500, maxAgeSeconds: 7 * 24 * 60 * 60 },
       },
     },
-    // AniList images: stale-while-revalidate
     {
       urlPattern: /^https:\/\/s4\.anilist\.co\/.*/,
       handler: "StaleWhileRevalidate",
@@ -98,7 +85,6 @@ const pwaOptions: any = {
         expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 },
       },
     },
-    // App pages: network-first (try fresh, fallback to cache)
     {
       urlPattern: ({ url }: { url: URL }) =>
         url.origin === self.location.origin &&
@@ -111,7 +97,6 @@ const pwaOptions: any = {
         networkTimeoutSeconds: 3,
       },
     },
-    // API responses: network-first with short timeout
     {
       urlPattern: ({ url }: { url: URL }) =>
         url.origin === self.location.origin && url.pathname.startsWith("/api/"),
@@ -124,5 +109,7 @@ const pwaOptions: any = {
     },
   ],
 };
+
+const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
 export default withNextIntl(withPWA(pwaOptions)(nextConfig));
