@@ -8,7 +8,6 @@ import "./globals.css";
 import TabBar, { Sidebar } from "@/components/TabBar";
 import ScrollToTop from "@/components/ScrollToTop";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import AnnouncementBar from "@/components/AnnouncementBar";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/lib/theme";
 import { BotProvider } from "@/components/BotProvider";
@@ -149,9 +148,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-bg-primary text-text-primary">
-        <AnnouncementBar />
-        <div className="flex-1 flex">
+      <body className="min-h-full flex bg-bg-primary text-text-primary">
         <BotProvider isBot={bot}>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
@@ -162,7 +159,6 @@ export default async function RootLayout({
           </ThemeProvider>
         </NextIntlClientProvider>
         </BotProvider>
-        </div>
       </body>
     </html>
   );
