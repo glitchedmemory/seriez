@@ -1,3 +1,4 @@
+import { stripHtml } from "@/lib/strip-html";
 "use client";
 
 import { useState } from "react";
@@ -201,7 +202,7 @@ export default function RouletteCard() {
             {result!.tagline && (
               <span className="italic text-accent font-medium">"{result!.tagline}" </span>
             )}
-            {result!.overview}
+            {stripHtml(result!.overview)}
           </p>
 
           {/* Recommendation reason */}

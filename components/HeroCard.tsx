@@ -1,3 +1,4 @@
+import { stripHtml } from "@/lib/strip-html";
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -152,7 +153,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
           {/* Synopsis */}
           {item.overview && (
             <p className="text-sm text-white/70 leading-relaxed mb-4 max-w-lg line-clamp-2">
-              {item.overview}
+              {stripHtml(item.overview)}
             </p>
           )}
 

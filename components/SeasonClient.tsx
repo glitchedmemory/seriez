@@ -1,3 +1,4 @@
+import { stripHtml } from "@/lib/strip-html";
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -656,7 +657,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
         {data.overview && (
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-text-primary mb-2">Overview</h2>
-            <p className="text-sm text-text-secondary leading-relaxed">{data.overview}</p>
+            <p className="text-sm text-text-secondary leading-relaxed">{stripHtml(data.overview)}</p>
           </section>
         )}
 
@@ -664,7 +665,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
         {data.seasonOverview && data.seasonOverview !== data.overview && (
           <section className="mt-4">
             <h2 className="text-md font-semibold text-text-secondary mb-1">About This Season</h2>
-            <p className="text-sm text-text-secondary leading-relaxed">{data.seasonOverview}</p>
+            <p className="text-sm text-text-secondary leading-relaxed">{stripHtml(data.seasonOverview)}</p>
           </section>
         )}
 
@@ -746,7 +747,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                     </div>
                     {ep.overview && (
                       <p className="mt-1 text-xs text-text-secondary leading-relaxed line-clamp-2">
-                        {ep.overview}
+                        {stripHtml(ep.overview)}
                       </p>
                     )}
                   </div>
