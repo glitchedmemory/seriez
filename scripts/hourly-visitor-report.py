@@ -121,9 +121,7 @@ now_str = now.strftime("%H:%M UTC")
 pdt = now - timedelta(hours=7)
 pdt_str = pdt.strftime("%H:%M")
 
-if not visitors:
-    send_telegram(f"🟢 *{now_str} (PDT {pdt_str})*\n지난 1시간 방문자: 0명")
-else:
+if visitors:
     lines = [f"📊 *{now_str} (PDT {pdt_str})*"]
     lines.append(f"방문자: {len(visitors)}명 | 페이지: {page_requests}회")
     for ip, data in sorted(visitors.items()):

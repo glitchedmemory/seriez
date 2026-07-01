@@ -1,3 +1,4 @@
+import { stripHtml } from "@/lib/strip-html";
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -503,7 +504,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-text-primary mb-2">Overview</h2>
             <p className="text-sm text-text-secondary leading-relaxed">
-              {detail.overview}
+              {stripHtml(detail.overview)}
             </p>
           </section>
         )}

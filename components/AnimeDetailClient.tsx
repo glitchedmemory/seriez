@@ -1,3 +1,4 @@
+import { stripHtml } from "@/lib/strip-html";
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -737,7 +738,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         {detail.overview && (
           <section className="mt-6">
             <h2 className="text-lg font-semibold text-text-primary mb-2">Overview</h2>
-            <p className="text-sm text-text-secondary leading-relaxed">{detail.overview}</p>
+            <p className="text-sm text-text-secondary leading-relaxed">{stripHtml(detail.overview)}</p>
           </section>
         )}
 
@@ -842,7 +843,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                     </div>
                     {ep.synopsis && (
                       <p className="text-[11px] text-text-secondary leading-relaxed mt-1 line-clamp-2">
-                        {ep.synopsis}
+                        {stripHtml(ep.synopsis)}
                       </p>
                     )}
                   </div>
