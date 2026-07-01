@@ -1,5 +1,5 @@
-import { stripHtml } from "@/lib/strip-html";
 "use client";
+import { stripHtml } from "@/lib/strip-html";
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
