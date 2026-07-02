@@ -1,19 +1,249 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
+import { resolveUserId } from "@/lib/user-utils";
+import { checkSanction, getSanctionError } from "@/lib/sanction-utils";
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+const VALID_STATUSES = ["watching", "completed", "plan_to_watch", "on_hold", "dropped"];
+
+import { resolveUsername } from "@/lib/auth-helper";
+
+// ─── GET: fetch tracking list ───
+export async function GET(req: NextRequest) {
+  const username = await resolveUsername(req);
+  const { searchParams } = new URL(req.url);
+  const status = searchParams.get("status");
+
+  if (!username) {
+    return NextResponse.json({ error: "Missing username" }, { status: 400 });
+  }
+
+  const userId = await resolveUserId(username);
+  if (!userId) {
+    return NextResponse.json([]);
+  }
+
+  let query = supabaseAdmin
+  .from("media_trackings")
+  .select("*")
+  .eq("username", userId)
+  .order("updated_at", { ascending: false });
+
+  const seasonNumber = searchParams.get("seasonNumber");
+  if (seasonNumber !== null) {
+  query = query.eq("season_number", parseInt(seasonNumber));
+  }
+
+  if (status) {
+    query = query.eq("status", status);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json(
+    (data || []).map((t) => ({
+      id: t.id,
+      username,
+      userId: t.username,
+      tmdbId: t.tmdb_id,
+      anilistId: t.anilist_id,
+      mediaType: t.media_type,
+      seasonNumber: t.season_number,
+      status: t.status,
+      rating: t.rating,
+      progress: t.progress,
+      updatedAt: t.updated_at,
+    }))
+  );
+}
+
+// ─── POST: upsert tracking ───
 export async function POST(req: NextRequest) {
   try {
+    const username = await resolveUsername(req);
+    if (!username) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    // Sanction check
+    const sanction = await checkSanction(username);
+    const sanctionErr = getSanctionError(sanction, "write");
+    if (sanctionErr) return NextResponse.json({ error: sanctionErr }, { status: 403 });
+
     const body = await req.json();
-    const supabase = await createClient();
-    await supabase.from("analytics").insert({
-      page: String(body.page || "").slice(0, 500),
-      referer: String(body.referer || "").slice(0, 500),
-      duration: Math.min(Math.max(parseInt(String(body.duration)) || 0, 0), 3600),
-      scroll_depth: Math.min(Math.max(parseInt(String(body.scroll_depth)) || 0, 0), 100),
-      user_agent: String(req.headers.get("user-agent") || "").slice(0, 500),
+    const { tmdbId, mediaType, status, rating, progress, seasonNumber } = body;
+
+    if (tmdbId == null || !mediaType || !status) {
+      return NextResponse.json(
+        { error: "Missing required fields: tmdbId, mediaType, status" },
+        { status: 400 }
+      );
+    }
+
+    if (!VALID_STATUSES.includes(status)) {
+      return NextResponse.json(
+        { error: `Invalid status. Must be: ${VALID_STATUSES.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    const userId = await resolveUserId(username);
+    if (!userId) {
+      return NextResponse.json({ error: "Failed to resolve user" }, { status: 500 });
+    }
+
+    const sn = seasonNumber ?? 0;
+
+    // Preserve existing watched_at — only set on first completion
+    const existingWatchDate = status === "completed"
+      ? ((await supabaseAdmin
+          .from("media_trackings")
+          .select("watched_at")
+          .eq("username", userId)
+          .eq("tmdb_id", tmdbId)
+          .eq("media_type", mediaType)
+          .eq("season_number", sn)
+          .maybeSingle())?.data?.watched_at ?? undefined)
+      : undefined;
+
+    const posterUrl = body.posterUrl || null;
+
+    const upsertData: Record<string, unknown> = {
+      username: userId,
+      tmdb_id: tmdbId,
+      media_type: mediaType,
+      season_number: sn,
+      status,
+      rating: rating ?? null,
+      progress: progress ?? null,
+      poster_url: posterUrl,
+    };
+    // Set watched_at only on first completion (existingWatchDate is null or undefined)
+    if (status === "completed" && !existingWatchDate) {
+      upsertData.watched_at = new Date().toISOString();
+    } else if (status === "completed" && existingWatchDate) {
+      upsertData.watched_at = existingWatchDate;
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("media_trackings")
+      .upsert(upsertData, { onConflict: "username,tmdb_id,media_type,season_number" })
+      .select("*")
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Fetch & store poster if not provided by client (non-blocking)
+    if (!posterUrl) {
+      (async () => {
+        try {
+          const p = await fetchPosterUrl(tmdbId, mediaType);
+          if (p) await supabaseAdmin.from("media_trackings").update({ poster_url: p }).eq("id", data.id);
+        } catch {}
+      })();
+    }
+
+    return NextResponse.json({
+      id: data.id,
+      username: username.trim().slice(0, 20),
+      userId: data.username,
+      tmdbId: data.tmdb_id,
+      anilistId: data.anilist_id,
+      mediaType: data.media_type,
+      seasonNumber: data.season_number,
+      status: data.status,
+      rating: data.rating,
+      progress: data.progress,
+      updatedAt: data.updated_at,
     });
-    return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({ ok: false }, { status: 500 });
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+}
+
+// Helper: fetch poster URL from TMDB/AniList
+const TMDB_URL = "https://api.themoviedb.org/3";
+const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
+const TMDB_KEY = process.env.TMDB_API_KEY;
+
+async function fetchPosterUrl(tmdbId: number, mediaType: string): Promise<string | null> {
+  try {
+    if (mediaType === "anime") {
+      const res = await fetch("https://graphql.anilist.co", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ query: `query($id:Int){Media(id:$id){coverImage{extraLarge}}}`, variables: { id: tmdbId } }),
+      });
+      if (res.ok) {
+        const j = await res.json();
+        return j.data?.Media?.coverImage?.extraLarge || null;
+      }
+    } else {
+      const ep = mediaType === "tv" ? "tv" : "movie";
+      const res = await fetch(`${TMDB_URL}/${ep}/${tmdbId}?api_key=${TMDB_KEY}`);
+      if (res.ok) {
+        const d = await res.json();
+        return d.poster_path ? `${TMDB_IMG}${d.poster_path}` : null;
+      }
+    }
+  } catch {}
+  return null;
+}
+
+// ─── DELETE: remove tracking ───
+export async function DELETE(req: NextRequest) {
+  try {
+    const username = await resolveUsername(req);
+    if (!username) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    // Sanction check
+    const sanction = await checkSanction(username);
+    const sanctionErr = getSanctionError(sanction, "write");
+    if (sanctionErr) return NextResponse.json({ error: sanctionErr }, { status: 403 });
+
+    const body = await req.json();
+    const { tmdbId, mediaType, seasonNumber } = body;
+
+    if (tmdbId == null || !mediaType) {
+      return NextResponse.json(
+        { error: "Missing required fields: username, tmdbId, mediaType" },
+        { status: 400 }
+      );
+    }
+
+    const userId = await resolveUserId(username);
+    if (!userId) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const sn = seasonNumber ?? 0;
+
+    const { error } = await supabaseAdmin
+      .from("media_trackings")
+      .delete()
+      .eq("username", userId)
+      .eq("tmdb_id", tmdbId)
+      .eq("media_type", mediaType)
+      .eq("season_number", sn);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 }
