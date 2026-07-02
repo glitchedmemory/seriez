@@ -159,6 +159,11 @@ export default async function RootLayout({
           </ThemeProvider>
         </NextIntlClientProvider>
         </BotProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var e=Date.now(),n=0,t=document.title||"",o=document.referrer||"",i=!1;function r(){if(i)return;i=!0;var s=Math.round((Date.now()-e)/1e3);navigator.sendBeacon("/api/track",JSON.stringify({page:t,referer:o,duration:s,scroll_depth:n}))}window.addEventListener("beforeunload",r);window.addEventListener("pagehide",r);document.addEventListener("visibilitychange",function(){"hidden"===document.visibility&&r()});window.addEventListener("scroll",function(){var i=document.documentElement.scrollTop,s=document.documentElement.scrollHeight-window.innerHeight;if(s>0){var c=Math.round(i/s*100);c>n&&(n=c)}},{passive:!0})})();`,
+          }}
+        />
       </body>
     </html>
   );
