@@ -147,7 +147,7 @@ export default async function RootLayout({
             }),
           }}
         />
-        <script dangerouslySetInnerHTML={{ __html: `(function(){var e=Date.now(),n=0,t=document.title||"",o=document.referrer||"",s=!1;function r(){if(s)return;s=!0;var i=Math.round((Date.now()-e)/1e3);navigator.sendBeacon("/api/analytics",JSON.stringify({page:t,referer:o,duration:i,scroll_depth:n}))}window.addEventListener("beforeunload",r);window.addEventListener("pagehide",r);document.addEventListener("visibilitychange",function(){"hidden"===document.visibility&&r()});window.addEventListener("scroll",function(){var e=document.documentElement.scrollTop,t=document.documentElement.scrollHeight-window.innerHeight;if(t>0){var o=Math.round(e/t*100);o>n&&(n=o)}},{passive:!0})})();` }} />
+        <script src="/tracker.js" />
       </head>
       <body className="min-h-full flex bg-bg-primary text-text-primary">
         <BotProvider isBot={bot}>
