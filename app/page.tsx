@@ -42,6 +42,7 @@ export default async function Home() {
     319124, // Taskmaster NL (obscure)
     325874, // Specijalisti Zagreb (obscure)
     316540, // Bittersweet Love (obscure)
+    297577, // Rizzler News (no poster, fake entry)
   ];
   upcoming = upcoming.filter(item => !REMOVE_IDS.includes(item.id));
 
@@ -53,6 +54,7 @@ export default async function Home() {
     { id: 95350, type: "tv" as const },     // Lanterns (HBO, Aug 16)
     { id: 95480, type: "tv" as const },     // Slow Horses S6 (Apple TV+, Sep 16)
     { id: 291350, type: "tv" as const },    // Anna Pigeon (USA Network, Aug 7)
+    { id: 213375, type: "tv" as const },    // VisionQuest (Disney+, Oct 14)
   ];
 
   const injected: TmdbResult[] = (
