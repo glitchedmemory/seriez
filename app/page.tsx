@@ -44,7 +44,7 @@ export default async function Home() {
     316540, // Bittersweet Love (obscure)
     297577, // Rizzler News (no poster, fake entry)
   ];
-  upcoming = upcoming.filter(item => !REMOVE_IDS.includes(item.id));
+  upcoming = upcoming.filter(item => !REMOVE_IDS.includes(item.id) && item.poster);
 
   // Inject anticipated titles: Spider-Man + 3 upcoming TV shows
   const KEY = process.env.TMDB_API_KEY;
@@ -97,8 +97,8 @@ export default async function Home() {
 
   upcoming = [...injected, ...upcoming];
 
-  // Merge & shuffle: movies + TV + anime, random order per request
-  const allUpcoming = [...upcoming, ...animeUpcoming];
+  // Merge & shuffle: movies + TV + anime, random order per request. Filter out items without posters.
+  const allUpcoming = [...upcoming, ...animeUpcoming].filter(item => item.poster);
   for (let i = allUpcoming.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [allUpcoming[i], allUpcoming[j]] = [allUpcoming[j], allUpcoming[i]];
