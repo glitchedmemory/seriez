@@ -89,8 +89,8 @@ export default function DayPopup({ date, entries, onClose }: DayPopupProps) {
 
         {/* Poster row */}
         <div className="px-5 py-4">
-          <div className="flex gap-3 justify-center flex-wrap">
-            {entries.slice(0, 5).map((entry) => (
+          <div className="grid grid-cols-4 gap-3 justify-center">
+            {entries.slice(0, 8).map((entry) => (
               <Link
                 key={entry.tmdbId}
                 href={`/title/${entry.tmdbId}`}
