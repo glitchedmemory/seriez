@@ -2,6 +2,7 @@
 import { stripHtml } from "@/lib/strip-html";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { TmdbDetail } from "@/lib/tmdb";
 import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
@@ -68,6 +69,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
   const [mounted, setMounted] = useState(false);
   const [authUser, setAuthUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
   const supabase = createClient();
+  const router = useRouter();
 
   // Collections
   const [collections, setCollections] = useState<{ id: string; name: string; itemCount: number }[]>([]);
@@ -134,7 +136,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
   }, [showCollDropdown]);
 
   async function handleTrack(status: string, ratingOverride?: number) {
-    if (!authUser) return; // Require authentication
+    if (!authUser) { router.push("/signup"); return; }
     const username = authUser.user_metadata?.username || "";
     const effectiveRating = ratingOverride ?? rating;
     // Already completed → re-submit with updated rating instead of toggling off
@@ -311,18 +313,7 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
             )}
 
             {/* Tracking buttons */}
-            {!mounted ? null : (
-              <>
-                {!authUser ? (
-                  <div className="mt-4 text-center md:text-left">
-                    <a href="/signup" className="inline-block px-4 py-2 rounded-lg bg-accent text-white text-sm font-medium hover:bg-[#818cf8] transition-colors">
-                      Sign in to track
-                    </a>
-                    <p className="text-[11px] text-text-secondary mt-1">
-                      <a href="/login" className="text-accent hover:underline">Sign in</a> to save your watch history
-                    </p>
-                  </div>
-                ) : (
+            {mounted && (
             <div className="flex gap-2 mt-4 justify-center md:justify-start">
               <button
                 onClick={() => handleTrack("plan_to_watch")}
@@ -364,8 +355,6 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
                 WATCHED
               </button>
             </div>
-            )}
-            </>
             )}
 
             {/* Add to Collection */}

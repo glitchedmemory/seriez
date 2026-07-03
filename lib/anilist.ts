@@ -350,6 +350,11 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
       result.trailer = { id: validated[0].key, site: "YouTube" };
     }
 
+    // YouTube trailer thumbnail as backdrop fallback when AniList/Kitsu both miss
+    if (!result.backdrop && result.trailer) {
+      result.backdrop = `https://img.youtube.com/vi/${result.trailer.id}/maxresdefault.jpg`;
+    }
+
     return result;
   } catch {
     return null;
