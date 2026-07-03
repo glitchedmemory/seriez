@@ -252,7 +252,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
   const watchedCount = data.episodes.filter((ep) => watchedEpisodes.has(`${data.seasonNumber}-${ep.number}`)).length;
 
   async function handleTrack(status: string, ratingOverride?: number) {
-    if (!authUser) return;
+    if (!authUser) { router.push("/signup"); return; }
     const username = authUser.user_metadata?.username || "";
     const effectiveRating = ratingOverride ?? rating;
     // Already completed → re-submit with updated rating instead of toggling off
@@ -460,18 +460,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
             )}
 
             {/* Tracking buttons */}
-            {!mounted ? null : (
-              <>
-                {!authUser ? (
-                  <div className="mt-4 text-center md:text-left">
-                    <a href="/signup" className="inline-block px-4 py-2 rounded-lg bg-accent text-white text-sm font-medium hover:bg-[#818cf8] transition-colors">
-                      Sign in to track
-                    </a>
-                    <p className="text-[11px] text-text-secondary mt-1">
-                      <a href="/login" className="text-accent hover:underline">Sign in</a> to save your watch history
-                    </p>
-                  </div>
-                ) : (
+            {mounted && (
             <div className="flex gap-2 mt-4 justify-center md:justify-start">
               <button
                 onClick={() => handleTrack("plan_to_watch")}
@@ -513,8 +502,6 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                 WATCHED
               </button>
             </div>
-            )}
-            </>
             )}
 
             {/* Add to Collection */}
