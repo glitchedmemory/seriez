@@ -103,6 +103,14 @@ export default async function TitlePage({ params, searchParams }: Props) {
     notFound();
   }
 
+  // When no type specified, auto-detect: try anime first
+  if (!type) {
+    const anilistId = await resolveAnilistId(numId);
+    if (anilistId) {
+      redirect(`/title/${numId}?type=anime`);
+    }
+  }
+
   // Anime detail — resolve TMDB ID to AniList ID first
   if (type === "anime") {
     const anilistId = await resolveAnilistId(numId);
