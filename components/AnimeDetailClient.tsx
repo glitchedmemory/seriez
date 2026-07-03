@@ -50,7 +50,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
   const [showAllCast, setShowAllCast] = useState(false);
   const [showAllDirectors, setShowAllDirectors] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const EPISODES_PER_PAGE = 50;
+  const EPISODES_PER_PAGE = 10;
   const [trackStatus, setTrackStatus] = useState<string | null>(null);
   const [trackLoading, setTrackLoading] = useState(false);
   const [rating, setRating] = useState(0);
