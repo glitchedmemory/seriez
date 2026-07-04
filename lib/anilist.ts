@@ -1,5 +1,7 @@
 const ANILIST_API = "https://graphql.anilist.co";
 
+import { unstable_cache } from "next/cache";
+
 import type { TmdbResult } from "./tmdb";
 import { validateAndReplaceTrailers } from "./yt-validator";
 
@@ -797,13 +799,14 @@ async function fetchCrunchyrollThumbnails(title: string): Promise<Map<number, st
   return thumbs;
 }
 
-export async function getAnimeEpisodes(
+export const getAnimeEpisodes = unstable_cache(
+  async (
   title: string,
   titleRomaji: string,
   idMal?: number,
   titleNative?: string,
   seriesDuration?: number
-): Promise<AnimeEpisode[]> {
+): Promise<AnimeEpisode[]> => {
   let episodes: AnimeEpisode[] = [];
 
   // Track A: Jikan (MyAnimeList) — fastest, no page limit, reliable for all episode counts
@@ -903,9 +906,12 @@ export async function getAnimeEpisodes(
   }
 
   return episodes;
-}
+  },
+  ["anime-episodes"],
+  { revalidate: 86400 }
+);
 
-// ─── Deep relations enrichment (2 levels) ───
+// ─── Deep relations enrichment ───
 
 const RELATIONS_ONLY_QUERY = `
 query($id: Int) {
