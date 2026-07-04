@@ -341,7 +341,7 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
     const animeTitle = m.title?.english || m.title?.romaji || "";
     const validated = await validateAndReplaceTrailers(
       trailer ? [{ key: trailer.id, name: "Trailer" }] : [],
-      `${animeTitle} official trailer`,
+      `${animeTitle} anime official trailer`,
       1,
       undefined,
       m.id
