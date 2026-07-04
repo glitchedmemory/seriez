@@ -214,6 +214,26 @@ async function fetchKitsuBackdrop(title: string, year: number, titleRomaji?: str
 
 // ─── Main fetch ───
 
+/** Lightweight AniList query: only idMal + titles + duration. Used to parallelize detail + episodes. */
+export async function getAnimeIds(id: number): Promise<{ idMal: number; title: string; titleRomaji: string; titleNative: string; duration: number }> {
+  const query = `query($id:Int){Media(id:$id){idMal title{romaji english native} duration}}`;
+  const res = await fetch(ANILIST_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify({ query, variables: { id } }),
+    next: { revalidate: 3600 },
+  });
+  if (!res.ok) throw new Error("AniList failed");
+  const m = (await res.json()).data?.Media;
+  return {
+    idMal: m?.idMal || 0,
+    title: m?.title?.english || m?.title?.romaji || "Unknown",
+    titleRomaji: m?.title?.romaji || "",
+    titleNative: m?.title?.native || "",
+    duration: m?.duration || 0,
+  };
+}
+
 export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
   try {
     // Retry AniList fetch with backoff (handles 429 + network errors)
