@@ -1,6 +1,6 @@
 import { getMovieDetail, isAnimeTV } from "@/lib/tmdb";
 import DetailClient from "@/components/DetailClient";
-import { getAnimeDetail, getAnimeEpisodes, enrichAnimeRelations } from "@/lib/anilist";
+import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations } from "@/lib/anilist";
 import AnimeDetailClient from "@/components/AnimeDetailClient";
 import { notFound, redirect } from "next/navigation";
 import { generateMovieJsonLd, generateTVJsonLd, StructuredDataScript } from "@/lib/structured-data";
@@ -115,19 +115,16 @@ export default async function TitlePage({ params, searchParams }: Props) {
   if (type === "anime") {
     const anilistId = await resolveAnilistId(numId);
     if (!anilistId) notFound();
-    const detail = await getAnimeDetail(anilistId);
+    // Fetch ids first (lightweight), then detail + episodes in parallel
+    const ids = await getAnimeIds(anilistId);
+    const [detail, episodes] = await Promise.all([
+      getAnimeDetail(anilistId),
+      getAnimeEpisodes(ids.title, ids.titleRomaji, ids.idMal, ids.titleNative, ids.duration),
+    ]);
     if (!detail) notFound();
 
     // Enrich relations: fetch 2 levels deep to catch all seasons
     detail.relations = await enrichAnimeRelations(anilistId, detail.relations);
-
-    const episodes = await getAnimeEpisodes(
-      detail.title,
-      detail.titleRomaji,
-      detail.idMal,
-      detail.titleNative,
-      detail.duration
-    );
     const isAnimeMovie = detail.format === "MOVIE";
     const animeJsonLd = isAnimeMovie
       ? generateMovieJsonLd({
