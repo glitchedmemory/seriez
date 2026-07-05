@@ -95,6 +95,9 @@ export default async function Home() {
     )
   ).filter(Boolean) as TmdbResult[];
 
+  // Dedupe: if TMDB already returns an injected title, keep the injected one (richer data)
+  const injectIdSet = new Set(injectIds.map(x => x.id));
+  upcoming = upcoming.filter(item => !injectIdSet.has(item.id));
   upcoming = [...injected, ...upcoming];
 
   // Merge & shuffle: movies + TV + anime, random order per request. Filter out items without posters.
