@@ -404,7 +404,7 @@ const SCRAPERS: Record<string, () => Promise<TmdbResult[]>> = {
 
 export async function getBoxOffice(country: string): Promise<TmdbResult[]> {
   const scraper = SCRAPERS[country];
-  if (!scraper) return scrapeUS();
+  if (!scraper) return (await scrapeUS()).slice(0, 7);
   const results = await scraper();
   // Fallback to US if no results from country-specific scraper
   if (results.length === 0 && country !== "US") return (await scrapeUS()).slice(0, 7);
