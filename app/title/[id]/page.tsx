@@ -25,42 +25,33 @@ async function getTVSeasonCount(id: number): Promise<number | null> {
   }
 }
 
-interface Props {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ type?: string }>;
+// Pre-render top 20 popular anime at build time
+export async function generateStaticParams() {
+  try {
+    const res = await fetch("https://graphql.anilist.co", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: `query { Page(page: 1, perPage: 20) { media(sort: POPULARITY_DESC, type: ANIME) { id } } }`,
+      }),
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const ids = (json.data?.Page?.media || []).map((m: any) => ({ id: String(m.id) }));
+    return ids;
+  } catch {
+    return [];
+  }
 }
 
-export default async function TitlePage({ params, searchParams }: Props) {
-  const [{ id }, { type }] = await Promise.all([params, searchParams]);
+export default async function TitlePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const numId = parseInt(id);
   if (isNaN(numId)) notFound();
 
-  // TV shows — check if actually anime first
-  if (type === "tv") {
-    // If this TV show is Japanese anime, redirect to anime page
-    if (await isAnimeTV(numId)) {
-      redirect(`/title/${numId}?type=anime`);
-    }
-    const latestSeason = await getTVSeasonCount(numId);
-    if (latestSeason) {
-      redirect(`/title/${numId}/season/${latestSeason}`);
-    }
-    notFound();
-  }
-
-  // When no type specified, auto-detect: try anime first
-  if (!type) {
-    const anilistId = await getAnilistId(numId);
-    if (anilistId) {
-      redirect(`/title/${numId}?type=anime`);
-    }
-  }
-
-  // Anime detail — resolve TMDB ID to AniList ID first
-  if (type === "anime") {
-    const anilistId = await getAnilistId(numId);
-    if (!anilistId) notFound();
-    // Fetch ids first (lightweight), then detail + episodes in parallel
+  // 1. Try anime first (auto-detect via AniList)
+  const anilistId = await getAnilistId(numId);
+  if (anilistId) {
     const ids = await getAnimeIds(anilistId);
     const [detail, episodes] = await Promise.all([
       getAnimeDetail(anilistId),
@@ -68,7 +59,6 @@ export default async function TitlePage({ params, searchParams }: Props) {
     ]);
     if (!detail) notFound();
 
-    // Enrich relations: fetch 2 levels deep to catch all seasons
     detail.relations = await enrichAnimeRelations(anilistId, detail.relations);
     const isAnimeMovie = detail.format === "MOVIE";
     const animeJsonLd = isAnimeMovie
@@ -80,7 +70,7 @@ export default async function TitlePage({ params, searchParams }: Props) {
           ratingCount: detail.popularity,
           releaseYear: detail.year,
           genres: detail.genres,
-          url: `/title/${numId}?type=anime`,
+          url: `/title/${numId}`,
         })
       : generateTVJsonLd({
           title: detail.title,
@@ -90,7 +80,7 @@ export default async function TitlePage({ params, searchParams }: Props) {
           ratingCount: detail.popularity,
           releaseYear: detail.year,
           genres: detail.genres,
-          url: `/title/${numId}?type=anime`,
+          url: `/title/${numId}`,
           totalSeasons: 1,
           status: detail.status,
           networks: [],
@@ -103,6 +93,17 @@ export default async function TitlePage({ params, searchParams }: Props) {
     );
   }
 
+  // 2. Try TV — redirect to latest season
+  // Also handle type=tv from search results (parameters are ignored, auto-detected)
+  if (await isAnimeTV(numId)) {
+    redirect(`/title/${numId}?type=anime`);
+  }
+  const latestSeason = await getTVSeasonCount(numId);
+  if (latestSeason) {
+    redirect(`/title/${numId}/season/${latestSeason}`);
+  }
+
+  // 3. Default: movie
   try {
     const detail = await getMovieDetail(numId);
     const jsonLd = generateMovieJsonLd({
