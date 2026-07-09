@@ -11,122 +11,113 @@ const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROL
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w780";
 const TMDB_API = "https://api.themoviedb.org/3";
 const TMDB_KEY = process.env.TMDB_API_KEY;
+const ANILIST_API = "https://graphql.anilist.co";
+
+const PAGE_SIZE = 50;
+const TMDB_BATCH = 20; // well within 50/sec limit
+const ANILIST_DELAY = 100; // ms between AniList calls (90/min limit)
+
+async function enrichAnime(t: any): Promise<any> {
+  const gql = { query: `query($id:Int){Media(id:$id){title{romaji english}coverImage{extraLarge}startDate{year}}}`, variables: { id: t.tmdb_id } };
+  const alRes = await fetch(ANILIST_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(gql) });
+  if (!alRes.ok) return null;
+  const alJson = await alRes.json();
+  const m = alJson.data?.Media;
+  if (!m) return null;
+  return {
+    tmdbId: t.tmdb_id, mediaType: "anime", seasonNumber: t.season_number,
+    seasonName: t.season_number > 0 ? `Season ${t.season_number}` : null, seasonPoster: null,
+    status: t.status, rating: t.rating, progress: t.progress, updatedAt: t.updated_at,
+    title: m.title?.english || m.title?.romaji || "Unknown",
+    poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
+    year: m.startDate?.year?.toString() || null, tmdbRating: null,
+  };
+}
+
+async function enrichTMDB(t: any): Promise<any> {
+  const res = await fetch(`${TMDB_API}/${t.media_type}/${t.tmdb_id}?api_key=${TMDB_KEY}`);
+  if (!res.ok) return null;
+  const detail = await res.json();
+  const title = detail.title || detail.name || "Unknown";
+  const poster = detail.poster_path ? `${TMDB_IMAGE}${detail.poster_path}` : null;
+  const year = (detail.release_date || detail.first_air_date || "").slice(0, 4) || null;
+  const tmdbRating = Math.round((detail.vote_average || 0) * 10) / 10;
+
+  let seasonPoster: string | null = null;
+  let seasonName: string | null = null;
+  if (t.media_type === "tv" && t.season_number > 0) {
+    try {
+      const sRes = await fetch(`${TMDB_API}/tv/${t.tmdb_id}/season/${t.season_number}?api_key=${TMDB_KEY}`);
+      if (sRes.ok) {
+        const sData = await sRes.json();
+        seasonName = sData.name || `Season ${t.season_number}`;
+        if (sData.poster_path) seasonPoster = `${TMDB_IMAGE}${sData.poster_path}`;
+      }
+    } catch { /* use main poster */ }
+  }
+
+  return { tmdbId: t.tmdb_id, mediaType: t.media_type, seasonNumber: t.season_number, seasonName, seasonPoster, status: t.status, rating: t.rating, progress: t.progress, updatedAt: t.updated_at, title, poster, year, tmdbRating };
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const username = searchParams.get("username") || await resolveUsername(req);
   const status = searchParams.get("status");
+  const page = parseInt(searchParams.get("page") || "1") || 1;
+  const limit = Math.min(parseInt(searchParams.get("limit") || String(PAGE_SIZE)) || PAGE_SIZE, PAGE_SIZE);
 
-  if (!username) {
-    return NextResponse.json({ error: "Missing username" }, { status: 400 });
-  }
+  if (!username) return NextResponse.json({ error: "Missing username" }, { status: 400 });
 
   const userId = await resolveUserId(username);
-  if (!userId) {
-    return NextResponse.json({ items: [] });
-  }
+  if (!userId) return NextResponse.json({ items: [], total: 0, page, totalPages: 0 });
 
-  let query = supabaseAdmin
-    .from("media_trackings")
-    .select("*")
-    .eq("username", userId)
-    .order("updated_at", { ascending: false });
+  // Count total items
+  let countQuery = supabaseAdmin.from("media_trackings").select("*", { count: "exact", head: true }).eq("username", userId);
+  if (status) countQuery = countQuery.eq("status", status);
+  const { count: total, error: countErr } = await countQuery;
+  if (countErr) return NextResponse.json({ error: countErr.message }, { status: 500 });
 
-  if (status) {
-    query = query.eq("status", status);
-  }
-
+  // Fetch page
+  let query = supabaseAdmin.from("media_trackings").select("*").eq("username", userId).order("updated_at", { ascending: false });
+  if (status) query = query.eq("status", status);
+  const offset = (page - 1) * limit;
+  query = query.range(offset, offset + limit - 1);
   const { data, error } = await query;
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!data || data.length === 0) return NextResponse.json({ items: [], total: total || 0, page, totalPages: Math.ceil((total || 0) / limit) });
+
+  // Separate TMDB vs AniList items
+  const tmdbItems = data.filter(t => t.media_type !== "anime");
+  const animeItems = data.filter(t => t.media_type === "anime");
+
+  // Process TMDB items in parallel batches
+  const tmdbResults: any[] = [];
+  for (let i = 0; i < tmdbItems.length; i += TMDB_BATCH) {
+    const batch = tmdbItems.slice(i, i + TMDB_BATCH);
+    const batchResults = await Promise.all(batch.map(t => enrichTMDB(t).catch(() => null)));
+    tmdbResults.push(...batchResults);
   }
 
-  if (!data || data.length === 0) {
-    return NextResponse.json({ items: [] });
-  }
-
-  // Enrich with TMDB/AniList data sequentially
-  const items = [];
-  for (const t of data) {
+  // Process AniList items sequentially (rate limit 90/min)
+  const animeResults: any[] = [];
+  for (const t of animeItems) {
     try {
-      if (t.media_type === "anime") {
-        // AniList IDs — use AniList GraphQL
-        const gql = { query: `query($id:Int){Media(id:$id){title{romaji english}coverImage{extraLarge}startDate{year}}}` , variables: { id: t.tmdb_id } };
-        const alRes = await fetch("https://graphql.anilist.co", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(gql),
-        });
-        if (!alRes.ok) { items.push(null); continue; }
-        const alJson = await alRes.json();
-        const m = alJson.data?.Media;
-        if (!m) { items.push(null); continue; }
-        items.push({
-          tmdbId: t.tmdb_id,
-          mediaType: "anime",
-          seasonNumber: t.season_number,
-          seasonName: t.season_number > 0 ? `Season ${t.season_number}` : null,
-          seasonPoster: null,
-          status: t.status,
-          rating: t.rating,
-          progress: t.progress,
-          updatedAt: t.updated_at,
-          title: m.title?.english || m.title?.romaji || "Unknown",
-          poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
-          year: m.startDate?.year?.toString() || null,
-          tmdbRating: null,
-        });
-        continue;
-      }
-      const res = await fetch(
-        `${TMDB_API}/${t.media_type}/${t.tmdb_id}?api_key=${TMDB_KEY}`
-      );
-      if (!res.ok) { items.push(null); continue; }
-      const detail = await res.json();
-      const title = detail.title || detail.name || "Unknown";
-      const poster = detail.poster_path ? `${TMDB_IMAGE}${detail.poster_path}` : null;
-      const year = (detail.release_date || detail.first_air_date || "").slice(0, 4) || null;
-      const tmdbRating = Math.round((detail.vote_average || 0) * 10) / 10;
-
-      // Fetch season-specific poster + name for TV
-      let seasonPoster: string | null = null;
-      let seasonName: string | null = null;
-      if (t.media_type === "tv" && t.season_number > 0) {
-        try {
-          const sRes = await fetch(
-            `${TMDB_API}/tv/${t.tmdb_id}/season/${t.season_number}?api_key=${TMDB_KEY}`
-          );
-          if (sRes.ok) {
-            const sData = await sRes.json();
-            seasonName = sData.name || `Season ${t.season_number}`;
-            if (sData.poster_path) {
-              seasonPoster = `${TMDB_IMAGE}${sData.poster_path}`;
-            }
-          }
-        } catch { /* use main poster as fallback */ }
-      }
-
-      items.push({
-        tmdbId: t.tmdb_id,
-        mediaType: t.media_type,
-        seasonNumber: t.season_number,
-        seasonName,
-        seasonPoster,
-        status: t.status,
-        rating: t.rating,
-        progress: t.progress,
-        updatedAt: t.updated_at,
-        title,
-        poster,
-        year,
-        tmdbRating,
-      });
+      const result = await enrichAnime(t);
+      animeResults.push(result);
     } catch {
-      items.push(null);
+      animeResults.push(null);
     }
-    await new Promise(r => setTimeout(r, 50)); // avoid TMDB rate limit
+    if (animeItems.indexOf(t) < animeItems.length - 1) {
+      await new Promise(r => setTimeout(r, ANILIST_DELAY));
+    }
   }
 
-  return NextResponse.json({
-    items: items.filter(Boolean),
-  });
+  // Merge preserving original order
+  const enriched = new Map<number, any>();
+  for (const r of tmdbResults) if (r) enriched.set(r.tmdbId, r);
+  for (const r of animeResults) if (r) enriched.set(r.tmdbId, r);
+
+  const items = data.map(t => enriched.get(t.tmdb_id) || null).filter(Boolean);
+
+  return NextResponse.json({ items, total: total || 0, page, totalPages: Math.ceil((total || 0) / limit) });
 }

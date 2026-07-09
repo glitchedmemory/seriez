@@ -197,13 +197,22 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
       .catch(() => setAnimeLoading(false));
   }, [trendingMode, animeTrending.length]);
 
-  // hero: random pick from trending pool (includes movies + TV + anime)
-  const heroPick = useMemo(() => {
-    if (trending.length === 0) return 0;
-    return randomSeed % trending.length;
-  }, [randomSeed, trending.length]);
-  const hero = trending[heroPick];
-  const nextHero = curatedNextHero || trending.filter((_, i) => i !== heroPick).slice(0, 1)[0];
+  // hero: random pick from trending pool (client-side to vary with every refresh despite CDN cache)
+  const [heroPick, setHeroPick] = useState(() => randomSeed % Math.max(trending.length, 1));
+  const [nextPick, setNextPick] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (trending.length > 0) {
+      setHeroPick(Math.floor(Math.random() * trending.length));
+      setNextPick(Math.floor(Math.random() * Math.max(trending.length - 1, 1)));
+    }
+  }, []);
+
+  const hero = trending[heroPick] || trending[0];
+  const remainingTrending = trending.filter((_, i) => i !== heroPick);
+  const nextHero = nextPick !== null && remainingTrending.length > 0
+    ? remainingTrending[nextPick % remainingTrending.length]
+    : (curatedNextHero || remainingTrending[0]);
 
   // Shared search results dropdown
   const searchDropdown = searchOpen && searchQuery.trim() ? (

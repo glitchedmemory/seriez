@@ -40,6 +40,10 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<SortKey>("recent");
   const [localUser, setLocalUser] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [total, setTotal] = useState(0);
+  const LIMIT = 50;
   const supabase = createClient();
 
   useEffect(() => {
@@ -48,18 +52,28 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
     }).catch(() => {});
   }, []);
 
-  useEffect(() => {
+  function fetchPage(p: number) {
     if (!localUser) { setLoading(false); return; }
     const username = localUser;
     const url = activeTab
-      ? `/api/library?username=${encodeURIComponent(username)}&status=${activeTab}`
-      : `/api/library?username=${encodeURIComponent(username)}`;
+      ? `/api/library?username=${encodeURIComponent(username)}&status=${activeTab}&page=${p}&limit=${LIMIT}`
+      : `/api/library?username=${encodeURIComponent(username)}&page=${p}&limit=${LIMIT}`;
     setLoading(true);
-    fetch(url).then(r => r.json()).then(data => { setItems(data.items || []); setLoading(false); }).catch(() => setLoading(false));
-  }, [activeTab, localUser]);
+    setPage(p);
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        setItems(data.items || []);
+        setTotal(data.total || 0);
+        setTotalPages(data.totalPages || 0);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }
+
+  useEffect(() => { fetchPage(1); }, [activeTab, localUser]);
 
   const sortedItems = useMemo(() => {
-    // Filter out TV/anime main entries (season_number=0) — only show actual seasons
     const filtered = items.filter(item => {
       if (item.mediaType === "movie") return true;
       return item.seasonNumber > 0;
@@ -75,9 +89,8 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
   }, [items, sort]);
 
   if (!localUser) return <EmptyState icon="signin" title={t("library.signInTitle")} description={t("library.signInDesc")} action={{ label: t("library.signInAction"), href: "/signup" }} />;
-
   if (loading) return <ListSkeleton rows={6} />;
-  if (items.length === 0) return <EmptyState icon="empty" title={activeTab ? `No ${TABS.find(t=>t.key===activeTab)?.label || "items"} yet` : "Your library is empty"} description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />;
+  if (total === 0) return <EmptyState icon="empty" title={activeTab ? `No ${TABS.find(t=>t.key===activeTab)?.label || "items"} yet` : "Your library is empty"} description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />;
 
   return (
     <div className="max-w-4xl mx-auto px-4 mt-4">
@@ -122,6 +135,29 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
         </a>
         )})}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 mt-6 pb-4">
+          <button
+            onClick={() => fetchPage(page - 1)}
+            disabled={page <= 1}
+            className="px-3 py-1.5 rounded-lg bg-bg-card text-text-primary text-xs font-medium disabled:opacity-30 hover:bg-bg-surface transition-colors"
+          >
+            ← Prev
+          </button>
+          <span className="text-xs text-text-secondary">
+            {page} / {totalPages}
+          </span>
+          <button
+            onClick={() => fetchPage(page + 1)}
+            disabled={page >= totalPages}
+            className="px-3 py-1.5 rounded-lg bg-bg-card text-text-primary text-xs font-medium disabled:opacity-30 hover:bg-bg-surface transition-colors"
+          >
+            Next →
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -327,15 +363,16 @@ export default function LibraryClient() {
     if (!authUsername) { setStatsLoaded(true); return; }
     const username = authUsername;
     Promise.all([
-      fetch(`/api/library?username=${encodeURIComponent(username)}`).then(r => r.json()),
+      fetch(`/api/library?username=${encodeURIComponent(username)}&status=completed&limit=1`).then(r => r.json()),
+      fetch(`/api/library?username=${encodeURIComponent(username)}&status=watching&limit=1`).then(r => r.json()),
+      fetch(`/api/library?username=${encodeURIComponent(username)}&status=plan_to_watch&limit=1`).then(r => r.json()),
       fetch(`/api/collections?username=${encodeURIComponent(username)}`).then(r => r.json()),
     ])
-      .then(([libData, collData]) => {
-        const items = libData.items || [];
+      .then(([completed, watching, planToWatch, collData]) => {
         setStats({
-          completed: items.filter((i: LibraryItem) => i.status === "completed").length,
-          watching: items.filter((i: LibraryItem) => i.status === "watching").length,
-          plan_to_watch: items.filter((i: LibraryItem) => i.status === "plan_to_watch").length,
+          completed: completed.total || 0,
+          watching: watching.total || 0,
+          plan_to_watch: planToWatch.total || 0,
           collections: (collData.collections || []).length,
         });
         setStatsLoaded(true);
