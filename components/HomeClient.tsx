@@ -197,19 +197,28 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
       .catch(() => setAnimeLoading(false));
   }, [trendingMode, animeTrending.length]);
 
-  // hero: random pick per mount (changes on every full page refresh)
-  const heroIdx = useRef<number>();
-  if (heroIdx.current === undefined) {
-    heroIdx.current = Math.floor(Math.random() * Math.max(trending.length, 1));
-  }
-  const hero = trending[heroIdx.current] || trending[0];
-  const remainingTrending = trending.filter((_, i) => i !== heroIdx.current);
-  const nextIdx = useRef<number>();
-  if (nextIdx.current === undefined && remainingTrending.length > 0) {
-    nextIdx.current = Math.floor(Math.random() * remainingTrending.length);
-  }
-  const nextHero = nextIdx.current !== undefined && remainingTrending.length > 0
-    ? remainingTrending[nextIdx.current]
+  // hero: deterministic from server (matches SSR), then re-roll after paint
+  const [heroIdx, setHeroIdx] = useState(() => randomSeed % Math.max(trending.length, 1));
+  const [nextIdx, setNextIdx] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (trending.length === 0) return;
+    // requestAnimationFrame ensures this runs after React hydration + paint
+    const raf = requestAnimationFrame(() => {
+      const h = Math.floor(Math.random() * trending.length);
+      setHeroIdx(h);
+      const remaining = trending.filter((_, i) => i !== h);
+      if (remaining.length > 0) {
+        setNextIdx(Math.floor(Math.random() * remaining.length));
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const hero = trending[heroIdx] || trending[0];
+  const remainingTrending = trending.filter((_, i) => i !== heroIdx);
+  const nextHero = nextIdx !== null && remainingTrending.length > 0
+    ? remainingTrending[nextIdx]
     : (curatedNextHero || remainingTrending[0] || trending[0]);
 
   // Shared search results dropdown
