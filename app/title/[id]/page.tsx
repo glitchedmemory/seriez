@@ -1,4 +1,3 @@
-export const dynamic = "force-static";
 export const revalidate = 86400;
 
 import { getMovieDetail, isAnimeTV } from "@/lib/tmdb";
