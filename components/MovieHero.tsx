@@ -1,0 +1,95 @@
+import type { TmdbDetail } from "@/lib/tmdb";
+import PosterImage from "@/components/PosterImage";
+
+export default function MovieHero({ detail }: { detail: TmdbDetail }) {
+  const hasBackdrop = !!(detail.backdrop || detail.poster);
+
+  return (
+    <>
+      {hasBackdrop && (
+        <div className="relative w-full h-48 md:h-72 overflow-hidden">
+          <PosterImage
+            src={(detail.backdrop || detail.poster)!.replace("w342", "w1280")}
+            alt=""
+            fill
+            priority
+            unoptimized
+            className={!detail.backdrop ? "blur-2xl scale-125 opacity-50" : ""}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
+        </div>
+      )}
+
+      <div className={`relative px-4 md:px-0 z-10 ${hasBackdrop ? '-mt-20 md:-mt-32' : ''}`}>
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex-shrink-0 w-36 md:w-48 mx-auto md:mx-0">
+            <div className="aspect-[2/3] rounded-xl overflow-hidden bg-bg-card shadow-2xl relative">
+              <PosterImage
+                src={detail.poster}
+                alt={detail.title}
+                fill
+                className="rounded-xl"
+                sizes="(max-width: 768px) 144px, 192px"
+              />
+            </div>
+          </div>
+
+          <div className="flex-1 min-w-0 text-center md:text-left">
+            <h1 className="text-2xl md:text-3xl font-bold text-text-primary leading-tight">
+              {detail.title}
+            </h1>
+            {detail.tagline && (
+              <p className="text-sm text-text-secondary italic mt-1">
+                &ldquo;{detail.tagline}&rdquo;
+              </p>
+            )}
+
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-3 text-xs text-text-secondary">
+              <span className="bg-bg-card px-2 py-0.5 rounded-full">
+                {detail.year}
+              </span>
+              <span className="bg-bg-card px-2 py-0.5 rounded-full uppercase">
+                {detail.type}
+              </span>
+              {detail.runtime > 0 && (
+                <span className="bg-bg-card px-2 py-0.5 rounded-full">
+                  {formatRuntime(detail.runtime)}
+                </span>
+              )}
+              <span className="bg-bg-card px-2 py-0.5 rounded-full">
+                {detail.status}
+              </span>
+              <span className="bg-accent/15 text-accent px-2 py-0.5 rounded-full font-semibold">
+                Seriez Score: {detail.rating}/10
+              </span>
+              {detail.type === "tv" && detail.seasons && (
+                <span className="bg-bg-card px-2 py-0.5 rounded-full">
+                  {detail.seasons} Season{detail.seasons > 1 ? "s" : ""}
+                  {detail.episodes ? ` · ${detail.episodes} Ep` : ""}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-1.5 mt-3 justify-center md:justify-start">
+              {detail.genres.map((g) => (
+                <span
+                  key={g}
+                  className="text-[11px] px-2.5 py-1 rounded-full bg-bg-card text-accent-light border border-accent/30"
+                >
+                  {g}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function formatRuntime(minutes: number) {
+  if (!minutes) return "";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}

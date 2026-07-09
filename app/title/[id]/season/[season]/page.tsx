@@ -1,4 +1,10 @@
-import SeasonClient from "@/components/SeasonClient";
+import SeasonHero from "@/components/SeasonHero";
+import SeasonTabs from "@/components/SeasonTabs";
+import SeasonOverview from "@/components/SeasonOverview";
+import SeasonTrailers from "@/components/SeasonTrailers";
+import SeasonCast from "@/components/SeasonCast";
+import SeasonRecommendations from "@/components/SeasonRecommendations";
+import SeasonInteractive from "@/components/SeasonInteractive";
 import { fetchKitsuThumbnails } from "@/lib/anilist";
 import { validateAndReplaceTrailers } from "@/lib/yt-validator";
 import { notFound } from "next/navigation";
@@ -224,7 +230,42 @@ export default async function SeasonPage({ params }: Props) {
     return (
       <>
         <StructuredDataScript data={jsonLd} />
-        <SeasonClient data={data} />
+        <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
+          <SeasonHero data={data} />
+          <div className="px-4 md:px-0">
+            <SeasonInteractive
+              data={{
+                id: data.id, title: data.title, seasonNumber: data.seasonNumber,
+                seasonName: data.seasonName, seasonPoster: data.seasonPoster,
+                daysUntil: (data as any).daysUntil, episodes: data.episodes,
+              }}
+            />
+            {/* Studios */}
+            {(data.createdBy || data.networks || data.seasonAirDate) && (
+              <div className="mt-3 text-xs text-text-secondary space-y-0.5">
+                {data.createdBy && (
+                  <p>Created by: <span className="text-text-secondary">{data.createdBy.join(", ")}</span></p>
+                )}
+                {data.networks && (
+                  <p>Network: <span className="text-text-secondary">{data.networks.join(", ")}</span></p>
+                )}
+                {data.seasonAirDate && (
+                  <p>Season aired: <span className="text-text-secondary">{data.seasonAirDate}</span></p>
+                )}
+              </div>
+            )}
+            <SeasonTabs totalSeasons={data.totalSeasons} currentSeason={data.seasonNumber} seriesId={data.id} />
+            <SeasonOverview overview={data.overview} seasonOverview={data.seasonOverview} />
+            <SeasonTrailers trailers={data.trailers} />
+            <SeasonCast cast={data.cast} />
+            <SeasonRecommendations items={data.similar} />
+            <div className="mt-8 pt-4 border-t border-white/5 text-center">
+              <p className="text-[10px] text-text-secondary">
+                <a href="https://seriez.app" className="text-accent hover:underline font-medium">Seriez</a> — Track Movies, TV Shows &amp; Anime in One Place
+              </p>
+            </div>
+          </div>
+        </div>
       </>
     );
   } catch (e: any) {

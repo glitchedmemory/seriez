@@ -1,7 +1,13 @@
 export const revalidate = 86400;
 
 import { getMovieDetail, isAnimeTV } from "@/lib/tmdb";
-import DetailClient from "@/components/DetailClient";
+import MovieHero from "@/components/MovieHero";
+import MovieInfo from "@/components/MovieInfo";
+import MovieOverview from "@/components/MovieOverview";
+import MovieTrailers from "@/components/MovieTrailers";
+import MovieCast from "@/components/MovieCast";
+import MovieRecommendations from "@/components/MovieRecommendations";
+import DetailInteractive from "@/components/DetailInteractive";
 import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations, getAnilistId } from "@/lib/anilist";
 import AnimeHero from "@/components/AnimeHero";
 import AnimeOverview from "@/components/AnimeOverview";
@@ -155,7 +161,22 @@ export default async function TitlePage({ params, searchParams }: Props) {
       return (
         <>
           <StructuredDataScript data={jsonLd} />
-          <DetailClient detail={detail} />
+          <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
+            <MovieHero detail={detail} />
+            <div className="px-4 md:px-0">
+              <DetailInteractive detail={{ id: detail.id, type: detail.type, daysUntil: detail.daysUntil }} />
+              <MovieInfo detail={detail} />
+              <MovieOverview overview={detail.overview} />
+              <MovieTrailers videos={detail.videos} />
+              <MovieCast cast={detail.cast} />
+              <MovieRecommendations items={detail.similar} />
+              <div className="mt-8 pt-4 border-t border-white/5 text-center">
+                <p className="text-[10px] text-text-secondary">
+                  <a href="https://seriez.app" className="text-accent hover:underline font-medium">Seriez</a> — Track Movies, TV Shows &amp; Anime in One Place
+                </p>
+              </div>
+            </div>
+          </div>
         </>
       );
     } catch {
