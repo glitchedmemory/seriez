@@ -1,6 +1,5 @@
 import { defineRouting } from 'next-intl/routing';
 import { getRequestConfig } from 'next-intl/server';
-import { cookies } from 'next/headers';
 import en from './messages/en.json';
 import ko from './messages/ko.json';
 import ja from './messages/ja.json';
@@ -18,19 +17,8 @@ export const routing = defineRouting({
 const messages: Record<string, any> = { en, ko, ja, zh, fr, de, es };
 
 export default getRequestConfig(async ({ requestLocale }) => {
-  // Try cookie first (set by language switcher), then request header, then default
-  let locale: string | undefined;
-  
-  try {
-    const cookieStore = await cookies();
-    locale = cookieStore.get('NEXT_LOCALE')?.value;
-  } catch {
-    // cookies() may throw in some contexts
-  }
-  
-  if (!locale) {
-    locale = await requestLocale;
-  }
+  // Middleware handles NEXT_LOCALE cookie → requestLocale already reflects user preference
+  let locale = await requestLocale;
   
   if (!locale || !routing.locales.includes(locale as any)) {
     locale = routing.defaultLocale;
