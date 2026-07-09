@@ -217,13 +217,14 @@ async function fetchKitsuBackdrop(title: string, year: number, titleRomaji?: str
 // ─── Main fetch ───
 
 /** Lightweight AniList query: only idMal + titles + duration. Used to parallelize detail + episodes. */
-export async function getAnimeIds(id: number): Promise<{ idMal: number; title: string; titleRomaji: string; titleNative: string; duration: number }> {
+export const getAnimeIds = unstable_cache(
+  async (id: number): Promise<{ idMal: number; title: string; titleRomaji: string; titleNative: string; duration: number }> => {
   const query = `query($id:Int){Media(id:$id){idMal title{romaji english native} duration}}`;
   const res = await fetch(ANILIST_API, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Accept": "application/json" },
     body: JSON.stringify({ query, variables: { id } }),
-    next: { revalidate: 3600 },
+    next: { revalidate: 86400 },
   });
   if (!res.ok) throw new Error("AniList failed");
   const m = (await res.json()).data?.Media;
@@ -234,9 +235,13 @@ export async function getAnimeIds(id: number): Promise<{ idMal: number; title: s
     titleNative: m?.title?.native || "",
     duration: m?.duration || 0,
   };
-}
+},
+  ["anime-ids"],
+  { revalidate: 86400 }
+);
 
-export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
+export const getAnimeDetail = unstable_cache(
+  async (id: number): Promise<AnimeDetail | null> => {
   try {
     // Retry AniList fetch with backoff (handles 429 + network errors)
     let res: Response | undefined;
@@ -381,7 +386,10 @@ export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
   } catch {
     return null;
   }
-}
+},
+  ["anime-detail"],
+  { revalidate: 86400 }
+);
 
 // ─── Episode fetching (Jikan primary + Kitsu/AniDB fallback) ───
 
