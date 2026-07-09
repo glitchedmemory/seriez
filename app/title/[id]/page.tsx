@@ -3,7 +3,13 @@ export const revalidate = 86400;
 import { getMovieDetail, isAnimeTV } from "@/lib/tmdb";
 import DetailClient from "@/components/DetailClient";
 import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations, getAnilistId } from "@/lib/anilist";
-import AnimeDetailClient from "@/components/AnimeDetailClient";
+import AnimeHero from "@/components/AnimeHero";
+import AnimeOverview from "@/components/AnimeOverview";
+import AnimeSeasons from "@/components/AnimeSeasons";
+import AnimeCharacters from "@/components/AnimeCharacters";
+import AnimeEpisodes from "@/components/AnimeEpisodes";
+import AnimeRecommendations from "@/components/AnimeRecommendations";
+import AnimeTrailer from "@/components/AnimeTrailer";
 import { notFound, redirect } from "next/navigation";
 import { generateMovieJsonLd, generateTVJsonLd, StructuredDataScript } from "@/lib/structured-data";
 
@@ -105,7 +111,15 @@ export default async function TitlePage({ params, searchParams }: Props) {
     return (
       <>
         <StructuredDataScript data={animeJsonLd} />
-        <AnimeDetailClient detail={detail} episodes={episodes} />
+        <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
+          <AnimeHero detail={detail} />
+          <AnimeOverview overview={detail.overview} />
+          <AnimeSeasons relations={detail.relations} currentId={detail.id} />
+          <AnimeCharacters characters={detail.characters} />
+          <AnimeEpisodes episodes={episodes} />
+          <AnimeRecommendations recommendations={detail.recommendations} />
+          <AnimeTrailer trailer={detail.trailer} />
+        </div>
       </>
     );
   }
