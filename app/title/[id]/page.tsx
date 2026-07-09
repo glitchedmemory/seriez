@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 import { getMovieDetail, isAnimeTV } from "@/lib/tmdb";
 import DetailClient from "@/components/DetailClient";
@@ -42,10 +42,13 @@ async function resolveAnilistId(tmdbId: number): Promise<number | null> {
     }
   } catch {}
 
-  // Then: try Supabase media_trackings (TMDB ID → AniList ID)
+  // Then: try Supabase media_trackings (TMDB ID → AniList ID) — direct REST, no cookies
   try {
-    const { createClient } = await import("@/lib/supabase/server");
-    const supabase = await createClient();
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     const { data } = await supabase
       .from("media_trackings")
       .select("anilist_id")
