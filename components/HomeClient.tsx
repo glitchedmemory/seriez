@@ -197,22 +197,19 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
       .catch(() => setAnimeLoading(false));
   }, [trendingMode, animeTrending.length]);
 
-  // hero: initial pick from server (no hydration mismatch), then re-roll on mount
-  const [picks, setPicks] = useState<{ hero: number; next: number } | null>(null);
-  useEffect(() => {
-    if (trending.length === 0) return;
-    const h = Math.floor(Math.random() * trending.length);
-    const remaining = trending.filter((_, i) => i !== h);
-    const n = remaining.length > 0 ? Math.floor(Math.random() * remaining.length) : -1;
-    setPicks({ hero: h, next: n });
-  }, []);
-
-  const heroPick = picks ? picks.hero : (randomSeed % Math.max(trending.length, 1));
-  const hero = trending[heroPick] || trending[0];
-  const remainingTrending = trending.filter((_, i) => i !== heroPick);
-  const nextPick = picks && picks.next >= 0 ? picks.next : -1;
-  const nextHero = nextPick >= 0 && remainingTrending.length > 0
-    ? remainingTrending[nextPick]
+  // hero: random pick per mount (changes on every full page refresh)
+  const heroIdx = useRef<number>();
+  if (heroIdx.current === undefined) {
+    heroIdx.current = Math.floor(Math.random() * Math.max(trending.length, 1));
+  }
+  const hero = trending[heroIdx.current] || trending[0];
+  const remainingTrending = trending.filter((_, i) => i !== heroIdx.current);
+  const nextIdx = useRef<number>();
+  if (nextIdx.current === undefined && remainingTrending.length > 0) {
+    nextIdx.current = Math.floor(Math.random() * remainingTrending.length);
+  }
+  const nextHero = nextIdx.current !== undefined && remainingTrending.length > 0
+    ? remainingTrending[nextIdx.current]
     : (curatedNextHero || remainingTrending[0] || trending[0]);
 
   // Shared search results dropdown
