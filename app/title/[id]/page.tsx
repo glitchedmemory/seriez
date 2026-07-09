@@ -1,4 +1,5 @@
 export const revalidate = 86400;
+export const fetchCache = 'default-cache';
 
 import { getMovieDetail, isAnimeTV } from "@/lib/tmdb";
 import DetailClient from "@/components/DetailClient";
