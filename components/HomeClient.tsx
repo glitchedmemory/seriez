@@ -197,22 +197,23 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
       .catch(() => setAnimeLoading(false));
   }, [trendingMode, animeTrending.length]);
 
-  // hero: random pick from trending pool (client-side to vary with every refresh despite CDN cache)
-  const [heroPick, setHeroPick] = useState(() => randomSeed % Math.max(trending.length, 1));
-  const [nextPick, setNextPick] = useState<number | null>(null);
-
+  // hero: initial pick from server (no hydration mismatch), then re-roll on mount
+  const [picks, setPicks] = useState<{ hero: number; next: number } | null>(null);
   useEffect(() => {
-    if (trending.length > 0) {
-      setHeroPick(Math.floor(Math.random() * trending.length));
-      setNextPick(Math.floor(Math.random() * Math.max(trending.length - 1, 1)));
-    }
+    if (trending.length === 0) return;
+    const h = Math.floor(Math.random() * trending.length);
+    const remaining = trending.filter((_, i) => i !== h);
+    const n = remaining.length > 0 ? Math.floor(Math.random() * remaining.length) : -1;
+    setPicks({ hero: h, next: n });
   }, []);
 
+  const heroPick = picks ? picks.hero : (randomSeed % Math.max(trending.length, 1));
   const hero = trending[heroPick] || trending[0];
   const remainingTrending = trending.filter((_, i) => i !== heroPick);
-  const nextHero = nextPick !== null && remainingTrending.length > 0
-    ? remainingTrending[nextPick % remainingTrending.length]
-    : (curatedNextHero || remainingTrending[0]);
+  const nextPick = picks && picks.next >= 0 ? picks.next : -1;
+  const nextHero = nextPick >= 0 && remainingTrending.length > 0
+    ? remainingTrending[nextPick]
+    : (curatedNextHero || remainingTrending[0] || trending[0]);
 
   // Shared search results dropdown
   const searchDropdown = searchOpen && searchQuery.trim() ? (
