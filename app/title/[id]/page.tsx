@@ -3,7 +3,7 @@ export const fetchCache = 'default-cache';
 
 import { getMovieDetail, isAnimeTV } from "@/lib/tmdb";
 import DetailClient from "@/components/DetailClient";
-import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations } from "@/lib/anilist";
+import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations, getAnilistId } from "@/lib/anilist";
 import AnimeDetailClient from "@/components/AnimeDetailClient";
 import { notFound, redirect } from "next/navigation";
 import { generateMovieJsonLd, generateTVJsonLd, StructuredDataScript } from "@/lib/structured-data";
@@ -23,67 +23,6 @@ async function getTVSeasonCount(id: number): Promise<number | null> {
   } catch {
     return null;
   }
-}
-
-// Resolve TMDB ID → AniList ID. Also handles direct AniList IDs (from search results).
-async function resolveAnilistId(tmdbId: number): Promise<number | null> {
-  // First: try using the ID directly as an AniList ID (for anime results from search)
-  try {
-    const directRes = await fetch("https://graphql.anilist.co", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        query: `query($id:Int){Media(id:$id,type:ANIME){id}}`,
-        variables: { id: tmdbId },
-      }),
-    });
-    if (directRes.ok) {
-      const dj = await directRes.json();
-      if (dj.data?.Media?.id) return dj.data.Media.id;
-    }
-  } catch {}
-
-  // Then: try Supabase media_trackings (TMDB ID → AniList ID) — direct REST, no cookies
-  try {
-    const { createClient } = await import("@supabase/supabase-js");
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    const { data } = await supabase
-      .from("media_trackings")
-      .select("anilist_id")
-      .eq("tmdb_id", tmdbId)
-      .not("anilist_id", "is", null)
-      .limit(1)
-      .maybeSingle();
-    if (data?.anilist_id) return data.anilist_id;
-  } catch {}
-
-  // Fallback: search AniList via Jikan (MAL ID → AniList)
-  try {
-    const jikanRes = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(String(tmdbId))}&limit=1`);
-    if (jikanRes.ok) {
-      const jd = await jikanRes.json();
-      const malId = jd?.data?.[0]?.mal_id;
-      if (malId) {
-        const anilistRes = await fetch("https://graphql.anilist.co", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify({
-            query: `query($idMal:Int){Media(idMal:$idMal,type:ANIME){id}}`,
-            variables: { idMal: malId },
-          }),
-        });
-        if (anilistRes.ok) {
-          const aj = await anilistRes.json();
-          return aj.data?.Media?.id || null;
-        }
-      }
-    }
-  } catch {}
-
-  return null;
 }
 
 interface Props {
@@ -111,7 +50,7 @@ export default async function TitlePage({ params, searchParams }: Props) {
 
   // When no type specified, auto-detect: try anime first
   if (!type) {
-    const anilistId = await resolveAnilistId(numId);
+    const anilistId = await getAnilistId(numId);
     if (anilistId) {
       redirect(`/title/${numId}?type=anime`);
     }
@@ -119,7 +58,7 @@ export default async function TitlePage({ params, searchParams }: Props) {
 
   // Anime detail — resolve TMDB ID to AniList ID first
   if (type === "anime") {
-    const anilistId = await resolveAnilistId(numId);
+    const anilistId = await getAnilistId(numId);
     if (!anilistId) notFound();
     // Fetch ids first (lightweight), then detail + episodes in parallel
     const ids = await getAnimeIds(anilistId);
