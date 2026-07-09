@@ -259,6 +259,45 @@ def ref_label(ref: str) -> str:
     m = re.search(r"https?://([^/]+)", ref)
     return m.group(1) if m else ref
 
+DATACENTER_KEYWORDS = [
+    "tencent", "ovh", "digitalocean", "vultr", "linode", "hetzner",
+    "aws", "amazon", "google cloud", "azure", "microsoft corporation",
+    "alibaba", "huawei cloud", "oracle cloud", "cloudflare",
+    "aceville", "m247", "psychz", "colocrossing", "buyvm",
+    "choopa", "dedipath", "shinjiru", "hostinger", "namecheap",
+    "godaddy", "ionos", "rackspace", "softlayer", "leaseweb",
+    "data center", "datacenter", "hosting", "vps", "vpn",
+    "dedicated", "colocation", "server", "cloud computing",
+    "pte.ltd", "pte ltd",  # Many Singapore/VPN fronts
+]
+
+def is_datacenter_isp(isp: str) -> bool:
+    """Check if the ISP/org name contains known datacenter keywords."""
+    isp_lower = isp.lower()
+    for kw in DATACENTER_KEYWORDS:
+        if kw in isp_lower:
+            return True
+    return False
+
+def is_likely_human(ip: str, geo: dict, data: dict) -> bool:
+    """Determine if visitor is likely a real human — strict criteria."""
+    # ip-api.com hosting flag
+    if geo["hosting"]:
+        return False
+    # ISP name contains datacenter keywords (belt-and-suspenders)
+    if is_datacenter_isp(geo["isp"]):
+        return False
+    # Only API endpoints — no real content pages
+    pages = [page_label(p) for p in list(data["pages"])[:5]]
+    if is_api_only(pages):
+        return False
+    # Suspicious UA (old OS versions, etc.)
+    if is_suspicious_ua(data["os"]):
+        return False
+    # Must have at least 2 non-API page views (browsing behavior)
+    non_api = sum(1 for p in data["pages"] if not p.startswith("/api/"))
+    return non_api >= 2
+
 def assess_visitor(ip: str, geo: dict, data: dict, pages: list, page_count: int) -> str:
     """Build a narrative assessment sentence for one visitor."""
     parts = []
@@ -356,25 +395,26 @@ for ips, geo in groups:
     lines.append("")
 
 # Build conclusion
-hosting_count = sum(1 for ip in visitors if get_geo(ip)["hosting"])
-isp_count = len(visitors) - hosting_count
+human_count = sum(1 for ip, data in visitors.items() if is_likely_human(ip, get_geo(ip), data))
+bot_count = len(visitors) - human_count
 
 conclusion_parts = []
-if isp_count == 0:
-    conclusion_parts.append(f"실제 유저라고 볼 만한 건 없고, {hosting_count}건 전부 봇/스크래퍼로 보입니다.")
-elif isp_count == 1:
-    conclusion_parts.append(f"실제 유저라고 볼 만한 건 ISP IP {isp_count}건 정도고, 나머지 {hosting_count}건은 봇/스크래퍼로 보입니다.")
+if human_count == 0:
+    conclusion_parts.append(f"실제 유저라고 볼 만한 건 없고, {bot_count}건 전부 봇/스크래퍼로 보입니다.")
+elif human_count == 1:
+    conclusion_parts.append(f"실제 유저라고 볼 만한 건 {human_count}건 정도고, 나머지 {bot_count}건은 봇/스크래퍼로 보입니다.")
 else:
-    conclusion_parts.append(f"실제 유저라고 볼 만한 건 ISP IP {isp_count}건 정도고, 나머지 {hosting_count}건은 봇/스크래퍼로 보입니다.")
+    conclusion_parts.append(f"실제 유저라고 볼 만한 건 {human_count}건 정도고, 나머지 {bot_count}건은 봇/스크래퍼로 보입니다.")
 
-if isp_count == 0:
+if human_count == 0:
     conclusion_parts.append("실제 사람 유입은 거의 없는 상태예요.")
-elif isp_count <= 1:
+elif human_count <= 1:
     conclusion_parts.append("아직 실제 사람 유입은 미미한 수준입니다.")
 else:
     conclusion_parts.append("서서히 실제 유저 유입이 시작되고 있는 것 같습니다.")
 
 lines.append(f"결론: {' '.join(conclusion_parts)}")
 
-send_telegram("\n".join(lines))
-print(f"Report: {len(visitors)} visitors")
+if human_count > 0:
+    send_telegram("\n".join(lines))
+print(f"Report: {len(visitors)} visitors (human={human_count}, bot={bot_count})")
