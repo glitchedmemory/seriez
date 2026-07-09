@@ -7,17 +7,29 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// GET — fetch user signup list (admin only)
+// GET — fetch user signup list (admin only), or single user if ?username= provided
 export async function GET(req: NextRequest) {
   try {
-    const username = await resolveUsername(req);
-    if (!username) {
+    const authUsername = await resolveUsername(req);
+    if (!authUsername) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
     const { data: userData } = await supabaseAdmin
-      .from("users").select("role").eq("username", username).maybeSingle();
+      .from("users").select("role").eq("username", authUsername).maybeSingle();
     if (!STAFF_ROLES.includes(userData?.role || "")) {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    }
+
+    // If ?username= is provided, return just that user (used by TabBar/Sidebar role check)
+    const targetUsername = req.nextUrl.searchParams.get("username");
+    if (targetUsername) {
+      const { data: target, error } = await supabaseAdmin
+        .from("users")
+        .select("username, role, is_premium, created_at, sanction_type, sanction_reason, sanction_until, sanctioned_at, sanctioned_by")
+        .eq("username", targetUsername)
+        .maybeSingle();
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ users: target ? [target] : [] });
     }
 
     const { data: users, error } = await supabaseAdmin
