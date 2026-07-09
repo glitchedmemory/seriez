@@ -198,46 +198,10 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
   }, [trendingMode, animeTrending.length]);
 
   // hero: deterministic from server (matches SSR), then re-rolled client-side
-  const heroPick = useMemo(() => {
-    if (trending.length === 0) return 0;
-    return randomSeed % trending.length;
-  }, [randomSeed, trending.length]);
-  const hero = trending[heroPick];
+  const [heroPick, setHeroPick] = useState(() => randomSeed % Math.max(trending.length, 1));
+  useEffect(() => { setHeroPick(Math.floor(Math.random() * trending.length)); }, []);
+  const hero = trending[heroPick] || trending[0];
   const nextHero = curatedNextHero || trending.filter((_, i) => i !== heroPick).slice(0, 1)[0];
-
-  // Force hero card to change after mount — bypasses RSC hydration entirely
-  useEffect(() => {
-    if (trending.length <= 1) return;
-    // Use interval to retry until DOM is ready (handles lazy hydration timing)
-    const id = setInterval(() => {
-      const heroEl = document.querySelector('main a[href*="/title/"]') as HTMLAnchorElement | null;
-      if (!heroEl || !heroEl.textContent?.includes('TRENDING NOW')) return;
-      clearInterval(id);
-      const idx = Math.floor(Math.random() * trending.length);
-      const newItem = trending[idx];
-      if (!newItem || heroEl.href.includes(String(newItem.id))) return;
-      // Update href
-      heroEl.href = `/title/${newItem.id}?type=${newItem.type}`;
-      // Update title text
-      const heading = heroEl.querySelector('h2');
-      if (heading) heading.textContent = newItem.title;
-      // Also update the "RIGHT NOW" card
-      const rnEls = document.querySelectorAll('main a[href*="/title/"]');
-      for (const el of rnEls) {
-        if (el.textContent?.includes('RIGHT NOW')) {
-          const remaining = trending.filter((_, i) => i !== idx);
-          if (remaining.length > 0) {
-            const rnPick = remaining[Math.floor(Math.random() * remaining.length)];
-            (el as HTMLAnchorElement).href = `/title/${rnPick.id}?type=${rnPick.type}`;
-            const rnTitle = el.querySelector('p:nth-of-type(2)');
-            if (rnTitle) rnTitle.textContent = rnPick.title;
-          }
-          break;
-        }
-      }
-    }, 100);
-    return () => clearInterval(id);
-  }, []);
 
   // Shared search results dropdown
   const searchDropdown = searchOpen && searchQuery.trim() ? (
