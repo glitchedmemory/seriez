@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getMovieDetail, isAnimeTV } from "@/lib/tmdb";
 import DetailClient from "@/components/DetailClient";
 import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations } from "@/lib/anilist";
