@@ -391,6 +391,72 @@ export const getAnimeDetail = unstable_cache(
   { revalidate: 86400 }
 );
 
+// ─── TMDB ID → AniList ID resolution (cached 24h) ───
+
+export const getAnilistId = unstable_cache(
+  async (tmdbId: number): Promise<number | null> => {
+  // First: try using the ID directly as an AniList ID (for anime results from search)
+  try {
+    const directRes = await fetch("https://graphql.anilist.co", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        query: `query($id:Int){Media(id:$id,type:ANIME){id}}`,
+        variables: { id: tmdbId },
+      }),
+    });
+    if (directRes.ok) {
+      const dj = await directRes.json();
+      if (dj.data?.Media?.id) return dj.data.Media.id;
+    }
+  } catch {}
+
+  // Then: try Supabase media_trackings (TMDB ID → AniList ID) — direct REST
+  try {
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    const { data } = await supabase
+      .from("media_trackings")
+      .select("anilist_id")
+      .eq("tmdb_id", tmdbId)
+      .not("anilist_id", "is", null)
+      .limit(1)
+      .maybeSingle();
+    if (data?.anilist_id) return data.anilist_id;
+  } catch {}
+
+  // Fallback: search AniList via Jikan (MAL ID → AniList)
+  try {
+    const jikanRes = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(String(tmdbId))}&limit=1`);
+    if (jikanRes.ok) {
+      const jd = await jikanRes.json();
+      const malId = jd?.data?.[0]?.mal_id;
+      if (malId) {
+        const anilistRes = await fetch("https://graphql.anilist.co", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({
+            query: `query($idMal:Int){Media(idMal:$idMal,type:ANIME){id}}`,
+            variables: { idMal: malId },
+          }),
+        });
+        if (anilistRes.ok) {
+          const aj = await anilistRes.json();
+          return aj.data?.Media?.id || null;
+        }
+      }
+    }
+  } catch {}
+
+  return null;
+},
+  ["anilist-id-resolve"],
+  { revalidate: 86400 }
+);
+
 // ─── Episode fetching (Jikan primary + Kitsu/AniDB fallback) ───
 
 const JIKAN_API = "https://api.jikan.moe/v4";
@@ -945,10 +1011,11 @@ query($id: Int) {
  * Collect ALL unique TV anime relations via BFS across the relation graph.
  * Iterates until no new TV entries are discovered (full franchise coverage).
  */
-export async function enrichAnimeRelations(
+export const enrichAnimeRelations = unstable_cache(
+  async (
   currentId: number,
   existingRelations: { id: number; title: string; type: string; format: string; seasonYear: number | null }[]
-): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null }[]> {
+): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null }[]> => {
   const seen = new Set<number>([currentId]);
   const result: { id: number; title: string; type: string; format: string; seasonYear: number | null }[] = [];
 
@@ -1002,7 +1069,10 @@ export async function enrichAnimeRelations(
   }
 
   return result;
-}
+},
+  ["anime-relations"],
+  { revalidate: 86400 }
+);
 
 // ─── Staff Detail ───
 
