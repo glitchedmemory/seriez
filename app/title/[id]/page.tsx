@@ -7,9 +7,9 @@ import AnimeHero from "@/components/AnimeHero";
 import AnimeOverview from "@/components/AnimeOverview";
 import AnimeSeasons from "@/components/AnimeSeasons";
 import AnimeCharacters from "@/components/AnimeCharacters";
-import AnimeEpisodes from "@/components/AnimeEpisodes";
 import AnimeRecommendations from "@/components/AnimeRecommendations";
 import AnimeTrailer from "@/components/AnimeTrailer";
+import AnimeInteractive from "@/components/AnimeInteractive";
 import { notFound, redirect } from "next/navigation";
 import { generateMovieJsonLd, generateTVJsonLd, StructuredDataScript } from "@/lib/structured-data";
 
@@ -116,9 +116,9 @@ export default async function TitlePage({ params, searchParams }: Props) {
           <AnimeOverview overview={detail.overview} />
           <AnimeSeasons relations={detail.relations} currentId={detail.id} />
           <AnimeCharacters characters={detail.characters} />
-          <AnimeEpisodes episodes={episodes} />
           <AnimeRecommendations recommendations={detail.recommendations} />
           <AnimeTrailer trailer={detail.trailer} />
+          <AnimeInteractive detail={detail} episodes={episodes} />
         </div>
       </>
     );
