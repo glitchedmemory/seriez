@@ -197,11 +197,25 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
       .catch(() => setAnimeLoading(false));
   }, [trendingMode, animeTrending.length]);
 
-  // hero: deterministic from server (matches SSR), then re-rolled client-side
+  // hero + right-now: deterministic from server (matches SSR), then both re-rolled client-side
   const [heroPick, setHeroPick] = useState(() => randomSeed % Math.max(trending.length, 1));
-  useEffect(() => { setHeroPick(Math.floor(Math.random() * trending.length)); }, []);
+  const [nextPick, setNextPick] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (trending.length === 0) return;
+    const h = Math.floor(Math.random() * trending.length);
+    setHeroPick(h);
+    const remaining = trending.filter((_, i) => i !== h);
+    if (remaining.length > 0) {
+      setNextPick(Math.floor(Math.random() * remaining.length));
+    }
+  }, []);
+
   const hero = trending[heroPick] || trending[0];
-  const nextHero = curatedNextHero || trending.filter((_, i) => i !== heroPick).slice(0, 1)[0];
+  const remainingTrending = trending.filter((_, i) => i !== heroPick);
+  const nextHero = nextPick !== null && remainingTrending.length > 0
+    ? remainingTrending[nextPick % remainingTrending.length]
+    : (curatedNextHero || remainingTrending[0] || trending[0]);
 
   // Shared search results dropdown
   const searchDropdown = searchOpen && searchQuery.trim() ? (
