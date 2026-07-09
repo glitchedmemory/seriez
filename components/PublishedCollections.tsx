@@ -13,19 +13,20 @@ interface Collection {
   thumbnails: (string | null)[];
 }
 
-export default function PublishedCollections() {
-  const [collections, setCollections] = useState<Collection[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function PublishedCollections({ initialData }: { initialData?: Collection[] }) {
+  const [collections, setCollections] = useState<Collection[]>(initialData || []);
+  const [loading, setLoading] = useState(!initialData);
   const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (initialData) return; // already have data, skip fetch
     fetch("/api/collections/published")
       .then((res) => res.json())
       .then((data) => setCollections(data.collections || []))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [initialData]);
 
   // Shuffle order on each mount
   const [shuffled, setShuffled] = useState<Collection[]>([]);
