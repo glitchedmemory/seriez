@@ -49,23 +49,8 @@ function setCachedTrailer(animeId: number, key: string): void {
   trailerCache.set(animeId, { key, at: Date.now() });
 }
 
-/** Check if a YouTube video exists (not deleted/private) via oEmbed */
-async function videoExists(key: string): Promise<boolean> {
-  try {
-    const res = await withRetry(() =>
-      fetch(
-        `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${key}`,
-        { next: { revalidate: 86400 } } as any
-      )
-    );
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-
-/** Check if a YouTube video is region-restricted by fetching the embed page */
-async function hasRegionRestrictions(key: string): Promise<boolean> {
+/** Check if a YouTube video exists and is not region-restricted (single embed page check) */
+async function isVideoFullyPlayable(key: string): Promise<boolean> {
   try {
     const res = await withRetry(() =>
       fetch(`https://www.youtube.com/embed/${key}`, {
@@ -73,21 +58,14 @@ async function hasRegionRestrictions(key: string): Promise<boolean> {
       } as any)
     );
     const html = await res.text();
-    // Detect region-restriction messages in the embed page
-    if (html.includes("not made this video available in your country")) return true;
-    if (html.includes("Video unavailable")) return true;
-    if (html.includes('"reason":"Video unavailable"')) return true;
-    return false;
+    // Detect region-restriction or unavailable messages in the embed page
+    if (html.includes("not made this video available in your country")) return false;
+    if (html.includes("Video unavailable")) return false;
+    if (html.includes('"reason":"Video unavailable"')) return false;
+    return true;
   } catch {
     return false;
   }
-}
-
-/** Fully validate a video: exists + no region restrictions */
-async function isVideoFullyPlayable(key: string): Promise<boolean> {
-  if (!(await videoExists(key))) return false;
-  if (await hasRegionRestrictions(key)) return false;
-  return true;
 }
 
 /** Search YouTube directly for trailer IDs matching the query */
@@ -132,13 +110,17 @@ export async function validateAndReplaceTrailers(
 
   const result: Video[] = [];
 
-  // Phase 1: validate existing videos (exists + no region block)
-  for (let i = 0; i < videos.length; i++) {
-    if (blocked.has(videos[i].key)) continue;
-    const playable = await isVideoFullyPlayable(videos[i].key);
-    if (playable) {
-      result.push(videos[i]);
-    }
+  // Phase 1: validate existing videos in parallel (exists + no region block)
+  const phase1Results = await Promise.all(
+    videos
+      .filter((v) => !blocked.has(v.key))
+      .map(async (v) => {
+        const playable = await isVideoFullyPlayable(v.key);
+        return playable ? v : null;
+      })
+  );
+  for (const v of phase1Results) {
+    if (v) result.push(v);
   }
 
   // Phase 2: fill gaps with fallback search

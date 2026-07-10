@@ -3,6 +3,7 @@ const API_KEY = process.env.TMDB_API_KEY!;
 
 import { validateAndReplaceTrailers } from "./yt-validator";
 import { getCustomPoster } from "./custom-posters";
+import { unstable_cache } from "next/cache";
 
 const poster = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w780${path}` : null;
@@ -500,7 +501,8 @@ async function getKeywords(id: number, type: "movie" | "tv"): Promise<number[]> 
   }
 }
 
-export async function getMovieDetail(id: number): Promise<TmdbDetail> {
+export const getMovieDetail = unstable_cache(
+  async (id: number): Promise<TmdbDetail> => {
   const [detail, credits, similar, videos, keywords] = await Promise.all([
     get(`/movie/${id}`),
     get(`/movie/${id}/credits`),
@@ -580,7 +582,10 @@ export async function getMovieDetail(id: number): Promise<TmdbDetail> {
   }
 
   return result;
-}
+},
+  ["movie-detail"],
+  { revalidate: 86400 }
+);
 
 export async function getTVDetail(id: number): Promise<TmdbDetail> {
   const [detail, credits, similar, videos, keywords, aggregateCredits] = await Promise.all([
