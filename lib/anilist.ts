@@ -1038,8 +1038,9 @@ query($id: Int) {
 export const enrichAnimeRelations = unstable_cache(
   async (
   currentId: number,
-  existingRelations: { id: number; title: string; type: string; format: string; seasonYear: number | null; status: string }[]
-): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null }[]> => {
+  existingRelations: { id: number; title: string; type: string; format: string; seasonYear: number | null; status: string }[],
+  currentYear: number,
+): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null; isOriginal: boolean }[]> => {
   const seen = new Set<number>([currentId]);
   const result: { id: number; title: string; type: string; format: string; seasonYear: number | null }[] = [];
 
@@ -1092,7 +1093,21 @@ export const enrichAnimeRelations = unstable_cache(
     }
   }
 
-  return result;
+  // Find the original (earliest seasonYear including current)
+  let earliestYear = currentYear || Infinity;
+  let earliestId = currentId;
+  for (const r of result) {
+    const y = r.seasonYear;
+    if (y !== null && y < earliestYear) {
+      earliestYear = y;
+      earliestId = r.id;
+    }
+  }
+
+  return result.map(r => ({
+    ...r,
+    isOriginal: r.id === earliestId,
+  }));
 },
   ["anime-relations"],
   { revalidate: 86400 }

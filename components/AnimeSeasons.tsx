@@ -1,12 +1,11 @@
-type Relation = { id: number; title: string; type: string; format: string; seasonYear: number | null };
-
-function titleOverlap(a: string, b: string): number {
-  const wordsA = new Set(a.toLowerCase().split(/[\s:]+/).filter(w => w.length > 1));
-  const wordsB = new Set(b.toLowerCase().split(/[\s:]+/).filter(w => w.length > 1));
-  let count = 0;
-  for (const w of wordsA) if (wordsB.has(w)) count++;
-  return count;
-}
+type Relation = {
+  id: number;
+  title: string;
+  type: string;
+  format: string;
+  seasonYear: number | null;
+  isOriginal: boolean;
+};
 
 export default function AnimeSeasons({
   relations,
@@ -19,39 +18,60 @@ export default function AnimeSeasons({
   currentTitle: string;
   currentYear: number;
 }) {
-  const direct = relations.filter(r => titleOverlap(r.title, currentTitle) >= 2);
-  const related = relations.filter(r => titleOverlap(r.title, currentTitle) < 2);
-
-  const allItems = [
-    ...direct,
-    { id: currentId, title: currentTitle, type: "ANIME", format: "TV", seasonYear: currentYear || null },
+  // Combine relations + current item
+  const allItems: { id: number; title: string; seasonYear: number | null; isOriginal: boolean }[] = [
+    ...relations.map(r => ({ id: r.id, title: r.title, seasonYear: r.seasonYear, isOriginal: r.isOriginal })),
+    { id: currentId, title: currentTitle, seasonYear: currentYear || null, isOriginal: false },
   ];
 
-  const sorted = [...allItems].sort(
-    (a, b) => (a.seasonYear || 0) - (b.seasonYear || 0) || a.title.localeCompare(b.title)
-  );
+  // The original is the relation marked isOriginal=true, or the earliest-year item
+  let original = relations.find(r => r.isOriginal);
+  if (!original) {
+    // Fallback: earliest year among all
+    let earliestYear = currentYear || Infinity;
+    let earliestItem: typeof allItems[0] | null = null;
+    for (const item of allItems) {
+      const y = item.seasonYear;
+      if (y !== null && y < earliestYear) { earliestYear = y; earliestItem = item; }
+    }
+    original = earliestItem ? { id: earliestItem.id, title: earliestItem.title, type: "ANIME", format: "TV", seasonYear: earliestItem.seasonYear, isOriginal: true } : null;
+  }
 
-  if (sorted.length <= 1 && related.length === 0) return null;
+  const originalId = original?.id ?? currentId;
+
+  // Sequels: all TV relations EXCEPT the original, sorted by year
+  const sequels = allItems
+    .filter(item => item.id !== originalId)
+    .sort((a, b) => (a.seasonYear || 0) - (b.seasonYear || 0));
+
+  if (!original && sequels.length <= 1) return null;
 
   return (
     <div className="mt-8 px-4 md:px-0">
       <h2 className="text-lg font-semibold text-text-primary mb-3">Seasons</h2>
       <div className="flex flex-wrap gap-2">
-        {related.map((r) => (
+        {/* Original button — always first, full title */}
+        {original && (
           <a
-            key={r.id}
-            href={`/title/${r.id}?type=anime`}
-            className="px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-bg-card text-text-secondary border border-border hover:bg-accent/10 hover:text-text-primary hover:border-accent/30"
-          >
-            {r.title}
-          </a>
-        ))}
-        {sorted.length > 1 && sorted.map((r, i) => (
-          <a
-            key={r.id}
-            href={`/title/${r.id}?type=anime`}
+            key={original.id}
+            href={`/title/${original.id}?type=anime`}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-              r.id === currentId
+              original.id === currentId
+                ? "bg-accent text-white cursor-default pointer-events-none shadow-md"
+                : "bg-bg-card text-text-secondary border border-border hover:bg-accent/10 hover:text-text-primary hover:border-accent/30"
+            }`}
+          >
+            {original.title}
+          </a>
+        )}
+
+        {/* Numbered sequels: S1, S2, ... */}
+        {sequels.map((item, i) => (
+          <a
+            key={item.id}
+            href={`/title/${item.id}?type=anime`}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              item.id === currentId
                 ? "bg-accent text-white cursor-default pointer-events-none shadow-md"
                 : "bg-bg-card text-text-secondary border border-border hover:bg-accent/10 hover:text-text-primary hover:border-accent/30"
             }`}
