@@ -37,7 +37,7 @@ function formatDate(iso: string) {
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
-export default function AnimeInteractive({ detail, episodes }: { detail: AnimeDetail; episodes: AnimeEpisode[] }) {
+export default function AnimeInteractive({ detail, episodes, mode }: { detail: AnimeDetail; episodes: AnimeEpisode[]; mode?: "buttons-only" | "reviews-only" | "episodes-only" }) {
   const [trackStatus, setTrackStatus] = useState<string | null>(null);
   const [trackLoading, setTrackLoading] = useState(false);
   const [rating, setRating] = useState(0);
@@ -107,18 +107,43 @@ export default function AnimeInteractive({ detail, episodes }: { detail: AnimeDe
     return () => document.removeEventListener("mousedown", handleClick);
   }, [showCollDropdown]);
 
+  // Sync state across multiple instances via custom events
+  const trackKey = `${detail.id}`;
+  useEffect(() => {
+    function onTrackChange(e: CustomEvent) {
+      if (e.detail.key === trackKey) {
+        if (e.detail.status !== undefined) setTrackStatus(e.detail.status);
+        if (e.detail.rating !== undefined) setRating(e.detail.rating);
+        if (e.detail.trackedAt !== undefined) setTrackedAt(e.detail.trackedAt);
+        if (e.detail.watchedEpisodes) setWatchedEpisodes(new Set(e.detail.watchedEpisodes));
+      }
+    }
+    window.addEventListener("seriez:anime-track-change", onTrackChange as EventListener);
+    return () => window.removeEventListener("seriez:anime-track-change", onTrackChange as EventListener);
+  }, [trackKey]);
+
+  function syncTrackState(status: string | null, extra?: { rating?: number; trackedAt?: string; watchedEpisodes?: string[] }) {
+    setTrackStatus(status);
+    if (extra?.rating !== undefined) setRating(extra.rating);
+    if (extra?.trackedAt !== undefined) setTrackedAt(extra.trackedAt);
+    window.dispatchEvent(new CustomEvent("seriez:anime-track-change", {
+      detail: { key: trackKey, status, ...extra }
+    }));
+  }
+
   async function handleTrack(status: string, ratingOverride?: number) {
     if (!authUser) { router.push("/signup"); return; }
     const username = authUser.user_metadata?.username || "";
     const effectiveRating = ratingOverride ?? rating;
     const newStatus = (trackStatus === status && !ratingOverride) ? null : status;
     setTrackLoading(true);
+    let json: any = null;
     try {
       if (newStatus) {
         const body: Record<string, unknown> = { username, tmdbId: detail.id, mediaType: "anime", status: newStatus };
         if (status === "completed" && effectiveRating > 0) body.rating = effectiveRating;
         const res = await fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-        const json = await res.json();
+        json = await res.json();
         setTrackedAt(json.updatedAt || new Date().toISOString());
         if (newStatus === "completed" && trackStatus !== "completed" && episodes.length > 0) {
           setWatchedEpisodes((prev) => { const all = new Set(prev); episodes.forEach((ep) => all.add(`1-${ep.number}`)); return all; });
@@ -136,7 +161,7 @@ export default function AnimeInteractive({ detail, episodes }: { detail: AnimeDe
           for (const key of watchedEpisodes) { const [, en] = key.split("-").map(Number); fetch("/api/episodes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, seasonNumber: 1, episodeNumber: en }) }).catch(() => {}); }
         }
       }
-      setTrackStatus(newStatus);
+      syncTrackState(newStatus, { trackedAt: newStatus ? (json?.updatedAt || new Date().toISOString()) : null });
       setTrackVersion(v => v + 1);
     } catch {}
     setTrackLoading(false);
@@ -150,23 +175,22 @@ export default function AnimeInteractive({ detail, episodes }: { detail: AnimeDe
     setWatchedEpisodes((prev) => { const next = new Set(prev); if (next.has(key)) next.delete(key); else next.add(key); return next; });
     setEpToggleLoading(key);
     const willHaveWatched = !wasWatched || watchedEpisodes.size > 1;
-    if (willHaveWatched && !trackStatus) {
-      setTrackStatus("watching");
+    if (willHaveWatched && (!trackStatus || trackStatus === "plan_to_watch")) {
+      syncTrackState("watching");
       await fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching" }) });
     } else if (!willHaveWatched && trackStatus === "watching") {
-      setTrackStatus(null);
+      syncTrackState(null);
       await fetch("/api/track", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime" }) });
     }
     try { await fetch("/api/episodes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, seasonNumber: 1, episodeNumber }) }); } catch {}
     setEpToggleLoading(null);
     if (trackStatus === "completed" && wasWatched && watchedEpisodes.size - 1 < episodes.length) {
-      setTrackStatus("watching");
+      syncTrackState("watching");
       fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching" }) }).catch(() => {});
     }
     const nowAllWatched = !wasWatched && watchedEpisodes.size + 1 >= episodes.length;
     if (nowAllWatched && trackStatus !== "completed") {
-      setTrackStatus("completed");
-      setTrackedAt(new Date().toISOString());
+      syncTrackState("completed", { trackedAt: new Date().toISOString() });
       fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "completed" }) }).catch(() => {});
     }
   }
@@ -193,6 +217,8 @@ export default function AnimeInteractive({ detail, episodes }: { detail: AnimeDe
 
   return (
     <div className="px-4 md:px-0">
+      {mode !== "reviews-only" && mode !== "episodes-only" && (
+      <>
       {/* Tracking section */}
       <div className="mt-6">
         {/* Star rating */}
@@ -266,7 +292,7 @@ export default function AnimeInteractive({ detail, episodes }: { detail: AnimeDe
       )}
 
       {/* Episode list with tracking */}
-      {episodes.length > 0 && (
+      {mode !== "buttons-only" && mode !== "reviews-only" && episodes.length > 0 && (
         <div className="mt-8">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-text-primary">Episodes · {episodes.length}</h2>
@@ -325,11 +351,15 @@ export default function AnimeInteractive({ detail, episodes }: { detail: AnimeDe
           )}
         </div>
       )}
+      </>
+      )}
 
       {/* Review section */}
+      {mode !== "buttons-only" && mode !== "episodes-only" && (
       <div className="mt-8">
         <ReviewSection tmdbId={detail.id} mediaType="anime" trackStatus={trackStatus} trackVersion={trackVersion} trackRating={rating} authUser={authUser} />
       </div>
+      )}
     </div>
   );
 }
