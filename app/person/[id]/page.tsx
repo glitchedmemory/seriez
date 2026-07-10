@@ -1,5 +1,6 @@
 import { getPersonDetail } from "@/lib/tmdb";
-import PersonClient from "@/components/PersonClient";
+import PersonHero from "@/components/PersonHero";
+import PersonLike from "@/components/PersonLike";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { generatePersonJsonLd, StructuredDataScript } from "@/lib/structured-data";
@@ -70,7 +71,9 @@ export default async function PersonPage({
   return (
     <>
       <StructuredDataScript data={jsonLd} />
-      <PersonClient person={person} />
+      <PersonHero person={person} likeSlot={
+        <PersonLike personId={person.id} personName={person.name} personPhoto={person.photo} personKnownFor={person.knownFor} />
+      } />
     </>
   );
 }

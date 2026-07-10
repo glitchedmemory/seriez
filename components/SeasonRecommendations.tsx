@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import PosterImage from "@/components/PosterImage";
+import Image from "next/image";
 
 type SimilarItem = { id: number; title: string; poster: string | null; rating: number; year: number; type: "movie" | "tv" };
 
@@ -25,11 +25,11 @@ export default function SeasonRecommendations({ items }: { items: SimilarItem[] 
         {items.map((item) => (
           <a key={item.id} href={`/title/${item.id}?type=${item.type}`} className="flex-shrink-0 w-28 group">
             <div className="aspect-[2/3] rounded-lg overflow-hidden bg-bg-card group-hover:scale-105 transition-transform relative">
-              <PosterImage
+              <Image
                 src={item.poster}
                 alt={item.title}
                 fill
-                className="rounded-lg"
+                className="object-cover rounded-lg"
                 sizes="112px"
               />
             </div>

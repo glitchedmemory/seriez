@@ -1,0 +1,103 @@
+import type { PersonDetail } from "@/lib/tmdb";
+import Image from "next/image";
+
+function CreditCard({ item, type }: { item: { id: number; title: string; character: string; year: number; poster: string | null; rating: number }; type: "movie" | "tv" }) {
+  return (
+    <a
+      href={`/title/${item.id}?type=${type}`}
+      className="flex items-center gap-3 bg-bg-card rounded-xl p-3 hover:bg-bg-surface transition-colors"
+    >
+      <div className="flex-shrink-0 w-10 h-[60px] rounded-lg overflow-hidden bg-bg-primary relative">
+        <Image
+          src={item.poster || ""}
+          alt={item.title}
+          fill
+          className="object-cover rounded-lg"
+          sizes="40px"
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-text-primary truncate">{item.title}</p>
+        <p className="text-xs text-text-secondary">{item.year}</p>
+        <p className="text-[11px] text-accent-light truncate">{item.character}</p>
+      </div>
+      <div className="text-xs text-gold">
+        <span className="sr-only">Seriez Rating: </span>
+        ★ {item.rating}/10
+      </div>
+    </a>
+  );
+}
+
+export default function PersonHero({ person, likeSlot }: { person: PersonDetail; likeSlot?: React.ReactNode }) {
+  return (
+    <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24 px-4">
+      <div className="flex flex-col md:flex-row gap-6 pt-8">
+        <div className="flex-shrink-0 w-32 h-32 md:w-48 md:h-48 mx-auto md:mx-0">
+          <div className="w-full h-full rounded-2xl overflow-hidden bg-bg-card relative">
+            <Image
+              src={person.photo || ""}
+              alt={person.name}
+              fill
+              className="object-cover rounded-2xl"
+              sizes="(max-width: 768px) 128px, 192px"
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 text-center md:text-left">
+          <h1 className="text-2xl md:text-3xl font-bold text-text-primary">
+            {person.name}
+          </h1>
+          <p className="text-sm text-accent mt-1">{person.knownFor}</p>
+
+          {person.birthday && (
+            <p className="text-xs text-text-secondary mt-2">
+              Born: {person.birthday}
+              {person.birthplace ? ` · ${person.birthplace}` : ""}
+            </p>
+          )}
+          {person.deathday && (
+            <p className="text-xs text-text-secondary">
+              Died: {person.deathday}
+            </p>
+          )}
+          {likeSlot}
+        </div>
+      </div>
+
+      {person.biography && (
+        <section className="mt-6">
+          <h2 className="text-lg font-semibold text-text-primary mb-2">Biography</h2>
+          <p className="text-sm text-text-secondary leading-relaxed">{person.biography}</p>
+        </section>
+      )}
+
+      {person.movieCredits.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-lg font-semibold text-text-primary mb-3">
+            🎬 Movies ({person.movieCredits.length})
+          </h2>
+          <div className="space-y-2">
+            {person.movieCredits.map((m, i) => (
+              <CreditCard key={`movie-${m.id}-${i}`} item={m} type="movie" />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {person.tvCredits.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-lg font-semibold text-text-primary mb-3">
+            📺 TV Shows ({person.tvCredits.length})
+          </h2>
+          <div className="space-y-2">
+            {person.tvCredits.map((t, i) => (
+              <CreditCard key={`tv-${t.id}-${i}`} item={t} type="tv" />
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
