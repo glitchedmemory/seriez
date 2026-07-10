@@ -1,6 +1,7 @@
 const ANILIST_API = "https://graphql.anilist.co";
 
 import { unstable_cache } from "next/cache";
+import { persistentCache } from "./persistent-cache";
 
 import type { TmdbResult } from "./tmdb";
 import { validateAndReplaceTrailers } from "./yt-validator";
@@ -1035,12 +1036,14 @@ query($id: Int) {
  * Collect ALL unique TV anime relations via BFS across the relation graph.
  * Iterates until no new TV entries are discovered (full franchise coverage).
  */
-export const enrichAnimeRelations = unstable_cache(
-  async (
+export const enrichAnimeRelations = async (
   currentId: number,
   existingRelations: { id: number; title: string; type: string; format: string; seasonYear: number | null; status: string }[],
   currentYear: number,
 ): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null; isOriginal: boolean }[]> => {
+  const relationIds = existingRelations.map(r => r.id).sort().join(",");
+
+  return persistentCache("enrichAnimeRelations", [currentId, relationIds, currentYear], 86400, async () => {
   const seen = new Set<number>([currentId]);
   const result: { id: number; title: string; type: string; format: string; seasonYear: number | null }[] = [];
 
@@ -1108,10 +1111,8 @@ export const enrichAnimeRelations = unstable_cache(
     ...r,
     isOriginal: r.id === earliestId,
   }));
-},
-  ["anime-relations"],
-  { revalidate: 86400 }
-);
+});
+};
 
 // ─── Staff Detail ───
 
