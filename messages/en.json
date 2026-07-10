@@ -16,7 +16,10 @@
     "username": "Username",
     "createAccount": "Create account",
     "guest": "Guest",
-    "passwordChanged": "Password changed successfully. Please sign in with your new password."
+    "passwordChanged": "Password changed successfully. Please sign in with your new password.",
+    "checkEmail": "Check your email",
+    "confirmEmailSent": "We sent a confirmation link to",
+    "confirmEmailInstruction": "Click the link in the email to activate your account. Don't forget to check your spam folder."
   },
   "library": {
     "signInTitle": "Sign in to see your list",

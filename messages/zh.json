@@ -16,7 +16,10 @@
     "username": "用户名",
     "createAccount": "创建账户",
     "guest": "游客",
-    "passwordChanged": "密码已更改。请使用新密码重新登录。"
+    "passwordChanged": "密码已更改。请使用新密码登录。",
+    "checkEmail": "请检查您的邮箱",
+    "confirmEmailSent": "我们已发送确认链接至",
+    "confirmEmailInstruction": "点击邮件中的链接激活您的账户。请同时检查垃圾邮件箱。"
   },
   "library": {
     "signInTitle": "登录查看列表",

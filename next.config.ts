@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [];
   },
+  async redirects() {
+    return [
+      { source: "/auth/confirm.html", destination: "/auth/confirm", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

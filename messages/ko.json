@@ -16,7 +16,10 @@
     "username": "사용자 이름",
     "createAccount": "계정 만들기",
     "guest": "게스트",
-    "passwordChanged": "비밀번호가 변경되었습니다. 새 비밀번호로 다시 로그인해 주세요."
+    "passwordChanged": "비밀번호가 변경되었습니다. 새 비밀번호로 로그인해주세요.",
+    "checkEmail": "이메일을 확인해주세요",
+    "confirmEmailSent": "아래 이메일로 확인 링크를 보냈습니다",
+    "confirmEmailInstruction": "이메일의 링크를 클릭하여 계정을 활성화하세요. 스팸함도 확인해주세요."
   },
   "library": {
     "signInTitle": "리스트를 보려면 로그인하세요",

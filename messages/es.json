@@ -16,7 +16,10 @@
     "username": "Usuario",
     "createAccount": "Crear cuenta",
     "guest": "Invitado",
-    "passwordChanged": "Contraseña cambiada correctamente. Inicia sesión con tu nueva contraseña."
+    "passwordChanged": "Contraseña cambiada. Inicia sesión con tu nueva contraseña.",
+    "checkEmail": "Revisa tu correo",
+    "confirmEmailSent": "Enviamos un enlace de confirmación a",
+    "confirmEmailInstruction": "Haz clic en el enlace del correo para activar tu cuenta. Revisa también tu carpeta de spam."
   },
   "library": {
     "signInTitle": "Inicia sesión para ver tu lista",
