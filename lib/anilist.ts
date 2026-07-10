@@ -214,14 +214,13 @@ async function fetchKitsuBackdrop(title: string, year: number, titleRomaji?: str
   } catch {
     return null;
   }
-  });
 }
 
 // ─── Main fetch ───
 
 /** Lightweight AniList query: only idMal + titles + duration. Used to parallelize detail + episodes. */
-export const getAnimeIds = async (id: number): Promise<{ idMal: number; title: string; titleRomaji: string; titleNative: string; duration: number }> => {
-  return persistentCache("anime-ids", [id], Infinity, async () => {
+export const getAnimeIds = unstable_cache(
+  async (id: number): Promise<{ idMal: number; title: string; titleRomaji: string; titleNative: string; duration: number }> => {
   const query = `query($id:Int){Media(id:$id){idMal title{romaji english native} duration}}`;
   const res = await fetch(ANILIST_API, {
     method: "POST",
@@ -238,11 +237,13 @@ export const getAnimeIds = async (id: number): Promise<{ idMal: number; title: s
     titleNative: m?.title?.native || "",
     duration: m?.duration || 0,
   };
-  });
-};
+},
+  ["anime-ids"],
+  { revalidate: 86400 }
+);
 
-export const getAnimeDetail = async (id: number): Promise<AnimeDetail | null> => {
-  return persistentCache("anime-detail", [id], Infinity, async () => {
+export const getAnimeDetail = unstable_cache(
+  async (id: number): Promise<AnimeDetail | null> => {
   try {
     // Retry AniList fetch with backoff (handles 429 + network errors)
     let res: Response | undefined;
@@ -388,13 +389,15 @@ export const getAnimeDetail = async (id: number): Promise<AnimeDetail | null> =>
   } catch {
     return null;
   }
-  });
-};
+},
+  ["anime-detail"],
+  { revalidate: 86400 }
+);
 
 // ─── TMDB ID → AniList ID resolution (cached 24h) ───
 
-export const getAnilistId = async (tmdbId: number): Promise<number | null> => {
-  return persistentCache("anilist-id", [tmdbId], Infinity, async () => {
+export const getAnilistId = unstable_cache(
+  async (tmdbId: number): Promise<number | null> => {
   // Parallel: try AniList direct + Supabase lookup simultaneously
   const results = await Promise.all([
     // AniList direct
@@ -588,7 +591,6 @@ async function fetchKitsuEpisodes(title: string, maxPages = 5): Promise<AnimeEpi
 // ─── Kitsu Thumbnails-Only (parallel, high performance) ───
 
 export async function fetchKitsuThumbnails(title: string, totalPages = 100): Promise<Map<number, string>> {
-  return persistentCache("kitsu-thumbs", [title, totalPages], Infinity, async () => {
   const thumbs = new Map<number, string>();
   try {
     const animeId = await findKitsuAnimeId(title);
@@ -894,7 +896,8 @@ async function fetchCrunchyrollThumbnails(title: string): Promise<Map<number, st
   return thumbs;
 }
 
-export const getAnimeEpisodes = async (
+export const getAnimeEpisodes = unstable_cache(
+  async (
   title: string,
   titleRomaji: string,
   idMal?: number,
@@ -1001,8 +1004,10 @@ export const getAnimeEpisodes = async (
   }
 
   return episodes;
-    });
-};
+  },
+  ["anime-episodes"],
+  { revalidate: 86400 }
+);
 
 // ─── Deep relations enrichment ───
 
@@ -1130,7 +1135,6 @@ export type StaffDetail = {
 };
 
 export async function getStaffDetail(id: number): Promise<StaffDetail | null> {
-  return persistentCache("staff-detail", [id], Infinity, async () => {
   try {
     const query = `
       query {
