@@ -114,9 +114,6 @@ function getStoredMode(): TrendingMode {
 
 export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffice, region, randomSeed, curatedHero, curatedNextHero }: Props) {
   const [trendingMode, setTrendingMode] = useState<TrendingMode>(getStoredMode);
-  const [animeTrending, setAnimeTrending] = useState<TmdbResult[]>([]);
-  const [animeLoading, setAnimeLoading] = useState(false);
-
   // Inline search state
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -186,16 +183,6 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
       }
     }).catch(() => {});
   }, []);
-
-  // Fetch anime trending on toggle
-  useEffect(() => {
-    if (trendingMode !== "anime" || animeTrending.length > 0) return;
-    setAnimeLoading(true);
-    fetch("/api/anime-trending")
-      .then(r => r.json())
-      .then(data => { setAnimeTrending(data.results || []); setAnimeLoading(false); })
-      .catch(() => setAnimeLoading(false));
-  }, [trendingMode, animeTrending.length]);
 
   // hero + right-now: deterministic from server (matches SSR), then both re-rolled client-side
   const [heroPick, setHeroPick] = useState(() => randomSeed % Math.max(trending.length, 1));
@@ -368,20 +355,12 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
               </div>
             </div>
             {trendingMode === "anime" ? (
-              animeLoading ? (
-                <div className="flex gap-3 overflow-x-auto px-4 pb-2 hide-scrollbar">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="flex-shrink-0 w-32">
-                      <div className="aspect-[2/3] rounded-xl bg-bg-card animate-pulse" />
-                      <div className="mt-1 h-3 w-20 bg-bg-card rounded animate-pulse" />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <PosterGrid>
-                  {animeTrending.slice(0, 14).map((item) => <CardWrapper key={item.id} item={item} />)}
-                </PosterGrid>
-              )
+              <PosterGrid>
+                {trending
+                  .filter(item => item.type === "anime")
+                  .slice(0, 14)
+                  .map((item) => <CardWrapper key={item.id} item={item} />)}
+              </PosterGrid>
             ) : (
               <PosterGrid>
                 {trending
