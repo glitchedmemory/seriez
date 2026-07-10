@@ -328,15 +328,14 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          {/* ─── SECTION: Danger Zone ─── */}
+          {/* Reset Ratings, Log Out, Delete Account */}
           <section>
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-red-400/60 mb-3 ml-1">Danger Zone</h2>
-            <div className="bg-red-500/5 rounded-2xl border border-red-500/15 overflow-hidden divide-y divide-red-500/10">
+            <div className="bg-bg-card rounded-2xl border border-border overflow-hidden divide-y divide-border">
               {/* Log Out */}
               <button
                 onClick={handleLogout}
                 disabled={logoutLoading}
-                className="w-full flex items-center gap-4 px-5 py-4 hover:bg-red-500/10 transition-colors"
+                className="w-full flex items-center gap-4 px-5 py-4 hover:bg-bg-card-hover transition-colors"
               >
                 <span className="text-red-400"><IconLogout /></span>
                 <span className="text-sm font-medium text-red-400">{logoutLoading ? "Logging out..." : "Log Out"}</span>
@@ -346,7 +345,7 @@ export default function SettingsPage() {
               <div>
                 <button
                   onClick={() => setShowResetConfirm(!showResetConfirm)}
-                  className="w-full flex items-center gap-4 px-5 py-4 hover:bg-red-500/10 transition-colors"
+                  className="w-full flex items-center gap-4 px-5 py-4 hover:bg-bg-card-hover transition-colors"
                 >
                   <span className="text-amber-400"><IconRefresh /></span>
                   <div className="flex-1 text-left">
@@ -356,7 +355,7 @@ export default function SettingsPage() {
                   <span className={`text-text-secondary transition-transform duration-200 ${showResetConfirm ? "rotate-180" : ""}`}><IconChevronDown /></span>
                 </button>
                 {showResetConfirm && (
-                  <div className="px-5 pb-5 space-y-4 border-t border-red-500/10 pt-4">
+                  <div className="px-5 pb-5 space-y-4 border-t border-border pt-4">
                     <p className="text-xs text-text-secondary leading-relaxed">This will permanently delete all your ratings and reviews. Type your username to confirm.</p>
                     <input type="text" placeholder="Enter username" value={resetInput} onChange={(e) => setResetInput(e.target.value)} className={inputClass} />
                     {resetMsg && <p className={`text-xs ${resetMsg.includes("have been") ? "text-emerald-400" : "text-red-400"}`}>{resetMsg}</p>}
@@ -372,7 +371,7 @@ export default function SettingsPage() {
               <div>
                 <button
                   onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
-                  className="w-full flex items-center gap-4 px-5 py-4 hover:bg-red-500/10 transition-colors"
+                  className="w-full flex items-center gap-4 px-5 py-4 hover:bg-bg-card-hover transition-colors"
                 >
                   <span className="text-red-400"><IconTrash /></span>
                   <div className="flex-1 text-left">
@@ -382,7 +381,7 @@ export default function SettingsPage() {
                   <span className={`text-text-secondary transition-transform duration-200 ${showDeleteConfirm ? "rotate-180" : ""}`}><IconChevronDown /></span>
                 </button>
                 {showDeleteConfirm && (
-                  <div className="px-5 pb-5 space-y-4 border-t border-red-500/10 pt-4">
+                  <div className="px-5 pb-5 space-y-4 border-t border-border pt-4">
                     <p className="text-xs text-text-secondary leading-relaxed">Your account and all data will be permanently deleted. This cannot be undone.</p>
                     <div>
                       <label className="text-[11px] font-medium text-text-secondary block mb-1.5">Password</label>
