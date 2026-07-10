@@ -14,13 +14,13 @@ export default function AnimeSeasons({ relations, currentId }: { relations: Rela
           <a
             key={r.id}
             href={`/title/${r.id}?type=anime`}
-            className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors border ${
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
               r.id === currentId
-                ? "bg-accent/20 text-accent border-accent/40"
-                : "bg-bg-card text-text-secondary border-border hover:border-accent/30 hover:text-text-primary"
+                ? "bg-accent text-white cursor-default pointer-events-none shadow-md"
+                : "bg-bg-card text-text-secondary border border-border hover:bg-accent/10 hover:text-text-primary hover:border-accent/30"
             }`}
           >
-            {r.seasonYear ? `S${i + 1}` : r.title}
+            S{i + 1}
           </a>
         ))}
       </div>

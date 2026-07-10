@@ -396,41 +396,42 @@ export const getAnimeDetail = unstable_cache(
 export const getAnilistId = unstable_cache(
   async (tmdbId: number): Promise<number | null> => {
   // Parallel: try AniList direct + Supabase lookup simultaneously
-  const [directResult, supabaseResult] = await Promise.allSettled([
+  const results = await Promise.all([
+    // AniList direct
+    fetch("https://graphql.anilist.co", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        query: `query($id:Int){Media(id:$id,type:ANIME){id}}`,
+        variables: { id: tmdbId },
+      }),
+    }).then(async (directRes) => {
+      if (!directRes.ok) return null;
+      const dj = await directRes.json();
+      return dj.data?.Media?.id || null;
+    }).catch(() => null),
+    // Supabase
     (async () => {
-      const directRes = await fetch("https://graphql.anilist.co", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({
-          query: `query($id:Int){Media(id:$id,type:ANIME){id}}`,
-          variables: { id: tmdbId },
-        }),
-      });
-      if (directRes.ok) {
-        const dj = await directRes.json();
-        return dj.data?.Media?.id || null;
-      }
-      return null;
-    })(),
-    (async () => {
-      const { createClient } = await import("@supabase/supabase-js");
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
-      const { data } = await supabase
-        .from("media_trackings")
-        .select("anilist_id")
-        .eq("tmdb_id", tmdbId)
-        .not("anilist_id", "is", null)
-        .limit(1)
-        .maybeSingle();
-      return data?.anilist_id || null;
+      try {
+        const { createClient } = await import("@supabase/supabase-js");
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data } = await supabase
+          .from("media_trackings")
+          .select("anilist_id")
+          .eq("tmdb_id", tmdbId)
+          .not("anilist_id", "is", null)
+          .limit(1)
+          .maybeSingle();
+        return data?.anilist_id || null;
+      } catch { return null; }
     })(),
   ]);
 
-  if (directResult.status === "fulfilled" && directResult.value) return directResult.value;
-  if (supabaseResult.status === "fulfilled" && supabaseResult.value) return supabaseResult.value;
+  if (results[0]) return results[0];
+  if (results[1]) return results[1];
 
   // Fallback: search AniList via Jikan (MAL ID → AniList)
   try {
