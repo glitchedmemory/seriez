@@ -1043,9 +1043,8 @@ export const enrichAnimeRelations = unstable_cache(
   const seen = new Set<number>([currentId]);
   const result: { id: number; title: string; type: string; format: string; seasonYear: number | null }[] = [];
 
-  // Start with existing TV relations (skip upcoming/unreleased)
-  const queue = existingRelations
-    .filter(r => r.format === "TV" && r.status !== "NOT_YET_RELEASED");
+  // Start with existing TV relations
+  const queue = existingRelations.filter(r => r.format === "TV");
   for (const r of queue) {
     if (!seen.has(r.id)) {
       seen.add(r.id);
@@ -1068,7 +1067,7 @@ export const enrichAnimeRelations = unstable_cache(
         const json = await res.json();
         const edges = json.data?.Media?.relations?.edges || [];
         return edges
-          .filter((e: any) => e.node?.type === "ANIME" && e.node?.format === "TV" && (e.relationType === "SEQUEL" || e.relationType === "PREQUEL") && e.node?.status !== "NOT_YET_RELEASED")
+          .filter((e: any) => e.node?.type === "ANIME" && e.node?.format === "TV" && (e.relationType === "SEQUEL" || e.relationType === "PREQUEL"))
           .map((e: any) => ({
             id: e.node.id,
             title: e.node.title?.english || e.node.title?.romaji || "Unknown",
