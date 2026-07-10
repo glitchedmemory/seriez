@@ -1,6 +1,7 @@
 // Right Now — time-based genre curation with balanced decades
 import type { TmdbResult } from "./tmdb";
 import { GENRE_MAP } from "./tmdb";
+import { unstable_cache } from "next/cache";
 
 const TMDB = "https://api.themoviedb.org/3";
 const KEY = process.env.TMDB_API_KEY!;
@@ -91,7 +92,8 @@ function decade(year: number): string {
 }
 
 // ─── Main ───
-export async function getTonightsPick(tz?: string): Promise<{ hero: TmdbResult; nextHero: TmdbResult } | null> {
+export const getTonightsPick = unstable_cache(
+  async (tz?: string): Promise<{ hero: TmdbResult; nextHero: TmdbResult } | null> => {
   // Determine local hour
   let hour: number;
   try {
@@ -173,4 +175,7 @@ export async function getTonightsPick(tz?: string): Promise<{ hero: TmdbResult; 
   const hero = scored[0].item;
   const next = scored.find(s => s.item.type !== hero.type) || scored[1];
   return { hero, nextHero: next.item };
-}
+},
+  ["tonights-pick"],
+  { revalidate: 1800 }
+);

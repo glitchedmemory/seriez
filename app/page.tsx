@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 600;
 
 import { getTrending, getUpcoming } from "@/lib/tmdb";
 import type { TmdbResult } from "@/lib/tmdb";
@@ -7,6 +7,56 @@ import { getBoxOffice, getCountryName } from "@/lib/box-office";
 import { getTonightsPick } from "@/lib/curation";
 import HomeClient from "@/components/HomeClient";
 import { headers } from "next/headers";
+import { unstable_cache } from "next/cache";
+
+async function fetchInjectedTitles(): Promise<TmdbResult[]> {
+  const KEY = process.env.TMDB_API_KEY;
+  const injectIds = [
+    { id: 969681, type: "movie" as const }, // Spider-Man: Brand New Day
+    { id: 97546, type: "tv" as const },     // Ted Lasso S4 (Aug 4)
+    { id: 95350, type: "tv" as const },     // Lanterns (HBO, Aug 16)
+    { id: 95480, type: "tv" as const },     // Slow Horses S6 (Apple TV+, Sep 16)
+    { id: 291350, type: "tv" as const },    // Anna Pigeon (USA Network, Aug 7)
+    { id: 213375, type: "tv" as const },    // VisionQuest (Disney+, Oct 14)
+  ];
+
+  const results = await Promise.all(
+    injectIds.map(async ({ id, type }) => {
+      try {
+        const ep = type === "tv" ? "/tv" : "/movie";
+        const res = await fetch(
+          `https://api.themoviedb.org/3${ep}/${id}?api_key=${KEY}`,
+          { next: { revalidate: 86400 } }
+        );
+        const j = await res.json();
+        if (!j.id) return null;
+
+        const dateStr = type === "tv"
+          ? j.next_episode_to_air?.air_date || j.first_air_date
+          : j.release_date;
+        const daysUntil = dateStr
+          ? Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000)
+          : null;
+
+        return {
+          id: j.id,
+          title: j.title || j.name || "Unknown",
+          poster: j.poster_path ? `https://image.tmdb.org/t/p/w500${j.poster_path}` : null,
+          backdrop: j.backdrop_path ? `https://image.tmdb.org/t/p/w1280${j.backdrop_path}` : null,
+          rating: Math.round((j.vote_average || 0) * 10) / 10,
+          year: dateStr ? parseInt(dateStr.slice(0, 4)) : 0,
+          type,
+          overview: j.overview || "",
+          genres: (j.genres || []).slice(0, 3).map((g: any) => g.name),
+          daysUntil: daysUntil && daysUntil > 0 ? daysUntil : null,
+        } as TmdbResult;
+      } catch {
+        return null;
+      }
+    })
+  );
+  return results.filter(Boolean) as TmdbResult[];
+}
 
 export default async function Home() {
   let trending: Awaited<ReturnType<typeof getTrending>> = [];
@@ -46,57 +96,11 @@ export default async function Home() {
   ];
   upcoming = upcoming.filter(item => !REMOVE_IDS.includes(item.id) && item.poster);
 
-  // Inject anticipated titles: Spider-Man + 3 upcoming TV shows
-  const KEY = process.env.TMDB_API_KEY;
-  const injectIds = [
-    { id: 969681, type: "movie" as const }, // Spider-Man: Brand New Day
-    { id: 97546, type: "tv" as const },     // Ted Lasso S4 (Aug 4)
-    { id: 95350, type: "tv" as const },     // Lanterns (HBO, Aug 16)
-    { id: 95480, type: "tv" as const },     // Slow Horses S6 (Apple TV+, Sep 16)
-    { id: 291350, type: "tv" as const },    // Anna Pigeon (USA Network, Aug 7)
-    { id: 213375, type: "tv" as const },    // VisionQuest (Disney+, Oct 14)
-  ];
-
-  const injected: TmdbResult[] = (
-    await Promise.all(
-      injectIds.map(async ({ id, type }) => {
-        try {
-          const ep = type === "tv" ? "/tv" : "/movie";
-          const res = await fetch(
-            `https://api.themoviedb.org/3${ep}/${id}?api_key=${KEY}`,
-            { next: { revalidate: 3600 } }
-          );
-          const j = await res.json();
-          if (!j.id) return null;
-
-          const dateStr = type === "tv"
-            ? j.next_episode_to_air?.air_date || j.first_air_date
-            : j.release_date;
-          const daysUntil = dateStr
-            ? Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000)
-            : null;
-
-          return {
-            id: j.id,
-            title: j.title || j.name || "Unknown",
-            poster: j.poster_path ? `https://image.tmdb.org/t/p/w500${j.poster_path}` : null,
-            backdrop: j.backdrop_path ? `https://image.tmdb.org/t/p/w1280${j.backdrop_path}` : null,
-            rating: Math.round((j.vote_average || 0) * 10) / 10,
-            year: dateStr ? parseInt(dateStr.slice(0, 4)) : 0,
-            type,
-            overview: j.overview || "",
-            genres: (j.genres || []).slice(0, 3).map((g: any) => g.name),
-            daysUntil: daysUntil && daysUntil > 0 ? daysUntil : null,
-          } as TmdbResult;
-        } catch {
-          return null;
-        }
-      })
-    )
-  ).filter(Boolean) as TmdbResult[];
+  // Inject anticipated titles (cached at fetch level via next.revalidate)
+  const injectIdSet = new Set([969681, 97546, 95350, 95480, 291350, 213375]);
+  const injected = await fetchInjectedTitles();
 
   // Dedupe: if TMDB already returns an injected title, keep the injected one (richer data)
-  const injectIdSet = new Set(injectIds.map(x => x.id));
   upcoming = upcoming.filter(item => !injectIdSet.has(item.id));
   upcoming = [...injected, ...upcoming];
 

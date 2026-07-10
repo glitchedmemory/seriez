@@ -468,37 +468,52 @@ const JIKAN_API = "https://api.jikan.moe/v4";
 async function fetchJikanEpisodes(malId: number): Promise<AnimeEpisode[]> {
   if (!malId || malId <= 0) return [];
   try {
-    const allEpisodes: AnimeEpisode[] = [];
-    let page = 1;
+    // Fetch page 1 to detect total pages
+    const firstRes = await fetch(`${JIKAN_API}/anime/${malId}/episodes?page=1`, {
+      headers: { "Accept": "application/json" },
+      next: { revalidate: 86400 },
+    });
+    if (!firstRes.ok) return [];
+    const firstData = await firstRes.json();
+    const firstPage = (firstData.data || []).map((ep: any) => ({
+      number: ep.mal_id || 0,
+      title: ep.title || `Episode ${ep.mal_id}`,
+      titleJapanese: ep.title_japanese || "",
+      airDate: ep.aired ? ep.aired.slice(0, 10) : "",
+      thumbnail: null,
+      synopsis: ep.synopsis || "",
+      duration: ep.duration || 0,
+    }));
 
-    while (true) {
-      const res = await fetch(`${JIKAN_API}/anime/${malId}/episodes?page=${page}`, {
-        headers: { "Accept": "application/json" },
-        next: { revalidate: 86400 },
-      });
-      if (!res.ok) break;
-      const data = await res.json();
-      const eps = data.data || [];
-      if (eps.length === 0) break;
+    const totalPages = firstData.pagination?.last_visible_page || 1;
+    if (totalPages <= 1) return firstPage.sort((a, b) => a.number - b.number);
 
-      for (const ep of eps) {
-        allEpisodes.push({
-          number: ep.mal_id || 0,
-          title: ep.title || `Episode ${ep.mal_id}`,
-          titleJapanese: ep.title_japanese || "",
-          airDate: ep.aired ? ep.aired.slice(0, 10) : "",
-          thumbnail: null, // Jikan doesn't provide thumbnails
-          synopsis: ep.synopsis || "",
-          duration: ep.duration || 0,
-        });
-      }
+    // Fetch remaining pages in parallel (cached, runs once per anime per day)
+    const remainingResults = await Promise.all(
+      Array.from({ length: totalPages - 1 }, (_, i) => i + 2).map(async (page) => {
+        try {
+          const res = await fetch(`${JIKAN_API}/anime/${malId}/episodes?page=${page}`, {
+            headers: { "Accept": "application/json" },
+            next: { revalidate: 86400 },
+          });
+          if (!res.ok) return [] as AnimeEpisode[];
+          const data = await res.json();
+          return ((data.data || []) as any[]).map((ep: any) => ({
+            number: ep.mal_id || 0,
+            title: ep.title || `Episode ${ep.mal_id}`,
+            titleJapanese: ep.title_japanese || "",
+            airDate: ep.aired ? ep.aired.slice(0, 10) : "",
+            thumbnail: null,
+            synopsis: ep.synopsis || "",
+            duration: ep.duration || 0,
+          }));
+        } catch {
+          return [] as AnimeEpisode[];
+        }
+      })
+    );
 
-      if (!data.pagination?.has_next_page) break;
-      page++;
-      // Avoid Jikan rate limiting on VPS (429 after 3 rapid requests)
-      await new Promise(r => setTimeout(r, 1500));
-    }
-
+    const allEpisodes = [firstPage, ...remainingResults].flat();
     return allEpisodes.sort((a, b) => a.number - b.number);
   } catch {
     return [];
