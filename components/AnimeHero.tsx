@@ -57,25 +57,19 @@ export default function AnimeHero({ detail, children }: { detail: AnimeDetail; c
               </span>
             </div>
 
-            {/* Genres */}
+            {/* Genres & Tags */}
             <div className="flex flex-wrap gap-1.5 mt-3 justify-center md:justify-start">
               {detail.genres.map((g) => (
                 <span key={g} className="text-[11px] px-2.5 py-1 rounded-full bg-bg-card text-accent-light border border-accent/30">
                   {g}
                 </span>
               ))}
+              {detail.tags.map((t) => (
+                <span key={t.name} className="text-[11px] px-2.5 py-1 rounded-full bg-bg-card text-accent-light border border-accent/30">
+                  {t.name}
+                </span>
+              ))}
             </div>
-
-            {/* Tags */}
-            {detail.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2 justify-center md:justify-start">
-                {detail.tags.map((t) => (
-                  <span key={t.name} className="text-[10px] px-2 py-0.5 rounded-full bg-bg-card-hover/50 text-text-secondary">
-                    {t.name}
-                  </span>
-                ))}
-              </div>
-            )}
 
             {/* Studio + Staff */}
             {children}
