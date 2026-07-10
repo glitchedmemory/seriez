@@ -10,7 +10,7 @@ export default function AnimeSeasons({ relations, currentId }: { relations: Rela
     <div className="mt-8 px-4 md:px-0">
       <h2 className="text-lg font-semibold text-text-primary mb-3">Seasons</h2>
       <div className="flex flex-wrap gap-2">
-        {sorted.map((r) => (
+        {sorted.map((r, i) => (
           <a
             key={r.id}
             href={`/title/${r.id}?type=anime`}
@@ -20,7 +20,7 @@ export default function AnimeSeasons({ relations, currentId }: { relations: Rela
                 : "bg-bg-card text-text-secondary border-border hover:border-accent/30 hover:text-text-primary"
             }`}
           >
-            {r.seasonYear ? `S${r.seasonYear}` : r.title}
+            {r.seasonYear ? `S${i + 1}` : r.title}
           </a>
         ))}
       </div>
