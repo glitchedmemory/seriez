@@ -363,16 +363,14 @@ export default function LibraryClient() {
     if (!authUsername) { setStatsLoaded(true); return; }
     const username = authUsername;
     Promise.all([
-      fetch(`/api/library?username=${encodeURIComponent(username)}&status=completed&limit=1`).then(r => r.json()),
-      fetch(`/api/library?username=${encodeURIComponent(username)}&status=watching&limit=1`).then(r => r.json()),
-      fetch(`/api/library?username=${encodeURIComponent(username)}&status=plan_to_watch&limit=1`).then(r => r.json()),
+      fetch(`/api/library/stats?username=${encodeURIComponent(username)}`).then(r => r.json()),
       fetch(`/api/collections?username=${encodeURIComponent(username)}`).then(r => r.json()),
     ])
-      .then(([completed, watching, planToWatch, collData]) => {
+      .then(([counts, collData]) => {
         setStats({
-          completed: completed.total || 0,
-          watching: watching.total || 0,
-          plan_to_watch: planToWatch.total || 0,
+          completed: counts.completed || 0,
+          watching: counts.watching || 0,
+          plan_to_watch: counts.plan_to_watch || 0,
           collections: (collData.collections || []).length,
         });
         setStatsLoaded(true);

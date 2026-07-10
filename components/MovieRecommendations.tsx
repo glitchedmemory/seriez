@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import type { TmdbResult } from "@/lib/tmdb";
-import PosterImage from "@/components/PosterImage";
+import Image from "next/image";
 
 export default function MovieRecommendations({ items }: { items: TmdbResult[] }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -24,7 +24,7 @@ export default function MovieRecommendations({ items }: { items: TmdbResult[] })
         {items.map((item) => (
           <a key={item.id} href={`/title/${item.id}?type=${item.type}`} className="flex-shrink-0 w-28 group">
             <div className="aspect-[2/3] rounded-lg overflow-hidden bg-bg-card group-hover:scale-105 transition-transform relative">
-              <PosterImage src={item.poster} alt={item.title} fill className="rounded-lg" sizes="112px" />
+              <Image src={item.poster} alt={item.title} fill className="object-cover rounded-lg" sizes="112px" />
             </div>
             <p className="text-[11px] text-text-primary mt-1 line-clamp-1">{item.title}</p>
             <p className="text-[10px] text-text-secondary"><span className="sr-only">Seriez Rating: </span>★ {item.rating}/10</p>

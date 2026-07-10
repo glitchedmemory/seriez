@@ -115,6 +115,9 @@ export async function POST(req: NextRequest) {
       : undefined;
 
     const posterUrl = body.posterUrl || null;
+    const title = body.title || null;
+    const yearVal = body.year || null;
+    const tmdbRating = body.tmdbRating || null;
 
     const upsertData: Record<string, unknown> = {
       username: userId,
@@ -125,6 +128,9 @@ export async function POST(req: NextRequest) {
       rating: rating ?? null,
       progress: progress ?? null,
       poster_url: posterUrl,
+      title,
+      year: yearVal,
+      tmdb_rating: tmdbRating,
     };
     // Set watched_at only on first completion (existingWatchDate is null or undefined)
     if (status === "completed" && !existingWatchDate) {
@@ -143,12 +149,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Fetch & store poster if not provided by client (non-blocking)
-    if (!posterUrl) {
+    // Fetch & store metadata if not provided by client (non-blocking)
+    if (!posterUrl || !title) {
       (async () => {
         try {
-          const p = await fetchPosterUrl(tmdbId, mediaType);
-          if (p) await supabaseAdmin.from("media_trackings").update({ poster_url: p }).eq("id", data.id);
+          const meta = await fetchMetadata(tmdbId, mediaType);
+          const updates: Record<string, unknown> = {};
+          if (!posterUrl && meta.poster) updates.poster_url = meta.poster;
+          if (!title && meta.title) updates.title = meta.title;
+          if (!yearVal && meta.year) updates.year = meta.year;
+          if (!tmdbRating && meta.rating) updates.tmdb_rating = meta.rating;
+          if (Object.keys(updates).length > 0) {
+            await supabaseAdmin.from("media_trackings").update(updates).eq("id", data.id);
+          }
         } catch {}
       })();
     }
@@ -171,33 +184,44 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Helper: fetch poster URL from TMDB/AniList
+// Helper: fetch metadata from TMDB/AniList
 const TMDB_URL = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
 const TMDB_KEY = process.env.TMDB_API_KEY;
 
-async function fetchPosterUrl(tmdbId: number, mediaType: string): Promise<string | null> {
+async function fetchMetadata(tmdbId: number, mediaType: string): Promise<{poster: string|null, title: string|null, year: number|null, rating: number|null}> {
   try {
     if (mediaType === "anime") {
       const res = await fetch("https://graphql.anilist.co", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({ query: `query($id:Int){Media(id:$id){coverImage{extraLarge}}}`, variables: { id: tmdbId } }),
+        body: JSON.stringify({ query: `query($id:Int){Media(id:$id){title{romaji english}coverImage{extraLarge}startDate{year}averageScore}}`, variables: { id: tmdbId } }),
       });
       if (res.ok) {
         const j = await res.json();
-        return j.data?.Media?.coverImage?.extraLarge || null;
+        const m = j.data?.Media;
+        return {
+          poster: m?.coverImage?.extraLarge || null,
+          title: m?.title?.english || m?.title?.romaji || null,
+          year: m?.startDate?.year || null,
+          rating: m?.averageScore ? Math.round(m.averageScore) / 10 : null,
+        };
       }
     } else {
       const ep = mediaType === "tv" ? "tv" : "movie";
       const res = await fetch(`${TMDB_URL}/${ep}/${tmdbId}?api_key=${TMDB_KEY}`);
       if (res.ok) {
         const d = await res.json();
-        return d.poster_path ? `${TMDB_IMG}${d.poster_path}` : null;
+        return {
+          poster: d.poster_path ? `${TMDB_IMG}${d.poster_path}` : null,
+          title: d.title || d.name || null,
+          year: parseInt((d.release_date || d.first_air_date || "").slice(0, 4)) || null,
+          rating: d.vote_average ? Math.round(d.vote_average * 10) / 10 : null,
+        };
       }
     }
   } catch {}
-  return null;
+  return { poster: null, title: null, year: null, rating: null };
 }
 
 // ─── DELETE: remove tracking ───
