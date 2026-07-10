@@ -37,6 +37,15 @@ export default function AnimeSeasons({
     <div className="mt-8 px-4 md:px-0">
       <h2 className="text-lg font-semibold text-text-primary mb-3">Seasons</h2>
       <div className="flex flex-wrap gap-2">
+        {related.map((r) => (
+          <a
+            key={r.id}
+            href={`/title/${r.id}?type=anime`}
+            className="px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-bg-card text-text-secondary border border-border hover:bg-accent/10 hover:text-text-primary hover:border-accent/30"
+          >
+            {r.title}
+          </a>
+        ))}
         {sorted.length > 1 && sorted.map((r, i) => (
           <a
             key={r.id}
@@ -48,15 +57,6 @@ export default function AnimeSeasons({
             }`}
           >
             S{i + 1}
-          </a>
-        ))}
-        {related.map((r) => (
-          <a
-            key={r.id}
-            href={`/title/${r.id}?type=anime`}
-            className="px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-bg-card text-text-secondary border border-border hover:bg-accent/10 hover:text-text-primary hover:border-accent/30"
-          >
-            {r.title}
           </a>
         ))}
       </div>
