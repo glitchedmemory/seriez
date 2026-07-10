@@ -1,4 +1,4 @@
-import PosterImage from "@/components/PosterImage";
+import Image from "next/image";
 
 interface SeasonData {
   id: number;
@@ -22,7 +22,7 @@ interface SeasonData {
   daysUntil?: number | null;
 }
 
-export default function SeasonHero({ data }: { data: SeasonData }) {
+export default function SeasonHero({ data, children }: { data: SeasonData; children?: React.ReactNode }) {
   const hasBackdrop = !!(data.backdropPath || data.youtubeBackdrop || data.anilistBanner || data.posterPath);
 
   return (
@@ -30,13 +30,13 @@ export default function SeasonHero({ data }: { data: SeasonData }) {
       {/* Backdrop */}
       {hasBackdrop && (
         <div className="relative w-full h-48 md:h-72 overflow-hidden">
-          <PosterImage
+          <Image
             src={data.backdropPath?.replace("w342", "w1280") || data.youtubeBackdrop || data.anilistBanner || data.posterPath?.replace("w342", "w1280") || ""}
             alt=""
             fill
             priority
             unoptimized
-            className={(!data.backdropPath && !data.youtubeBackdrop && !data.anilistBanner) ? "blur-2xl scale-125 opacity-50" : ""}
+            className={(!data.backdropPath && !data.youtubeBackdrop && !data.anilistBanner) ? "object-cover blur-2xl scale-125 opacity-50" : "object-cover"}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
         </div>
@@ -47,11 +47,11 @@ export default function SeasonHero({ data }: { data: SeasonData }) {
           {/* Poster */}
           <div className="flex-shrink-0 w-36 md:w-48 mx-auto md:mx-0">
             <div className="aspect-[2/3] rounded-xl overflow-hidden bg-bg-card shadow-2xl relative">
-              <PosterImage
+              <Image
                 src={data.seasonPoster}
                 alt={data.seasonName}
                 fill
-                className="rounded-xl"
+                className="object-cover rounded-xl"
                 sizes="(max-width: 768px) 144px, 192px"
               />
             </div>
@@ -96,6 +96,7 @@ export default function SeasonHero({ data }: { data: SeasonData }) {
             </div>
 
             {/* Studios */}
+            {children}
             <div className="mt-3 text-xs text-text-secondary space-y-0.5">
               {data.createdBy && (
                 <p>

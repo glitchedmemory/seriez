@@ -65,7 +65,7 @@ interface SeasonData {
   }[];
 }
 
-export default function SeasonInteractive({ data }: { data: SeasonData }) {
+export default function SeasonInteractive({ data, mode }: { data: SeasonData; mode?: "buttons-only" | "reviews-only" | "episodes-only" }) {
   const t = useTranslations();
   const [trackStatus, setTrackStatus] = useState<string | null>(null);
   const [trackLoading, setTrackLoading] = useState(false);
@@ -146,6 +146,30 @@ export default function SeasonInteractive({ data }: { data: SeasonData }) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [showCollDropdown]);
 
+  // Sync state across multiple instances via custom events
+  const trackKey = `${data.id}-${data.seasonNumber}`;
+  useEffect(() => {
+    function onTrackChange(e: CustomEvent) {
+      if (e.detail.key === trackKey) {
+        if (e.detail.status !== undefined) setTrackStatus(e.detail.status);
+        if (e.detail.rating !== undefined) setRating(e.detail.rating);
+        if (e.detail.trackedAt !== undefined) setTrackedAt(e.detail.trackedAt);
+        if (e.detail.watchedEpisodes) setWatchedEpisodes(new Set(e.detail.watchedEpisodes));
+      }
+    }
+    window.addEventListener("seriez:season-track-change", onTrackChange as EventListener);
+    return () => window.removeEventListener("seriez:season-track-change", onTrackChange as EventListener);
+  }, [trackKey]);
+
+  function syncTrackState(status: string | null, extra?: { rating?: number; trackedAt?: string; watchedEpisodes?: string[] }) {
+    setTrackStatus(status);
+    if (extra?.rating !== undefined) setRating(extra.rating);
+    if (extra?.trackedAt !== undefined) setTrackedAt(extra.trackedAt);
+    window.dispatchEvent(new CustomEvent("seriez:season-track-change", {
+      detail: { key: trackKey, status, ...extra }
+    }));
+  }
+
   async function toggleEpisode(seasonNumber: number, episodeNumber: number) {
     if (!authUser) return;
     const key = `${seasonNumber}-${episodeNumber}`;
@@ -161,15 +185,15 @@ export default function SeasonInteractive({ data }: { data: SeasonData }) {
     setEpToggleLoading(key);
 
     const willHaveWatched = !wasWatched || watchedEpisodes.size > 1;
-    if (willHaveWatched && !trackStatus) {
-      setTrackStatus("watching");
+    if (willHaveWatched && (!trackStatus || trackStatus === "plan_to_watch")) {
+      syncTrackState("watching");
       await fetch("/api/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, tmdbId: data.id, mediaType: "tv", seasonNumber: data.seasonNumber, status: "watching" }),
       });
     } else if (!willHaveWatched && trackStatus === "watching") {
-      setTrackStatus(null);
+      syncTrackState(null);
       await fetch("/api/track", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -186,7 +210,7 @@ export default function SeasonInteractive({ data }: { data: SeasonData }) {
     } catch {}
     setEpToggleLoading(null);
     if (trackStatus === "completed" && wasWatched && watchedEpisodes.size - 1 < data.episodes.length) {
-      setTrackStatus("watching");
+      syncTrackState("watching");
       fetch("/api/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -195,8 +219,7 @@ export default function SeasonInteractive({ data }: { data: SeasonData }) {
     }
     const nowAllWatched = !wasWatched && watchedEpisodes.size + 1 >= data.episodes.length;
     if (nowAllWatched && trackStatus !== "completed") {
-      setTrackStatus("completed");
-      setTrackedAt(new Date().toISOString());
+      syncTrackState("completed", { trackedAt: new Date().toISOString() });
       fetch("/api/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -215,6 +238,7 @@ export default function SeasonInteractive({ data }: { data: SeasonData }) {
     const newStatus = isResubmit ? "completed" : (trackStatus === status ? null : status);
 
     setTrackLoading(true);
+    let json: any = null;
     try {
       if (newStatus) {
         const body: Record<string, unknown> = {
@@ -232,7 +256,7 @@ export default function SeasonInteractive({ data }: { data: SeasonData }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
-        const json = await res.json();
+        json = await res.json();
         setTrackedAt(json.updatedAt || new Date().toISOString());
         if (newStatus === "completed" && trackStatus !== "completed") {
           setWatchedEpisodes((prev) => {
@@ -284,7 +308,7 @@ export default function SeasonInteractive({ data }: { data: SeasonData }) {
           }
         }
       }
-      setTrackStatus(newStatus);
+      syncTrackState(newStatus, { trackedAt: newStatus ? (json?.updatedAt || new Date().toISOString()) : null });
       setTrackVersion(v => v + 1);
     } catch {}
     setTrackLoading(false);
@@ -329,6 +353,8 @@ export default function SeasonInteractive({ data }: { data: SeasonData }) {
 
   return (
     <>
+      {mode !== "reviews-only" && mode !== "episodes-only" && (
+      <>
       {/* Star rating — only when Watched */}
       {isWatched && (
         <div className="flex justify-center md:justify-start mt-3">
@@ -471,14 +497,18 @@ export default function SeasonInteractive({ data }: { data: SeasonData }) {
           )}
         </div>
       )}
+      </>
+      )}
 
       {/* Reviews */}
+      {mode !== "buttons-only" && mode !== "episodes-only" && (
       <section className="mt-6">
         <ReviewSection tmdbId={data.id} mediaType="tv" trackStatus={trackStatus} trackVersion={trackVersion} trackRating={rating} authUser={authUser} />
       </section>
+      )}
 
       {/* Episodes */}
-      {data.episodes.length > 0 && (
+      {mode !== "buttons-only" && mode !== "reviews-only" && data.episodes.length > 0 && (
         <section className="mt-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-text-primary">

@@ -1,20 +1,20 @@
 import type { TmdbDetail } from "@/lib/tmdb";
-import PosterImage from "@/components/PosterImage";
+import Image from "next/image";
 
-export default function MovieHero({ detail }: { detail: TmdbDetail }) {
+export default function MovieHero({ detail, children }: { detail: TmdbDetail; children?: React.ReactNode }) {
   const hasBackdrop = !!(detail.backdrop || detail.poster);
 
   return (
     <>
       {hasBackdrop && (
         <div className="relative w-full h-48 md:h-72 overflow-hidden">
-          <PosterImage
+          <Image
             src={(detail.backdrop || detail.poster)!.replace("w342", "w1280")}
             alt=""
             fill
             priority
             unoptimized
-            className={!detail.backdrop ? "blur-2xl scale-125 opacity-50" : ""}
+            className={detail.backdrop ? "object-cover" : "object-cover blur-2xl scale-125 opacity-50"}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
         </div>
@@ -24,11 +24,11 @@ export default function MovieHero({ detail }: { detail: TmdbDetail }) {
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex-shrink-0 w-36 md:w-48 mx-auto md:mx-0">
             <div className="aspect-[2/3] rounded-xl overflow-hidden bg-bg-card shadow-2xl relative">
-              <PosterImage
+              <Image
                 src={detail.poster}
                 alt={detail.title}
                 fill
-                className="rounded-xl"
+                className="object-cover rounded-xl"
                 sizes="(max-width: 768px) 144px, 192px"
               />
             </div>
@@ -80,6 +80,7 @@ export default function MovieHero({ detail }: { detail: TmdbDetail }) {
                 </span>
               ))}
             </div>
+            {children}
           </div>
         </div>
       </div>
