@@ -231,31 +231,26 @@ export default async function SeasonPage({ params }: Props) {
       <>
         <StructuredDataScript data={jsonLd} />
         <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
-          <SeasonHero data={data} />
+          <SeasonHero data={data}>
+            <SeasonInteractive mode="buttons-only" data={{
+              id: data.id, title: data.title, seasonNumber: data.seasonNumber,
+              seasonName: data.seasonName, seasonPoster: data.seasonPoster,
+              daysUntil: (data as any).daysUntil, episodes: data.episodes,
+            }} />
+          </SeasonHero>
           <div className="px-4 md:px-0">
-            <SeasonInteractive
-              data={{
-                id: data.id, title: data.title, seasonNumber: data.seasonNumber,
-                seasonName: data.seasonName, seasonPoster: data.seasonPoster,
-                daysUntil: (data as any).daysUntil, episodes: data.episodes,
-              }}
-            />
-            {/* Studios */}
-            {(data.createdBy || data.networks || data.seasonAirDate) && (
-              <div className="mt-3 text-xs text-text-secondary space-y-0.5">
-                {data.createdBy && (
-                  <p>Created by: <span className="text-text-secondary">{data.createdBy.join(", ")}</span></p>
-                )}
-                {data.networks && (
-                  <p>Network: <span className="text-text-secondary">{data.networks.join(", ")}</span></p>
-                )}
-                {data.seasonAirDate && (
-                  <p>Season aired: <span className="text-text-secondary">{data.seasonAirDate}</span></p>
-                )}
-              </div>
-            )}
             <SeasonTabs totalSeasons={data.totalSeasons} currentSeason={data.seasonNumber} seriesId={data.id} />
             <SeasonOverview overview={data.overview} seasonOverview={data.seasonOverview} />
+            <SeasonInteractive mode="episodes-only" data={{
+              id: data.id, title: data.title, seasonNumber: data.seasonNumber,
+              seasonName: data.seasonName, seasonPoster: data.seasonPoster,
+              daysUntil: (data as any).daysUntil, episodes: data.episodes,
+            }} />
+            <SeasonInteractive mode="reviews-only" data={{
+              id: data.id, title: data.title, seasonNumber: data.seasonNumber,
+              seasonName: data.seasonName, seasonPoster: data.seasonPoster,
+              daysUntil: (data as any).daysUntil, episodes: data.episodes,
+            }} />
             <SeasonTrailers trailers={data.trailers} />
             <SeasonCast cast={data.cast} />
             <SeasonRecommendations items={data.similar} />
