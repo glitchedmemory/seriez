@@ -1,5 +1,13 @@
 type Relation = { id: number; title: string; type: string; format: string; seasonYear: number | null };
 
+function titleOverlap(a: string, b: string): number {
+  const wordsA = new Set(a.toLowerCase().split(/[\s:]+/).filter(w => w.length > 1));
+  const wordsB = new Set(b.toLowerCase().split(/[\s:]+/).filter(w => w.length > 1));
+  let count = 0;
+  for (const w of wordsA) if (wordsB.has(w)) count++;
+  return count;
+}
+
 export default function AnimeSeasons({
   relations,
   currentId,
@@ -11,9 +19,12 @@ export default function AnimeSeasons({
   currentTitle: string;
   currentYear: number;
 }) {
+  // Only include related anime that share significant title overlap
+  const related = relations.filter(r => titleOverlap(r.title, currentTitle) >= 2);
+
   // Include current anime in the list
   const allItems = [
-    ...relations,
+    ...related,
     { id: currentId, title: currentTitle, type: "ANIME", format: "TV", seasonYear: currentYear || null },
   ];
 
