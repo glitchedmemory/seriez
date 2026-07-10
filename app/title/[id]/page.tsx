@@ -100,7 +100,7 @@ export default async function TitlePage({ params, searchParams }: Props) {
     ]);
     if (!detail) notFound();
 
-    detail.relations = await enrichAnimeRelations(anilistId, detail.relations);
+    detail.relations = await enrichAnimeRelations(anilistId, detail.relations, detail.year);
     const isAnimeMovie = detail.format === "MOVIE";
     const animeJsonLd = isAnimeMovie
       ? generateMovieJsonLd({
