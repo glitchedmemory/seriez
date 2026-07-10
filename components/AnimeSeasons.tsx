@@ -20,6 +20,7 @@ export default function AnimeSeasons({
   currentYear: number;
 }) {
   const direct = relations.filter(r => titleOverlap(r.title, currentTitle) >= 2);
+  const related = relations.filter(r => titleOverlap(r.title, currentTitle) < 2);
 
   const allItems = [
     ...direct,
@@ -30,13 +31,13 @@ export default function AnimeSeasons({
     (a, b) => (a.seasonYear || 0) - (b.seasonYear || 0) || a.title.localeCompare(b.title)
   );
 
-  if (sorted.length <= 1) return null;
+  if (sorted.length <= 1 && related.length === 0) return null;
 
   return (
     <div className="mt-8 px-4 md:px-0">
       <h2 className="text-lg font-semibold text-text-primary mb-3">Seasons</h2>
       <div className="flex flex-wrap gap-2">
-        {sorted.map((r, i) => (
+        {sorted.length > 1 && sorted.map((r, i) => (
           <a
             key={r.id}
             href={`/title/${r.id}?type=anime`}
@@ -47,6 +48,15 @@ export default function AnimeSeasons({
             }`}
           >
             S{i + 1}
+          </a>
+        ))}
+        {related.map((r) => (
+          <a
+            key={r.id}
+            href={`/title/${r.id}?type=anime`}
+            className="px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-bg-card text-text-secondary border border-border hover:bg-accent/10 hover:text-text-primary hover:border-accent/30"
+          >
+            {r.title}
           </a>
         ))}
       </div>
