@@ -11,8 +11,6 @@ export default function AnimeRecommendations({ recommendations }: { recommendati
     ref.current.scrollBy({ left: dir === "left" ? -280 : 280, behavior: "smooth" });
   };
 
-  if (recommendations.length === 0) return null;
-
   return (
     <section className="mt-8 px-4 md:px-0">
       <div className="flex items-center justify-between mb-3">
