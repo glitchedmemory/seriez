@@ -1,3 +1,4 @@
+"use client";
 import type { AnimeDetail } from "@/lib/anilist";
 import PosterImage from "@/components/PosterImage";
 
