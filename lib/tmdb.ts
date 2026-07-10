@@ -3,7 +3,6 @@ const API_KEY = process.env.TMDB_API_KEY!;
 
 import { validateAndReplaceTrailers } from "./yt-validator";
 import { getCustomPoster } from "./custom-posters";
-import { persistentCache } from "./persistent-cache";
 import { unstable_cache } from "next/cache";
 
 const poster = (path: string | null) =>
@@ -502,8 +501,8 @@ async function getKeywords(id: number, type: "movie" | "tv"): Promise<number[]> 
   }
 }
 
-export const getMovieDetail = async (id: number): Promise<TmdbDetail> => {
-  return persistentCache("movie-detail", [id], Infinity, async () => {
+export const getMovieDetail = unstable_cache(
+  async (id: number): Promise<TmdbDetail> => {
   const [detail, credits, similar, videos, keywords] = await Promise.all([
     get(`/movie/${id}`),
     get(`/movie/${id}/credits`),
@@ -583,11 +582,12 @@ export const getMovieDetail = async (id: number): Promise<TmdbDetail> => {
   }
 
   return result;
-  });
-};
+},
+  ["movie-detail"],
+  { revalidate: 86400 }
+);
 
 export async function getTVDetail(id: number): Promise<TmdbDetail> {
-  return persistentCache("tv-detail", [id], Infinity, async () => {
   const [detail, credits, similar, videos, keywords, aggregateCredits] = await Promise.all([
     get(`/tv/${id}`),
     get(`/tv/${id}/credits`),
@@ -655,7 +655,6 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
   }
 
   return resultTV;
-  });
 }
 
 // ── TV Season types ──
@@ -688,7 +687,6 @@ export async function getTVSeason(
   seriesId: number,
   seasonNumber: number,
 ): Promise<TvSeasonDetail | null> {
-  return persistentCache("tv-season", [seriesId, seasonNumber], Infinity, async () => {
   try {
     const [seasonData, seriesData] = await Promise.all([
       get(`/tv/${seriesId}/season/${seasonNumber}`),
@@ -729,7 +727,6 @@ export async function getTVSeason(
   } catch {
     return null;
   }
-  });
 }
 
 // ── Person types ──
@@ -762,7 +759,6 @@ export type PersonDetail = {
 };
 
 export async function getPersonDetail(id: number): Promise<PersonDetail | null> {
-  return persistentCache("person-detail", [id], Infinity, async () => {
   try {
     const [detail, movieCredits, tvCredits] = await Promise.all([
       get(`/person/${id}`),
@@ -856,7 +852,6 @@ export async function getPersonDetail(id: number): Promise<PersonDetail | null> 
   } catch {
     return null;
   }
-  });
 }
 
 // ── Anime TV detection ──
@@ -864,15 +859,16 @@ const animeTVCache = new Map<number, boolean>();
 
 /** Check if a TMDB TV show is actually Japanese anime (Animation genre 16 + JP origin) */
 export async function isAnimeTV(tmdbId: number): Promise<boolean> {
-  return persistentCache("isanime-tv", [tmdbId], Infinity, async () => {
+  if (animeTVCache.has(tmdbId)) return animeTVCache.get(tmdbId)!;
   try {
     const detail = await get(`/tv/${tmdbId}`);
     const genres: number[] = (detail.genres || []).map((g: any) => g.id);
     const countries: string[] = detail.origin_country || [];
     const isAnime = genres.includes(16) && countries.includes("JP");
+    animeTVCache.set(tmdbId, isAnime);
     return isAnime;
   } catch {
+    animeTVCache.set(tmdbId, false);
     return false;
   }
-  });
 }

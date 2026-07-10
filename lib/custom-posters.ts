@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js";
-import { persistentCache } from "./persistent-cache";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,7 +10,6 @@ const TABLE = "custom_posters";
 export async function getCustomPoster(
   tmdbId: number
 ): Promise<string | null> {
-  return persistentCache("custom-poster", [tmdbId], Infinity, async () => {
   try {
     const { data } = await supabase
       .from(TABLE)
@@ -23,7 +21,6 @@ export async function getCustomPoster(
   } catch {
     return null;
   }
-  });
 }
 
 export async function upsertCustomPoster(
