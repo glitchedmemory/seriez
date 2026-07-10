@@ -118,13 +118,16 @@ export default async function TitlePage({ params, searchParams }: Props) {
       <>
         <StructuredDataScript data={animeJsonLd} />
         <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
-          <AnimeHero detail={detail} />
+          <AnimeHero detail={detail}>
+            <AnimeInteractive mode="buttons-only" detail={detail} episodes={episodes} />
+          </AnimeHero>
           <AnimeOverview overview={detail.overview} />
+          <AnimeInteractive mode="episodes-only" detail={detail} episodes={episodes} />
+          <AnimeInteractive mode="reviews-only" detail={detail} episodes={episodes} />
+          <AnimeTrailer trailer={detail.trailer} />
           <AnimeSeasons relations={detail.relations} currentId={detail.id} />
           <AnimeCharacters characters={detail.characters} />
           <AnimeRecommendations recommendations={detail.recommendations} />
-          <AnimeTrailer trailer={detail.trailer} />
-          <AnimeInteractive detail={detail} episodes={episodes} />
         </div>
       </>
     );
@@ -162,11 +165,13 @@ export default async function TitlePage({ params, searchParams }: Props) {
         <>
           <StructuredDataScript data={jsonLd} />
           <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
-            <MovieHero detail={detail} />
-            <div className="px-4 md:px-0">
-              <DetailInteractive detail={{ id: detail.id, type: detail.type, daysUntil: detail.daysUntil }} />
+            <MovieHero detail={detail}>
+              <DetailInteractive mode="buttons-only" detail={{ id: detail.id, type: detail.type, daysUntil: detail.daysUntil }} />
               <MovieInfo detail={detail} />
+            </MovieHero>
+            <div className="px-4 md:px-0">
               <MovieOverview overview={detail.overview} />
+              <DetailInteractive mode="reviews-only" detail={{ id: detail.id, type: detail.type, daysUntil: detail.daysUntil }} />
               <MovieTrailers videos={detail.videos} />
               <MovieCast cast={detail.cast} />
               <MovieRecommendations items={detail.similar} />

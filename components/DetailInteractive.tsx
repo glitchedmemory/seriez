@@ -43,7 +43,7 @@ interface DetailData {
   daysUntil?: number | null;
 }
 
-export default function DetailInteractive({ detail }: { detail: DetailData }) {
+export default function DetailInteractive({ detail, mode }: { detail: DetailData; mode?: "buttons-only" | "reviews-only" }) {
   const t = useTranslations();
   const [trackStatus, setTrackStatus] = useState<string | null>(null);
   const [trackLoading, setTrackLoading] = useState(false);
@@ -191,6 +191,8 @@ export default function DetailInteractive({ detail }: { detail: DetailData }) {
 
   return (
     <>
+      {mode !== "reviews-only" && (
+      <>
       {authUser && isWatched && (
         <div className="flex justify-center md:justify-start mt-2">
           <StarInput value={rating} onChange={handleRatingChange} />
@@ -310,10 +312,14 @@ export default function DetailInteractive({ detail }: { detail: DetailData }) {
           )}
         </div>
       )}
+      </>
+      )}
 
+      {mode !== "buttons-only" && (
       <section className="mt-6">
         <ReviewSection tmdbId={detail.id} mediaType={detail.type} trackStatus={trackStatus} trackVersion={trackVersion} trackRating={rating} authUser={authUser} />
       </section>
+      )}
     </>
   );
 }
