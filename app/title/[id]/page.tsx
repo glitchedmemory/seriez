@@ -121,7 +121,7 @@ export default async function TitlePage({ params, searchParams }: Props) {
           <AnimeHero detail={detail}>
             <AnimeInteractive mode="buttons-only" detail={detail} episodes={episodes} />
           </AnimeHero>
-          <AnimeSeasons relations={detail.relations} currentId={detail.id} />
+          <AnimeSeasons relations={detail.relations} currentId={detail.id} currentTitle={detail.title} currentYear={detail.year} />
           <AnimeOverview overview={detail.overview} />
           <AnimeInteractive mode="episodes-only" detail={detail} episodes={episodes} />
           <AnimeInteractive mode="reviews-only" detail={detail} episodes={episodes} />

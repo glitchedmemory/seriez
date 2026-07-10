@@ -1,10 +1,28 @@
 type Relation = { id: number; title: string; type: string; format: string; seasonYear: number | null };
 
-export default function AnimeSeasons({ relations, currentId }: { relations: Relation[]; currentId: number }) {
-  if (relations.length === 0) return null;
+export default function AnimeSeasons({
+  relations,
+  currentId,
+  currentTitle,
+  currentYear,
+}: {
+  relations: Relation[];
+  currentId: number;
+  currentTitle: string;
+  currentYear: number;
+}) {
+  // Include current anime in the list
+  const allItems = [
+    ...relations,
+    { id: currentId, title: currentTitle, type: "ANIME", format: "TV", seasonYear: currentYear || null },
+  ];
 
   // Sort by year then title
-  const sorted = [...relations].sort((a, b) => (a.seasonYear || 0) - (b.seasonYear || 0) || a.title.localeCompare(b.title));
+  const sorted = [...allItems].sort(
+    (a, b) => (a.seasonYear || 0) - (b.seasonYear || 0) || a.title.localeCompare(b.title)
+  );
+
+  if (sorted.length <= 1) return null;
 
   return (
     <div className="mt-8 px-4 md:px-0">
