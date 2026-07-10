@@ -395,38 +395,42 @@ export const getAnimeDetail = unstable_cache(
 
 export const getAnilistId = unstable_cache(
   async (tmdbId: number): Promise<number | null> => {
-  // First: try using the ID directly as an AniList ID (for anime results from search)
-  try {
-    const directRes = await fetch("https://graphql.anilist.co", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        query: `query($id:Int){Media(id:$id,type:ANIME){id}}`,
-        variables: { id: tmdbId },
-      }),
-    });
-    if (directRes.ok) {
-      const dj = await directRes.json();
-      if (dj.data?.Media?.id) return dj.data.Media.id;
-    }
-  } catch {}
+  // Parallel: try AniList direct + Supabase lookup simultaneously
+  const [directResult, supabaseResult] = await Promise.allSettled([
+    (async () => {
+      const directRes = await fetch("https://graphql.anilist.co", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          query: `query($id:Int){Media(id:$id,type:ANIME){id}}`,
+          variables: { id: tmdbId },
+        }),
+      });
+      if (directRes.ok) {
+        const dj = await directRes.json();
+        return dj.data?.Media?.id || null;
+      }
+      return null;
+    })(),
+    (async () => {
+      const { createClient } = await import("@supabase/supabase-js");
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const { data } = await supabase
+        .from("media_trackings")
+        .select("anilist_id")
+        .eq("tmdb_id", tmdbId)
+        .not("anilist_id", "is", null)
+        .limit(1)
+        .maybeSingle();
+      return data?.anilist_id || null;
+    })(),
+  ]);
 
-  // Then: try Supabase media_trackings (TMDB ID → AniList ID) — direct REST
-  try {
-    const { createClient } = await import("@supabase/supabase-js");
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    const { data } = await supabase
-      .from("media_trackings")
-      .select("anilist_id")
-      .eq("tmdb_id", tmdbId)
-      .not("anilist_id", "is", null)
-      .limit(1)
-      .maybeSingle();
-    if (data?.anilist_id) return data.anilist_id;
-  } catch {}
+  if (directResult.status === "fulfilled" && directResult.value) return directResult.value;
+  if (supabaseResult.status === "fulfilled" && supabaseResult.value) return supabaseResult.value;
 
   // Fallback: search AniList via Jikan (MAL ID → AniList)
   try {
@@ -912,16 +916,22 @@ export const getAnimeEpisodes = unstable_cache(
   if (episodes.length > 0) {
     // Try native Japanese first (correct TMDB anime entry), then romaji, then english
     const searchTitles = [titleNative, titleRomaji, title].filter(Boolean) as string[];
+
+    // Parallel: fetch TMDB + TVmaze thumbnails for all title variants simultaneously
+    const [tmdbResults, tvmazeResults] = await Promise.all([
+      Promise.all(searchTitles.map(t => fetchTMDBThumbnails(t).catch(() => new Map<number, string>()))),
+      Promise.all(searchTitles.map(t => fetchTVmazeThumbnails(t).catch(() => new Map<number, string>()))),
+    ]);
+
+    // Merge TMDB results — first source with thumbs wins
     let tmdbThumbs = new Map<number, string>();
-    for (const t of searchTitles) {
-      tmdbThumbs = await fetchTMDBThumbnails(t);
-      if (tmdbThumbs.size > 0) break;
+    for (const thumbs of tmdbResults) {
+      if (thumbs.size > 0) { tmdbThumbs = thumbs; break; }
     }
     // TVmaze as fallback
     if (tmdbThumbs.size === 0) {
-      for (const t of searchTitles) {
-        tmdbThumbs = await fetchTVmazeThumbnails(t);
-        if (tmdbThumbs.size > 0) break;
+      for (const thumbs of tvmazeResults) {
+        if (thumbs.size > 0) { tmdbThumbs = thumbs; break; }
       }
     }
     if (tmdbThumbs.size > 0) {
@@ -931,44 +941,39 @@ export const getAnimeEpisodes = unstable_cache(
       });
     }
 
-    // Kitsu thumbnail merge — main Japanese source, parallel 10x batches
-    {
-      const missingThumbs = episodes.filter(ep => !ep.thumbnail).length;
-      if (missingThumbs > 0) {
-        const searchTitle = titleRomaji || title;
-        const kitsuThumbs = await fetchKitsuThumbnails(searchTitle, 100);
-        if (kitsuThumbs.size > 0) {
-          episodes = episodes.map(ep => {
-            if (ep.thumbnail) return ep;
-            const thumb = kitsuThumbs.get(ep.number);
-            return thumb ? { ...ep, thumbnail: thumb } : ep;
-          });
-        }
-      }
-    }
+    // Parallel: Kitsu + AniList streaming + Crunchyroll RSS (all independent sources)
+    const searchTitle = titleRomaji || title;
+    const [kitsuThumbs, alThumbs, crThumbs] = await Promise.all([
+      episodes.filter(ep => !ep.thumbnail).length > 0
+        ? fetchKitsuThumbnails(searchTitle, 100).catch(() => new Map<number, string>())
+        : Promise.resolve(new Map<number, string>()),
+      fetchAniListStreamingThumbnails(searchTitle).catch(() => new Map<number, string>()),
+      fetchCrunchyrollThumbnails(searchTitle).catch(() => new Map<number, string>()),
+    ]);
 
-    // AniList streamingEpisodes (Crunchyroll) merge
-    {
-      const alThumbs = await fetchAniListStreamingThumbnails(titleRomaji || title);
-      if (alThumbs.size > 0) {
-        episodes = episodes.map(ep => {
-          if (ep.thumbnail) return ep;
-          const thumb = alThumbs.get(ep.number);
-          return thumb ? { ...ep, thumbnail: thumb } : ep;
-        });
-      }
+    // Apply Kitsu thumbnails
+    if (kitsuThumbs.size > 0) {
+      episodes = episodes.map(ep => {
+        if (ep.thumbnail) return ep;
+        const thumb = kitsuThumbs.get(ep.number);
+        return thumb ? { ...ep, thumbnail: thumb } : ep;
+      });
     }
-
-    // Crunchyroll RSS merge — last resort (may fail on datacenter IPs)
-    {
-      const crThumbs = await fetchCrunchyrollThumbnails(titleRomaji || title);
-      if (crThumbs.size > 0) {
-        episodes = episodes.map(ep => {
-          if (ep.thumbnail) return ep;
-          const thumb = crThumbs.get(ep.number);
-          return thumb ? { ...ep, thumbnail: thumb } : ep;
-        });
-      }
+    // Apply AniList streaming thumbnails
+    if (alThumbs.size > 0) {
+      episodes = episodes.map(ep => {
+        if (ep.thumbnail) return ep;
+        const thumb = alThumbs.get(ep.number);
+        return thumb ? { ...ep, thumbnail: thumb } : ep;
+      });
+    }
+    // Apply Crunchyroll RSS thumbnails
+    if (crThumbs.size > 0) {
+      episodes = episodes.map(ep => {
+        if (ep.thumbnail) return ep;
+        const thumb = crThumbs.get(ep.number);
+        return thumb ? { ...ep, thumbnail: thumb } : ep;
+      });
     }
   }
 
