@@ -16,7 +16,10 @@
     "username": "Benutzername",
     "createAccount": "Konto erstellen",
     "guest": "Gast",
-    "passwordChanged": "Passwort erfolgreich geändert. Bitte melden Sie sich mit Ihrem neuen Passwort an."
+    "passwordChanged": "Passwort geändert. Bitte melden Sie sich mit Ihrem neuen Passwort an.",
+    "checkEmail": "E-Mail überprüfen",
+    "confirmEmailSent": "Wir haben einen Bestätigungslink gesendet an",
+    "confirmEmailInstruction": "Klicken Sie auf den Link in der E-Mail, um Ihr Konto zu aktivieren. Überprüfen Sie auch Ihren Spam-Ordner."
   },
   "library": {
     "signInTitle": "Anmelden, um deine Liste zu sehen",

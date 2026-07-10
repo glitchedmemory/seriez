@@ -16,7 +16,10 @@
     "username": "ユーザー名",
     "createAccount": "アカウント作成",
     "guest": "ゲスト",
-    "passwordChanged": "パスワードが変更されました。新しいパスワードでログインしてください。"
+    "passwordChanged": "パスワードが変更されました。新しいパスワードでログインしてください。",
+    "checkEmail": "メールを確認してください",
+    "confirmEmailSent": "確認リンクを送信しました",
+    "confirmEmailInstruction": "メール内のリンクをクリックしてアカウントを有効化してください。迷惑メールフォルダもご確認ください。"
   },
   "library": {
     "signInTitle": "リストを見るにはログイン",

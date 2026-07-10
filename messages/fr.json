@@ -16,7 +16,10 @@
     "username": "Nom d'utilisateur",
     "createAccount": "Créer un compte",
     "guest": "Invité",
-    "passwordChanged": "Mot de passe modifié avec succès. Veuillez vous reconnecter avec votre nouveau mot de passe."
+    "passwordChanged": "Mot de passe modifié. Veuillez vous connecter avec votre nouveau mot de passe.",
+    "checkEmail": "Vérifiez votre email",
+    "confirmEmailSent": "Nous avons envoyé un lien de confirmation à",
+    "confirmEmailInstruction": "Cliquez sur le lien dans l'email pour activer votre compte. Vérifiez aussi vos spams."
   },
   "library": {
     "signInTitle": "Connectez-vous pour voir votre liste",

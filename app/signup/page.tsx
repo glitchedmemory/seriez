@@ -14,6 +14,7 @@ export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "short">("idle");
   const router = useRouter();
   const supabase = createClient();
@@ -93,7 +94,14 @@ export default function SignupPage() {
       return;
     }
 
-    if (data.user) {
+    if (data.user && !data.session) {
+      // Email confirmation required — show check-email screen
+      setEmailSent(true);
+      setLoading(false);
+      return;
+    }
+
+    if (data.user && data.session) {
       localStorage.setItem("seriez-username", username.trim());
       router.push("/profile?welcome=1");
       router.refresh();
@@ -102,6 +110,24 @@ export default function SignupPage() {
 
   return (
     <div className="max-w-sm mx-auto px-4 pt-20 pb-32">
+      {emailSent ? (
+        <div className="text-center">
+          <div className="mb-6 inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6366f1] to-[#a855f7]">
+            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-text-primary mb-2">{t("auth.checkEmail")}</h1>
+          <p className="text-sm text-text-secondary mb-1">
+            {t("auth.confirmEmailSent")}
+          </p>
+          <p className="text-sm font-medium text-text-primary mb-4">{email}</p>
+          <p className="text-xs text-text-secondary">
+            {t("auth.confirmEmailInstruction")}
+          </p>
+        </div>
+      ) : (
+        <>
       <h1 className="text-2xl font-bold text-text-primary mb-2">Create account</h1>
       <p className="text-sm text-text-secondary mb-6">Start tracking what you watch</p>
 
@@ -159,6 +185,8 @@ export default function SignupPage() {
           Sign in
         </a>
       </p>
+        </>
+      )}
     </div>
   );
 }
