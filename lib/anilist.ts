@@ -1098,7 +1098,7 @@ export const enrichAnimeRelations = unstable_cache(
   let earliestId = currentId;
   for (const r of result) {
     const y = r.seasonYear;
-    if (y !== null && y < earliestYear) {
+    if (y !== null && y <= earliestYear) {
       earliestYear = y;
       earliestId = r.id;
     }

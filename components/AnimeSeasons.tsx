@@ -27,9 +27,9 @@ export default function AnimeSeasons({
   // The original is the relation marked isOriginal=true, or the earliest-year item
   let original = relations.find(r => r.isOriginal);
   if (!original) {
-    // Fallback: earliest year among all
+    // Fallback: earliest year among all (including current)
     let earliestYear = currentYear || Infinity;
-    let earliestItem: typeof allItems[0] | null = null;
+    let earliestItem = allItems[allItems.length - 1]; // current item is last
     for (const item of allItems) {
       const y = item.seasonYear;
       if (y !== null && y < earliestYear) { earliestYear = y; earliestItem = item; }
