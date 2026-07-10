@@ -121,11 +121,11 @@ export default async function TitlePage({ params, searchParams }: Props) {
           <AnimeHero detail={detail}>
             <AnimeInteractive mode="buttons-only" detail={detail} episodes={episodes} />
           </AnimeHero>
+          <AnimeSeasons relations={detail.relations} currentId={detail.id} />
           <AnimeOverview overview={detail.overview} />
           <AnimeInteractive mode="episodes-only" detail={detail} episodes={episodes} />
           <AnimeInteractive mode="reviews-only" detail={detail} episodes={episodes} />
           <AnimeTrailer trailer={detail.trailer} />
-          <AnimeSeasons relations={detail.relations} currentId={detail.id} />
           <AnimeCharacters characters={detail.characters} />
           <AnimeRecommendations recommendations={detail.recommendations} />
         </div>
