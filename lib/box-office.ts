@@ -3,6 +3,7 @@
 // DE: InsideKino | AU: Box Office Mojo | MX: CANACINE | ES: taquillaespana.es
 
 import type { TmdbResult } from "@/lib/tmdb";
+import { unstable_cache } from "next/cache";
 
 const TMDB_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE = "https://api.themoviedb.org/3";
@@ -402,11 +403,15 @@ const SCRAPERS: Record<string, () => Promise<TmdbResult[]>> = {
   ES: scrapeES,
 };
 
-export async function getBoxOffice(country: string): Promise<TmdbResult[]> {
+export const getBoxOffice = unstable_cache(
+  async (country: string): Promise<TmdbResult[]> => {
   const scraper = SCRAPERS[country];
   if (!scraper) return (await scrapeUS()).slice(0, 7);
   const results = await scraper();
   // Fallback to US if no results from country-specific scraper
   if (results.length === 0 && country !== "US") return (await scrapeUS()).slice(0, 7);
   return results.slice(0, 7);
-}
+},
+  ["box-office"],
+  { revalidate: 3600 }
+);
