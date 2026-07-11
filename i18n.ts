@@ -12,6 +12,7 @@ export const routing = defineRouting({
   locales: ['en', 'ko', 'ja', 'zh', 'fr', 'de', 'es'],
   defaultLocale: 'en',
   localePrefix: 'never',
+  localeCookie: false,
 });
 
 const messages: Record<string, any> = { en, ko, ja, zh, fr, de, es };
