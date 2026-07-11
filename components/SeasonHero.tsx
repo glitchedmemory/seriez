@@ -51,6 +51,7 @@ export default function SeasonHero({ data, children }: { data: SeasonData; child
                 src={data.seasonPoster}
                 alt={data.seasonName}
                 fill
+                priority
                 className="object-cover rounded-xl"
                 sizes="(max-width: 768px) 144px, 192px"
               />
