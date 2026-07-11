@@ -26,7 +26,7 @@ export default function AnimeHero({ detail, children }: { detail: AnimeDetail; c
           {/* Poster */}
           <div className="flex-shrink-0 w-36 md:w-48 mx-auto md:mx-0">
             <div className="aspect-[2/3] rounded-xl overflow-hidden bg-bg-card shadow-2xl relative">
-              <PosterImage src={detail.poster} alt={detail.title} fill className="rounded-xl" sizes="(max-width: 768px) 144px, 192px" />
+              <PosterImage src={detail.poster} alt={detail.title} fill priority className="rounded-xl" sizes="(max-width: 768px) 144px, 192px" />
             </div>
           </div>
 

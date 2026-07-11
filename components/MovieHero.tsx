@@ -28,6 +28,7 @@ export default function MovieHero({ detail, children }: { detail: TmdbDetail; ch
                 src={detail.poster}
                 alt={detail.title}
                 fill
+                priority
                 className="object-cover rounded-xl"
                 sizes="(max-width: 768px) 144px, 192px"
               />
