@@ -112,6 +112,10 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <link rel="preconnect" href="https://image.tmdb.org" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://s4.anilist.co" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://media.kitsu.app" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://img.flixpatrol.com" crossOrigin="anonymous" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
