@@ -25,17 +25,26 @@ setInterval(() => {
 
 const BOT_UA_REGEX = /bot|crawler|spider|anthropic-ai|ChatGPT-User|Google-Extended|FacebookBot/i;
 
-// Next-intl middleware with routing config
+// Next-intl middleware with routing config + no cookie for CDN cache
 const handleI18n = createIntlMiddleware({
   locales: ["en", "ko", "ja", "zh", "fr", "de", "es"],
   defaultLocale: "en",
   localePrefix: "never",
+  localeCookie: false,
 });
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
   const userAgent = request.headers.get("user-agent") || "";
+
+  // TV show detail with ?type=tv → instant redirect to season/1 (no API calls)
+  if (path.startsWith("/title/") && request.nextUrl.searchParams.get("type") === "tv") {
+    const id = path.split("/")[2];
+    if (id) {
+      return NextResponse.redirect(new URL(`/title/${id}/season/1`, request.url));
+    }
+  }
 
   // Bot detection
   if (BOT_UA_REGEX.test(userAgent)) {
