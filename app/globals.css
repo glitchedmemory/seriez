@@ -54,3 +54,18 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Shimmer placeholder for loading images */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+img[data-nimg="fill"] {
+  background: linear-gradient(110deg, #1a1a2e 30%, #252545 50%, #1a1a2e 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+img[data-nimg="fill"][style*="color:transparent"] {
+  /* Only animate while loading (next/image sets color:transparent before load) */
+  animation: shimmer 1.5s infinite;
+}
