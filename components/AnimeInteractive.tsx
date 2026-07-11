@@ -2,9 +2,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { AnimeDetail, AnimeEpisode } from "@/lib/anilist";
+import { getAnimeSagas, type AnimeSaga } from "@/lib/anilist";
 import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
+import { stripHtml } from "@/lib/strip-html";
 
 function HeartIcon({ active }: { active: boolean }) {
   return (
@@ -57,15 +59,25 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const EPISODES_PER_PAGE = 10;
-  const totalPages = Math.ceil(episodes.length / EPISODES_PER_PAGE);
-  const visibleEpisodes = episodes.slice((currentPage - 1) * EPISODES_PER_PAGE, currentPage * EPISODES_PER_PAGE);
+
+  // Saga filtering (One Piece)
+  const sagas = getAnimeSagas(detail.id);
+  const [selectedSaga, setSelectedSaga] = useState<AnimeSaga | null>(null);
+  const filteredEpisodes = selectedSaga
+    ? episodes.filter(ep => ep.number >= selectedSaga.start && ep.number <= selectedSaga.end)
+    : episodes;
+  const totalPages = Math.ceil(filteredEpisodes.length / EPISODES_PER_PAGE);
+  const visibleEpisodes = filteredEpisodes.slice((currentPage - 1) * EPISODES_PER_PAGE, currentPage * EPISODES_PER_PAGE);
   const supabase = createClient();
   const router = useRouter();
 
   const isWanted = trackStatus === "plan_to_watch";
   const isWatching = trackStatus === "watching";
   const isWatched = trackStatus === "completed";
-  const watchedCount = episodes.filter((ep) => watchedEpisodes.has(`1-${ep.number}`)).length;
+  const watchedCount = filteredEpisodes.filter((ep) => watchedEpisodes.has(`1-${ep.number}`)).length;
+
+  // Reset page when saga changes
+  useEffect(() => { setCurrentPage(1); }, [selectedSaga]);
 
   // Fetch tracking + collections on mount
   useEffect(() => {
@@ -295,61 +307,151 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
 
       {/* Episode list with tracking */}
       {mode !== "buttons-only" && mode !== "reviews-only" && episodes.length > 0 && (
-        <div className="mt-8">
+        <div className="mt-6">
+          {/* Saga tabs */}
+          {sagas && (
+            <div className="flex gap-1.5 mb-3 overflow-x-auto md:overflow-visible md:flex-wrap">
+              <button
+                onClick={() => setSelectedSaga(null)}
+                className={`flex-shrink-0 md:flex-shrink px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
+                  !selectedSaga ? "bg-accent text-white" : "bg-bg-card text-text-secondary hover:text-text-primary"
+                }`}
+              >All</button>
+              {sagas.map((s) => (
+                <button
+                  key={s.name}
+                  onClick={() => setSelectedSaga(s)}
+                  className={`flex-shrink-0 md:flex-shrink px-3 py-1.5 rounded-full text-[11px] font-medium transition-all whitespace-nowrap ${
+                    selectedSaga?.name === s.name ? "bg-accent text-white" : "bg-bg-card text-text-secondary hover:text-text-primary"
+                  }`}
+                >{s.name}</button>
+              ))}
+            </div>
+          )}
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-text-primary">Episodes · {episodes.length}</h2>
-            {mounted && authUser && trackStatus && (
-              <button onClick={() => {
-                if (watchedCount >= episodes.length) { setWatchedEpisodes(new Set()); episodes.forEach(ep => fetch("/api/episodes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: authUser.user_metadata?.username, tmdbId: detail.id, seasonNumber: 1, episodeNumber: ep.number }) }).catch(() => {})); }
-                else { setWatchedEpisodes(new Set(episodes.map(ep => `1-${ep.number}`))); episodes.forEach(ep => fetch("/api/episodes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: authUser.user_metadata?.username, tmdbId: detail.id, seasonNumber: 1, episodeNumber: ep.number }) }).catch(() => {})); }
-              }} disabled={!authUser}
-                className="text-xs text-accent hover:underline border-none bg-transparent cursor-pointer">
-                {watchedCount >= episodes.length ? "Uncheck all" : `Mark all (${watchedCount}/${episodes.length})`}
-              </button>
-            )}
+            <h2 className="text-lg font-semibold text-text-primary">
+              Episodes · {filteredEpisodes.length}
+            </h2>
+            <div className="flex items-center gap-3">
+              {totalPages > 1 && (
+                <span className="text-[11px] text-text-secondary">
+                  {(currentPage - 1) * EPISODES_PER_PAGE + 1}–{Math.min(currentPage * EPISODES_PER_PAGE, filteredEpisodes.length)}
+                </span>
+              )}
+              {watchedCount > 0 && (
+                <span className="text-xs text-text-secondary">
+                  Watched {watchedCount}/{filteredEpisodes.length}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {visibleEpisodes.map((ep) => {
               const key = `1-${ep.number}`;
               const isWatchedEp = watchedEpisodes.has(key);
               const isLoading = epToggleLoading === key;
               return (
-                <div key={ep.number} className={`flex items-start gap-3 rounded-xl p-3 transition-colors border ${isWatchedEp ? "bg-accent/5 border-accent/30" : "bg-bg-card border-border"}`}>
-                  <button onClick={() => toggleEpisode(ep.number)} disabled={!authUser || isLoading}
-                    className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors mt-1 ${isWatchedEp ? "bg-accent border-accent text-white" : "border-text-secondary/30 bg-transparent"} ${authUser ? "cursor-pointer" : "cursor-not-allowed opacity-40"}`}>
-                    {isWatchedEp ? "✓" : ""}
+                <div
+                  key={ep.number}
+                  className={`flex gap-3 bg-bg-card rounded-xl p-3 transition-all ${isWatchedEp ? "opacity-50" : "hover:bg-bg-surface"}`}
+                >
+                  <button
+                    onClick={() => toggleEpisode(ep.number)}
+                    disabled={isLoading || !authUser}
+                    className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all mt-2 ${
+                      isWatchedEp
+                        ? "bg-accent border-accent"
+                        : "border-[#3d3d5c] hover:border-accent"
+                    } ${isLoading ? "animate-pulse" : ""}`}
+                    title={authUser ? (isWatchedEp ? "Mark unwatched" : "Mark watched") : "Sign in to track"}
+                  >
+                    {isWatchedEp && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    )}
                   </button>
-                  {ep.thumbnail ? (
-                    <img src={ep.thumbnail} alt={ep.title} className="w-24 h-14 rounded-lg object-cover flex-shrink-0" loading="lazy" />
-                  ) : (
-                    <div className="w-24 h-14 rounded-lg bg-bg-surface flex-shrink-0 flex items-center justify-center text-text-secondary text-[10px]">Ep {ep.number}</div>
-                  )}
+                  <div className="flex-shrink-0 w-28 md:w-36 aspect-video rounded-lg overflow-hidden bg-bg-primary relative">
+                    {ep.thumbnail ? (
+                      <img src={ep.thumbnail} alt={ep.title} className="w-full h-full object-cover rounded-lg" loading="lazy" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-text-secondary text-xs">
+                        No preview
+                      </div>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-accent">{ep.number}</span>
-                      <h3 className="text-xs font-medium text-text-primary truncate">{ep.title}</h3>
+                      <span className="text-xs font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded">
+                        {ep.number}
+                      </span>
+                      <h3 className="text-sm font-medium text-text-primary truncate">{ep.title}</h3>
                     </div>
-                    {ep.titleJapanese && <p className="text-[10px] text-text-secondary mt-0.5 line-clamp-1">{ep.titleJapanese}</p>}
-                    <div className="flex items-center gap-3 mt-1 text-[9px] text-text-secondary">
-                      {ep.airDate && <span>{formatDate(ep.airDate)}</span>}
+                    {ep.titleJapanese && (
+                      <p className="text-[11px] text-text-secondary mt-0.5 truncate">
+                        {ep.titleJapanese}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-3 mt-1 text-[10px] text-text-secondary">
+                      {ep.airDate && <span>{ep.airDate}</span>}
                       {ep.duration > 0 && <span>{ep.duration}m</span>}
                     </div>
+                    {ep.synopsis && (
+                      <p className="text-[11px] text-text-secondary leading-relaxed mt-1 line-clamp-2">
+                        {stripHtml(ep.synopsis)}
+                      </p>
+                    )}
                   </div>
                 </div>
               );
             })}
           </div>
-          {totalPages > 1 && (
-            <div className="flex gap-1 mt-4 justify-center">
-              <button disabled={currentPage <= 1} onClick={() => setCurrentPage(p => p - 1)}
-                className="px-2 py-1 text-[10px] bg-bg-card border border-border rounded text-text-secondary hover:text-text-primary disabled:opacity-30">← Prev</button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button key={i} onClick={() => setCurrentPage(i + 1)}
-                  className={`px-2 py-1 text-[10px] border rounded ${currentPage === i + 1 ? "bg-accent text-white border-accent" : "bg-bg-card border-border text-text-secondary hover:text-text-primary"}`}>{i + 1}</button>
-              ))}
-              <button disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => p + 1)}
-                className="px-2 py-1 text-[10px] bg-bg-card border border-border rounded text-text-secondary hover:text-text-primary disabled:opacity-30">Next →</button>
+          {filteredEpisodes.length > EPISODES_PER_PAGE && (
+            <div className="mt-4 flex items-center justify-center gap-1 flex-wrap">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-text-primary disabled:opacity-30 transition-colors"
+              >
+                ← Prev
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2)
+                .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                  if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((item, i) =>
+                  item === "..." ? (
+                    <span key={`dots-${i}`} className="px-1 text-[10px] text-text-secondary">…</span>
+                  ) : (
+                    <button
+                      key={item}
+                      onClick={() => setCurrentPage(item as number)}
+                      className={`w-7 h-7 text-xs rounded-full transition-colors ${
+                        currentPage === item
+                          ? "bg-accent text-white"
+                          : "bg-bg-card text-text-secondary hover:text-text-primary"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-2 py-1 text-xs rounded bg-bg-card text-text-secondary hover:text-text-primary disabled:opacity-30 transition-colors"
+              >
+                Next →
+              </button>
             </div>
+          )}
+          {!authUser && (
+            <p className="text-[11px] text-text-secondary mt-2 text-center">
+              <a href="/login" className="text-accent hover:underline">Sign in</a> to track watched episodes
+            </p>
           )}
         </div>
       )}
