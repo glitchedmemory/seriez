@@ -54,8 +54,8 @@ export async function generateStaticParams() {
   const TMDB_KEY = process.env.TMDB_API_KEY!;
 
   try {
-    // TMDB popular movies (5 pages × 20 = 100)
-    for (let page = 1; page <= 5; page++) {
+    // TMDB popular movies (84 pages × 20 = 1680)
+    for (let page = 1; page <= 84; page++) {
       const res = await fetch(
         `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_KEY}&language=en-US&page=${page}`
       );
@@ -67,8 +67,8 @@ export async function generateStaticParams() {
   } catch {}
 
   try {
-    // TMDB popular TV shows (5 pages × 20 = 100)
-    for (let page = 1; page <= 5; page++) {
+    // TMDB popular TV shows (84 pages × 20 = 1680)
+    for (let page = 1; page <= 84; page++) {
       const res = await fetch(
         `https://api.themoviedb.org/3/tv/popular?api_key=${TMDB_KEY}&language=en-US&page=${page}`
       );
@@ -80,13 +80,13 @@ export async function generateStaticParams() {
   } catch {}
 
   try {
-    // AniList popular anime (5 pages × 20 = 100)
-    for (let page = 1; page <= 5; page++) {
+    // AniList popular anime (33 pages × 50 = 1650)
+    for (let page = 1; page <= 33; page++) {
       const res = await fetch("https://graphql.anilist.co", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          query: `query { Page(page: ${page}, perPage: 20) { media(sort: POPULARITY_DESC, type: ANIME) { id } } }`,
+          query: `query { Page(page: ${page}, perPage: 50) { media(sort: POPULARITY_DESC, type: ANIME) { id } } }`,
         }),
       });
       if (res.ok) {
@@ -115,16 +115,9 @@ export default async function TitlePage({ params, searchParams }: Props) {
   const numId = parseInt(id);
   if (isNaN(numId)) notFound();
 
-  // TV shows — redirect to season page
+  // TV shows — redirect to season page immediately (no API calls)
   if (type === "tv") {
-    if (await isAnimeTV(numId)) {
-      redirect(`/title/${numId}?type=anime`);
-    }
-    const latestSeason = await getTVSeasonCount(numId);
-    if (latestSeason) {
-      redirect(`/title/${numId}/season/${latestSeason}`);
-    }
-    notFound();
+    redirect(`/title/${numId}/season/1`);
   }
 
   // Anime detail
