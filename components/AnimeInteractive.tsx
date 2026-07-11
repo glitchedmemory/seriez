@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { AnimeDetail, AnimeEpisode } from "@/lib/anilist";
-import { getAnimeSagas, type AnimeSaga } from "@/lib/anilist";
+import { getAnimeSagas, type AnimeSaga } from "@/lib/anime-sagas";
 import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
