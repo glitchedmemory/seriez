@@ -290,6 +290,8 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
           )}
         </div>
       )}
+      </>
+      )}
 
       {/* Episode list with tracking */}
       {mode !== "buttons-only" && mode !== "reviews-only" && episodes.length > 0 && (
@@ -350,8 +352,6 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
             </div>
           )}
         </div>
-      )}
-      </>
       )}
 
       {/* Review section */}
