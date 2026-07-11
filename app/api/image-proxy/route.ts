@@ -6,8 +6,18 @@ export async function GET(request: NextRequest) {
     return new NextResponse("Missing url param", { status: 400 });
   }
 
-  // Security: only allow FlixPatrol poster URLs
-  if (!url.startsWith("https://flixpatrol.com/runtime/cache/files/posters/")) {
+  // Security: allow trusted image CDNs
+  const ALLOWED = [
+    "https://image.tmdb.org/",
+    "https://s4.anilist.co/",
+    "https://media.kitsu.app/",
+    "https://img.flixpatrol.com/",
+    "https://flixpatrol.com/runtime/cache/files/posters/",
+    "https://cdn.myanimelist.net/",
+    "https://img1.ak.crunchyroll.com/",
+    "https://static.tvmaze.com/",
+  ];
+  if (!ALLOWED.some((prefix) => url.startsWith(prefix))) {
     return new NextResponse("Forbidden", { status: 403 });
   }
 
