@@ -1,6 +1,6 @@
 export const revalidate = 86400;
 
-import { getMovieDetail, isAnimeTV } from "@/lib/tmdb";
+import { getMovieDetail } from "@/lib/tmdb";
 import MovieHero from "@/components/MovieHero";
 import MovieInfo from "@/components/MovieInfo";
 import MovieOverview from "@/components/MovieOverview";
