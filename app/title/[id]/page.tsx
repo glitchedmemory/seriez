@@ -48,23 +48,61 @@ async function isMovie(id: number): Promise<boolean> {
   }
 }
 
-// Pre-render top 20 popular anime at build time
+// Pre-render top 100 movies, 100 TV shows, and 100 anime at build time
 export async function generateStaticParams() {
+  const ids: { id: string }[] = [];
+  const TMDB_KEY = process.env.TMDB_API_KEY!;
+
   try {
-    const res = await fetch("https://graphql.anilist.co", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: `query { Page(page: 1, perPage: 20) { media(sort: POPULARITY_DESC, type: ANIME) { id } } }`,
-      }),
-    });
-    if (!res.ok) return [];
-    const json = await res.json();
-    const ids = (json.data?.Page?.media || []).map((m: any) => ({ id: String(m.id) }));
-    return ids;
-  } catch {
-    return [];
-  }
+    // TMDB popular movies (5 pages × 20 = 100)
+    for (let page = 1; page <= 5; page++) {
+      const res = await fetch(
+        `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_KEY}&language=en-US&page=${page}`
+      );
+      if (res.ok) {
+        const json = await res.json();
+        (json.results || []).forEach((m: any) => ids.push({ id: String(m.id) }));
+      }
+    }
+  } catch {}
+
+  try {
+    // TMDB popular TV shows (5 pages × 20 = 100)
+    for (let page = 1; page <= 5; page++) {
+      const res = await fetch(
+        `https://api.themoviedb.org/3/tv/popular?api_key=${TMDB_KEY}&language=en-US&page=${page}`
+      );
+      if (res.ok) {
+        const json = await res.json();
+        (json.results || []).forEach((m: any) => ids.push({ id: String(m.id) }));
+      }
+    }
+  } catch {}
+
+  try {
+    // AniList popular anime (5 pages × 20 = 100)
+    for (let page = 1; page <= 5; page++) {
+      const res = await fetch("https://graphql.anilist.co", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `query { Page(page: ${page}, perPage: 20) { media(sort: POPULARITY_DESC, type: ANIME) { id } } }`,
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        (json.data?.Page?.media || []).forEach((m: any) => ids.push({ id: String(m.id) }));
+      }
+    }
+  } catch {}
+
+  // Deduplicate (in case a title appears in multiple lists)
+  const seen = new Set<string>();
+  return ids.filter(item => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
 }
 
 interface Props {
