@@ -81,12 +81,16 @@ export function SearchClient({
     fetchByDecade(yearLabel);
   }
 
-  // Log search when user clicks a trending term or presses Enter
-  function logSearch(q: string) {
+  // Log search with optional click tracking
+  function logSearch(q: string, clickedTmdbId?: number, clickedMediaType?: string) {
     fetch("/api/search-log", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: q }),
+      body: JSON.stringify({ 
+        query: q, 
+        clickedTmdbId: clickedTmdbId || null,
+        mediaType: clickedMediaType || null,
+      }),
     }).catch(() => {});
   }
 
@@ -231,7 +235,10 @@ export function SearchClient({
                   {decadeResults.map((item: any) => (
                     <button
                       key={`${item.type}-${item.id}`}
-                      onClick={() => router.push(`/title/${item.id}?type=${item.type}`)}
+                      onClick={() => {
+                        logSearch(query || item.title, item.id, item.type);
+                        router.push(`/title/${item.id}?type=${item.type}`);
+                      }}
                       className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-bg-card transition-colors text-left"
                     >
                       <div className="flex-shrink-0 w-12 aspect-[2/3] rounded-lg overflow-hidden bg-bg-card">
@@ -278,7 +285,10 @@ export function SearchClient({
             {results.map((item: any) => (
               <button
                 key={item.id}
-                onClick={() => router.push(`/title/${item.id}?type=${item.type}`)}
+                onClick={() => {
+                  logSearch(query, item.id, item.type);
+                  router.push(`/title/${item.id}?type=${item.type}`);
+                }}
                 className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-bg-card transition-colors text-left"
               >
                 {/* Poster */}
