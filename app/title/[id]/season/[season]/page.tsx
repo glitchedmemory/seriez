@@ -10,6 +10,7 @@ import { validateAndReplaceTrailers } from "@/lib/yt-validator";
 import { notFound } from "next/navigation";
 import { generateTVJsonLd, StructuredDataScript } from "@/lib/structured-data";
 import { unstable_cache } from "next/cache";
+import VisitTracker from "@/components/VisitTracker";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const ANILIST_API = "https://graphql.anilist.co";
@@ -230,6 +231,7 @@ export default async function SeasonPage({ params }: Props) {
     return (
       <>
         <StructuredDataScript data={jsonLd} />
+        <VisitTracker tmdbId={seriesId} mediaType="tv" />
         <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
           <SeasonHero data={data}>
             <SeasonInteractive mode="buttons-only" data={{

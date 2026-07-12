@@ -18,6 +18,7 @@ import AnimeTrailer from "@/components/AnimeTrailer";
 import AnimeInteractive from "@/components/AnimeInteractive";
 import { notFound, redirect } from "next/navigation";
 import { generateMovieJsonLd, generateTVJsonLd, StructuredDataScript } from "@/lib/structured-data";
+import VisitTracker from "@/components/VisitTracker";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const API_KEY = process.env.TMDB_API_KEY!;
@@ -148,6 +149,7 @@ export default async function TitlePage({ params, searchParams }: Props) {
     return (
       <>
         <StructuredDataScript data={animeJsonLd} />
+        <VisitTracker tmdbId={numId} mediaType="anime" />
         <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
           <AnimeHero detail={detail}>
             <AnimeInteractive mode="buttons-only" detail={detail} episodes={episodes} />
@@ -195,6 +197,7 @@ export default async function TitlePage({ params, searchParams }: Props) {
       return (
         <>
           <StructuredDataScript data={jsonLd} />
+          <VisitTracker tmdbId={numId} mediaType="movie" />
           <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
             <MovieHero detail={detail}>
               <DetailInteractive mode="buttons-only" detail={{ id: detail.id, type: detail.type, daysUntil: detail.daysUntil }} />

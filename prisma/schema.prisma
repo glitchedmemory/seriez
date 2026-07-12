@@ -8,9 +8,13 @@ datasource db {
 }
 
 model SearchLog {
-  id        BigInt   @id @default(autoincrement())
-  query     String
-  createdAt DateTime @default(now()) @map("created_at")
+  id            BigInt    @id @default(autoincrement())
+  query         String
+  tmdbId        Int?      @map("tmdb_id")
+  mediaType     String?   @map("media_type")
+  clickedTmdbId Int?      @map("clicked_tmdb_id")
+  country       String?
+  createdAt     DateTime  @default(now()) @map("created_at")
 
   @@map("search_logs")
 }
@@ -176,4 +180,19 @@ model AdminAction {
   @@index([createdAt(sort: Desc)])
   @@index([targetType, targetId])
   @@map("admin_actions")
+}
+
+model ContentVisit {
+  id        BigInt    @id @default(autoincrement())
+  tmdbId    Int       @map("tmdb_id")
+  mediaType String    @map("media_type")
+  username  String?
+  source    String    @default("direct")
+  country   String?
+  device    String?
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([tmdbId, mediaType, createdAt(sort: Desc)])
+  @@index([country, createdAt(sort: Desc)])
+  @@map("content_visits")
 }
