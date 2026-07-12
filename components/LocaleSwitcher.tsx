@@ -22,10 +22,8 @@ export default function LocaleSwitcher() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ locale: next }),
     });
-    // Cache-bust to bypass CDN cached English version
-    const url = new URL(window.location.href);
-    url.searchParams.set("lang", next);
-    window.location.href = url.toString();
+    // Unique URL to bypass CDN cache
+    window.location.href = window.location.pathname + "?_l=" + next + "&_t=" + Date.now();
   }
 
   return (
