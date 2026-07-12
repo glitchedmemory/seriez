@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import LocaleSwitcher from "./LocaleSwitcher";
 
 export default function Footer() {
   const t = useTranslations();
@@ -13,8 +14,8 @@ export default function Footer() {
     <footer className="border-t border-border bg-bg-card mt-auto">
       <div className="max-w-4xl mx-auto px-4 py-6 flex flex-col items-center gap-2">
         <nav aria-label="Legal">
-          <ul className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-sm">
-            {footerLinks.map((link, i) => (
+          <ul className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 text-sm">
+            {footerLinks.map((link) => (
               <li key={link.href} className="flex items-center">
                 <Link
                   href={link.href}
@@ -22,13 +23,14 @@ export default function Footer() {
                 >
                   {link.label}
                 </Link>
-                {i < footerLinks.length - 1 && (
-                  <span className="text-text-secondary ml-3 select-none" aria-hidden="true">
-                    ·
-                  </span>
-                )}
+                <span className="text-text-secondary ml-3 select-none" aria-hidden="true">
+                  ·
+                </span>
               </li>
             ))}
+            <li>
+              <LocaleSwitcher />
+            </li>
           </ul>
         </nav>
         <p className="text-text-secondary text-xs">

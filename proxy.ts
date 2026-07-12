@@ -84,6 +84,13 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  // Override Accept-Language if user set a locale preference
+  const VALID_LOCALES = ["en", "ko", "ja", "zh", "fr", "de", "es"];
+  const cookieLocale = request.cookies.get("SERIEZ_LOCALE")?.value;
+  if (cookieLocale && VALID_LOCALES.includes(cookieLocale)) {
+    request.headers.set("accept-language", cookieLocale);
+  }
+
   // Apply i18n and updateSession, merge headers
   const intlRes = handleI18n(request);
   const sessionRes = await updateSession(request);
