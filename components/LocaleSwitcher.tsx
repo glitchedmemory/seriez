@@ -22,8 +22,7 @@ export default function LocaleSwitcher() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ locale: next }),
     });
-    // Unique URL to bypass CDN cache
-    window.location.href = window.location.pathname + "?_l=" + next + "&_t=" + Date.now();
+    window.location.reload();
   }
 
   return (
