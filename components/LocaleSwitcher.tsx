@@ -24,6 +24,8 @@ export default function LocaleSwitcher() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ locale: next }),
       });
+      // Wait for browser to process Set-Cookie before reload
+      await new Promise((r) => setTimeout(r, 200));
       window.location.reload();
     },
     [locale]
@@ -33,11 +35,11 @@ export default function LocaleSwitcher() {
     <select
       value={locale}
       onChange={(e) => handleChange(e.target.value)}
-      className="text-text-secondary bg-transparent border-none cursor-pointer text-sm outline-none appearance-none hover:text-accent transition-colors"
+      className="text-text-secondary bg-transparent border-none cursor-pointer text-sm outline-none hover:text-accent transition-colors"
       aria-label="Language"
     >
       {Object.entries(LANGUAGES).map(([code, name]) => (
-        <option key={code} value={code}>
+        <option key={code} value={code} className="bg-bg-card text-text-primary">
           {name}
         </option>
       ))}
