@@ -88,7 +88,9 @@ export async function proxy(request: NextRequest) {
   const VALID_LOCALES = ["en", "ko", "ja", "zh", "fr", "de", "es"];
   const cookieLocale = request.cookies.get("SERIEZ_LOCALE")?.value;
   if (cookieLocale && VALID_LOCALES.includes(cookieLocale)) {
-    request.headers.set("accept-language", cookieLocale);
+    const headers = new Headers(request.headers);
+    headers.set("accept-language", cookieLocale);
+    request = new NextRequest(request.url, { headers });
   }
 
   // Apply i18n and updateSession, merge headers
