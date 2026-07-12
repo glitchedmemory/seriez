@@ -1,7 +1,6 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { useCallback } from "react";
 
 const LANGUAGES: Record<string, string> = {
   en: "English",
@@ -16,20 +15,18 @@ const LANGUAGES: Record<string, string> = {
 export default function LocaleSwitcher() {
   const locale = useLocale();
 
-  const handleChange = useCallback(
-    async (next: string) => {
-      if (next === locale) return;
-      await fetch("/api/set-locale", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locale: next }),
-      });
-      // Wait for browser to process Set-Cookie before reload
-      await new Promise((r) => setTimeout(r, 200));
-      window.location.reload();
-    },
-    [locale]
-  );
+  async function handleChange(next: string) {
+    if (next === locale) return;
+    await fetch("/api/set-locale", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locale: next }),
+    });
+    // Cache-bust to bypass CDN cached English version
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", next);
+    window.location.href = url.toString();
+  }
 
   return (
     <select

@@ -88,9 +88,7 @@ export async function proxy(request: NextRequest) {
   const VALID_LOCALES = ["en", "ko", "ja", "zh", "fr", "de", "es"];
   const cookieLocale = request.cookies.get("SERIEZ_LOCALE")?.value;
   if (cookieLocale && VALID_LOCALES.includes(cookieLocale)) {
-    const headers = new Headers(request.headers);
-    headers.set("accept-language", cookieLocale);
-    request = new NextRequest(request.url, { headers });
+    request.headers.set("accept-language", cookieLocale);
   }
 
   // Apply i18n and updateSession, merge headers
@@ -111,6 +109,11 @@ export async function proxy(request: NextRequest) {
       sameSite: cookie.sameSite as any,
     });
   });
+
+  // Prevent CDN caching when user has a locale preference
+  if (cookieLocale && VALID_LOCALES.includes(cookieLocale)) {
+    sessionRes.headers.set("Cache-Control", "private, no-store");
+  }
 
   return sessionRes;
 }
