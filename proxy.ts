@@ -110,8 +110,10 @@ export async function proxy(request: NextRequest) {
     });
   });
 
-  // Prevent CDN caching when user has a locale preference
-  if (cookieLocale && VALID_LOCALES.includes(cookieLocale)) {
+  // Prevent CDN caching homepage — always hit origin for locale to work
+  if (path === "/") {
+    sessionRes.headers.set("Cache-Control", "no-cache, must-revalidate");
+  } else if (cookieLocale && VALID_LOCALES.includes(cookieLocale)) {
     sessionRes.headers.set("Cache-Control", "private, no-store");
   }
 
