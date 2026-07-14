@@ -14,6 +14,14 @@ import { BotProvider } from "@/components/BotProvider";
 import { isBot } from "@/lib/bot";
 import AdminAwareLayout from "@/components/AdminAwareLayout";
 import FeedbackWidget from "@/components/FeedbackWidget";
+import LocaleProvider from "@/components/LocaleProvider";
+import en from "@/messages/en.json";
+import ko from "@/messages/ko.json";
+import ja from "@/messages/ja.json";
+import zh from "@/messages/zh.json";
+import fr from "@/messages/fr.json";
+import de from "@/messages/de.json";
+import es from "@/messages/es.json";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -104,6 +112,7 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
   const bot = await isBot();
+  const allMessages = { en, ko, ja, zh, fr, de, es };
 
   return (
     <html
@@ -155,14 +164,14 @@ export default async function RootLayout({
       </head>
       <body className="min-h-full flex bg-bg-primary text-text-primary">
         <BotProvider isBot={bot}>
-        <NextIntlClientProvider messages={messages}>
+        <LocaleProvider serverLocale={locale} serverMessages={messages} allMessages={allMessages}>
           <ThemeProvider>
             <AdminAwareLayout>
               {children}
             </AdminAwareLayout>
             <FeedbackWidget />
           </ThemeProvider>
-        </NextIntlClientProvider>
+        </LocaleProvider>
         </BotProvider>
       </body>
     </html>
