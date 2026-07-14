@@ -115,6 +115,8 @@ function getStoredMode(): TrendingMode {
 
 export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffice, region, randomSeed, curatedHero, curatedNextHero }: Props) {
   const t = useTranslations();
+  const [, forceRender] = useState(0);
+  useEffect(() => { forceRender(n => n + 1); }, []);
   const [trendingMode, setTrendingMode] = useState<TrendingMode>(getStoredMode);
   // Inline search state
   const [searchOpen, setSearchOpen] = useState(false);
