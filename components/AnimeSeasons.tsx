@@ -76,7 +76,7 @@ export default function AnimeSeasons({
                 : "bg-bg-card text-text-secondary border border-border hover:bg-accent/10 hover:text-text-primary hover:border-accent/30"
             }`}
           >
-            S{i + 1}
+            S{i + 2}
           </a>
         ))}
       </div>
