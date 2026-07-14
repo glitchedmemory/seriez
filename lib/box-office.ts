@@ -24,6 +24,17 @@ interface MatchResult {
   type: "movie";
 }
 
+// ─── Dynamic week calculation ───
+
+function getBOMWeek(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const jan1 = new Date(year, 0, 1);
+  const dayOfWeek = (jan1.getDay() + 6) % 7;
+  const weekNum = Math.ceil((((now.getTime() - jan1.getTime()) / 86400000) - dayOfWeek + 1) / 7) + 1;
+  return `${year}W${weekNum}`;
+}
+
 // ─── Country name mapping ───
 
 const COUNTRY_NAMES: Record<string, string> = {
@@ -163,7 +174,7 @@ async function resolvePoster(title: string): Promise<MatchResult> {
 
 async function scrapeUS(): Promise<TmdbResult[]> {
   try {
-    const res = await fetch("https://www.boxofficemojo.com/weekend/2026W23/", {
+    const res = await fetch(`https://www.boxofficemojo.com/weekend/${getBOMWeek()}/`, {
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
     });
     if (!res.ok) return [];
@@ -250,7 +261,7 @@ async function scrapeUK(): Promise<TmdbResult[]> {
 
 async function scrapeBOMArea(area: string): Promise<TmdbResult[]> {
   try {
-    const res = await fetch(`https://www.boxofficemojo.com/weekend/2026W23/?area=${area}`, {
+    const res = await fetch(`https://www.boxofficemojo.com/weekend/${getBOMWeek()}/?area=${area}`, {
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
     });
     if (!res.ok) return [];
