@@ -49,14 +49,14 @@ async function isMovie(id: number): Promise<boolean> {
   }
 }
 
-// Pre-render top 100 movies, 100 TV shows, and 100 anime at build time
+// Pre-render top 20,000 titles at build time (6,700 movies + 6,700 TV + 6,600 anime)
 export async function generateStaticParams() {
   const ids: { id: string }[] = [];
   const TMDB_KEY = process.env.TMDB_API_KEY!;
 
   try {
-    // TMDB popular movies (84 pages × 20 = 1680)
-    for (let page = 1; page <= 84; page++) {
+    // TMDB popular movies (335 pages × 20 = 6,700)
+    for (let page = 1; page <= 335; page++) {
       const res = await fetch(
         `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_KEY}&language=en-US&page=${page}`
       );
@@ -68,8 +68,8 @@ export async function generateStaticParams() {
   } catch {}
 
   try {
-    // TMDB popular TV shows (84 pages × 20 = 1680)
-    for (let page = 1; page <= 84; page++) {
+    // TMDB popular TV shows (335 pages × 20 = 6,700)
+    for (let page = 1; page <= 335; page++) {
       const res = await fetch(
         `https://api.themoviedb.org/3/tv/popular?api_key=${TMDB_KEY}&language=en-US&page=${page}`
       );
@@ -81,8 +81,8 @@ export async function generateStaticParams() {
   } catch {}
 
   try {
-    // AniList popular anime (33 pages × 50 = 1650)
-    for (let page = 1; page <= 33; page++) {
+    // AniList popular anime (132 pages × 50 = 6,600)
+    for (let page = 1; page <= 132; page++) {
       const res = await fetch("https://graphql.anilist.co", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
