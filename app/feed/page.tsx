@@ -21,14 +21,16 @@ interface Activity {
   createdAt: string;
 }
 
-const TYPE_CONFIG: Record<string, { emoji: string; text: string; badge: string; color: string; badgeClass: string }> = {
-  review:      { emoji: "📝", text: "reviewed",         badge: "REVIEW",   color: "#a855f7", badgeClass: "bg-accent-light/15 text-[#c084fc]" },
-  rated:       { emoji: "⭐", text: "rated",             badge: "RATED",    color: "#f59e0b", badgeClass: "bg-gold/15 text-[#fbbf24]" },
-  watched:     { emoji: "✅", text: "watched",            badge: "WATCHED",  color: "#22c55e", badgeClass: "bg-[#22c55e]/15 text-[#4ade80]" },
-  watching:    { emoji: "👁️", text: "is watching",       badge: "WATCHING", color: "#3b82f6", badgeClass: "bg-[#3b82f6]/15 text-[#60a5fa]" },
-  plan_to_watch:{ emoji: "📌", text: "plans to watch",  badge: "PLAN",     color: "#6b7280", badgeClass: "bg-[#6b7280]/15 text-text-secondary" },
-  collection:  { emoji: "📁", text: "published a collection", badge: "", color: "#ec4899", badgeClass: "" },
-};
+function getTypeConfig(t: any) {
+  return {
+    review:      { emoji: "📝", text: t("feedPage.reviewed"),         badge: t("feedPage.badgeReview"),   color: "#a855f7", badgeClass: "bg-accent-light/15 text-[#c084fc]" },
+    rated:       { emoji: "⭐", text: t("feedPage.rated"),             badge: t("feedPage.badgeRated"),    color: "#f59e0b", badgeClass: "bg-gold/15 text-[#fbbf24]" },
+    watched:     { emoji: "✅", text: t("feedPage.watched"),            badge: t("feedPage.badgeWatched"),  color: "#22c55e", badgeClass: "bg-[#22c55e]/15 text-[#4ade80]" },
+    watching:    { emoji: "👁️", text: t("feedPage.isWatching"),       badge: t("feedPage.badgeWatching"), color: "#3b82f6", badgeClass: "bg-[#3b82f6]/15 text-[#60a5fa]" },
+    plan_to_watch:{ emoji: "📌", text: t("feedPage.plansToWatch"),  badge: t("feedPage.badgePlan"),     color: "#6b7280", badgeClass: "bg-[#6b7280]/15 text-text-secondary" },
+    collection:  { emoji: "📁", text: t("feedPage.publishedCollection"), badge: "", color: "#ec4899", badgeClass: "" },
+  } as Record<string, { emoji: string; text: string; badge: string; color: string; badgeClass: string }>;
+}
 
 const AVATAR_COLORS = [
   "from-[#7c3aed] to-[#a855f7]",
@@ -45,14 +47,14 @@ function getAvatarColor(username: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-function timeAgo(dateStr: string, now: number): string {
+function timeAgo(dateStr: string, now: number, t: any): string {
   const diff = now - new Date(dateStr).getTime();
   const min = Math.floor(diff / 60000);
-  if (min < 60) return `${min}m ago`;
+  if (min < 60) return t("feedPage.minAgo").replace("{n}", String(min));
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}h ago`;
+  if (hr < 24) return t("feedPage.hourAgo").replace("{n}", String(hr));
   const days = Math.floor(hr / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) return t("feedPage.dayAgo").replace("{n}", String(days));
   return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
@@ -82,7 +84,7 @@ export default function FeedPage() {
         if (data.error) { setError(data.error); return; }
         setActivities(data.activities || []);
       })
-      .catch(() => setError("Failed to load"))
+      .catch(() => setError(t("streaming.failedToLoad")))
       .finally(() => setLoading(false));
   }, []);
 
@@ -111,15 +113,16 @@ export default function FeedPage() {
       ) : activities.length === 0 ? (
         <div className="px-4 mt-10 text-center">
           <span className="text-4xl mb-3 block">🔔</span>
-          <h2 className="text-text-primary text-lg font-bold mb-2">No activity yet</h2>
+          <h2 className="text-text-primary text-lg font-bold mb-2">{t("feedPage.noActivity")}</h2>
           <p className="text-text-secondary text-sm">
-            Follow other users to see their activity here.
+            {t("feedPage.noActivityDesc")}
           </p>
         </div>
       ) : (
         <div className="">
           {activities.map((a, idx) => {
-            const cfg = TYPE_CONFIG[a.type] || TYPE_CONFIG.plan_to_watch;
+            const typeConfig = getTypeConfig(t);
+            const cfg = typeConfig[a.type] || typeConfig.plan_to_watch;
             const isCollection = a.type === "collection";
             const hasReview = a.type === "review" && a.content;
             const href = isCollection
@@ -175,10 +178,10 @@ export default function FeedPage() {
                   )}
                   {isCollection && a.itemCount !== undefined && (
                     <span className="text-[11px] text-[#ec4899]">
-                      📁 {a.itemCount} item{a.itemCount !== 1 ? "s" : ""}
+                      📁 {a.itemCount} {a.itemCount !== 1 ? t("feedPage.items") : t("feedPage.item")}
                     </span>
                   )}
-                  <span className="text-[11px] text-text-secondary">{timeAgo(a.createdAt, now)}</span>
+                  <span className="text-[11px] text-text-secondary">{timeAgo(a.createdAt, now, t)}</span>
                 </div>
 
                 {/* Review snippet */}
