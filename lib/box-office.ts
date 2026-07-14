@@ -31,7 +31,7 @@ function getBOMWeek(): string {
   const year = now.getFullYear();
   const jan1 = new Date(year, 0, 1);
   const dayOfWeek = (jan1.getDay() + 6) % 7;
-  const weekNum = Math.ceil((((now.getTime() - jan1.getTime()) / 86400000) - dayOfWeek + 1) / 7) + 1;
+  const weekNum = Math.ceil((((now.getTime() - jan1.getTime()) / 86400000) - dayOfWeek + 1) / 7);
   return `${year}W${weekNum}`;
 }
 
