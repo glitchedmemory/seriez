@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { PosterCard, HorizontalScroll } from "@/components/PosterCard";
 import { HeroCard } from "@/components/HeroCard";
@@ -113,6 +114,7 @@ function getStoredMode(): TrendingMode {
 }
 
 export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffice, region, randomSeed, curatedHero, curatedNextHero }: Props) {
+  const t = useTranslations();
   const [trendingMode, setTrendingMode] = useState<TrendingMode>(getStoredMode);
   // Inline search state
   const [searchOpen, setSearchOpen] = useState(false);
@@ -300,7 +302,7 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
                   ? forYouItems.slice(0, 14)
                   : trending.slice(0, 14)
                 ).map((item) => (
-                  <CardWrapper key={item.id} item={item} reasonText={forYouReasons[item.id] && !["Recommended for you","Trending this week"].includes(forYouReasons[item.id]) ? forYouReasons[item.id] : undefined} />
+                  <CardWrapper key={item.id} item={item} reasonText={forYouReasons[item.id] && ![t("home.recommendedForYou"),t("home.trendingThisWeekLower")].includes(forYouReasons[item.id]) ? forYouReasons[item.id] : undefined} />
                 ))
               )}
             </PosterGrid>
@@ -321,7 +323,7 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
                 <div className="flex items-center gap-2">
                   <span className="text-lg">🔥</span>
                   <div>
-                    <h2 className="text-base font-semibold text-text-primary">Trending This Week</h2>
+                    <h2 className="text-base font-semibold text-text-primary">{t("home.trendingThisWeek")}</h2>
                     <p className="text-[11px] text-text-secondary">Most popular {trendingMode === "movie" ? "movies" : trendingMode === "tv" ? "TV" : "anime"}</p>
                   </div>
                 </div>
@@ -373,7 +375,7 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
 
           <section>
             <div className="px-4 md:px-0 mb-3">
-              <SectionHeader emoji="🎬" title={`Box Office · ${region}`} subtitle="Weekend Top 10" />
+              <SectionHeader emoji="🎬" title={`${t("home.boxOffice")} · ${region}`} subtitle={t("home.weekendTop10")} />
             </div>
             <div className="flex gap-3 overflow-x-auto px-4 pb-2 hide-scrollbar snap-x snap-mandatory">
               {boxOffice.map((movie, i) => (

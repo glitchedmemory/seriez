@@ -19,19 +19,19 @@ interface LibraryItem {
 interface Collection { id: string; name: string; isPublic: boolean; isPublished: boolean; itemCount: number; createdAt: string; }
 interface CollectionItem { tmdbId: number; mediaType: string; seasonNumber: number; title: string; poster: string | null; year: number | null; rating: number; note: string | null; addedAt: string; }
 
-const TABS = [
-  { key: "plan_to_watch", label: "To Watch" },
-  { key: "watching", label: "Watching" },
-  { key: "completed", label: "Watched" },
-];
+function getTabs(t: any) { return [
+  { key: "plan_to_watch", label: t("libraryPage.toWatch") },
+  { key: "watching", label: t("libraryPage.watching") },
+  { key: "completed", label: t("libraryPage.watched") },
+]; }
 
-const SORT_OPTIONS = [
-  { key: "recent", label: "Recent" },
-  { key: "rating", label: "My Rating" },
-  { key: "popularity", label: "Popular" },
-  { key: "year", label: "Year" },
-] as const;
-type SortKey = typeof SORT_OPTIONS[number]["key"];
+function getSortOptions(t: any) { return [
+  { key: "recent", label: t("libraryPage.recent") },
+  { key: "rating", label: t("libraryPage.myRating") },
+  { key: "popularity", label: t("libraryPage.popular") },
+  { key: "year", label: t("libraryPage.year") },
+] as const; }
+type SortKey = "recent" | "rating" | "popularity" | "year";
 
 // ─── Tracking grid ───
 function TrackingGrid({ activeTab }: { activeTab: string }) {
@@ -90,13 +90,13 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
 
   if (!localUser) return <EmptyState icon="signin" title={t("library.signInTitle")} description={t("library.signInDesc")} action={{ label: t("library.signInAction"), href: "/signup" }} />;
   if (loading) return <ListSkeleton rows={6} />;
-  if (total === 0) return <EmptyState icon="empty" title={activeTab ? `No ${TABS.find(t=>t.key===activeTab)?.label || "items"} yet` : "Your library is empty"} description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />;
+  if (total === 0) return <EmptyState icon="empty" title={activeTab ? `No ${getTabs(t).find(tab=>tab.key===activeTab)?.label || "items"} yet` : "Your library is empty"} description="Start tracking movies and shows to build your collection." action={{ label: "Discover titles", href: "/" }} />;
 
   return (
     <div className="max-w-4xl mx-auto px-4 mt-4">
       {/* Sort bar */}
       <div className="flex gap-1.5 mb-3">
-        {SORT_OPTIONS.map(opt => (
+        {getSortOptions(t).map(opt => (
           <button
             key={opt.key}
             onClick={() => setSort(opt.key)}
@@ -126,7 +126,7 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
         <a key={itemKey} href={itemHref} className="block group">
           <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card">
             {displayPoster ? <PosterImage src={displayPoster} alt={displayTitle} fill className="rounded-xl group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 33vw, 200px" /> : <div className="w-full h-full flex items-center justify-center text-text-primary/20 text-2xl font-bold">{displayTitle.slice(0,2)}</div>}
-            <div className="absolute top-2 left-2"><span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${item.status==="completed"?"bg-green-500/20 text-green-400":item.status==="watching"?"bg-blue-500/20 text-blue-400":"bg-amber-500/20 text-amber-400"}`}>{item.status==="completed"?"Watched":item.status==="watching"?"Watching":"To Watch"}</span></div>
+            <div className="absolute top-2 left-2"><span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${item.status==="completed"?"bg-green-500/20 text-green-400":item.status==="watching"?"bg-blue-500/20 text-blue-400":"bg-amber-500/20 text-amber-400"}`}>{item.status==="completed"?t("libraryPage.watched"):item.status==="watching"?t("libraryPage.watching"):t("libraryPage.toWatch")}</span></div>
             {item.tmdbRating > 0 && <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-gold">★ {item.tmdbRating}</div>}
             {item.rating && <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-pink-400">★ {item.rating}</div>}
           </div>

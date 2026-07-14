@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -44,6 +45,7 @@ interface ProfileStats {
 }
 
 export default function ProfilePage() {
+  const t = useTranslations();
   const [user, setUser] = useState<{ email?: string; user_metadata?: { username?: string }; created_at?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
@@ -258,13 +260,13 @@ export default function ProfilePage() {
 
   // ── Tab page: Followers / Following ──
   if (tab === "followers" || tab === "following") {
-    const tabLabel = tab === "followers" ? "Followers" : "Following";
+    const tabLabel = tab === "followers" ? t("profilePage.followers") : t("profilePage.following");
     return (
       <ErrorBoundary sectionName={`Profile ${tabLabel}`}>
         <div className="w-[896px] max-w-full mx-auto pb-32">
           <div className="flex items-center gap-4 px-4 pt-4 pb-3">
             <button onClick={() => { const params = new URLSearchParams(searchParams.toString()); params.delete("tab"); router.push(`/profile?${params.toString()}`); }}
-              className="text-text-secondary hover:text-text-primary transition-colors">← Back</button>
+              className="text-text-secondary hover:text-text-primary transition-colors">← {t("common.back")}</button>
             <h1 className="text-lg font-bold text-text-primary">{effectiveUsername ? `@${effectiveUsername}` : ""} · {tabLabel}</h1>
           </div>
           <div className="px-4">
@@ -273,7 +275,7 @@ export default function ProfilePage() {
                 {[1, 2, 3].map(i => (<div key={i} className="bg-bg-card border border-border rounded-xl p-4 animate-pulse"><div className="flex items-center gap-3"><div className="w-12 h-12 rounded-full bg-bg-card-hover" /><div className="flex-1"><div className="h-4 w-24 bg-bg-card-hover rounded mb-2" /><div className="h-3 w-32 bg-bg-card-hover rounded" /></div></div></div>))}
               </div>
             ) : followList.length === 0 ? (
-              <p className="text-center text-text-secondary py-12">{tab === "followers" ? "No followers yet" : "Not following anyone yet"}</p>
+              <p className="text-center text-text-secondary py-12">{tab === "followers" ? t("profilePage.noFollowers") : t("profilePage.noFollowing")}</p>
             ) : (
               <div className="space-y-2 mt-2">
                 {followList.map((u: any) => (
@@ -287,9 +289,9 @@ export default function ProfilePage() {
                     </div>
                     {!u.isFollowing && u.username !== ownUsername && user && (
                       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); fetch("/api/follow", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ followingUsername: u.username }) }).then(() => { setFollowList(prev => prev.map(f => f.username === u.username ? { ...f, isFollowing: true } : f)); }); }}
-                        className="px-3 py-1.5 bg-accent hover:bg-[#818cf8] text-white text-xs font-medium rounded-lg transition-colors">Follow</button>
+                        className="px-3 py-1.5 bg-accent hover:bg-[#818cf8] text-white text-xs font-medium rounded-lg transition-colors">{t("profilePage.follow")}</button>
                     )}
-                    {u.isFollowing && u.username !== ownUsername && <span className="text-[10px] text-text-secondary px-2">Following</span>}
+                    {u.isFollowing && u.username !== ownUsername && <span className="text-[10px] text-text-secondary px-2">{t("profilePage.following_action")}</span>}
                   </a>
                 ))}
               </div>
@@ -325,7 +327,7 @@ export default function ProfilePage() {
             <div className={`w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden ${!avatarUrl ? "bg-gradient-to-br from-[#6366f1] to-[#a855f7]" : ""}`}>
               {avatarUrl ? <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" /> : <img src="/icons/default-avatar.png" alt="" className="w-full h-full object-cover" />}
             </div>
-            {joinLabel && <span className="text-xs text-text-secondary pb-1 whitespace-nowrap">Since {joinLabel}</span>}
+            {joinLabel && <span className="text-xs text-text-secondary pb-1 whitespace-nowrap">{t("profilePage.since")} {joinLabel}</span>}
           </div>
           <div className="flex-1" />
           {isOwn && user ? (
@@ -340,20 +342,20 @@ export default function ProfilePage() {
               {showNotifications && (
                 <div className="absolute right-0 mt-2 w-80 bg-bg-card border border-border rounded-xl shadow-2xl z-50 overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-                    <h3 className="text-sm font-semibold text-text-primary">Notifications</h3>
-                    {unreadCount > 0 && <button onClick={markAllRead} className="text-xs text-accent hover:underline">Mark all read</button>}
+                    <h3 className="text-sm font-semibold text-text-primary">{t("profilePage.notifications")}</h3>
+                    {unreadCount > 0 && <button onClick={markAllRead} className="text-xs text-accent hover:underline">{t("profilePage.markAllRead")}</button>}
                   </div>
                   <div className="max-h-80 overflow-y-auto">
-                    {notifications.length === 0 ? <div className="px-4 py-8 text-center text-text-secondary text-sm">No notifications yet.</div> : notifications.slice(0, 20).map((n: any) => (
+                    {notifications.length === 0 ? <div className="px-4 py-8 text-center text-text-secondary text-sm">{t("profilePage.noNotifications")}</div> : notifications.slice(0, 20).map((n: any) => (
                       <div key={n.id} className={`px-4 py-3 border-b border-border/50 hover:bg-bg-surface transition-colors group ${!n.read ? "bg-accent/5" : "opacity-60"}`}>
                         <div className="flex items-start gap-2">
                           <span className="text-sm mt-0.5">{n.type === "announcement" ? "📢" : n.type === "like" ? "❤️" : n.type === "follow" ? "👤" : n.type === "comment" ? "💬" : "🔔"}</span>
                           <div className="flex-1 min-w-0">
                             <p className={`text-sm text-text-primary leading-snug line-clamp-3 ${n.read ? "line-through decoration-text-secondary/40" : ""}`}>{n.title_name || n.message || "Notification"}</p>
-                            {n.actor_username && n.type !== "announcement" && <p className="text-xs text-text-secondary mt-0.5">from @{n.actor_username}</p>}
+                            {n.actor_username && n.type !== "announcement" && <p className="text-xs text-text-secondary mt-0.5">{t("profilePage.from")} @{n.actor_username}</p>}
                             <div className="flex items-center gap-3 mt-1">
                               <p className="text-[10px] text-text-secondary">{new Date(n.created_at).toLocaleDateString()} {new Date(n.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
-                              <button onClick={(e) => { e.stopPropagation(); markOneRead(n.id); }} className={`text-[10px] hover:underline ${n.read ? "text-text-secondary" : "text-accent"}`}>{n.read ? "Read" : "Mark read"}</button>
+                              <button onClick={(e) => { e.stopPropagation(); markOneRead(n.id); }} className={`text-[10px] hover:underline ${n.read ? "text-text-secondary" : "text-accent"}`}>{n.read ? t("profilePage.read") : t("profilePage.markRead")}</button>
                             </div>
                           </div>
                           <div className="flex flex-col items-center gap-1 flex-shrink-0">
@@ -369,10 +371,10 @@ export default function ProfilePage() {
             </div>
           ) : !isOwn && user ? (
             <button onClick={handleFollow} className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 mb-1 ${bounce ? "scale-110" : "scale-100"} ${isFollowing ? "bg-bg-card border border-border text-text-secondary hover:text-red-400 hover:border-red-500" : "bg-accent text-white hover:bg-[#818cf8] shadow-lg shadow-[#6366f1]/25"}`}>
-              {isFollowing ? "Following" : "Follow"}
+              {isFollowing ? t("profilePage.following_action") : t("profilePage.follow")}
             </button>
           ) : !isOwn && !user ? (
-            <a href="/login" className="px-5 py-2 rounded-xl text-sm font-semibold bg-accent text-white hover:bg-[#818cf8] shadow-lg shadow-[#6366f1]/25 transition-colors mb-1">Follow</a>
+            <a href="/login" className="px-5 py-2 rounded-xl text-sm font-semibold bg-accent text-white hover:bg-[#818cf8] shadow-lg shadow-[#6366f1]/25 transition-colors mb-1">{t("profilePage.follow")}</a>
           ) : null}
         </div>
 
@@ -387,11 +389,11 @@ export default function ProfilePage() {
           )}
           {(isOwn && user) && (
             <>
-            <button onClick={() => router.push("/profile/settings")} className="ml-1 w-7 h-7 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-card transition-all" title="Settings">
+            <button onClick={() => router.push("/profile/settings")} className="ml-1 w-7 h-7 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-card transition-all" title={t("profilePage.settings")}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
             <button onClick={async () => { const sb = createClient(); await sb.auth.signOut(); localStorage.removeItem("seriez-username"); router.push("/"); router.refresh(); }}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-all" title="Sign out">
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-all" title={t("profilePage.signOut")}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
             </>
@@ -399,11 +401,11 @@ export default function ProfilePage() {
         </div>
         <div className="flex gap-5 mt-1 text-sm text-text-secondary">
           {user ? (<>
-            <button onClick={() => fetchFollowList("followers")} className="hover:text-text-primary transition-colors"><strong className="text-text-primary">{followersCount}</strong> followers</button>
-            <button onClick={() => fetchFollowList("following")} className="hover:text-text-primary transition-colors"><strong className="text-text-primary">{followingCount}</strong> following</button>
+            <button onClick={() => fetchFollowList("followers")} className="hover:text-text-primary transition-colors"><strong className="text-text-primary">{followersCount}</strong> {t("profilePage.followers")}</button>
+            <button onClick={() => fetchFollowList("following")} className="hover:text-text-primary transition-colors"><strong className="text-text-primary">{followingCount}</strong> {t("profilePage.following")}</button>
           </>) : (<>
-            <span className="pointer-events-none"><strong className="text-text-primary">—</strong> followers</span>
-            <span className="pointer-events-none"><strong className="text-text-primary">—</strong> following</span>
+            <span className="pointer-events-none"><strong className="text-text-primary">—</strong> {t("profilePage.followers")}</span>
+            <span className="pointer-events-none"><strong className="text-text-primary">—</strong> {t("profilePage.following")}</span>
           </>)}
         </div>
       </div>
@@ -412,10 +414,10 @@ export default function ProfilePage() {
       <div className="px-6 mt-6">
         <div className="flex border-b border-border/60">
           {[
-            { id: "profile" as const, label: "Profile" },
-            { id: "insights" as const, label: "Insights" },
-            { id: "ott" as const, label: "OTT", mobile: true },
-            { id: "reviews" as const, label: "Reviews" },
+            { id: "profile" as const, label: t("profilePage.tabs.profile") },
+            { id: "insights" as const, label: t("profilePage.tabs.insights") },
+            { id: "ott" as const, label: t("profilePage.tabs.ott"), mobile: true },
+            { id: "reviews" as const, label: t("profilePage.tabs.reviews") },
           ].filter(t => !t.mobile || true).map(tab => (
             <button key={tab.id}
               onClick={() => setActiveView(tab.id)}
@@ -437,9 +439,9 @@ export default function ProfilePage() {
         <div className="px-6 mt-5 pb-32">
           <div className="bg-bg-card border border-border rounded-2xl p-8 text-center">
             <span className="text-5xl block mb-4">🔒</span>
-            <h2 className="text-lg font-bold text-text-primary mb-2">Sign in to see full profile</h2>
-            <p className="text-sm text-text-secondary leading-relaxed max-w-md mx-auto mb-4">Track what you watch, discover new favorites, and connect with friends</p>
-            <a href="/login" className="inline-block px-6 py-2.5 bg-accent text-white text-sm font-bold rounded-xl hover:bg-[#818cf8] transition-colors">Sign In / Sign Up</a>
+            <h2 className="text-lg font-bold text-text-primary mb-2">{t("profilePage.signInTitle")}</h2>
+            <p className="text-sm text-text-secondary leading-relaxed max-w-md mx-auto mb-4">{t("profilePage.signInDesc")}</p>
+            <a href="/login" className="inline-block px-6 py-2.5 bg-accent text-white text-sm font-bold rounded-xl hover:bg-[#818cf8] transition-colors">{t("profilePage.signInAction")}</a>
           </div>
         </div>
       ) : (<>
@@ -450,7 +452,7 @@ export default function ProfilePage() {
           <div className="flex justify-center mb-4">
             <div className="inline-flex bg-bg-card rounded-full p-0.5 border border-border">
               {(["movie", "tv", "anime"] as const).map((type) => {
-                const labels: Record<string, string> = { movie: "Movie", tv: "TV", anime: "Anime" };
+                const labels: Record<string, string> = { movie: t("profilePage.movie"), tv: t("profilePage.tv"), anime: t("profilePage.anime") };
                 return (
                   <button key={type} onClick={() => { setSelectedMediaType(type); fetchStats(type); }}
                     className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all ${selectedMediaType === type ? "bg-accent text-white shadow-sm" : "text-text-secondary hover:text-text-primary"}`}>
@@ -463,19 +465,19 @@ export default function ProfilePage() {
           <div className="grid grid-cols-4 gap-3">
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-text-primary">{stats.totals.watched}</p>
-              <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">Watched</p>
+              <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.watched")}</p>
             </div>
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-text-primary">{stats.totals.hours}h</p>
-              <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">Hours</p>
+              <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.hours")}</p>
             </div>
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-yellow-400">{stats.rating.average || "—"}</p>
-              <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">Avg ★</p>
+              <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.avgRating")}</p>
             </div>
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-text-primary">{stats.totals.rated}</p>
-              <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">Rated</p>
+              <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.rated")}</p>
             </div>
           </div>
         </div>
@@ -489,7 +491,7 @@ export default function ProfilePage() {
             if (favs.length < 2) return null;
             return (
               <div>
-                <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">Favorites</h3>
+                <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">{t("profilePage.favorites")}</h3>
                 <div className="grid grid-cols-4 gap-2">
                   {favs.map((item) => (
                     <a key={(item as any).tmdbId} href={`/title/${(item as any).tmdbId}?type=${(item as any).mediaType}`}
@@ -513,12 +515,12 @@ export default function ProfilePage() {
         <div className="px-6 mt-6 space-y-4">
           <div className="flex items-center gap-3 px-1">
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#818cf8] to-[#a78bfa] flex items-center justify-center flex-shrink-0"><span className="text-text-primary text-xs">♡</span></div>
-            <span className="text-sm text-text-secondary">Taste Match</span>
+            <span className="text-sm text-text-secondary">{t("profilePage.tasteMatch")}</span>
             <span className="text-2xl font-bold text-text-primary ml-auto">{compareData.matchRate}%</span>
           </div>
           {compareData.bothEnjoyed.length > 0 && (
             <div>
-              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-2 px-1">Both Enjoyed</h3>
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-2 px-1">{t("profilePage.bothEnjoyed")}</h3>
               <div className="space-y-2">
                 {compareData.bothEnjoyed.slice(0, 3).map((item, i) => (
                   <a key={i} href={`/title/${item.tmdbId}?type=${item.mediaType}`} className="flex items-center gap-3 bg-bg-card border border-border rounded-xl p-3 hover:border-accent/40 transition-colors">
@@ -531,7 +533,7 @@ export default function ProfilePage() {
           )}
           {compareData.divergent.length > 0 && (
             <div>
-              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-2 px-1">Ratings Apart</h3>
+              <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-2 px-1">{t("profilePage.ratingsApart")}</h3>
               <div className="space-y-2">
                 {compareData.divergent.slice(0, 3).map((item, i) => (
                   <a key={i} href={`/title/${item.tmdbId}?type=${item.mediaType}`} className="flex items-center gap-3 bg-bg-card border border-border rounded-xl p-3 hover:border-accent/40 transition-colors">
@@ -539,9 +541,9 @@ export default function ProfilePage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-text-primary font-medium truncate">{item.title}</p>
                       <div className="flex items-center gap-4 mt-1.5">
-                        <div className="flex items-center gap-1.5"><span className="text-[10px] text-text-secondary w-8">You</span><div className="flex items-center gap-1"><span className="text-sm font-semibold text-[#818cf8]">{item.myRating}</span><span className="text-[10px] text-[#818cf8]/60">★</span></div></div>
+                        <div className="flex items-center gap-1.5"><span className="text-[10px] text-text-secondary w-8">{t("profilePage.you")}</span><div className="flex items-center gap-1"><span className="text-sm font-semibold text-[#818cf8]">{item.myRating}</span><span className="text-[10px] text-[#818cf8]/60">★</span></div></div>
                         <div className="w-px h-4 bg-border" />
-                        <div className="flex items-center gap-1.5"><span className="text-[10px] text-text-secondary w-8">Them</span><div className="flex items-center gap-1"><span className="text-sm font-semibold text-gold">{item.theirRating}</span><span className="text-[10px] text-gold/60">★</span></div></div>
+                        <div className="flex items-center gap-1.5"><span className="text-[10px] text-text-secondary w-8">{t("profilePage.them")}</span><div className="flex items-center gap-1"><span className="text-sm font-semibold text-gold">{item.theirRating}</span><span className="text-[10px] text-gold/60">★</span></div></div>
                       </div>
                     </div>
                   </a>
@@ -556,7 +558,7 @@ export default function ProfilePage() {
       {stats && stats.topDirectors && stats.topDirectors.length > 0 && (
         <div className="px-6 mt-6">
           <div className="flex items-center gap-3 mb-3">
-            <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide">{isFavoriteMode ? "Favorite Directors" : "Top Directors"}</h3>
+            <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide">{isFavoriteMode ? t("profilePage.favoriteDirectors") : t("profilePage.topDirectors")}</h3>
             {isOwn && (
               <button onClick={async () => {
                 if (!isFavoriteMode && effectiveUsername) {
@@ -572,13 +574,13 @@ export default function ProfilePage() {
               </button>
             )}
           </div>
-          {isFavoriteMode ? (favoriteDirectors.length > 0 ? <div className="flex flex-wrap gap-2">{favoriteDirectors.slice(0, 8).map((d: any) => (<a key={`${d.person_source}-${d.person_id}`} href={`/person/${d.person_source === "anilist" ? "anilist/" : ""}${d.person_id}`} className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors">{d.person_image && <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0"><img src={d.person_image} alt={d.person_name} className="w-full h-full object-cover" /></div>}<span className="text-xs text-text-primary">{d.person_name}</span></a>))}</div> : <p className="text-xs text-text-secondary">No favorite directors yet.</p>) : <div className="flex flex-wrap gap-2">{stats.topDirectors.slice(0, 5).map((d) => (d.personId ? <a key={d.name} href={`/person/${d.personSource === "anilist" ? "anilist/" : ""}${d.personId}`} className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors">{d.image && <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0"><img src={d.image} alt={d.name} className="w-full h-full object-cover" /></div>}<span className="text-xs text-text-primary">{d.name}</span></a> : <span key={d.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">{d.name}</span>))}</div>}
+          {isFavoriteMode ? (favoriteDirectors.length > 0 ? <div className="flex flex-wrap gap-2">{favoriteDirectors.slice(0, 8).map((d: any) => (<a key={`${d.person_source}-${d.person_id}`} href={`/person/${d.person_source === "anilist" ? "anilist/" : ""}${d.person_id}`} className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors">{d.person_image && <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0"><img src={d.person_image} alt={d.person_name} className="w-full h-full object-cover" /></div>}<span className="text-xs text-text-primary">{d.person_name}</span></a>))}</div> : <p className="text-xs text-text-secondary">{t("profilePage.noFavoriteDirectors")}</p>) : <div className="flex flex-wrap gap-2">{stats.topDirectors.slice(0, 5).map((d) => (d.personId ? <a key={d.name} href={`/person/${d.personSource === "anilist" ? "anilist/" : ""}${d.personId}`} className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors">{d.image && <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0"><img src={d.image} alt={d.name} className="w-full h-full object-cover" /></div>}<span className="text-xs text-text-primary">{d.name}</span></a> : <span key={d.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">{d.name}</span>))}</div>}
         </div>
       )}
       {stats && stats.topActors && stats.topActors.length > 0 && (
         <div className="px-6 mt-5">
-          <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">{isFavoriteMode ? "Favorite Actors" : "Top Actors"}</h3>
-          {isFavoriteMode ? (favoriteActors.length > 0 ? <div className="flex flex-wrap gap-2">{favoriteActors.slice(0, 8).map((a: any) => (<a key={`${a.person_source}-${a.person_id}`} href={`/person/${a.person_source === "anilist" ? "anilist/" : ""}${a.person_id}`} className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors">{a.person_image && <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0"><img src={a.person_image} alt={a.person_name} className="w-full h-full object-cover" /></div>}<span className="text-xs text-text-primary">{a.person_name}</span></a>))}</div> : <p className="text-xs text-text-secondary">No favorite actors yet.</p>) : <div className="flex flex-wrap gap-2">{stats.topActors.slice(0, 5).map((a) => (a.personId ? <a key={a.name} href={`/person/${a.personId}`} className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors">{a.image && <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0"><img src={a.image} alt={a.name} className="w-full h-full object-cover" /></div>}<span className="text-xs text-text-primary">{a.name}</span></a> : <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">{a.name}</span>))}</div>}
+          <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">{isFavoriteMode ? t("profilePage.favoriteActors") : t("profilePage.topActors")}</h3>
+          {isFavoriteMode ? (favoriteActors.length > 0 ? <div className="flex flex-wrap gap-2">{favoriteActors.slice(0, 8).map((a: any) => (<a key={`${a.person_source}-${a.person_id}`} href={`/person/${a.person_source === "anilist" ? "anilist/" : ""}${a.person_id}`} className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors">{a.person_image && <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0"><img src={a.person_image} alt={a.person_name} className="w-full h-full object-cover" /></div>}<span className="text-xs text-text-primary">{a.person_name}</span></a>))}</div> : <p className="text-xs text-text-secondary">{t("profilePage.noFavoriteActors")}</p>) : <div className="flex flex-wrap gap-2">{stats.topActors.slice(0, 5).map((a) => (a.personId ? <a key={a.name} href={`/person/${a.personId}`} className="flex items-center gap-2 px-2 py-1.5 bg-bg-card border border-border rounded-lg hover:bg-bg-surface transition-colors">{a.image && <div className="w-6 h-6 rounded-full overflow-hidden bg-bg-surface flex-shrink-0"><img src={a.image} alt={a.name} className="w-full h-full object-cover" /></div>}<span className="text-xs text-text-primary">{a.name}</span></a> : <span key={a.name} className="px-3 py-1.5 bg-bg-card border border-border rounded-lg text-xs text-text-primary">{a.name}</span>))}</div>}
         </div>
       )}
       </>)}
@@ -589,7 +591,7 @@ export default function ProfilePage() {
       {activeView === "insights" && isOwn && (
         <div className="px-6 mt-5 space-y-6 pb-32">
           {!user ? (
-            <div className="bg-bg-card border border-border rounded-2xl p-8 text-center"><span className="text-5xl block mb-4">🔒</span><h2 className="text-lg font-bold text-text-primary mb-2">Sign in to see Insights</h2><p className="text-sm text-text-secondary leading-relaxed max-w-md mx-auto mb-4">Track your watching habits, discover patterns, and unlock your personal Viewer DNA.</p><a href="/login" className="inline-block px-6 py-2.5 bg-accent text-white text-sm font-bold rounded-xl hover:bg-[#818cf8] transition-colors">Sign In / Sign Up</a></div>
+            <div className="bg-bg-card border border-border rounded-2xl p-8 text-center"><span className="text-5xl block mb-4">🔒</span><h2 className="text-lg font-bold text-text-primary mb-2">{t("profilePage.insightsSignInTitle")}</h2><p className="text-sm text-text-secondary leading-relaxed max-w-md mx-auto mb-4">{t("profilePage.insightsSignInDesc")}</p><a href="/login" className="inline-block px-6 py-2.5 bg-accent text-white text-sm font-bold rounded-xl hover:bg-[#818cf8] transition-colors">{t("profilePage.signInAction")}</a></div>
           ) : !stats ? (
             <div className="space-y-5"><div className="bg-bg-card border border-border rounded-2xl p-6 animate-pulse"><div className="h-4 w-32 bg-bg-card-hover rounded mb-4" /><div className="h-48 bg-bg-card-hover rounded-xl" /></div><div className="grid grid-cols-2 md:grid-cols-4 gap-3">{[1,2,3,4].map(i => <div key={i} className="bg-bg-card border border-border rounded-xl p-4 animate-pulse"><div className="h-8 w-12 bg-bg-card-hover rounded mb-2" /><div className="h-3 w-16 bg-bg-card-hover rounded" /></div>)}</div></div>
           ) : (<>
@@ -629,7 +631,7 @@ export default function ProfilePage() {
       {activeView === "reviews" && isOwn && (
         <div className="px-6 mt-5 pb-32">
           {!user ? (
-            <div className="bg-bg-card border border-border rounded-2xl p-8 text-center"><span className="text-5xl block mb-4">🔒</span><h2 className="text-lg font-bold text-text-primary mb-2">Sign in to see reviews</h2><p className="text-sm text-text-secondary leading-relaxed max-w-md mx-auto mb-4">Your reviews and ratings will appear here.</p><a href="/login" className="inline-block px-6 py-2.5 bg-accent text-white text-sm font-bold rounded-xl hover:bg-[#818cf8] transition-colors">Sign In / Sign Up</a></div>
+            <div className="bg-bg-card border border-border rounded-2xl p-8 text-center"><span className="text-5xl block mb-4">🔒</span><h2 className="text-lg font-bold text-text-primary mb-2">Sign in to see reviews</h2><p className="text-sm text-text-secondary leading-relaxed max-w-md mx-auto mb-4">Your reviews and ratings will appear here.</p><a href="/login" className="inline-block px-6 py-2.5 bg-accent text-white text-sm font-bold rounded-xl hover:bg-[#818cf8] transition-colors">{t("profilePage.signInAction")}</a></div>
           ) : reviewsLoading ? (
             <div className="space-y-3">{[1,2,3].map(i => (<div key={i} className="bg-bg-card border border-border rounded-xl p-4 animate-pulse"><div className="flex gap-3"><div className="w-12 h-[72px] bg-bg-card-hover rounded-lg flex-shrink-0" /><div className="flex-1"><div className="h-4 w-32 bg-bg-card-hover rounded mb-2" /><div className="h-3 w-20 bg-bg-card-hover rounded mb-3" /><div className="h-3 w-full bg-bg-card-hover rounded" /></div></div></div>))}</div>
           ) : userReviews.length === 0 ? (
