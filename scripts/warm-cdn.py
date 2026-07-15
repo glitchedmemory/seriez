@@ -86,7 +86,7 @@ def main():
         print(f"Skipping first {start_idx} URLs (already done)")
 
     done = [start_idx]
-    total = start_idx + len(urlls)
+    total = start_idx + len(urls)
     errors = [0]
 
     def warm(url):
