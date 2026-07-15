@@ -584,7 +584,7 @@ export const getMovieDetail = unstable_cache(
   return result;
 },
   ["movie-detail"],
-  { revalidate: 3600 }
+  { revalidate: 86400 }
 );
 
 export async function getTVDetail(id: number): Promise<TmdbDetail> {
