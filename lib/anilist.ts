@@ -239,7 +239,7 @@ export const getAnimeIds = unstable_cache(
   };
 },
   ["anime-ids"],
-  { revalidate: 86400 }
+  { revalidate: 3600 }
 );
 
 export const getAnimeDetail = unstable_cache(
@@ -391,7 +391,7 @@ export const getAnimeDetail = unstable_cache(
   }
 },
   ["anime-detail"],
-  { revalidate: 86400 }
+  { revalidate: 3600 }
 );
 
 // ─── TMDB ID → AniList ID resolution (cached 24h) ───
@@ -1023,7 +1023,7 @@ export const getAnimeEpisodes = unstable_cache(
   return episodes;
   },
   ["anime-episodes"],
-  { revalidate: 86400 }
+  { revalidate: 3600 }
 );
 
 // ─── Deep relations enrichment ───
