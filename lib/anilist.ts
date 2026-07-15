@@ -396,7 +396,7 @@ export const getAnimeDetail = unstable_cache(
 
 // ─── TMDB ID → AniList ID resolution (cached 24h) ───
 
-export const getAnilistId = unstable_cache(
+const _getAnilistIdCached = unstable_cache(
   async (tmdbId: number): Promise<number | null> => {
   // Parallel: try AniList direct + Supabase lookup simultaneously
   const results = await Promise.all([
@@ -464,6 +464,23 @@ export const getAnilistId = unstable_cache(
   ["anilist-id-resolve"],
   { revalidate: 86400 }
 );
+
+// Wrapper: if cached result is null (stale failure), retry once fresh
+export async function getAnilistId(tmdbId: number): Promise<number | null> {
+  const cached = await _getAnilistIdCached(tmdbId);
+  if (cached !== null) return cached;
+  // Null cached — one fresh retry
+  try {
+    const res = await fetch("https://graphql.anilist.co", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ query: "query($id:Int){Media(id:$id,type:ANIME){id}}", variables: { id: tmdbId } }),
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data?.Media?.id ?? null;
+  } catch { return null; }
+}
 
 // ─── Episode fetching (Jikan primary + Kitsu/AniDB fallback) ───
 
