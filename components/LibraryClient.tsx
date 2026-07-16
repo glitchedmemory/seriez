@@ -364,8 +364,8 @@ export default function LibraryClient() {
     if (!authUsername) { setStatsLoaded(true); return; }
     const username = authUsername;
     Promise.all([
-      fetch(`/api/library/stats?username=${encodeURIComponent(username)}`).then(r => r.json()),
-      fetch(`/api/collections?username=${encodeURIComponent(username)}`).then(r => r.json()),
+      fetch(`/api/library/stats?username=${encodeURIComponent(username)}`, { cache: "no-cache" }).then(r => r.json()),
+      fetch(`/api/collections?username=${encodeURIComponent(username)}`, { cache: "no-cache" }).then(r => r.json()),
     ])
       .then(([counts, collData]) => {
         setStats({
