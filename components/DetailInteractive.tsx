@@ -148,6 +148,7 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
       }
       setTrackStatus(newStatus);
       setTrackVersion(v => v + 1);
+      import(\"@/lib/refresh-events\").then(m => m.notifyLibraryRefresh());
     } catch {}
     setTrackLoading(false);
   }
