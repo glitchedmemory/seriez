@@ -10,6 +10,8 @@ type Video = { key: string; name: string };
 const GLOBAL_BAD_KEYS = new Set<string>([
   "XTt4vxZr2a8", // Michael — geo-restricted in some regions
   "3zOLzsbOleM", // Michael — duplicate of official trailer
+  "R5jcEBVBEbQ", // Hope (2026) — US trailer error
+  "Vt7860xZFXk", // Hope (2026) — teaser broken
 ]);
 
 // ─── Retry wrapper ───
