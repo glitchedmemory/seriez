@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
 import PosterImage from "@/components/PosterImage";
 import { stripHtml } from "@/lib/strip-html";
-import { markLibraryStale } from "@/lib/refresh-events";
+import { prefetchLibrary } from "@/lib/refresh-events";
 
 function HeartIcon({ active }: { active: boolean }) {
   return (
@@ -311,7 +311,7 @@ export default function SeasonInteractive({ data, mode }: { data: SeasonData; mo
       }
       syncTrackState(newStatus, { trackedAt: newStatus ? (json?.updatedAt || new Date().toISOString()) : null });
       setTrackVersion(v => v + 1);
-      markLibraryStale();
+      prefetchLibrary(username, newStatus || "");
     } catch {}
     setTrackLoading(false);
   }

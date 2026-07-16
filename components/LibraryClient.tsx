@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
-import { consumeLibraryStale } from "@/lib/refresh-events";
+
 import { ListSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PosterImage from "@/components/PosterImage";
@@ -53,12 +53,6 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
     }).catch(() => {});
   }, []);
 
-  // 트래킹 저장 시 My List 자동 갱신 (마운트 시 플래그 확인)
-  useEffect(() => {
-    if (localUser && consumeLibraryStale()) {
-      fetchPage(page);
-    }
-  }, [localUser]);
 
   function fetchPage(p: number) {
     if (!localUser) { setLoading(false); return; }
