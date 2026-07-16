@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
       {
         source: "/library",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=60, stale-while-revalidate=86400" },
+          { key: "Cache-Control", value: "no-cache" },
         ],
       },
       {
