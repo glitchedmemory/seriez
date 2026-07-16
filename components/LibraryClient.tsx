@@ -60,7 +60,7 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
       : `/api/library?username=${encodeURIComponent(username)}&page=${p}&limit=${LIMIT}`;
     setLoading(true);
     setPage(p);
-    fetch(url)
+    fetch(url, { cache: "no-cache" })
       .then(r => r.json())
       .then(data => {
         setItems(data.items || []);
