@@ -9,7 +9,6 @@ import { useTranslations } from "next-intl";
 import PosterImage from "@/components/PosterImage";
 import { stripHtml } from "@/lib/strip-html";
 
-
 function HeartIcon({ active }: { active: boolean }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={active ? "#14b8a6" : "none"} stroke={active ? "#14b8a6" : "var(--color-text-secondary)"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -311,7 +310,6 @@ export default function SeasonInteractive({ data, mode }: { data: SeasonData; mo
       }
       syncTrackState(newStatus, { trackedAt: newStatus ? (json?.updatedAt || new Date().toISOString()) : null });
       setTrackVersion(v => v + 1);
-      router.refresh();
     } catch {}
     setTrackLoading(false);
   }
