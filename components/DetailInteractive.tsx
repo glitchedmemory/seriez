@@ -6,7 +6,7 @@ import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
-import { prefetchLibrary } from "@/lib/refresh-events";
+
 
 function HeartIcon({ active }: { active: boolean }) {
   return (
@@ -149,7 +149,7 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
       }
       setTrackStatus(newStatus);
       setTrackVersion(v => v + 1);
-      prefetchLibrary(username);
+      router.refresh();
     } catch {}
     setTrackLoading(false);
   }
