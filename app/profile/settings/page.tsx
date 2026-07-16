@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
@@ -63,6 +63,11 @@ const IconChevronDown = () => (
     <polyline points="6 9 12 15 18 9"/>
   </svg>
 );
+const IconUpload = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+  </svg>
+);
 
 const PW_RULES = {
   minLength: 8,
@@ -109,6 +114,29 @@ export default function SettingsPage() {
 
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [billingLoading, setBillingLoading] = useState(false);
+
+  // Import CSV state
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [importError, setImportError] = useState("");
+
+type ImportResult = { shows: number; episodes: number; movies: number; failed: string[] };
+
+  async function handleImport(file: File) {
+    setImporting(true); setImportError(""); setImportResult(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/import/tv-time", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) { setImportError(data.error || "Import failed"); return; }
+      setImportResult(data);
+    } catch {
+      setImportError("Something went wrong");
+    }
+    setImporting(false);
+  }
 
   async function handleManageSubscription() {
     setBillingLoading(true);
@@ -325,6 +353,57 @@ export default function SettingsPage() {
                 </div>
                 <span className="text-text-secondary/30 group-hover:text-text-secondary transition-colors"><IconChevronRight /></span>
               </button>
+            </div>
+          </section>
+
+          {/* ─── SECTION: Data ─── */}
+          <section>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary/60 mb-3 ml-1">Data</h2>
+            <div className="bg-bg-card rounded-2xl border border-border/60 overflow-hidden divide-y divide-border/40">
+              <div>
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  disabled={importing}
+                  className="w-full flex items-center gap-4 px-5 py-4 hover:bg-bg-surface transition-colors group"
+                >
+                  <span className="text-accent"><IconUpload /></span>
+                  <div className="flex-1 text-left">
+                    <span className="text-sm font-medium text-text-primary">Import CSV</span>
+                    <p className="text-[11px] text-text-secondary mt-0.5">
+                      {importing ? "Importing your watch history..." : "TV Time · Trakt · Letterboxd"}
+                    </p>
+                  </div>
+                  <span className="text-text-secondary/30 group-hover:text-text-secondary transition-colors"><IconChevronRight /></span>
+                </button>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImport(f); }}
+                />
+                {(importResult || importError) && (
+                  <div className="px-5 pb-4 border-t border-border/40 pt-4 space-y-3">
+                    {importResult && (
+                      <div className="space-y-1.5">
+                        <p className="text-sm font-medium text-emerald-400">Import complete</p>
+                        <div className="flex gap-3 text-xs text-text-secondary">
+                          {importResult.shows > 0 && <span>{importResult.shows} shows</span>}
+                          {importResult.episodes > 0 && <span>{importResult.episodes} episodes</span>}
+                          {importResult.movies > 0 && <span>{importResult.movies} movies</span>}
+                        </div>
+                        {importResult.failed.length > 0 && (
+                          <details className="text-[11px] text-text-secondary/60 mt-1">
+                            <summary className="cursor-pointer hover:text-text-secondary">{importResult.failed.length} not found</summary>
+                            <ul className="mt-1 space-y-0.5 list-disc list-inside">{importResult.failed.map((f, i) => <li key={i}>{f}</li>)}</ul>
+                          </details>
+                        )}
+                      </div>
+                    )}
+                    {importError && <p className="text-xs text-red-400">{importError}</p>}
+                  </div>
+                )}
+              </div>
             </div>
           </section>
 
