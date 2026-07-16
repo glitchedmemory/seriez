@@ -28,6 +28,20 @@ export default function AboutPage() {
             <li>{t("community")}</li>
           </ul>
 
+          <div className="mt-12 p-6 bg-bg-card border border-accent/20 rounded-2xl">
+            <h2 className="text-lg font-semibold text-text-primary mb-2">
+              Coming from TV Time?
+            </h2>
+            <p className="text-text-secondary text-sm mb-4">
+              TV Time shut down on July 15, 2026. Seriez supports direct CSV import from your TV Time GDPR export — drag and drop your file in Settings → Data → Import CSV. Your watch history, episode progress, and favorites come with you.
+            </p>
+            <a
+              href="/profile/settings"
+              className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent-light transition-colors"
+            >
+              Import your TV Time data →
+            </a>
+          </div>
         </section>
       </div>
     </div>
