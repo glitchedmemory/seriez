@@ -76,6 +76,7 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
   const sortedItems = useMemo(() => {
     const filtered = items.filter(item => {
       if (item.mediaType === "movie") return true;
+      if (item.mediaType === "anime") return true;
       return item.seasonNumber > 0;
     });
     const sorted = [...filtered];
