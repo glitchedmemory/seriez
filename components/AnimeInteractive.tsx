@@ -187,7 +187,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
     setWatchedEpisodes((prev) => { const next = new Set(prev); if (next.has(key)) next.delete(key); else next.add(key); return next; });
     setEpToggleLoading(key);
     const willHaveWatched = !wasWatched || watchedEpisodes.size > 1;
-    if (willHaveWatched && (!trackStatus || trackStatus === "plan_to_watch")) {
+    if (willHaveWatched && (!trackStatus || trackStatus === "plan_to_watch" || trackStatus === "completed")) {
       syncTrackState("watching");
       await fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching" }) });
     } else if (!willHaveWatched && trackStatus === "watching") {
