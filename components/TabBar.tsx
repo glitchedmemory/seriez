@@ -2,46 +2,32 @@
 
 import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
+
+function useAuth() {
+  const [user, setUser] = useState<{ username?: string; isStaff?: boolean; avatarUrl?: string | null } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.loggedIn) setUser(d);
+        setMounted(true);
+      })
+      .catch(() => setMounted(true));
+  }, []);
+
+  return { user, mounted };
+}
 
 export default function TabBar() {
   const t = useTranslations();
   const pathname = usePathname();
-
-  const [user, setUser] = useState<{ email?: string } | null>(null);
-  const [isStaff, setIsStaff] = useState(false);
-
-  useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => {
-      setUser(data.user ?? null);
-      const username = data.user?.user_metadata?.username;
-      // Optimistic: show admin button immediately if username matches
-      if (username === "Seriez") setIsStaff(true);
-      if (username) {
-        fetch(`/api/admin/users?username=${encodeURIComponent(username)}`)
-          .then(r => r.json())
-          .then(d => {
-            if (d.users?.length > 0) {
-              const role = d.users[0].role;
-              setIsStaff(role === "admin");
-            } else {
-              setIsStaff(false);
-            }
-          })
-          .catch(() => {});
-      }
-    }).catch(() => {});
-
-    const { data: { subscription } } = createClient().auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const { user, mounted } = useAuth();
 
   const tabs: { name: string; icon: ReactNode; path: string }[] = [
     { name: t("nav.home"), icon: <Image src="/icons/home.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/" },
@@ -75,7 +61,7 @@ export default function TabBar() {
             </a>
           );
         })}
-        {isStaff && (
+        {user?.isStaff && (
           <a
             href="/admin"
             className={`flex flex-col items-center gap-1 px-3 py-2 text-xs transition-colors ${
@@ -94,74 +80,19 @@ export default function TabBar() {
 export function Sidebar() {
   const t = useTranslations();
   const pathname = usePathname();
-  const [user, setUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
-  const [mounted, setMounted] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [isStaff, setIsStaff] = useState(false);
-  const supabase = createClient();
+  const router = useRouter();
+  const { user, mounted } = useAuth();
 
-  useEffect(() => {
-    setMounted(true);
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user ?? null);
-      const username = data.user?.user_metadata?.username;
-      // Optimistic: show admin button immediately if username matches
-      if (username === "Seriez") setIsStaff(true);
-      if (username) {
-        fetch(`/api/admin/users?username=${encodeURIComponent(username)}`)
-          .then(r => r.json())
-          .then(d => {
-            if (d.users?.length > 0) {
-              const role = d.users[0].role;
-              setIsStaff(role === "admin");
-            } else {
-              setIsStaff(false);
-            }
-          })
-          .catch(() => {});
-      }
-    }).catch(() => {
-      setMounted(true);
-    });
+  const displayName = user?.username || t("auth.guest");
+  const initial = displayName.slice(0, 1).toUpperCase();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Fetch avatar URL when user is known
-  useEffect(() => {
-    let u: string | null | undefined = user?.user_metadata?.username;
-    // Fallback: check localStorage + cookie only when user exists (login may not populate metadata)
-    if (!u && user) {
-      u = localStorage.getItem("seriez-username");
-      if (!u) {
-        const match = document.cookie.match(/(?:^| )seriez-username=([^;]+)/);
-        if (match) {
-          u = decodeURIComponent(match[1]);
-          localStorage.setItem("seriez-username", u);
-        }
-      }
-    }
-    if (!u) return;
-    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?select=avatar_url&username=eq.${encodeURIComponent(u)}`;
-    fetch(url, {
-      headers: {
-        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-      },
-    })
-      .then((r) => r.json())
-      .then((rows) => setAvatarUrl(rows[0]?.avatar_url || null))
-      .catch(() => {});
-  }, [user]);
+  const handleSignOut = async () => {
+    await fetch("/api/auth/signout", { method: "POST" });
+    localStorage.removeItem("seriez-username");
+    router.push("/");
+  };
 
   if (pathname === "/onboarding") return null;
-
-  const displayName = user?.user_metadata?.username || user?.email?.split("@")[0] || t("auth.guest");
-  const initial = displayName.slice(0, 1).toUpperCase();
 
   const tabs: { name: string; icon: ReactNode; path: string }[] = [
     { name: t("nav.home"), icon: <Image src="/icons/home.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/" },
@@ -203,7 +134,7 @@ export function Sidebar() {
             </a>
           );
         })}
-        {isStaff && (
+        {user?.isStaff && (
           <a
             href="/admin"
             className={`flex items-center gap-3 px-1.5 py-2.5 rounded-lg text-sm font-medium transition-all min-w-max ${
@@ -227,8 +158,8 @@ export function Sidebar() {
           <>
           <a href="/profile" className="flex items-center gap-3 px-1.5 py-2 min-w-max">
             <div className="relative flex-shrink-0">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+            {user.avatarUrl ? (
+              <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             ) : (
               <img src="/icons/default-avatar.png" alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             )}
@@ -238,7 +169,7 @@ export function Sidebar() {
             </div>
           </a>
           <button
-            onClick={async () => { await supabase.auth.signOut(); localStorage.removeItem("seriez-username"); window.location.href = "/"; }}
+            onClick={handleSignOut}
             className="flex items-center gap-3 px-1.5 py-1.5 rounded-lg text-xs text-text-secondary hover:text-red-400 transition-colors min-w-max"
           >
             <span className="text-sm flex-shrink-0 ml-[0.3rem]">
