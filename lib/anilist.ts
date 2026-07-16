@@ -757,7 +757,7 @@ async function fetchTMDBThumbnails(title: string): Promise<Map<number, string>> 
   try {
     // Step 1: Search TMDB for the anime as a TV show
     const searchUrl = `${TMDB_API}/search/tv?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}`;
-    const searchRes = await fetch(searchUrl, { next: { revalidate: 86400 } });
+    const searchRes = await fetch(searchUrl, { next: { revalidate: 86400 }, signal: AbortSignal.timeout(5000) });
     if (!searchRes.ok) return thumbs;
     const searchData = await searchRes.json();
     const tvResults = searchData.results || [];
@@ -768,7 +768,7 @@ async function fetchTMDBThumbnails(title: string): Promise<Map<number, string>> 
     // Step 2: Fetch all seasons' episodes
     const tvRes = await fetch(
       `${TMDB_API}/tv/${tvId}?api_key=${TMDB_KEY}`,
-      { next: { revalidate: 86400 } }
+      { next: { revalidate: 86400 }, signal: AbortSignal.timeout(5000) }
     );
     if (!tvRes.ok) return thumbs;
     const tvData = await tvRes.json();
@@ -781,7 +781,7 @@ async function fetchTMDBThumbnails(title: string): Promise<Map<number, string>> 
         try {
           const epRes = await fetch(
             `${TMDB_API}/tv/${tvId}/season/${sn}?api_key=${TMDB_KEY}`,
-            { next: { revalidate: 86400 } }
+            { next: { revalidate: 86400 }, signal: AbortSignal.timeout(5000) }
           );
           if (!epRes.ok) return [];
           const epData = await epRes.json();
