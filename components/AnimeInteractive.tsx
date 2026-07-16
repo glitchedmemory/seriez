@@ -6,10 +6,7 @@ import { getAnimeSagas, type AnimeSaga } from "@/lib/anime-sagas";
 import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
-import { useTranslations } from "next-intl";
-import PosterImage from "@/components/PosterImage";
 import { stripHtml } from "@/lib/strip-html";
-
 
 function HeartIcon({ active }: { active: boolean }) {
   return (
@@ -178,7 +175,6 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
       }
       syncTrackState(newStatus, { trackedAt: newStatus ? (json?.updatedAt || new Date().toISOString()) : null });
       setTrackVersion(v => v + 1);
-      router.refresh();
     } catch {}
     setTrackLoading(false);
   }

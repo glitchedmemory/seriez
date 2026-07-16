@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
-
 import { ListSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PosterImage from "@/components/PosterImage";
@@ -52,7 +51,6 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
       setLocalUser(session?.user?.user_metadata?.username || null);
     }).catch(() => {});
   }, []);
-
 
   function fetchPage(p: number) {
     if (!localUser) { setLoading(false); return; }
