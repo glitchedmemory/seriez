@@ -17,15 +17,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/api/:path*",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=60" },
-        ],
-      },
-      {
         source: "/:path*",
         headers: [
           { key: "Cache-Control", value: "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400" },
+        ],
+      },
+      {
+        source: "/api/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-cache, no-store, max-age=0" },
         ],
       },
       {
