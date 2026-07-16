@@ -573,7 +573,7 @@ export const getMovieDetail = unstable_cache(
     })
     .map((v: { key: string; name: string }) => ({ key: v.key, name: v.name }))
     .slice(0, 3);
-  result.videos = (await validateAndReplaceTrailers(rawVideos, `${movieTitle} official trailer`))
+  result.videos = (await validateAndReplaceTrailers(rawVideos, `${movieTitle} official trailer`, 3))
     .map((v) => ({ key: v.key, name: v.name, site: "YouTube", type: "Trailer" }));
 
   // Fallback: custom poster from Supabase
@@ -646,7 +646,7 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
     })
     .map((v: { key: string; name: string }) => ({ key: v.key, name: v.name }))
     .slice(0, 3);
-  resultTV.videos = (await validateAndReplaceTrailers(rawVideos, `${tvTitle} official trailer`))
+  resultTV.videos = (await validateAndReplaceTrailers(rawVideos, `${tvTitle} official trailer`, 1))
     .map((v) => ({ key: v.key, name: v.name, site: "YouTube", type: "Trailer" }));
 
   // Fallback: custom poster from Supabase

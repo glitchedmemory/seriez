@@ -125,8 +125,8 @@ export async function validateAndReplaceTrailers(
     if (v) result.push(v);
   }
 
-  // Phase 2: fill gaps with fallback search
-  const needed = max - result.length;
+  // Phase 2: fill gaps with fallback search (only if Phase 1 found NOTHING)
+  const needed = result.length === 0 ? max - result.length : 0;
   if (needed > 0) {
     const fallbacks = await searchFallback(searchQuery, max * 2);
     for (const fb of fallbacks) {
