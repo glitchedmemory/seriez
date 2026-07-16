@@ -60,7 +60,7 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
       : `/api/library?username=${encodeURIComponent(username)}&page=${p}&limit=${LIMIT}`;
     setLoading(true);
     setPage(p);
-    fetch(url, { cache: "no-cache" })
+    fetch(`${url}&_t=${Date.now()}`, { cache: "no-cache" })
       .then(r => r.json())
       .then(data => {
         setItems(data.items || []);
@@ -364,8 +364,8 @@ export default function LibraryClient() {
     if (!authUsername) { setStatsLoaded(true); return; }
     const username = authUsername;
     Promise.all([
-      fetch(`/api/library/stats?username=${encodeURIComponent(username)}`, { cache: "no-cache" }).then(r => r.json()),
-      fetch(`/api/collections?username=${encodeURIComponent(username)}`, { cache: "no-cache" }).then(r => r.json()),
+      fetch(`/api/library/stats?username=${encodeURIComponent(username)}&_t=${Date.now()}`, { cache: "no-cache" }).then(r => r.json()),
+      fetch(`/api/collections?username=${encodeURIComponent(username)}&_t=${Date.now()}`, { cache: "no-cache" }).then(r => r.json()),
     ])
       .then(([counts, collData]) => {
         setStats({
