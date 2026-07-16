@@ -23,6 +23,12 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/library/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=60, stale-while-revalidate=86400" },
+        ],
+      },
+      {
         source: "/:path*",
         headers: [
           { key: "Cache-Control", value: "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400" },
