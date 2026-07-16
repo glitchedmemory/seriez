@@ -585,9 +585,9 @@ export const getMovieDetail = unstable_cache(
   // Hardcoded override for Hope (2026) — all TMDB trailers region-locked
   if (detail.id === 1058424) {
     result.videos = [
-      { key: "-zYxgTRLIi0", name: "Official International Trailer", site: "YouTube", type: "Trailer" },
-      { key: "r1g2-1g29MU", name: "Official Teaser Trailer", site: "YouTube", type: "Trailer" },
-      { key: "fCtCFmBIZxg", name: "Official Trailer", site: "YouTube", type: "Trailer" },
+      { key: "KgwHb2qNo8k", name: "Official Trailer", site: "YouTube", type: "Trailer" },
+      { key: "P00bN5TAOCs", name: "Official Teaser", site: "YouTube", type: "Trailer" },
+      { key: "G8wwYp5CgIc", name: "메인 예고편 (한국어)", site: "YouTube", type: "Trailer" },
     ];
   } else {
     result.videos = (await validateAndReplaceTrailers(rawVideos, `${movieTitle} official trailer`, 3))
