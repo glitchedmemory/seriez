@@ -503,11 +503,12 @@ async function getKeywords(id: number, type: "movie" | "tv"): Promise<number[]> 
 
 export const getMovieDetail = unstable_cache(
   async (id: number): Promise<TmdbDetail> => {
-  const [detail, credits, similar, videos, keywords] = await Promise.all([
+  const [detail, credits, similar, vidsEn, vidsKo, keywords] = await Promise.all([
     get(`/movie/${id}`),
     get(`/movie/${id}/credits`),
     get(`/movie/${id}/similar`),
     get(`/movie/${id}/videos`),
+    get(`/movie/${id}/videos?language=ko-KR`),
     getKeywords(id, "movie"),
   ]);
 
@@ -558,9 +559,17 @@ export const getMovieDetail = unstable_cache(
     if (diff > 0) result.daysUntil = diff;
   }
 
+  // Merge videos from en-US + ko-KR, deduplicate by key
+  const allVideos = [...(vidsEn.results || []), ...(vidsKo.results || [])];
+  const seen = new Set<string>();
+  const mergedVideos = allVideos.filter((v: any) => {
+    if (seen.has(v.key)) return false;
+    seen.add(v.key);
+    return true;
+  });
   // Validate YouTube trailers and replace broken ones
   const movieTitle = `${detail.title || ""} ${detail.release_date ? parseInt(detail.release_date.slice(0, 4)) : ""}`.trim();
-  const rawVideos = (videos.results || [])
+  const rawVideos = mergedVideos
     .filter((v: { site: string; type: string }) => v.site === "YouTube" && ["Trailer", "Teaser"].includes(v.type))
     .sort((a: any, b: any) => {
       // Trailers before Teasers
@@ -573,8 +582,17 @@ export const getMovieDetail = unstable_cache(
     })
     .map((v: { key: string; name: string }) => ({ key: v.key, name: v.name }))
     .slice(0, 3);
-  result.videos = (await validateAndReplaceTrailers(rawVideos, `${movieTitle} official trailer`, 3))
-    .map((v) => ({ key: v.key, name: v.name, site: "YouTube", type: "Trailer" }));
+  // Hardcoded override for Hope (2026) — all TMDB trailers region-locked
+  if (detail.id === 1058424) {
+    result.videos = [
+      { key: "-zYxgTRLIi0", name: "Official International Trailer", site: "YouTube", type: "Trailer" },
+      { key: "r1g2-1g29MU", name: "Official Teaser Trailer", site: "YouTube", type: "Trailer" },
+      { key: "fCtCFmBIZxg", name: "Official Trailer", site: "YouTube", type: "Trailer" },
+    ];
+  } else {
+    result.videos = (await validateAndReplaceTrailers(rawVideos, `${movieTitle} official trailer`, 3))
+      .map((v) => ({ key: v.key, name: v.name, site: "YouTube", type: "Trailer" }));
+  }
 
   // Fallback: custom poster from Supabase
   if (!result.poster) {

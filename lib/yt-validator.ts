@@ -12,6 +12,7 @@ const GLOBAL_BAD_KEYS = new Set<string>([
   "3zOLzsbOleM", // Michael — duplicate of official trailer
   "R5jcEBVBEbQ", // Hope (2026) — US trailer error
   "Vt7860xZFXk", // Hope (2026) — teaser broken
+  "ODnHr2Emnf0", // Hope (2026) — International trailer region-locked
 ]);
 
 // ─── Retry wrapper ───
