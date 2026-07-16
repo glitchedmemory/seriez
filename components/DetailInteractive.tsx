@@ -6,6 +6,7 @@ import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
+import { notifyLibraryRefresh } from "@/lib/refresh-events";
 
 function HeartIcon({ active }: { active: boolean }) {
   return (
@@ -148,6 +149,7 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
       }
       setTrackStatus(newStatus);
       setTrackVersion(v => v + 1);
+      notifyLibraryRefresh();
     } catch {}
     setTrackLoading(false);
   }
