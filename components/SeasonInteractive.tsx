@@ -101,7 +101,7 @@ export default function SeasonInteractive({ data, mode }: { data: SeasonData; mo
       const uname = session?.user?.user_metadata?.username || localStorage.getItem("seriez-username");
       if (!uname) return;
       const username = uname;
-    fetch(`/api/track?username=${encodeURIComponent(username)}&seasonNumber=${data.seasonNumber}`)
+    fetch(`/api/track?username=${encodeURIComponent(username)}&seasonNumber=${data.seasonNumber}`, { cache: "no-cache" })
       .then((r) => r.json())
       .then((trackData) => {
         if (Array.isArray(trackData)) {

@@ -87,7 +87,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
       const uname = session?.user?.user_metadata?.username || localStorage.getItem("seriez-username");
       if (!uname) return;
       const username = uname;
-      fetch(`/api/track?username=${encodeURIComponent(username)}`)
+      fetch(`/api/track?username=${encodeURIComponent(username)}`, { cache: "no-cache" })
         .then((r) => r.json())
         .then((data) => {
           if (Array.isArray(data)) {
