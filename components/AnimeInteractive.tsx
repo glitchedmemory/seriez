@@ -178,7 +178,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
       }
       syncTrackState(newStatus, { trackedAt: newStatus ? (json?.updatedAt || new Date().toISOString()) : null });
       setTrackVersion(v => v + 1);
-      prefetchLibrary(username, newStatus || "");
+      prefetchLibrary(username);
     } catch {}
     setTrackLoading(false);
   }

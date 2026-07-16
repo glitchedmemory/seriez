@@ -149,7 +149,7 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
       }
       setTrackStatus(newStatus);
       setTrackVersion(v => v + 1);
-      prefetchLibrary(username, newStatus || "");
+      prefetchLibrary(username);
     } catch {}
     setTrackLoading(false);
   }
