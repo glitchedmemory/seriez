@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
@@ -8,7 +8,6 @@ import { ListSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PosterImage from "@/components/PosterImage";
 import EmptyState from "@/components/EmptyState";
-import { LIBRARY_REFRESH_EVENT } from "@/lib/refresh-events";
 
 // ─── Types ───
 interface LibraryItem {
@@ -52,13 +51,6 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
       setLocalUser(session?.user?.user_metadata?.username || null);
     }).catch(() => {});
   }, []);
-
-  // 트래킹 저장 시 My List 자동 갱신
-  useEffect(() => {
-    const handler = () => { fetchPage(page); };
-    window.addEventListener(LIBRARY_REFRESH_EVENT, handler);
-    return () => window.removeEventListener(LIBRARY_REFRESH_EVENT, handler);
-  }, [page, localUser]);
 
   function fetchPage(p: number) {
     if (!localUser) { setLoading(false); return; }

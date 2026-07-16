@@ -310,7 +310,6 @@ export default function SeasonInteractive({ data, mode }: { data: SeasonData; mo
       }
       syncTrackState(newStatus, { trackedAt: newStatus ? (json?.updatedAt || new Date().toISOString()) : null });
       setTrackVersion(v => v + 1);
-      import(\"@/lib/refresh-events\").then(m => m.notifyLibraryRefresh());
     } catch {}
     setTrackLoading(false);
   }
