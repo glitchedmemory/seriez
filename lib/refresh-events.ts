@@ -1,6 +1,14 @@
 // 트래킹 변경 시 LibraryClient에 알림
-export const LIBRARY_REFRESH_EVENT = "seriez:library-refresh";
+const STALE_KEY = "seriez:library-stale";
 
-export function notifyLibraryRefresh() {
-  window.dispatchEvent(new CustomEvent(LIBRARY_REFRESH_EVENT));
+export function markLibraryStale() {
+  sessionStorage.setItem(STALE_KEY, "1");
+}
+
+export function consumeLibraryStale(): boolean {
+  if (sessionStorage.getItem(STALE_KEY)) {
+    sessionStorage.removeItem(STALE_KEY);
+    return true;
+  }
+  return false;
 }
