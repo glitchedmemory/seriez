@@ -185,7 +185,7 @@ export default function SeasonInteractive({ data, mode }: { data: SeasonData; mo
     setEpToggleLoading(key);
 
     const willHaveWatched = !wasWatched || watchedEpisodes.size > 1;
-    if (willHaveWatched && (!trackStatus || trackStatus === "plan_to_watch")) {
+    if (willHaveWatched && (!trackStatus || trackStatus === "plan_to_watch" || trackStatus === "completed")) {
       syncTrackState("watching");
       await fetch("/api/track", {
         method: "POST",
