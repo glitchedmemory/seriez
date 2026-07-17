@@ -11,6 +11,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/lib/theme";
 import { BotProvider } from "@/components/BotProvider";
+import { createClient } from "@/lib/supabase/server";
 import { isBot } from "@/lib/bot";
 import AdminAwareLayout from "@/components/AdminAwareLayout";
 import FeedbackWidget from "@/components/FeedbackWidget";
@@ -114,6 +115,18 @@ export default async function RootLayout({
   const bot = await isBot();
   const allMessages = { en, ko, ja, zh, fr, de, es };
 
+  let layoutUser: { username?: string | null; avatarUrl?: string | null } | null = null;
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      layoutUser = {
+        username: user.user_metadata?.username || null,
+        avatarUrl: user.user_metadata?.avatar_url || null,
+      };
+    }
+  } catch {}
+
   return (
     <html
       lang={locale}
@@ -166,7 +179,7 @@ export default async function RootLayout({
         <BotProvider isBot={bot}>
         <LocaleProvider serverLocale={locale} serverMessages={messages} allMessages={allMessages}>
           <ThemeProvider>
-            <AdminAwareLayout>
+            <AdminAwareLayout user={layoutUser}>
               {children}
             </AdminAwareLayout>
             <FeedbackWidget />
