@@ -77,6 +77,7 @@ export function Sidebar({ user }: { user?: { username?: string | null; avatarUrl
 
   const displayName = user?.username || t("auth.guest");
   const initial = (user?.username || "G").slice(0, 1).toUpperCase();
+  const isStaff = user?.username === "Seriez";
 
   const tabs: { name: string; icon: ReactNode; path: string }[] = [
     { name: t("nav.home"), icon: <Image src="/icons/home.png" alt="" width={24} height={24} style={{ imageRendering: "pixelated" }} />, path: "/" },
