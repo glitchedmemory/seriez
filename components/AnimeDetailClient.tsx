@@ -126,7 +126,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       .catch(() => {});
 
     // Fetch watched episodes
-    fetch(`/api/episodes?username=${encodeURIComponent(username)}&tmdbId=${detail.id}`, { cache: "no-cache" })
+    fetch(`/api/episodes?username=${encodeURIComponent(username)}&tmdbId=${detail.id}`)
       .then((r) => r.json())
       .then((epData) => {
         if (epData.episodes) {

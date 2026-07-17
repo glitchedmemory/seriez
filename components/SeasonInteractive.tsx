@@ -117,7 +117,7 @@ export default function SeasonInteractive({ data, mode }: { data: SeasonData; mo
         }
       })
       .catch(() => {});
-    fetch(`/api/episodes?username=${encodeURIComponent(username)}&tmdbId=${data.id}`, { cache: "no-cache" })
+    fetch(`/api/episodes?username=${encodeURIComponent(username)}&tmdbId=${data.id}`)
       .then((r) => r.json())
       .then((epData) => {
         if (epData.episodes) {

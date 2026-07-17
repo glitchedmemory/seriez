@@ -6,6 +6,7 @@ import { resolveUsername } from "@/lib/auth-helper";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 // ─── GET: fetch watched episodes for a show ───
 export async function GET(req: NextRequest) {
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ episodes: [] });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from("episode_watches")
     .select("season_number, episode_number")
     .eq("username", userId)
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if already watched
-    const { data: existing } = await supabase
+    const { data: existing } = await supabaseAdmin
       .from("episode_watches")
       .select("id")
       .eq("username", userId)
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
 
     if (existing) {
       // Already watched → unwatch (delete)
-      const { error: delErr } = await supabase
+      const { error: delErr } = await supabaseAdmin
         .from("episode_watches")
         .delete()
         .eq("id", existing.id);
@@ -91,7 +92,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Not watched → watch (insert)
-    const { error: insErr } = await supabase
+    const { error: insErr } = await supabaseAdmin
       .from("episode_watches")
       .insert({
         username: userId,
@@ -105,7 +106,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update progress count on media_trackings
-    const { count } = await supabase
+    const { count } = await supabaseAdmin
       .from("episode_watches")
       .select("id", { count: "exact", head: true })
       .eq("username", userId)
@@ -114,7 +115,7 @@ export async function POST(req: NextRequest) {
     const progress = count ?? null;
 
     // Auto-set tracking status to "watching" if not already tracking
-    const { data: trackData } = await supabase
+    const { data: trackData } = await supabaseAdmin
       .from("media_trackings")
       .select("status")
       .eq("username", userId)
@@ -125,7 +126,7 @@ export async function POST(req: NextRequest) {
 
     if (!trackData) {
       // No tracking yet → create with "watching" status
-      await supabase
+      await supabaseAdmin
         .from("media_trackings")
         .upsert(
           {
@@ -140,7 +141,7 @@ export async function POST(req: NextRequest) {
         );
     } else {
       // Update progress only
-      await supabase
+      await supabaseAdmin
         .from("media_trackings")
         .update({ progress })
         .eq("username", userId)
