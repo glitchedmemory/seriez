@@ -67,10 +67,23 @@ export function Sidebar({ user }: { user?: { username?: string | null; avatarUrl
   const t = useTranslations();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Fetch avatar from users table
+  useEffect(() => {
+    if (!user?.username) { setAvatarUrl(null); return; }
+    setAvatarUrl(user.avatarUrl || null);
+    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?select=avatar_url&username=eq.${encodeURIComponent(user.username)}`;
+    fetch(url, {
+      headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! }
+    }).then(r => r.json()).then(d => {
+      if (d?.length > 0 && d[0].avatar_url) setAvatarUrl(d[0].avatar_url);
+    }).catch(() => {});
+  }, [user?.username]);
 
 
   if (pathname === "/onboarding") return null;
@@ -143,8 +156,8 @@ export function Sidebar({ user }: { user?: { username?: string | null; avatarUrl
           <>
           <a href="/profile" className="flex items-center gap-3 px-1.5 py-2 min-w-max">
             <div className="relative flex-shrink-0">
-            {(user?.avatarUrl) ? (
-              <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+            {(avatarUrl || user?.avatarUrl) ? (
+              <img src={avatarUrl || user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             ) : (
               <img src="/icons/default-avatar.png" alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             )}
