@@ -7,7 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
-export default function TabBar({ user }: { user?: { username?: string | null; user?.avatarUrl?: string | null } | null }) {
+export default function TabBar({ user }: { user?: { username?: string | null; avatarUrl?: string | null } | null }) {
   const t = useTranslations();
   const pathname = usePathname();
 
@@ -63,7 +63,7 @@ export default function TabBar({ user }: { user?: { username?: string | null; us
   );
 }
 
-export function Sidebar({ user }: { user?: { username?: string | null; user?.avatarUrl?: string | null } | null }) {
+export function Sidebar({ user }: { user?: { username?: string | null; avatarUrl?: string | null } | null }) {
   const t = useTranslations();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
@@ -142,7 +142,7 @@ export function Sidebar({ user }: { user?: { username?: string | null; user?.ava
           <>
           <a href="/profile" className="flex items-center gap-3 px-1.5 py-2 min-w-max">
             <div className="relative flex-shrink-0">
-            {user?.avatarUrl ? (
+            {(user?.avatarUrl) ? (
               <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             ) : (
               <img src="/icons/default-avatar.png" alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
