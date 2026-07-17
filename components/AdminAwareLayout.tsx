@@ -8,7 +8,8 @@ import ScrollToTop from "@/components/ScrollToTop";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { isBot } from "@/lib/bot";
 
-export default function AdminAwareLayout({ children }: { children: React.ReactNode }) {
+import { Sidebar } from "@/components/TabBar";
+export default function AdminAwareLayout({ children, user }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
 
@@ -18,14 +19,14 @@ export default function AdminAwareLayout({ children }: { children: React.ReactNo
 
   return (
     <>
-      <Sidebar />
+      <Sidebar user={user} />
       <main className="flex-1 min-w-0 md:pb-0 pb-16 flex flex-col">
         <ErrorBoundary sectionName="App">
           {children}
         </ErrorBoundary>
         <Footer />
       </main>
-      <TabBar />
+      <TabBar user={user} />
       <ScrollToTop />
     </>
   );
