@@ -103,6 +103,7 @@ export function Sidebar() {
   useEffect(() => {
     setMounted(true);
     supabase.auth.getUser().then(({ data }) => {
+      console.log("[Sidebar] getUser result:", { hasUser: !!data.user, email: data.user?.email, username: data.user?.user_metadata?.username });
       setUser(data.user ?? null);
       const username = data.user?.user_metadata?.username;
       // Optimistic: show admin button immediately if username matches
