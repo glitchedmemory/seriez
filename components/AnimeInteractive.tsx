@@ -95,7 +95,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
             if (match) { setTrackStatus(match.status); setRating(match.rating || 0); setTrackedAt(match.updatedAt || null); }
           }
         }).catch(() => {});
-      fetch(`/api/episodes?username=${encodeURIComponent(username)}&tmdbId=${detail.id}`)
+      fetch(`/api/episodes?username=${encodeURIComponent(username)}&tmdbId=${detail.id}`, { cache: "no-cache" })
         .then((r) => r.json())
         .then((epData) => {
           if (epData.episodes) {
