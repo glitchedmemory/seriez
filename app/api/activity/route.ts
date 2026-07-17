@@ -15,9 +15,10 @@ const ANILIST_API = "https://graphql.anilist.co";
 export async function GET(req: NextRequest) {
   const username = await resolveUsername(req);
   let activities: Activity[] = [];
+  let userId: string | null = null;
 
   if (username) {
-    const userId = await resolveUserId(username);
+    userId = await resolveUserId(username);
     if (userId) {
       // Try to get real activities from follows
       const { data: follows } = await supabase

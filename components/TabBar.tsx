@@ -63,14 +63,46 @@ export default function TabBar({ user }: { user?: { username?: string | null; av
   );
 }
 
-export function Sidebar({ user }: { user?: { username?: string | null; avatarUrl?: string | null } | null }) {
+export function Sidebar({ user: serverUser }: { user?: { username?: string | null; avatarUrl?: string | null } | null }) {
   const t = useTranslations();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [clientUser, setClientUser] = useState<{ username?: string | null; avatarUrl?: string | null } | null>(serverUser || null);
+
+  // Merge server prop with client auth state
+  const user = clientUser || serverUser;
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Listen for auth changes (handles login during SPA navigation)
+  useEffect(() => {
+    import("@/lib/supabase/client").then(({ createClient }) => {
+      const supabase = createClient();
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          const u = {
+            username: session.user.user_metadata?.username || null,
+            avatarUrl: session.user.user_metadata?.avatar_url || null,
+          };
+          if (u.username) setClientUser(u);
+        }
+      });
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          const u = {
+            username: session.user.user_metadata?.username || null,
+            avatarUrl: session.user.user_metadata?.avatar_url || null,
+          };
+          if (u.username) setClientUser(u);
+        } else {
+          setClientUser(null);
+        }
+      });
+      return () => subscription.unsubscribe();
+    });
   }, []);
 
   // Fetch avatar from users table
