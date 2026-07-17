@@ -67,9 +67,6 @@ type Category = "movies" | "tv";
 // Rewrite FlixPatrol poster URLs to local proxy — browsers block cross-origin FlixPatrol images
 function proxyPoster(url: string | undefined): string | undefined {
   if (!url) return undefined;
-  if (url.startsWith("https://flixpatrol.com/")) {
-    return `/api/image-proxy?url=${encodeURIComponent(url)}`;
-  }
   return url;
 }
 
