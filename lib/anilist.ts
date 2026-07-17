@@ -1268,7 +1268,7 @@ export async function getAnimeUpcoming(): Promise<{ id: number; title: string; p
     if (!res.ok) return [];
     const json = await res.json();
     const media = json.data?.Page?.media || [];
-    const results: { id: number; title: string; poster: string | null; rating: number; year: number; type: \"anime\"; genres: string[]; daysUntil: number | null; overview: string; backdrop: string | null }[] = [];
+    const results: { id: number; title: string; poster: string | null; rating: number; year: number; type: "anime"; genres: string[]; daysUntil: number | null; overview: string; backdrop: string | null }[] = [];
     for (const m of media) {
       const sd = m.startDate;
       let daysUntil: number | null = null;
@@ -1290,7 +1290,7 @@ export async function getAnimeUpcoming(): Promise<{ id: number; title: string; p
         backdrop,
         rating: Math.round((m.averageScore / 10) * 10) / 10 || 0,
         year: m.seasonYear || 0,
-        type: \"anime\" as const,
+        type: "anime" as const,
         genres: (m.genres || []).slice(0, 5),
         daysUntil,
         overview: (m.description || "").replace(/<[^>]*>/g, "").slice(0, 300),
