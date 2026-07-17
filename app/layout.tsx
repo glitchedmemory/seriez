@@ -180,7 +180,8 @@ export default async function RootLayout({
         <LocaleProvider serverLocale={locale} serverMessages={messages} allMessages={allMessages}>
           <ThemeProvider>
             <AdminAwareLayout user={layoutUser}>
-              {children}
+                      {/* layoutUser: {JSON.stringify(layoutUser)} */}
+                      {children}
             </AdminAwareLayout>
             <FeedbackWidget />
           </ThemeProvider>
