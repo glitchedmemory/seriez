@@ -109,10 +109,10 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
         <div className="absolute inset-0 overflow-hidden rounded-none md:rounded-2xl">
         <div className="relative w-full h-full">
         <PosterImage
-          src={item.backdrop}
+          src={item.backdrop || item.poster}
           alt=""
           fill
-          className="rounded-none md:rounded-2xl group-hover:scale-105 transition-transform duration-700"
+          className={`rounded-none md:rounded-2xl group-hover:scale-105 transition-transform duration-700 ${!item.backdrop ? "blur-2xl scale-125 opacity-50" : ""}`}
           priority
           unoptimized
         />

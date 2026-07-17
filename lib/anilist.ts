@@ -1268,7 +1268,8 @@ export async function getAnimeUpcoming(): Promise<{ id: number; title: string; p
     if (!res.ok) return [];
     const json = await res.json();
     const media = json.data?.Page?.media || [];
-    return media.map((m: any) => {
+    const results: { id: number; title: string; poster: string | null; rating: number; year: number; type: \"anime\"; genres: string[]; daysUntil: number | null; overview: string; backdrop: string | null }[] = [];
+    for (const m of media) {
       const sd = m.startDate;
       let daysUntil: number | null = null;
       if (sd?.year && sd?.month && sd?.day) {
@@ -1276,18 +1277,26 @@ export async function getAnimeUpcoming(): Promise<{ id: number; title: string; p
         const diff = Math.ceil((release.getTime() - Date.now()) / 86400000);
         daysUntil = diff > 0 ? diff : null;
       }
-      return {
-      id: m.id,
-      title: m.title?.english || m.title?.romaji || "Unknown",
-      poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
-      backdrop: m.bannerImage || null,
-      rating: Math.round((m.averageScore / 10) * 10) / 10 || 0,
-      year: m.seasonYear || 0,
-      type: "anime" as const,
-      genres: (m.genres || []).slice(0, 5),
-      daysUntil,
-      overview: (m.description || "").replace(/<[^>]*>/g, "").slice(0, 300),
-    };});
+      let backdrop = m.bannerImage || null;
+      if (!backdrop) {
+        const title = m.title?.romaji || m.title?.english || "";
+        const year = m.seasonYear || 0;
+        if (title && year) backdrop = await searchKitsuBackdrop(title, year);
+      }
+      results.push({
+        id: m.id,
+        title: m.title?.english || m.title?.romaji || "Unknown",
+        poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
+        backdrop,
+        rating: Math.round((m.averageScore / 10) * 10) / 10 || 0,
+        year: m.seasonYear || 0,
+        type: \"anime\" as const,
+        genres: (m.genres || []).slice(0, 5),
+        daysUntil,
+        overview: (m.description || "").replace(/<[^>]*>/g, "").slice(0, 300),
+      });
+    }
+    return results;
   } catch {
     return [];
   }
@@ -1338,6 +1347,29 @@ query TrendingAnime($page: Int, $perPage: Int) {
   }
 }`;
 
+const KITSU_BASE = "https://kitsu.io/api/edge";
+const KITSU_UA = "Seriez/1.0";
+
+async function searchKitsuBackdrop(title: string, year: number): Promise<string | null> {
+  try {
+    const query = encodeURIComponent(title);
+    const url = `${KITSU_BASE}/anime?filter[text]=${query}&page[limit]=5`;
+    const res = await fetch(url, {
+      headers: { "Accept": "application/vnd.api+json", "User-Agent": KITSU_UA },
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const match = (json.data || []).find((a: any) => {
+      const y = parseInt(a.attributes?.startDate?.split("-")[0]);
+      return y === year || Math.abs(y - year) <= 1;
+    });
+    return match?.attributes?.coverImage?.original || null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getAnimeTrending(): Promise<TmdbResult[]> {
   try {
     const res = await fetch(ANILIST_API, {
@@ -1349,18 +1381,28 @@ export async function getAnimeTrending(): Promise<TmdbResult[]> {
     if (!res.ok) return [];
     const json = await res.json();
     const media = json.data?.Page?.media || [];
-    return media.map((m: any) => ({
-      id: m.id,
-      title: m.title?.english || m.title?.romaji || "Unknown",
-      poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
-      backdrop: m.bannerImage || null,
-      rating: Math.round((m.averageScore / 10) * 10) / 10 || 0,
-      year: m.seasonYear || 0,
-      type: "anime" as const,
-      overview: m.description?.replace(/<[^>]*>/g, "").slice(0, 300) || "",
-      genres: m.genres?.slice(0, 5) || [],
-      daysUntil: null,
-    }));
+    const results: TmdbResult[] = [];
+    for (const m of media) {
+      let backdrop = m.bannerImage || null;
+      if (!backdrop) {
+        const title = m.title?.romaji || m.title?.english || "";
+        const year = m.seasonYear || 0;
+        if (title && year) backdrop = await searchKitsuBackdrop(title, year);
+      }
+      results.push({
+        id: m.id,
+        title: m.title?.english || m.title?.romaji || "Unknown",
+        poster: m.coverImage?.extraLarge || m.coverImage?.large || null,
+        backdrop,
+        rating: Math.round((m.averageScore / 10) * 10) / 10 || 0,
+        year: m.seasonYear || 0,
+        type: "anime" as const,
+        overview: m.description?.replace(/<[^>]*>/g, "").slice(0, 300) || "",
+        genres: m.genres?.slice(0, 5) || [],
+        daysUntil: null,
+      });
+    }
+    return results;
   } catch {
     return [];
   }
