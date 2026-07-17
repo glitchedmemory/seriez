@@ -439,7 +439,9 @@
     "dayAgo": "{n}日前",
     "back": "戻る",
     "followers": "フォロワー",
-    "following": "フォロー中"
+    "following": "フォロー中",
+    "released": "見たかった作品がリリースされました！",
+    "badgeReleased": "リリース"
   },
   "libraryPage": {
     "toWatch": "視聴予定",

@@ -148,6 +148,87 @@ export async function GET(req: NextRequest) {
 
   // Sort, deduplicate, limit
   activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  // ─── PTW release check: scan user's plan_to_watch items for recent releases ───
+  if (userId && username) {
+    try {
+      const { data: ptwItems } = await supabase
+        .from("media_trackings")
+        .select("tmdb_id, media_type")
+        .eq("username", username.trim().slice(0, 20))
+        .eq("status", "plan_to_watch")
+        .limit(50);
+      
+      if (ptwItems?.length) {
+        const today = new Date();
+        const recent = new Date(today);
+        recent.setDate(recent.getDate() - 7); // last 7 days
+        
+        for (const item of ptwItems) {
+          let releaseDate: Date | null = null;
+          let title = "";
+          let poster: string | null = null;
+          let year: string | null = null;
+          
+          try {
+            if (item.media_type === "anime") {
+              const res = await fetch("https://graphql.anilist.co", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                body: JSON.stringify({ query: `query($id:Int){Media(id:$id){title{english romaji}coverImage{extraLarge}startDate{year month day}seasonYear}}`, variables: { id: item.tmdb_id } }),
+              });
+              if (res.ok) {
+                const j = await res.json();
+                const m = j.data?.Media;
+                if (m) {
+                  title = m.title?.english || m.title?.romaji || "";
+                  poster = m.coverImage?.extraLarge || null;
+                  year = m.seasonYear?.toString() || null;
+                  const sd = m.startDate;
+                  if (sd?.year && sd?.month && sd?.day) {
+                    releaseDate = new Date(sd.year, sd.month - 1, sd.day);
+                  }
+                }
+              }
+            } else {
+              const ep = item.media_type === "tv" ? "tv" : "movie";
+              const res = await fetch(`${TMDB_API}/${ep}/${item.tmdb_id}?api_key=${TMDB_KEY}`);
+              if (res.ok) {
+                const d = await res.json();
+                title = d.title || d.name || "";
+                poster = d.poster_path ? `${TMDB_IMAGE_BASE}${d.poster_path}` : null;
+                const dateStr = d.release_date || d.first_air_date || "";
+                year = dateStr.slice(0, 4) || null;
+                if (dateStr) {
+                  releaseDate = new Date(dateStr);
+                }
+              }
+            }
+          } catch {}
+
+          if (releaseDate && releaseDate >= recent && releaseDate <= today && title) {
+            const key = `rel-${username}-${item.tmdb_id}`;
+            if (!activities.find(a => a.id === key)) {
+              activities.push({
+                id: key,
+                type: "released",
+                username,
+                tmdbId: item.tmdb_id,
+                mediaType: item.media_type,
+                title,
+                poster,
+                year,
+                createdAt: releaseDate.toISOString(),
+              });
+            }
+          }
+        }
+      }
+    } catch {}
+  }
+
+  // Re-sort after adding released items
+  activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const seen = new Set<string>();
   const unique = activities.filter((a) => {
     const key = `${a.username}-${a.tmdbId}-${a.type}`;
@@ -391,7 +472,7 @@ async function enrichAnime(anilistId: number): Promise<{ title: string; poster: 
 
 interface Activity {
   id: string;
-  type: "review" | "rated" | "watched" | "watching" | "plan_to_watch" | "collection";
+  type: "review" | "rated" | "watched" | "watching" | "plan_to_watch" | "collection" | "released";
   username: string;
   tmdbId: number;
   mediaType: string;

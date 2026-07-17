@@ -439,7 +439,9 @@
     "dayAgo": "{n}天前",
     "back": "返回",
     "followers": "粉丝",
-    "following": "关注中"
+    "following": "关注中",
+    "released": "想看作品已发布！",
+    "badgeReleased": "已发布"
   },
   "libraryPage": {
     "toWatch": "想看",

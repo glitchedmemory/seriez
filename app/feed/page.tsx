@@ -7,7 +7,7 @@ import PosterImage from "@/components/PosterImage";
 
 interface Activity {
   id: string;
-  type: "review" | "rated" | "watched" | "watching" | "plan_to_watch" | "collection";
+  type: "review" | "rated" | "watched" | "watching" | "plan_to_watch" | "collection" | "released";
   username: string;
   tmdbId: number;
   mediaType: string;
@@ -28,6 +28,7 @@ function getTypeConfig(t: any) {
     watched:     { emoji: "✅", text: t("feedPage.watched"),            badge: t("feedPage.badgeWatched"),  color: "#22c55e", badgeClass: "bg-[#22c55e]/15 text-[#4ade80]" },
     watching:    { emoji: "👁️", text: t("feedPage.isWatching"),       badge: t("feedPage.badgeWatching"), color: "#3b82f6", badgeClass: "bg-[#3b82f6]/15 text-[#60a5fa]" },
     plan_to_watch:{ emoji: "📌", text: t("feedPage.plansToWatch"),  badge: t("feedPage.badgePlan"),     color: "#6b7280", badgeClass: "bg-[#6b7280]/15 text-text-secondary" },
+    released:    { emoji: "🎬", text: t("feedPage.released"),          badge: t("feedPage.badgeReleased"), color: "#22c55e", badgeClass: "bg-[#22c55e]/15 text-[#4ade80]" },
     collection:  { emoji: "📁", text: t("feedPage.publishedCollection"), badge: "", color: "#ec4899", badgeClass: "" },
   } as Record<string, { emoji: string; text: string; badge: string; color: string; badgeClass: string }>;
 }
