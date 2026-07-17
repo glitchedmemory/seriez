@@ -439,7 +439,9 @@
     "dayAgo": "{n}일 전",
     "back": "뒤로",
     "followers": "팔로워",
-    "following": "팔로잉"
+    "following": "팔로잉",
+    "released": "보고싶어한 작품이 릴리즈 됐습니다!",
+    "badgeReleased": "릴리즈"
   },
   "libraryPage": {
     "toWatch": "볼 예정",

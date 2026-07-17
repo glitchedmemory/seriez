@@ -412,7 +412,9 @@
     "dayAgo": "{n}d ago",
     "back": "Back",
     "followers": "Followers",
-    "following": "Following"
+    "following": "Following",
+    "released": "wollte sehen — veröffentlicht!",
+    "badgeReleased": "VERÖFFENTLICHT"
   },
   "libraryPage": {
     "toWatch": "To Watch",
