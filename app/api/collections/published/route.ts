@@ -130,6 +130,7 @@ async function getThumbnails(items: { tmdb_id: number; media_type: string }[]): 
       });
       if (res.ok) {
         const json = await res.json();
+        console.log("[getThumbnails] AniList response:", JSON.stringify({ requestedIds: ids, returnedMedia: (json.data?.Page?.media || []).map((m: any) => m.id) }));
         for (const m of json.data?.Page?.media || []) {
           posterMap.set(`anime:${m.id}`, m.coverImage?.extraLarge || null);
         }
