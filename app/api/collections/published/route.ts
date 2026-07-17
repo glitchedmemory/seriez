@@ -72,7 +72,6 @@ export async function GET() {
             likesCount: likeMap[l.id] || 0,
             itemCount: realCount ?? 0,
             thumbnails: thumbs,
-            _debug: { itemTypes: (items || []).map(i => ({ tmdb_id: i.tmdb_id, media_type: i.media_type })) },
           };
         })
       );
@@ -98,7 +97,6 @@ export async function GET() {
           likesCount: c.likes_count || 0,
           itemCount: realCount ?? 0,
           thumbnails: thumbs,
-          _debug: { itemTypes: (items || []).map((i: any) => ({ tmdb_id: i.tmdb_id, media_type: i.media_type })) },
         };
       })
     );
@@ -129,10 +127,10 @@ async function getThumbnails(items: { tmdb_id: number; media_type: string }[]): 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query, variables: { ids } }),
+        cache: "no-store",
       });
       if (res.ok) {
         const json = await res.json();
-        const returnedCount = (json.data?.Page?.media || []).length;
         for (const m of json.data?.Page?.media || []) {
           posterMap.set(`anime:${m.id}`, m.coverImage?.extraLarge || null);
         }
