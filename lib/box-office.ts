@@ -396,6 +396,6 @@ export const getBoxOffice = unstable_cache(
   if (results.length === 0 && country !== "US") return (await scrapeUS()).slice(0, 7);
   return results.slice(0, 7);
 },
-  ["box-office-v4"],
+  ["box-office-v5"],
   { revalidate: 3600 }
 );
