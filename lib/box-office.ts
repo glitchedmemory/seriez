@@ -56,8 +56,11 @@ export function getCountryName(code: string): string {
 // ─── Playwright helper for JS-rendered Box Office Mojo ───
 
 async function fetchBOMTable(url: string): Promise<RawBoxOfficeItem[]> {
+  console.log("[box-office] fetchBOMTable starting:", url);
   const { chromium } = await import("playwright");
+  console.log("[box-office] playwright imported");
   const browser = await chromium.launch({ headless: true });
+  console.log("[box-office] browser launched");
   try {
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
@@ -80,8 +83,10 @@ async function fetchBOMTable(url: string): Promise<RawBoxOfficeItem[]> {
       return rows.slice(0, 10);
     });
 
+    console.log("[box-office] items extracted:", items.length);
     return items;
-  } catch {
+  } catch(e) {
+    console.error("[box-office] fetchBOMTable error:", e instanceof Error ? e.message : String(e));
     return [];
   } finally {
     await browser.close();
@@ -112,8 +117,10 @@ async function fetchBOMTableArea(url: string): Promise<RawBoxOfficeItem[]> {
       return rows.slice(0, 10);
     });
 
+    console.log("[box-office] items extracted:", items.length);
     return items;
-  } catch {
+  } catch(e) {
+    console.error("[box-office] fetchBOMTable error:", e instanceof Error ? e.message : String(e));
     return [];
   } finally {
     await browser.close();
