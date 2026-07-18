@@ -28,10 +28,13 @@ interface MatchResult {
 
 function getBOMWeek(): string {
   const now = new Date();
-  const year = now.getFullYear();
+  // Box office data for the current weekend is not available until Saturday
+  // Use last week's data instead
+  const lastWeek = new Date(now.getTime() - 7 * 86400000);
+  const year = lastWeek.getFullYear();
   const jan1 = new Date(year, 0, 1);
   const dayOfWeek = (jan1.getDay() + 6) % 7;
-  const weekNum = Math.ceil((((now.getTime() - jan1.getTime()) / 86400000) - dayOfWeek + 1) / 7);
+  const weekNum = Math.ceil((((lastWeek.getTime() - jan1.getTime()) / 86400000) - dayOfWeek + 1) / 7);
   return `${year}W${weekNum}`;
 }
 
