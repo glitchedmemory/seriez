@@ -392,9 +392,18 @@ const SCRAPERS: Record<string, () => Promise<TmdbResult[]>> = {
 export const getBoxOffice = unstable_cache(
   async (country: string): Promise<TmdbResult[]> => {
   const scraper = SCRAPERS[country];
-  if (!scraper) return (await scrapeUS()).slice(0, 7);
+  if (!scraper) {
+    const result = (await scrapeUS()).slice(0, 7);
+    console.log("[box-office] fallback to US for", country, "- count:", result.length);
+    return result;
+  }
   const results = await scraper();
-  if (results.length === 0 && country !== "US") return (await scrapeUS()).slice(0, 7);
+  console.log("[box-office] country:", country, "- count:", results.length);
+  if (results.length === 0 && country !== "US") {
+    const fallback = (await scrapeUS()).slice(0, 7);
+    console.log("[box-office] fallback to US for", country, "- count:", fallback.length);
+    return fallback;
+  }
   return results.slice(0, 7);
 },
   ["box-office-v5"],
