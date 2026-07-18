@@ -65,19 +65,15 @@ async function fetchBOMTable(url: string): Promise<RawBoxOfficeItem[]> {
     // Extract movie rows from the weekend table
     const items: RawBoxOfficeItem[] = await page.evaluate(() => {
       const rows: { title: string; gross: string }[] = [];
-      // Box Office Mojo weekend table rows
       const tableRows = document.querySelectorAll("table.mojo-body-table tr");
       tableRows.forEach((row) => {
-        const cells = row.querySelectorAll("td");
-        if (cells.length >= 3) {
-          const titleLink = cells[1]?.querySelector("a");
-          const grossCell = cells[2];
-          if (titleLink && grossCell) {
-            const title = titleLink.textContent?.trim() || "";
-            const gross = grossCell.textContent?.trim() || "";
-            if (title && gross) {
-              rows.push({ title, gross });
-            }
+        const titleCell = row.querySelector(".mojo-field-type-release");
+        const grossCell = row.querySelector(".mojo-field-type-money");
+        if (titleCell && grossCell) {
+          const title = (titleCell.textContent || "").trim();
+          const gross = (grossCell.textContent || "").trim();
+          if (title && gross && title !== "Release") {
+            rows.push({ title, gross });
           }
         }
       });
@@ -97,21 +93,18 @@ async function fetchBOMTableArea(url: string): Promise<RawBoxOfficeItem[]> {
   try {
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
-    
+    // Extract movie rows from the weekend table
     const items: RawBoxOfficeItem[] = await page.evaluate(() => {
       const rows: { title: string; gross: string }[] = [];
       const tableRows = document.querySelectorAll("table.mojo-body-table tr");
       tableRows.forEach((row) => {
-        const cells = row.querySelectorAll("td");
-        if (cells.length >= 3) {
-          const titleLink = cells[1]?.querySelector("a");
-          const grossCell = cells[2];
-          if (titleLink && grossCell) {
-            const title = titleLink.textContent?.trim() || "";
-            const gross = grossCell.textContent?.trim() || "";
-            if (title && gross) {
-              rows.push({ title, gross });
-            }
+        const titleCell = row.querySelector(".mojo-field-type-release");
+        const grossCell = row.querySelector(".mojo-field-type-money");
+        if (titleCell && grossCell) {
+          const title = (titleCell.textContent || "").trim();
+          const gross = (grossCell.textContent || "").trim();
+          if (title && gross && title !== "Release") {
+            rows.push({ title, gross });
           }
         }
       });
