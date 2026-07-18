@@ -95,6 +95,14 @@ export async function proxy(request: NextRequest) {
   const intlRes = handleI18n(request);
   const sessionRes = await updateSession(request);
 
+  // Homepage: short Cloudflare cache to avoid stale box office
+  if (path === "/") {
+    sessionRes.headers.set(
+      "Cache-Control",
+      "public, max-age=0, s-maxage=120, stale-while-revalidate=60"
+    );
+  }
+
   // Copy i18n headers (locale cookie, rewrite) to session response
   intlRes.headers.forEach((value, key) => {
     if (key.toLowerCase() !== "x-middleware-rewrite") {
