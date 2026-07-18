@@ -4,7 +4,6 @@
 
 import type { TmdbResult } from "@/lib/tmdb";
 import { unstable_cache } from "next/cache";
-import { chromium } from "playwright";
 
 const TMDB_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE = "https://api.themoviedb.org/3";
@@ -57,6 +56,7 @@ export function getCountryName(code: string): string {
 // ─── Playwright helper for JS-rendered Box Office Mojo ───
 
 async function fetchBOMTable(url: string): Promise<RawBoxOfficeItem[]> {
+  const { chromium } = await import("playwright");
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
@@ -89,6 +89,7 @@ async function fetchBOMTable(url: string): Promise<RawBoxOfficeItem[]> {
 }
 
 async function fetchBOMTableArea(url: string): Promise<RawBoxOfficeItem[]> {
+  const { chromium } = await import("playwright");
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
