@@ -1,4 +1,4 @@
-export const revalidate = 600;
+export const dynamic = "force-dynamic";
 
 import { getTrending, getUpcoming } from "@/lib/tmdb";
 import type { TmdbResult } from "@/lib/tmdb";
@@ -132,5 +132,10 @@ export default async function Home() {
   let curated: Awaited<ReturnType<typeof getTonightsPick>> = null;
   try { curated = await getTonightsPick(tz); } catch {}
 
-  return <HomeClient trending={trending} upcoming={allUpcoming} animeUpcoming={[]} boxOffice={boxOffice} region={region} randomSeed={Date.now()} curatedHero={curated?.hero} curatedNextHero={curated?.nextHero} />;
+  // Pick hero + right-now randomly per request (no client-side re-roll)
+  const heroIndex = trending.length > 0 ? Math.floor(Math.random() * trending.length) : 0;
+  const nextPool = trending.filter((_, i) => i !== heroIndex);
+  const nextIndex = nextPool.length > 0 ? Math.floor(Math.random() * nextPool.length) : 0;
+
+  return <HomeClient trending={trending} upcoming={allUpcoming} animeUpcoming={[]} boxOffice={boxOffice} region={region} heroIndex={heroIndex} nextIndex={nextIndex} nextPool={nextPool} curatedHero={curated?.hero} curatedNextHero={curated?.nextHero} />;
 }
