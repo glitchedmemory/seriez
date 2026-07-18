@@ -99,7 +99,9 @@ interface Props {
   animeUpcoming: TmdbResult[];
   boxOffice: TmdbResult[];
   region: string;
-  randomSeed: number;
+  heroIndex: number;
+  nextIndex: number;
+  nextPool: TmdbResult[];
   curatedHero?: TmdbResult;
   curatedNextHero?: TmdbResult;
 }
@@ -113,7 +115,7 @@ function getStoredMode(): TrendingMode {
   return "anime";
 }
 
-export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffice, region, randomSeed, curatedHero, curatedNextHero }: Props) {
+export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffice, region, heroIndex, nextIndex, nextPool, curatedHero, curatedNextHero }: Props) {
   const t = useTranslations();
   const [, forceRender] = useState(0);
   useEffect(() => { forceRender(n => n + 1); }, []);
@@ -188,25 +190,10 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
     }).catch(() => {});
   }, []);
 
-  // hero + right-now: deterministic from server (matches SSR), then both re-rolled client-side
-  const [heroPick, setHeroPick] = useState(() => randomSeed % Math.max(trending.length, 1));
-  const [nextPick, setNextPick] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (trending.length === 0) return;
-    const h = Math.floor(Math.random() * trending.length);
-    setHeroPick(h);
-    const remaining = trending.filter((_, i) => i !== h);
-    if (remaining.length > 0) {
-      setNextPick(Math.floor(Math.random() * remaining.length));
-    }
-  }, []);
-
-  const hero = trending[heroPick] || trending[0];
-  const remainingTrending = trending.filter((_, i) => i !== heroPick);
-  const nextHero = nextPick !== null && remainingTrending.length > 0
-    ? remainingTrending[nextPick % remainingTrending.length]
-    : (curatedNextHero || remainingTrending[0] || trending[0]);
+  // hero + right-now: picked server-side (different each request, no client-side re-roll)
+  const hero = trending[heroIndex] || trending[0];
+  const remainingTrending = trending.filter((_, i) => i !== heroIndex);
+  const nextHero = nextPool[nextIndex] || (curatedNextHero || remainingTrending[0] || trending[0]);
 
   // Shared search results dropdown
   const searchDropdown = searchOpen && searchQuery.trim() ? (
