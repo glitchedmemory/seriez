@@ -4,6 +4,7 @@
 
 import type { TmdbResult } from "@/lib/tmdb";
 import { unstable_cache } from "next/cache";
+import { chromium } from "playwright";
 
 const TMDB_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE = "https://api.themoviedb.org/3";
@@ -53,10 +54,81 @@ export function getCountryName(code: string): string {
   return COUNTRY_NAMES[code] || code;
 }
 
+// ─── Playwright helper for JS-rendered Box Office Mojo ───
+
+async function fetchBOMTable(url: string): Promise<RawBoxOfficeItem[]> {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
+    
+    // Extract movie rows from the weekend table
+    const items: RawBoxOfficeItem[] = await page.evaluate(() => {
+      const rows: { title: string; gross: string }[] = [];
+      // Box Office Mojo weekend table rows
+      const tableRows = document.querySelectorAll("table.mojo-body-table tr");
+      tableRows.forEach((row) => {
+        const cells = row.querySelectorAll("td");
+        if (cells.length >= 3) {
+          const titleLink = cells[1]?.querySelector("a");
+          const grossCell = cells[2];
+          if (titleLink && grossCell) {
+            const title = titleLink.textContent?.trim() || "";
+            const gross = grossCell.textContent?.trim() || "";
+            if (title && gross) {
+              rows.push({ title, gross });
+            }
+          }
+        }
+      });
+      return rows.slice(0, 10);
+    });
+
+    return items;
+  } catch {
+    return [];
+  } finally {
+    await browser.close();
+  }
+}
+
+async function fetchBOMTableArea(url: string): Promise<RawBoxOfficeItem[]> {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
+    
+    const items: RawBoxOfficeItem[] = await page.evaluate(() => {
+      const rows: { title: string; gross: string }[] = [];
+      const tableRows = document.querySelectorAll("table.mojo-body-table tr");
+      tableRows.forEach((row) => {
+        const cells = row.querySelectorAll("td");
+        if (cells.length >= 3) {
+          const titleLink = cells[1]?.querySelector("a");
+          const grossCell = cells[2];
+          if (titleLink && grossCell) {
+            const title = titleLink.textContent?.trim() || "";
+            const gross = grossCell.textContent?.trim() || "";
+            if (title && gross) {
+              rows.push({ title, gross });
+            }
+          }
+        }
+      });
+      return rows.slice(0, 10);
+    });
+
+    return items;
+  } catch {
+    return [];
+  } finally {
+    await browser.close();
+  }
+}
+
 // ─── TMDB poster matching ───
 
 async function tmdbSearch(title: string): Promise<MatchResult | null> {
-  // Strategy 1: title + year extraction
   const yearMatch = title.match(/\((\d{4})\)/);
   const cleanTitle = title.replace(/\s*\(\d{4}\)\s*/, "").trim();
   const year = yearMatch ? parseInt(yearMatch[1]) : 0;
@@ -64,7 +136,6 @@ async function tmdbSearch(title: string): Promise<MatchResult | null> {
   const strategies = [
     { query: cleanTitle, year },
     { query: cleanTitle, year: 0 },
-    // For subtitled movies: "Movie Name: Subtitle" → "Movie Name"
     { query: cleanTitle.split(":")[0].trim(), year },
   ];
 
@@ -98,51 +169,11 @@ async function tmdbSearch(title: string): Promise<MatchResult | null> {
   return null;
 }
 
-// ─── Wikipedia poster fallback ───
-
-async function wikipediaPoster(title: string): Promise<string | null> {
-  try {
-    // Try common Wikipedia URL patterns
-    const slugs = [
-      title.replace(/\s+/g, "_").replace(/[^\w_-]/g, ""),
-      title.replace(/\s+/g, "_") + "_(film)",
-      title.replace(/\s+/g, "_") + "_(2026_film)",
-      title.replace(/\s+/g, "_") + "_(2025_film)",
-    ];
-
-    for (const slug of slugs) {
-      const apiUrl = `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(slug)}&prop=text&format=json&origin=*`;
-      const res = await fetch(apiUrl, {
-        headers: { "User-Agent": "Seriez/1.0 (box-office-bot)" },
-      });
-      if (!res.ok) continue;
-      const data = await res.json();
-      const text = data?.parse?.text?.["*"] || "";
-      // Extract first upload.wikimedia.org image (usually the poster/infobox image)
-      const m = text.match(/src="(\/\/upload\.wikimedia\.org\/wikipedia\/[^"]+\.(?:jpg|png|jpeg))"/i);
-      if (m) {
-        // Get full resolution version
-        const full = "https:" + m[1].replace(/\/thumb\//, "/").replace(/\/\d+px-[^/]+$/, "");
-        return full;
-      }
-    }
-  } catch {}
-  return null;
-}
-
-// ─── Text-only fallback (deterministic ID + null poster) ───
-
-function hashCode(s: string): number {
-  let hash = 0;
-  for (let i = 0; i < s.length; i++) {
-    hash = ((hash << 5) - hash + s.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash);
-}
-
-function textFallback(title: string): MatchResult {
+async function resolvePoster(title: string): Promise<MatchResult> {
+  const match = await tmdbSearch(title);
+  if (match) return match;
   return {
-    id: hashCode(title),
+    id: 0,
     title,
     poster: null,
     year: 0,
@@ -151,57 +182,14 @@ function textFallback(title: string): MatchResult {
   };
 }
 
-// ─── Poster resolution pipeline ───
-
-async function resolvePoster(title: string): Promise<MatchResult> {
-  // 1. TMDB search
-  const tmdb = await tmdbSearch(title);
-  if (tmdb) return tmdb;
-
-  // 2. Wikipedia fallback
-  const wp = await wikipediaPoster(title);
-  if (wp) {
-    const fb = textFallback(title);
-    fb.poster = wp;
-    return fb;
-  }
-
-  // 3. Text-only fallback
-  return textFallback(title);
-}
-
-// ─── US: Box Office Mojo ───
+// ─── US: Box Office Mojo (Playwright) ───
 
 async function scrapeUS(): Promise<TmdbResult[]> {
   try {
-    const res = await fetch(`https://www.boxofficemojo.com/weekend/${getBOMWeek()}/`, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
-    });
-    if (!res.ok) return [];
-    const html = await res.text();
+    const url = `https://www.boxofficemojo.com/weekend/${getBOMWeek()}/`;
+    const items = await fetchBOMTable(url);
+    if (items.length === 0) return [];
 
-    // Extract movie titles and weekend grosses
-    const items: RawBoxOfficeItem[] = [];
-    const titleRegex = /class="a-link-normal" href="\/release\/rl\d+\/[^"]*">([^<]+)<\/a>/g;
-    const grossRegex = /mojo-field-type-money mojo-estimatable">([^<]+)<\/td>/g;
-
-    const titles: string[] = [];
-    const grosses: string[] = [];
-    let m: RegExpExecArray | null;
-
-    while ((m = titleRegex.exec(html)) !== null) {
-      titles.push(m[1].trim());
-    }
-    while ((m = grossRegex.exec(html)) !== null) {
-      grosses.push(m[1].trim());
-    }
-
-    // Pair titles with their weekend gross (first gross after each title)
-    for (let i = 0; i < Math.min(titles.length, grosses.length, 10); i++) {
-      items.push({ title: titles[i], gross: grosses[i] });
-    }
-
-    // Resolve posters
     const results: TmdbResult[] = [];
     for (const item of items) {
       const match = await resolvePoster(item.title);
@@ -220,7 +208,7 @@ async function scrapeUS(): Promise<TmdbResult[]> {
   }
 }
 
-// ─── UK: FDA (Film Distributors' Association) ───
+// ─── UK: FDA ───
 
 async function scrapeUK(): Promise<TmdbResult[]> {
   try {
@@ -230,17 +218,27 @@ async function scrapeUK(): Promise<TmdbResult[]> {
     if (!res.ok) return [];
     const html = await res.text();
 
-    // Extract from the "UK and Ireland Top 5 Films" table
     const items: RawBoxOfficeItem[] = [];
-    // Pattern: <td>N</td><td>Movie Title</td><td>Distributor</td>...<td class="right">£X,XXX,XXX</td>
-    const rowRegex = /<tr><td>\d+<\/td><td>([^<]+)<\/td><td>[^<]*<\/td><td>[^<]*<\/td><td class="right">([^<]+)<\/td>/g;
+    const titleRegex = /<h3[^>]*>([^<]+)<\/h3>/g;
+    const grossRegex = /£[\d,]+/g;
+
+    const titles: string[] = [];
+    const grosses: string[] = [];
     let m: RegExpExecArray | null;
-    while ((m = rowRegex.exec(html)) !== null) {
-      items.push({ title: m[1].trim(), gross: m[2].trim() });
+
+    while ((m = titleRegex.exec(html)) !== null) {
+      titles.push(m[1].trim());
+    }
+    while ((m = grossRegex.exec(html)) !== null) {
+      grosses.push(m[0].trim());
+    }
+
+    for (let i = 0; i < Math.min(titles.length, grosses.length, 10); i++) {
+      items.push({ title: titles[i], gross: grosses[i] });
     }
 
     const results: TmdbResult[] = [];
-    for (const item of items.slice(0, 10)) {
+    for (const item of items) {
       const match = await resolvePoster(item.title);
       results.push({
         ...match,
@@ -249,7 +247,7 @@ async function scrapeUK(): Promise<TmdbResult[]> {
         genres: [],
         daysUntil: null,
         boxOffice: { gross: item.gross },
-      } as TmdbResult);
+      } as unknown as TmdbResult);
     }
     return results;
   } catch {
@@ -257,30 +255,13 @@ async function scrapeUK(): Promise<TmdbResult[]> {
   }
 }
 
-// ─── AU/MX: Box Office Mojo (same scraper, different area) ───
+// ─── AU/MX/ES/JP/DE: Box Office Mojo (Playwright, area-specific) ───
 
 async function scrapeBOMArea(area: string): Promise<TmdbResult[]> {
   try {
-    const res = await fetch(`https://www.boxofficemojo.com/weekend/${getBOMWeek()}/?area=${area}`, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
-    });
-    if (!res.ok) return [];
-    const html = await res.text();
-
-    const items: RawBoxOfficeItem[] = [];
-    const titleRegex = /class="a-link-normal" href="\/release\/rl\d+\/[^"]*">([^<]+)<\/a>/g;
-    const grossRegex = /mojo-field-type-money mojo-estimatable">([^<]+)<\/td>/g;
-
-    const titles: string[] = [];
-    const grosses: string[] = [];
-    let m: RegExpExecArray | null;
-
-    while ((m = titleRegex.exec(html)) !== null) titles.push(m[1].trim());
-    while ((m = grossRegex.exec(html)) !== null) grosses.push(m[1].trim());
-
-    for (let i = 0; i < Math.min(titles.length, grosses.length, 10); i++) {
-      items.push({ title: titles[i], gross: grosses[i] });
-    }
+    const url = `https://www.boxofficemojo.com/weekend/${getBOMWeek()}/?area=${area}`;
+    const items = await fetchBOMTableArea(url);
+    if (items.length === 0) return [];
 
     const results: TmdbResult[] = [];
     for (const item of items) {
@@ -302,54 +283,49 @@ async function scrapeBOMArea(area: string): Promise<TmdbResult[]> {
 
 async function scrapeAU(): Promise<TmdbResult[]> { return scrapeBOMArea("AU"); }
 async function scrapeMX(): Promise<TmdbResult[]> { return scrapeBOMArea("MX"); }
+async function scrapeES(): Promise<TmdbResult[]> { return scrapeBOMArea("ES"); }
+async function scrapeJP(): Promise<TmdbResult[]> { return scrapeBOMArea("JP"); }
+async function scrapeDE(): Promise<TmdbResult[]> { return scrapeBOMArea("DE"); }
 
-// ─── KR: KOFIC API (needs free API key from kobis.or.kr) ───
-
-const KOFIC_KEY = process.env.KOFIC_API_KEY || "";
+// ─── KR: KOFIC ───
 
 async function scrapeKR(): Promise<TmdbResult[]> {
-  if (!KOFIC_KEY) return []; // unconfigured
   try {
-    // Get yesterday's date in YYYYMMDD format (KOFIC updates daily)
-    const d = new Date(Date.now() - 86400000);
-    const targetDt = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
-    const res = await fetch(
-      `http://kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchDailyBoxOfficeList.json?key=${KOFIC_KEY}&targetDt=${targetDt}`
-    );
+    const res = await fetch("https://www.kobis.or.kr/kobis/business/stat/boxoffice/findWeekendBoxOfficeList.do", {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+    });
     if (!res.ok) return [];
-    const data = await res.json();
-    const list = data?.boxOfficeResult?.dailyBoxOfficeList || [];
+    const html = await res.text();
+
+    const items: RawBoxOfficeItem[] = [];
+    const titleRegex = /<td[^>]*>\s*<span[^>]*>([^<]+)<\/span>/g;
+    const grossRegex = /[\d,]+원/g;
+
+    const titles: string[] = [];
+    const grosses: string[] = [];
+    let m: RegExpExecArray | null;
+
+    while ((m = titleRegex.exec(html)) !== null) {
+      titles.push(m[1].trim());
+    }
+    while ((m = grossRegex.exec(html)) !== null) {
+      grosses.push(m[0].trim());
+    }
+
+    for (let i = 0; i < Math.min(titles.length, grosses.length, 10); i++) {
+      items.push({ title: titles[i], gross: grosses[i] });
+    }
 
     const results: TmdbResult[] = [];
-    for (const item of list.slice(0, 10)) {
-      const title = item.movieNm;
-      const movieCd = item.movieCd;
-
-      // Fetch English title from KOFIC movie detail for TMDB matching
-      let engTitle = "";
-      try {
-        const detailRes = await fetch(
-          `http://kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json?key=${KOFIC_KEY}&movieCd=${movieCd}`
-        );
-        if (detailRes.ok) {
-          const detail = await detailRes.json();
-          engTitle = detail?.movieInfoResult?.movieInfo?.movieNmEn || "";
-        }
-      } catch {}
-
-      // Try Korean title first, then English for poster matching
-      const match = (engTitle && await resolvePoster(engTitle))
-        || await resolvePoster(title)
-        || (engTitle ? textFallback(engTitle) : textFallback(title));
-      if (engTitle && match.title === title) match.title = engTitle; // prefer English
-
+    for (const item of items) {
+      const match = await resolvePoster(item.title);
       results.push({
         ...match,
         backdrop: null,
         overview: "",
         genres: [],
         daysUntil: null,
-        boxOffice: { gross: `${item.audiCnt?.toLocaleString() || "?"} viewers` },
+        boxOffice: { gross: item.gross },
       } as unknown as TmdbResult);
     }
     return results;
@@ -358,49 +334,54 @@ async function scrapeKR(): Promise<TmdbResult[]> {
   }
 }
 
-async function scrapeES(): Promise<TmdbResult[]> { return scrapeBOMArea("ES"); }
-async function scrapeJP(): Promise<TmdbResult[]> { return scrapeBOMArea("JP"); }
-async function scrapeDE(): Promise<TmdbResult[]> { return scrapeBOMArea("DE"); }
+// ─── FR: AlloCiné ───
+
 async function scrapeFR(): Promise<TmdbResult[]> {
   try {
-    const res = await fetch("https://www.boxofficemojo.com/intl/france/", {
+    const res = await fetch("https://www.allocine.fr/boxoffice/france/", {
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
     });
     if (!res.ok) return [];
     const html = await res.text();
 
-    // FR intl page: different structure — extract unique titles + first gross
     const items: RawBoxOfficeItem[] = [];
-    const seen = new Set<string>();
-    const titleRegex = /class="a-link-normal" href="\/release\/rl\d+\/[^"]*">([^<]+)<\/a>/g;
-    const grossRegex = />(\$[\d,]+)</g;
+    const titleRegex = /class="meta-title-link"[^>]*>([^<]+)<\/a>/g;
+    const grossRegex = /[\d\s]+entrées/g;
 
     const titles: string[] = [];
     const grosses: string[] = [];
     let m: RegExpExecArray | null;
-    while ((m = titleRegex.exec(html)) !== null) titles.push(m[1].trim());
-    while ((m = grossRegex.exec(html)) !== null) grosses.push(m[1]);
+
+    while ((m = titleRegex.exec(html)) !== null) {
+      titles.push(m[1].trim());
+    }
+    while ((m = grossRegex.exec(html)) !== null) {
+      grosses.push(m[0].trim());
+    }
 
     for (let i = 0; i < Math.min(titles.length, grosses.length, 10); i++) {
-      if (!seen.has(titles[i])) {
-        seen.add(titles[i]);
-        items.push({ title: titles[i], gross: grosses[i] });
-      }
+      items.push({ title: titles[i], gross: grosses[i] });
     }
 
     const results: TmdbResult[] = [];
     for (const item of items) {
       const match = await resolvePoster(item.title);
       results.push({
-        ...match, backdrop: null, overview: "", genres: [], daysUntil: null,
+        ...match,
+        backdrop: null,
+        overview: "",
+        genres: [],
+        daysUntil: null,
         boxOffice: { gross: item.gross },
       } as unknown as TmdbResult);
     }
     return results;
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
-// ─── Main export ───
+// ─── Scraper registry ───
 
 const SCRAPERS: Record<string, () => Promise<TmdbResult[]>> = {
   US: scrapeUS,
@@ -419,10 +400,9 @@ export const getBoxOffice = unstable_cache(
   const scraper = SCRAPERS[country];
   if (!scraper) return (await scrapeUS()).slice(0, 7);
   const results = await scraper();
-  // Fallback to US if no results from country-specific scraper
   if (results.length === 0 && country !== "US") return (await scrapeUS()).slice(0, 7);
   return results.slice(0, 7);
 },
-  ["box-office-v2"],
+  ["box-office-v3"],
   { revalidate: 3600 }
 );
