@@ -800,12 +800,27 @@ export async function getPersonDetail(id: number): Promise<PersonDetail | null> 
       });
     }
     
-    // Add crew — overwrites cast when department matches knownFor
+    // Add crew — only for jobs matching known_for_department
     const knownDept = detail.known_for_department || "";
+    const relevantJobs: Record<string, string[]> = {
+      Directing: ["Director"],
+      Writing: ["Writer", "Screenplay", "Story", "Teleplay", "Novel"],
+      Production: ["Producer", "Executive Producer", "Co-Producer", "Co-Executive Producer"],
+      Editing: ["Editor"],
+      Cinematography: ["Director of Photography", "Cinematography"],
+      Sound: ["Original Music Composer", "Music", "Music Supervisor"],
+      Art: ["Production Design", "Art Direction", "Art Designer"],
+      "Costume & Make-Up": ["Costume Design", "Makeup Artist"],
+      "Visual Effects": ["Visual Effects", "Visual Effects Supervisor"],
+      Camera: ["Camera Operator", "Director of Photography"],
+      Lighting: ["Lighting Artist", "Lighting Supervisor"],
+    };
+    const allowedJobs = relevantJobs[knownDept] || [];
+    // "Acting" → no crew jobs at all
     for (const c of (movieCredits.crew || []).filter((c: { release_date?: string }) => c.release_date)) {
+      if (!allowedJobs.includes(c.job || "")) continue;
       const existing = movieSeen.get(c.id);
-      const isDirector = knownDept === "Directing" && c.job === "Director";
-      if (!existing || isDirector) {
+      if (!existing) {
         movieSeen.set(c.id, {
           id: c.id,
           title: c.title,
@@ -837,9 +852,9 @@ export async function getPersonDetail(id: number): Promise<PersonDetail | null> 
     }
     
     for (const c of (tvCredits.crew || []).filter((c: { first_air_date?: string }) => c.first_air_date)) {
+      if (!allowedJobs.includes(c.job || "")) continue;
       const existing = tvSeen.get(c.id);
-      const isDirector = knownDept === "Directing" && c.job === "Director";
-      if (!existing || isDirector) {
+      if (!existing) {
         tvSeen.set(c.id, {
           id: c.id,
           title: c.name,
