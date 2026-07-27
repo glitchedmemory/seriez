@@ -153,8 +153,7 @@ export default function ProfilePage() {
   const fetchStats = useCallback(async (mt?: string) => {
     if (!effectiveUsername) return;
     try {
-      const mediaType = mt ?? "movie";
-      const res = await fetch(`/api/users/${encodeURIComponent(effectiveUsername)}/stats?mediaType=${mediaType}`).then(r => r.json());
+      const res = await fetch(`/api/users/${encodeURIComponent(effectiveUsername)}/stats`).then(r => r.json());
       if (!res.error) setStats(res);
     } catch {}
   }, [effectiveUsername]);
