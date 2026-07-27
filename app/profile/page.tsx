@@ -36,6 +36,7 @@ interface ProfileStats {
   rating: { average: number; distribution: { score: number; count: number }[] };
   mediaBreakdown: { movie: number; tv: number; anime: number };
   mediaHours: { movie: number; tv: number; anime: number };
+  typeStats: Record<string, { watched: number; rated: number; avgRating: number | string; hours: number }>;
   genres: { name: string; count: number }[];
   topActors: { name: string; count: number; personId?: number; personSource?: string; image?: string | null }[];
   topDirectors: { name: string; count: number; personId?: number; personSource?: string; image?: string | null }[];
@@ -454,7 +455,7 @@ export default function ProfilePage() {
               {(["movie", "tv", "anime"] as const).map((type) => {
                 const labels: Record<string, string> = { movie: t("profilePage.movie"), tv: t("profilePage.tv"), anime: t("profilePage.anime") };
                 return (
-                  <button key={type} onClick={() => { setSelectedMediaType(type); fetchStats(type); }}
+                  <button key={type} onClick={() => setSelectedMediaType(type)}
                     className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all ${selectedMediaType === type ? "bg-accent text-white shadow-sm" : "text-text-secondary hover:text-text-primary"}`}>
                     {labels[type]}
                   </button>
@@ -464,19 +465,19 @@ export default function ProfilePage() {
           </div>
           <div className="grid grid-cols-4 gap-3">
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-text-primary">{stats.totals.watched}</p>
+              <p className="text-2xl font-bold text-text-primary">{stats.typeStats?.[selectedMediaType]?.watched ?? stats.totals.watched}</p>
               <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.watched")}</p>
             </div>
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-text-primary">{stats.totals.hours}h</p>
+              <p className="text-2xl font-bold text-text-primary">{stats.typeStats?.[selectedMediaType]?.hours ?? stats.totals.hours}h</p>
               <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.hours")}</p>
             </div>
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-yellow-400">{stats.rating.average || "—"}</p>
+              <p className="text-2xl font-bold text-yellow-400">{stats.typeStats?.[selectedMediaType]?.avgRating ?? stats.rating.average || "—"}</p>
               <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.avgRating")}</p>
             </div>
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-text-primary">{stats.totals.rated}</p>
+              <p className="text-2xl font-bold text-text-primary">{stats.typeStats?.[selectedMediaType]?.rated ?? stats.totals.rated}</p>
               <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.rated")}</p>
             </div>
           </div>
