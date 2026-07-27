@@ -320,24 +320,20 @@ export async function GET(
 
     const userId = userData.id;
 
-    // ── 2. Fetch all tracking data ──
-    let trackingQuery = supabaseAdmin
+    // ── 2. Fetch all tracking data (always all types — client-side filters tabs) ──
+    const { data: tracking } = await supabaseAdmin
       .from("media_trackings")
       .select("tmdb_id, media_type, status, rating, progress, watched_at, updated_at, anilist_id")
       .eq("username", userId);
-    if (mediaType) trackingQuery = trackingQuery.eq("media_type", mediaType);
-    const { data: tracking } = await trackingQuery;
 
     // ── 3. Fetch actual TMDB runtimes (in background — non-blocking for core data) ──
     const runtimeMap = tracking ? await fetchRuntimes(tracking) : new Map<number, number>();
 
     // ── 4. Fetch all reviews ──
-    let reviewsQuery = supabase
+    const { data: reviews } = await supabase
       .from("reviews")
       .select("tmdb_id, media_type, rating")
       .eq("username", username);
-    if (mediaType) reviewsQuery = reviewsQuery.eq("media_type", mediaType);
-    const { data: reviews } = await reviewsQuery;
 
     // ── Merge tracking + reviews for rated items ──
     const ratedMap = new Map<number, { rating: number; mediaType: string }>();
@@ -416,6 +412,23 @@ export async function GET(
       }
     }
     const totalHours = Math.round(totalMinutes / 60);
+
+    // ── Per-type stats for client-side tab switching ──
+    const typeStats: Record<string, { watched: number; rated: number; avgRating: number | string; hours: number }> = {
+      movie: { watched: 0, rated: 0, avgRating: "—", hours: 0 },
+      tv: { watched: 0, rated: 0, avgRating: "—", hours: 0 },
+      anime: { watched: 0, rated: 0, avgRating: "—", hours: 0 },
+    };
+    for (const [mt, label] of [["movie", "movie"], ["tv", "tv"], ["anime", "anime"]] as const) {
+      const typeWatched = watched.filter(t => t.media_type === mt);
+      const typeRated = allRated.filter(r => r.mediaType === mt);
+      typeStats[label].watched = typeWatched.length;
+      typeStats[label].rated = typeRated.length;
+      typeStats[label].avgRating = typeRated.length > 0
+        ? Math.round((typeRated.reduce((s, r) => s + r.rating, 0) / typeRated.length) * 10) / 10
+        : "—";
+      typeStats[label].hours = Math.round((mediaMinutes[label] || 0) / 60);
+    }
 
     // ── 7. Genre distribution ──
     const genreCounts: Record<string, number> = {};
@@ -703,6 +716,7 @@ export async function GET(
         tv: Math.round(mediaMinutes.tv / 60),
         anime: Math.round(mediaMinutes.anime / 60),
       },
+      typeStats,
       genres: topGenres,
       topActors,
       topDirectors,
