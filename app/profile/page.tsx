@@ -473,7 +473,7 @@ export default function ProfilePage() {
               <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.hours")}</p>
             </div>
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-yellow-400">{stats.typeStats?.[selectedMediaType]?.avgRating ?? stats.rating.average || "—"}</p>
+              <p className="text-2xl font-bold text-yellow-400">{stats.typeStats?.[selectedMediaType]?.avgRating || stats.rating.average || "—"}</p>
               <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.avgRating")}</p>
             </div>
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
