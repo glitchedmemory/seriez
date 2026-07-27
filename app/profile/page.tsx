@@ -462,24 +462,33 @@ export default function ProfilePage() {
               })}
             </div>
           </div>
+          {(() => {
+            const ts = stats.typeStats?.[selectedMediaType];
+            const displayWatched = ts ? ts.watched : stats.totals.watched;
+            const displayHours = ts ? ts.hours : stats.totals.hours;
+            const displayAvg = ts ? ts.avgRating : (stats.rating.average || "—");
+            const displayRated = ts ? ts.rated : stats.totals.rated;
+            return (
           <div className="grid grid-cols-4 gap-3">
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-text-primary">{stats.typeStats?.[selectedMediaType]?.watched != null ? stats.typeStats[selectedMediaType].watched : stats.totals.watched}</p>
+              <p className="text-2xl font-bold text-text-primary">{displayWatched}</p>
               <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.watched")}</p>
             </div>
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-text-primary">{stats.typeStats?.[selectedMediaType]?.hours != null ? stats.typeStats[selectedMediaType].hours : stats.totals.hours}h</p>
+              <p className="text-2xl font-bold text-text-primary">{displayHours}h</p>
               <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.hours")}</p>
             </div>
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-yellow-400">{stats.typeStats?.[selectedMediaType]?.avgRating || stats.rating.average || "—"}</p>
+              <p className="text-2xl font-bold text-yellow-400">{displayAvg}</p>
               <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.avgRating")}</p>
             </div>
             <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-text-primary">{stats.typeStats?.[selectedMediaType]?.rated != null ? stats.typeStats[selectedMediaType].rated : stats.totals.rated}</p>
+              <p className="text-2xl font-bold text-text-primary">{displayRated}</p>
               <p className="text-[10px] text-text-secondary uppercase tracking-wide mt-0.5">{t("profilePage.rated")}</p>
             </div>
           </div>
+            );
+          })()}
         </div>
       )}
 
