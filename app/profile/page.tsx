@@ -153,7 +153,7 @@ export default function ProfilePage() {
   const fetchStats = useCallback(async (mt?: string) => {
     if (!effectiveUsername) return;
     try {
-      const res = await fetch(`/api/users/${encodeURIComponent(effectiveUsername)}/stats`).then(r => r.json());
+      const res = await fetch(`/api/users/${encodeURIComponent(effectiveUsername)}/stats?_t=${Date.now()}`).then(r => r.json());
       if (!res.error) setStats(res);
     } catch {}
   }, [effectiveUsername]);
