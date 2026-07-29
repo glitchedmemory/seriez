@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUserId } from "@/lib/user-utils";
 import { resolveUsername } from "@/lib/auth-helper";
+import { tmdbGet } from "@/lib/tmdb";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -156,7 +157,7 @@ export async function GET(req: NextRequest) {
       const { data: ptwItems } = await supabase
         .from("media_trackings")
         .select("tmdb_id, media_type")
-        .eq("username", username.trim().slice(0, 20))
+        .eq("username", userId)
         .eq("status", "plan_to_watch")
         .limit(50);
       
@@ -164,8 +165,19 @@ export async function GET(req: NextRequest) {
         const today = new Date();
         const recent = new Date(today);
         recent.setDate(recent.getDate() - 7); // last 7 days
-        
+
+        // Dedup by tmdb_id+media_type — one TMDB call per title
+        const seenTmdb = new Set<string>();
+        const uniqueItems: { tmdb_id: number; media_type: string }[] = [];
         for (const item of ptwItems) {
+          const dedupKey = `${item.tmdb_id}-${item.media_type}`;
+          if (!seenTmdb.has(dedupKey)) {
+            seenTmdb.add(dedupKey);
+            uniqueItems.push(item);
+          }
+        }
+        
+        for (const item of uniqueItems) {
           let releaseDate: Date | null = null;
           let title = "";
           let poster: string | null = null;
@@ -193,16 +205,13 @@ export async function GET(req: NextRequest) {
               }
             } else {
               const ep = item.media_type === "tv" ? "tv" : "movie";
-              const res = await fetch(`${TMDB_API}/${ep}/${item.tmdb_id}?api_key=${TMDB_KEY}`);
-              if (res.ok) {
-                const d = await res.json();
-                title = d.title || d.name || "";
-                poster = d.poster_path ? `${TMDB_IMAGE_BASE}${d.poster_path}` : null;
-                const dateStr = d.release_date || d.first_air_date || "";
-                year = dateStr.slice(0, 4) || null;
-                if (dateStr) {
-                  releaseDate = new Date(dateStr);
-                }
+              const d = await tmdbGet(`/${ep}/${item.tmdb_id}`);
+              title = d.title || d.name || "";
+              poster = d.poster_path ? `${TMDB_IMAGE_BASE}${d.poster_path}` : null;
+              const dateStr = d.release_date || d.first_air_date || "";
+              year = dateStr.slice(0, 4) || null;
+              if (dateStr) {
+                releaseDate = new Date(dateStr);
               }
             }
           } catch {}
