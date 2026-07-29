@@ -5,6 +5,9 @@ import { validateAndReplaceTrailers } from "./yt-validator";
 import { getCustomPoster } from "./custom-posters";
 import { unstable_cache } from "next/cache";
 
+// Shared cache: tmdb_id 한 번만 조회, 모든 사용자 재사용
+const tmdbCache = new Map<string, any>();
+
 const poster = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w780${path}` : null;
 
@@ -28,10 +31,16 @@ async function get(endpoint: string, params: Record<string, string> = {}, locale
   url.searchParams.set("api_key", API_KEY);
   url.searchParams.set("language", locale);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  const cacheKey = url.toString();
+  if (tmdbCache.has(cacheKey)) return tmdbCache.get(cacheKey);
   const res = await fetch(url, { next: { revalidate: 3600 } });
   if (!res.ok) throw new Error(`TMDB ${res.status}: ${endpoint}`);
-  return res.json();
+  const data = await res.json();
+  tmdbCache.set(cacheKey, data);
+  return data;
 }
+
+export { get as tmdbGet };
 
 export type TmdbItem = {
   id: number;
