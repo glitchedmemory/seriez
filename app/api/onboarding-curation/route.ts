@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GENRE_MAP, type TmdbResult } from "@/lib/tmdb";
+import { GENRE_MAP, type TmdbResult, tmdbGet } from "@/lib/tmdb";
 
-const TMDB_API_KEY = process.env.TMDB_API_KEY!;
-const TMDB_BASE = "https://api.themoviedb.org/3";
 
-async function tmdbGet(endpoint: string, params: Record<string, string> = {}) {
-  const url = new URL(`${TMDB_BASE}${endpoint}`);
-  url.searchParams.set("api_key", TMDB_API_KEY);
-  url.searchParams.set("language", "en-US");
-  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url, { next: { revalidate: 3600 } });
-  if (!res.ok) throw new Error(`TMDB ${res.status}`);
-  return res.json();
-}
+
+
+
+
+
 
 const poster = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w780${path}` : null;

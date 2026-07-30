@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername } from "@/lib/auth-helper";
 import { resolveUserId } from "@/lib/user-utils";
+import { tmdbGet } from "@/lib/tmdb";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
-const TMDB_API_KEY = process.env.TMDB_API_KEY!;
-const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w780";
 
 export async function GET(
@@ -72,9 +71,7 @@ export async function GET(
     return Promise.all(keys.slice(0, 6).map(async (k) => {
       const [tid, mtype] = k.split("-");
       try {
-        const res = await fetch(`${TMDB_BASE}/${mtype}/${tid}?api_key=${TMDB_API_KEY}`);
-        if (!res.ok) return null;
-        const d = await res.json();
+        const d = await tmdbGet(`/${mtype}/${tid}`);
         return {
           tmdbId: parseInt(tid),
           mediaType: mtype,
@@ -91,9 +88,7 @@ export async function GET(
     Promise.all(divergent.slice(0, 6).map(async (d) => {
       const [tid, mtype] = d.key.split("-");
       try {
-        const res = await fetch(`${TMDB_BASE}/${mtype}/${tid}?api_key=${TMDB_API_KEY}`);
-        if (!res.ok) return null;
-        const j = await res.json();
+        const j = await tmdbGet(`/${mtype}/${tid}`);
         return {
           tmdbId: parseInt(tid),
           mediaType: mtype,

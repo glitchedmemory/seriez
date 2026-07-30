@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { GENRE_MAP, discoverByGenres, type TmdbResult, type TmdbItem } from "@/lib/tmdb";
+import { GENRE_MAP, discoverByGenres, type TmdbResult, type TmdbItem, tmdbGet } from "@/lib/tmdb";
 import { resolveUsername } from "@/lib/auth-helper";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const TMDB_API_KEY = process.env.TMDB_API_KEY!;
-const TMDB_BASE = "https://api.themoviedb.org/3";
-
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ─── AniList helpers ───
@@ -64,18 +61,6 @@ async function fetchAnimeRecs(anilistId: number): Promise<TmdbResult[]> {
   } catch {
     return [];
   }
-}
-
-// ─── TMDB helpers ───
-
-async function tmdbGet(endpoint: string, params: Record<string, string> = {}) {
-  const url = new URL(`${TMDB_BASE}${endpoint}`);
-  url.searchParams.set("api_key", TMDB_API_KEY);
-  url.searchParams.set("language", "en-US");
-  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url, { next: { revalidate: 3600 } });
-  if (!res.ok) throw new Error(`TMDB ${res.status}: ${endpoint}`);
-  return res.json();
 }
 
 function formatResult(item: TmdbItem, type: "movie" | "tv"): TmdbResult {

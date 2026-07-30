@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
+import { tmdbGet } from "@/lib/tmdb";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -18,11 +19,9 @@ async function resolveUserIdByUsername(username: string): Promise<string | null>
   return null; // Do NOT auto-create — user must already exist
 }
 
-// ─── TMDB fetch (no cache — rate limit handled by 50ms delay) ───
+// ─── TMDB fetch (shared cache via lib/tmdb) ───
 const getTmdbCached = (endpoint: string) =>
-  fetch(`https://api.themoviedb.org/3${endpoint}?api_key=${TMDB_API_KEY}&language=en-US`, {
-    cache: "no-store",
-  }).then(r => r.ok ? r.json() : null).catch(() => null);
+  tmdbGet(endpoint).catch(() => null);
 
 interface TmdbCache {
   title: string;

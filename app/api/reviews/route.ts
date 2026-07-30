@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { resolveUsername } from "@/lib/auth-helper";
 import { checkText } from "@/lib/moderation";
 import { checkSanction, getSanctionError } from "@/lib/sanction-utils";
+import { tmdbGet } from "@/lib/tmdb";
 
 // Handle CORS preflight
 export async function OPTIONS() {
@@ -257,9 +258,6 @@ export async function POST(req: NextRequest) {
 }
 
 // Helper: fetch poster URL from TMDB/AniList
-const TMDB_URL = "https://api.themoviedb.org/3";
-const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
-const TMDB_KEY = process.env.TMDB_API_KEY;
 
 async function fetchPosterUrl(tmdbId: number, mediaType: string): Promise<string | null> {
   try {
@@ -275,11 +273,8 @@ async function fetchPosterUrl(tmdbId: number, mediaType: string): Promise<string
       }
     } else {
       const ep = mediaType === "tv" ? "tv" : "movie";
-      const res = await fetch(`${TMDB_URL}/${ep}/${tmdbId}?api_key=${TMDB_KEY}`);
-      if (res.ok) {
-        const d = await res.json();
-        return d.poster_path ? `${TMDB_IMG}${d.poster_path}` : null;
-      }
+      const d = await tmdbGet(`/${ep}/${tmdbId}`);
+      return d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : null;
     }
   } catch {}
   return null;
