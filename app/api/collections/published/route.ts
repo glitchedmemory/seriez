@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { tmdbGet } from "@/lib/tmdb";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w500";
-const TMDB_API = "https://api.themoviedb.org/3";
-const TMDB_KEY = process.env.TMDB_API_KEY;
 
 // How many collections to pick randomly
 const PICK_COUNT = 8;
@@ -149,15 +148,11 @@ async function getThumbnails(items: { tmdb_id: number; media_type: string }[]): 
   }
 
   // ── TMDB: keep existing logic ──
-  if (tmdbItems.length > 0 && TMDB_KEY) {
+  if (tmdbItems.length > 0) {
     await Promise.all(
       tmdbItems.map(async (item) => {
         try {
-          const res = await fetch(`${TMDB_API}/${item.media_type}/${item.tmdb_id}?api_key=${TMDB_KEY}`, {
-            next: { revalidate: 86400 },
-          });
-          if (!res.ok) { posterMap.set(`tmdb:${item.tmdb_id}:${item.media_type}`, null); return; }
-          const d = await res.json();
+          const d = await tmdbGet(`/${item.media_type}/${item.tmdb_id}`);
           posterMap.set(`tmdb:${item.tmdb_id}:${item.media_type}`, d.poster_path ? `${TMDB_IMAGE}${d.poster_path}` : null);
         } catch {
           posterMap.set(`tmdb:${item.tmdb_id}:${item.media_type}`, null);

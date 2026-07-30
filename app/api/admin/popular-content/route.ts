@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername, STAFF_ROLES } from "@/lib/auth-helper";
+import { tmdbGet } from "@/lib/tmdb";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,8 +9,6 @@ const supabaseAdmin = createClient(
 );
 
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w185";
-const TMDB_API = "https://api.themoviedb.org/3";
-const TMDB_KEY = process.env.TMDB_API_KEY;
 
 async function enrichTitles(
   rows: { tmdb_id: number; media_type: string; count?: number; c?: number; avg_rating?: number; r?: number }[]
@@ -22,9 +21,7 @@ async function enrichTitles(
       continue;
     }
     try {
-      const res = await fetch(`${TMDB_API}/${row.media_type}/${row.tmdb_id}?api_key=${TMDB_KEY}`);
-      if (!res.ok) continue;
-      const d = await res.json();
+      const d = await tmdbGet(`/${row.media_type}/${row.tmdb_id}`);
       cache[key] = {
         title: d.title || d.name || "Unknown",
         poster: d.poster_path ? `${TMDB_IMAGE}${d.poster_path}` : null,

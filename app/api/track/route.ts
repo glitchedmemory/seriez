@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUserId } from "@/lib/user-utils";
 import { checkSanction, getSanctionError } from "@/lib/sanction-utils";
+import { tmdbGet } from "@/lib/tmdb";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -185,10 +186,6 @@ export async function POST(req: NextRequest) {
 }
 
 // Helper: fetch metadata from TMDB/AniList
-const TMDB_URL = "https://api.themoviedb.org/3";
-const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
-const TMDB_KEY = process.env.TMDB_API_KEY;
-
 async function fetchMetadata(tmdbId: number, mediaType: string): Promise<{poster: string|null, title: string|null, year: number|null, rating: number|null}> {
   try {
     if (mediaType === "anime") {
@@ -209,16 +206,13 @@ async function fetchMetadata(tmdbId: number, mediaType: string): Promise<{poster
       }
     } else {
       const ep = mediaType === "tv" ? "tv" : "movie";
-      const res = await fetch(`${TMDB_URL}/${ep}/${tmdbId}?api_key=${TMDB_KEY}`);
-      if (res.ok) {
-        const d = await res.json();
-        return {
-          poster: d.poster_path ? `${TMDB_IMG}${d.poster_path}` : null,
-          title: d.title || d.name || null,
-          year: parseInt((d.release_date || d.first_air_date || "").slice(0, 4)) || null,
-          rating: d.vote_average ? Math.round(d.vote_average * 10) / 10 : null,
-        };
-      }
+      const d = await tmdbGet(`/${ep}/${tmdbId}`);
+      return {
+        poster: d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : null,
+        title: d.title || d.name || null,
+        year: parseInt((d.release_date || d.first_air_date || "").slice(0, 4)) || null,
+        rating: d.vote_average ? Math.round(d.vote_average * 10) / 10 : null,
+      };
     }
   } catch {}
   return { poster: null, title: null, year: null, rating: null };

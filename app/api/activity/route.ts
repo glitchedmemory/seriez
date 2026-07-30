@@ -9,8 +9,6 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
-const TMDB_API = "https://api.themoviedb.org/3";
-const TMDB_KEY = process.env.TMDB_API_KEY;
 const ANILIST_API = "https://graphql.anilist.co";
 
 export async function GET(req: NextRequest) {
@@ -268,11 +266,8 @@ export async function GET(req: NextRequest) {
             }
           } else {
             const ep = a.mediaType === "tv" ? "tv" : "movie";
-            const res = await fetch(`${TMDB_API}/${ep}/${a.tmdbId}?api_key=${TMDB_KEY}`);
-            if (res.ok) {
-              const d = await res.json();
-              return { ...a, title: d.title || d.name || "", year: (d.release_date || d.first_air_date || "").slice(0, 4) || null };
-            }
+            const d = await tmdbGet(`/${ep}/${a.tmdbId}`);
+            return { ...a, title: d.title || d.name || "", year: (d.release_date || d.first_air_date || "").slice(0, 4) || null };
           }
         } catch {}
         return a;
@@ -299,14 +294,11 @@ async function enrichMovieTV(tmdbId: number, mediaType: string): Promise<{ title
   let year: string | null = null;
   try {
     const ep = mediaType === "tv" ? "tv" : "movie";
-    const res = await fetch(`${TMDB_API}/${ep}/${tmdbId}?api_key=${TMDB_KEY}`);
-    if (res.ok) {
-      const d = await res.json();
-      title = d.title || d.name || "";
-      year = (d.release_date || d.first_air_date || "").slice(0, 4) || null;
-      if (d.poster_path) {
-        return { title, poster: `${TMDB_IMAGE_BASE}${d.poster_path}`, year };
-      }
+    const d = await tmdbGet(`/${ep}/${tmdbId}`);
+    title = d.title || d.name || "";
+    year = (d.release_date || d.first_air_date || "").slice(0, 4) || null;
+    if (d.poster_path) {
+      return { title, poster: `${TMDB_IMAGE_BASE}${d.poster_path}`, year };
     }
   } catch {}
 

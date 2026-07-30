@@ -2,13 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUserId } from "@/lib/user-utils";
 import { resolveUsername } from "@/lib/auth-helper";
+import { tmdbGet } from "@/lib/tmdb";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabase = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w780";
-const TMDB_API = "https://api.themoviedb.org/3";
-const TMDB_KEY = process.env.TMDB_API_KEY;
 
 // ─── GET: collection detail with items ───
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -86,9 +85,7 @@ const ANILIST_ITEMS_API = "https://graphql.anilist.co";
             rating: m.averageScore ? Math.round(m.averageScore) / 10 : 0,
           };
         }
-        const res = await fetch(`${TMDB_API}/${item.media_type}/${item.tmdb_id}?api_key=${TMDB_KEY}`);
-        if (!res.ok) return base;
-        const d = await res.json();
+        const d = await tmdbGet(`/${item.media_type}/${item.tmdb_id}`);
         return {
           ...base,
           title: d.title || d.name || base.title,
