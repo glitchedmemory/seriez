@@ -705,7 +705,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
                   key={tab.id}
                   onClick={() => {
                     if (!tab.isActive) {
-                      router.push(`/title/${tab.id}?type=anime`);
+                      router.push(`/anime/${tab.id}`);
                     }
                   }}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
@@ -1007,7 +1007,7 @@ function AnimeRecSection({ items }: { items: AnimeRecItem[] }) {
       </div>
       <div ref={ref} className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar scroll-smooth">
         {items.map((item) => (
-          <a key={item.id} href={`/title/${item.id}?type=anime`} className="flex-shrink-0 w-32 md:w-36 block snap-start">
+          <a key={item.id} href={`/anime/${item.id}`} className="flex-shrink-0 w-32 md:w-36 block snap-start">
             <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card group md:hover:scale-105 transition-transform">
               <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl" sizes="(max-width: 768px) 128px, 144px" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />

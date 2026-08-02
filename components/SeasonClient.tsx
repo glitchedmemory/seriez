@@ -8,6 +8,7 @@ import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
 import PosterImage from "@/components/PosterImage";
+import { titleHref } from "@/lib/title-utils";
 
 // ─── Inline SVG icon components ───
 function HeartIcon({ active }: { active: boolean }) {
@@ -624,7 +625,7 @@ export default function SeasonClient({ data }: { data: SeasonData }) {
                   key={n}
                   onClick={() => {
                     if (n !== data.seasonNumber) {
-                      router.push(`/title/${data.id}/season/${n}?type=tv`);
+                      router.push(`/tv/${data.id}/season/${n}`);
                     }
                   }}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
@@ -911,7 +912,7 @@ function SimilarSection({ items }: { items: SimilarItem[] }) {
       </div>
       <div ref={ref} className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar scroll-smooth">
         {items.map((item) => (
-          <a key={item.id} href={`/title/${item.id}?type=${item.type}`} className="flex-shrink-0 w-28 group">
+          <a key={item.id} href={titleHref(item.id, item.type)} className="flex-shrink-0 w-28 group">
             <div className="aspect-[2/3] rounded-lg overflow-hidden bg-bg-card group-hover:scale-105 transition-transform relative">
               <PosterImage
                 src={item.poster}

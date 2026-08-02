@@ -47,7 +47,7 @@ export default async function AIMoviePage({ params }: { params: Promise<{ id: st
     ratingCount: movie.vote_count || 0,
     releaseYear: year ? parseInt(year) : 0,
     genres: (movie.genres || []).map((g: any) => g.name),
-    url: `/title/${movieId}`,
+    url: `/movie/${movieId}`,
   });
 
   return (
@@ -93,7 +93,7 @@ export default async function AIMoviePage({ params }: { params: Promise<{ id: st
             <p style={{ color: "#ccc", lineHeight: 1.6, fontSize: "0.95rem" }}>{movie.overview}</p>
 
             <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-              <a href={`/title/${movieId}?type=movie`}
+              <a href={`/movie/${movieId}`}
                 style={{ background: "#14b8a6", color: "#000", padding: "12px 24px", borderRadius: 10, textDecoration: "none", fontWeight: 700, fontSize: "1rem", display: "inline-block" }}>
                 🎬 Track on Seriez →
               </a>

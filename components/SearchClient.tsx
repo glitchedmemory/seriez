@@ -8,6 +8,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import PosterImage from "@/components/PosterImage";
 import EmptyState from "@/components/EmptyState";
 import PublishedCollections from "@/components/PublishedCollections";
+import { titleHref } from "@/lib/title-utils";
 
 interface TrendingItem {
   id: number;
@@ -237,7 +238,7 @@ export function SearchClient({
                       key={`${item.type}-${item.id}`}
                       onClick={() => {
                         logSearch(query || item.title, item.id, item.type);
-                        router.push(`/title/${item.id}?type=${item.type}`);
+                        router.push(titleHref(item.id, item.type));
                       }}
                       className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-bg-card transition-colors text-left"
                     >
@@ -287,7 +288,7 @@ export function SearchClient({
                 key={item.id}
                 onClick={() => {
                   logSearch(query, item.id, item.type);
-                  router.push(`/title/${item.id}?type=${item.type}`);
+                  router.push(titleHref(item.id, item.type));
                 }}
                 className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-bg-card transition-colors text-left"
               >

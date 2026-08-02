@@ -4,6 +4,7 @@ import { useState, useEffect, Fragment } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import PosterImage from "@/components/PosterImage";
+import { titleHref } from "@/lib/title-utils";
 
 interface Activity {
   id: string;
@@ -128,7 +129,7 @@ export default function FeedPage() {
             const hasReview = a.type === "review" && a.content;
             const href = isCollection
               ? `/collections/${a.id.replace("col-", "").replace("v-", "")}`
-              : `/title/${a.tmdbId}?type=${a.mediaType}`;
+              : titleHref(a.tmdbId, a.mediaType);
             const avatarGradient = getAvatarColor(a.username);
 
             return (

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { titleHref } from "@/lib/title-utils";
 
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w500";
 
@@ -93,7 +94,7 @@ export default function DayPopup({ date, entries, onClose }: DayPopupProps) {
             {entries.slice(0, 8).map((entry) => (
               <Link
                 key={entry.tmdbId}
-                href={`/title/${entry.tmdbId}`}
+                href={titleHref(entry.tmdbId, entry.mediaType)}
                 className="flex flex-col items-center gap-2 group w-[88px]"
               >
                 <div className="w-[80px] aspect-[2/3] rounded-lg overflow-hidden bg-bg-primary relative shadow-lg group-hover:ring-2 ring-accent transition-all">

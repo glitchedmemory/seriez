@@ -8,6 +8,7 @@ import { HeroCard } from "@/components/HeroCard";
 import { StreamingTop10 } from "@/components/StreamingTop10";
 import PosterImage from "@/components/PosterImage";
 import type { TmdbResult } from "@/lib/tmdb";
+import { titleHref } from "@/lib/title-utils";
 
 function StarRating({ rating }: { rating: number }) {
   const full = Math.floor(rating);
@@ -43,7 +44,7 @@ function PosterGrid({ children }: { children: React.ReactNode }) {
 
 function CardWrapper({ item, reasonText, showCountdown }: { item: TmdbResult; reasonText?: string; showCountdown?: boolean }) {
   return (
-    <a href={`/title/${item.id}?type=${item.type}`} className="flex-shrink-0 w-32 md:w-auto block snap-start">
+    <a href={titleHref(item.id, item.type)} className="flex-shrink-0 w-32 md:w-auto block snap-start">
       <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card group md:hover:scale-105 transition-transform">
         <PosterImage src={item.poster} alt={item.title} fill className="rounded-xl" sizes="(max-width: 768px) 128px, 200px" />
         {showCountdown && item.daysUntil && (
@@ -75,7 +76,7 @@ function CardWrapper({ item, reasonText, showCountdown }: { item: TmdbResult; re
 
 function BoxOfficeCard({ movie, rank }: { movie: TmdbResult; rank: number }) {
   return (
-    <a href={`/title/${movie.id}?type=${movie.type}`} className="flex-shrink-0 w-36 md:w-40 block snap-start group">
+    <a href={titleHref(movie.id, movie.type)} className="flex-shrink-0 w-36 md:w-40 block snap-start group">
       <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card md:group-hover:scale-105 transition-transform">
         <PosterImage src={movie.poster} alt={movie.title} fill className="rounded-xl" sizes="(max-width: 768px) 144px, 160px" />
         <div className={`absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-black text-text-primary shadow-lg ${
@@ -204,7 +205,7 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
         searchResults.map((item) => (
           <a
             key={`${item.type}-${item.id}`}
-            href={`/title/${item.id}?type=${item.type}`}
+            href={titleHref(item.id, item.type)}
             onClick={closeSearch}
             className="flex items-center gap-3 p-3 hover:bg-bg-card transition-colors border-b border-border last:border-0"
           >

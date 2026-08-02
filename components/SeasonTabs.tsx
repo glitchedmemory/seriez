@@ -12,7 +12,7 @@ export default function SeasonTabs({ totalSeasons, currentSeason, seriesId }: {
         {Array.from({ length: totalSeasons }, (_, i) => i + 1).map((n) => (
           <a
             key={n}
-            href={`/title/${seriesId}/season/${n}`}
+            href={`/tv/${seriesId}/season/${n}`}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
               n === currentSeason
                 ? "bg-accent text-white cursor-default pointer-events-none shadow-md"

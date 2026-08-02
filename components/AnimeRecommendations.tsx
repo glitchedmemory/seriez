@@ -22,7 +22,7 @@ export default function AnimeRecommendations({ recommendations }: { recommendati
       </div>
       <div ref={ref} className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar scroll-smooth">
         {recommendations.slice(0, 12).map((item) => (
-          <a key={item.id} href={`/title/${item.id}?type=anime`} className="flex-shrink-0 w-32 md:w-36 block snap-start group">
+          <a key={item.id} href={`/anime/${item.id}`} className="flex-shrink-0 w-32 md:w-36 block snap-start group">
             <div className="aspect-[2/3] rounded-lg overflow-hidden bg-bg-card relative">
               {item.poster ? (
                 <Image src={item.poster} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform" sizes="(max-width: 768px) 128px, 144px" />

@@ -47,7 +47,7 @@ export default async function AITVPage({ params }: { params: Promise<{ id: strin
     ratingCount: show.vote_count || 0,
     releaseYear: year ? parseInt(year) : 0,
     genres: (show.genres || []).map((g: any) => g.name),
-    url: `/title/${tvId}`,
+    url: `/tv/${tvId}/season/1`,
     totalSeasons: show.number_of_seasons || 0,
     status: show.status || "Unknown",
     networks: (show.networks || []).map((n: any) => n.name),
@@ -101,7 +101,7 @@ export default async function AITVPage({ params }: { params: Promise<{ id: strin
             <p style={{ color: "#ccc", lineHeight: 1.6, fontSize: "0.95rem" }}>{show.overview}</p>
 
             <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-              <a href={`/title/${tvId}?type=tv`}
+              <a href={`/tv/${tvId}/season/1`}
                 style={{ background: "#6366f1", color: "#fff", padding: "12px 24px", borderRadius: 10, textDecoration: "none", fontWeight: 700, fontSize: "1rem", display: "inline-block" }}>
                 📺 Track on Seriez →
               </a>

@@ -3,6 +3,7 @@ import { stripHtml } from "@/lib/strip-html";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { titleHref } from "@/lib/title-utils";
 
 interface RouletteResult {
   empty?: boolean;
@@ -119,7 +120,7 @@ export default function RouletteCard() {
   return (
     <div className="bg-bg-card border border-border rounded-2xl overflow-hidden">
       <button
-        onClick={() => router.push(`/title/${result!.id}?type=${result!.mediaType}`)}
+        onClick={() => router.push(titleHref(result!.id, result!.mediaType))}
         className="w-full text-left group"
       >
         {/* Poster section */}
