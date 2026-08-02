@@ -16,6 +16,7 @@ interface SeasonData {
   totalEpisodes: number;
   createdBy?: string[];
   networks?: string[];
+  countries?: { code: string; name: string }[];
   seasonAirDate: string;
   seasonName: string;
   seasonPoster: string | null;
@@ -78,6 +79,19 @@ export default function SeasonHero({ data, children }: { data: SeasonData; child
               <span className="bg-accent/15 text-accent px-2 py-0.5 rounded-full font-semibold">
                 Seriez Score: {data.rating}/10
               </span>
+              {data.countries && data.countries.length > 0 && (
+                <span className="flex items-center gap-1">
+                  {data.countries.map((c) => (
+                    <span
+                      key={c.code}
+                      title={c.name}
+                      className="bg-bg-card px-1.5 py-0.5 rounded-full text-base leading-none"
+                    >
+                      {countryFlag(c.code)}
+                    </span>
+                  ))}
+                </span>
+              )}
               <span className="bg-bg-card px-2 py-0.5 rounded-full">
                 {data.totalSeasons} Season{data.totalSeasons > 1 ? "s" : ""}
                 {data.totalEpisodes ? ` · ${data.totalEpisodes} Ep` : ""}
@@ -123,4 +137,11 @@ export default function SeasonHero({ data, children }: { data: SeasonData; child
       </div>
     </>
   );
+}
+
+// Convert ISO 3166-1 alpha-2 code (e.g. "US") to regional indicator emoji flag (🇺🇸)
+function countryFlag(code: string) {
+  return code
+    .toUpperCase()
+    .replace(/./g, (ch) => String.fromCodePoint(127397 + ch.charCodeAt(0)));
 }

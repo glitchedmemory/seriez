@@ -217,6 +217,8 @@ export type TmdbDetail = {
   createdBy?: string[];
   networks?: string[];
   lastAirDate?: string;
+  // Country of origin (ISO 3166-1 code + English name)
+  countries: { code: string; name: string }[];
   // Movie-specific
   budget?: number;
   revenue?: number;
@@ -554,6 +556,10 @@ export const getMovieDetail = unstable_cache(
     genres: (detail.genres || []).map((g: { name: string }) => g.name),
     status: detail.status || "Unknown",
     type: "movie" as const,
+    countries: (detail.production_countries || []).map((c: { iso_3166_1: string; name: string }) => ({
+      code: c.iso_3166_1,
+      name: c.name,
+    })),
     budget: detail.budget || 0,
     revenue: detail.revenue || 0,
     director: (credits.crew || []).find((c: { job: string }) => c.job === "Director")?.name || "",
@@ -644,6 +650,12 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
     genres: (detail.genres || []).map((g: { name: string }) => g.name),
     status: detail.status || "Unknown",
     type: "tv" as const,
+    countries: (() => {
+      const origin: string[] = detail.origin_country || [];
+      const prod = (detail.production_countries || []) as { iso_3166_1: string; name: string }[];
+      const nameMap = new Map(prod.map((c) => [c.iso_3166_1, c.name]));
+      return origin.map((code) => ({ code, name: nameMap.get(code) || code }));
+    })(),
     seasons: detail.number_of_seasons || 0,
     episodes: detail.number_of_episodes || 0,
     createdBy: (detail.created_by || []).map((c: { name: string }) => c.name),

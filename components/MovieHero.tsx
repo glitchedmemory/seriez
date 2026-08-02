@@ -63,6 +63,19 @@ export default function MovieHero({ detail, children }: { detail: TmdbDetail; ch
               <span className="bg-accent/15 text-accent px-2 py-0.5 rounded-full font-semibold">
                 Seriez Score: {detail.rating}/10
               </span>
+              {detail.countries?.length > 0 && (
+                <span className="flex items-center gap-1">
+                  {detail.countries.map((c) => (
+                    <span
+                      key={c.code}
+                      title={c.name}
+                      className="bg-bg-card px-1.5 py-0.5 rounded-full text-base leading-none"
+                    >
+                      {countryFlag(c.code)}
+                    </span>
+                  ))}
+                </span>
+              )}
               {detail.type === "tv" && detail.seasons && (
                 <span className="bg-bg-card px-2 py-0.5 rounded-full">
                   {detail.seasons} Season{detail.seasons > 1 ? "s" : ""}
@@ -94,4 +107,11 @@ function formatRuntime(minutes: number) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+// Convert ISO 3166-1 alpha-2 code (e.g. "US") to regional indicator emoji flag (🇺🇸)
+function countryFlag(code: string) {
+  return code
+    .toUpperCase()
+    .replace(/./g, (ch) => String.fromCodePoint(127397 + ch.charCodeAt(0)));
 }

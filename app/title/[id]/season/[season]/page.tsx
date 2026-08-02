@@ -188,6 +188,12 @@ const getSeasonData = unstable_cache(
       totalSeasons: seriesData.number_of_seasons || 0, totalEpisodes: seriesData.number_of_episodes || 0,
       createdBy: (seriesData.created_by || []).map((c: any) => c.name),
       networks: (seriesData.networks || []).map((n: any) => n.name),
+      countries: (() => {
+        const origin: string[] = seriesData.origin_country || [];
+        const prod = (seriesData.production_countries || []) as { iso_3166_1: string; name: string }[];
+        const nameMap = new Map(prod.map((c) => [c.iso_3166_1, c.name]));
+        return origin.map((code) => ({ code, name: nameMap.get(code) || code }));
+      })(),
       lastAirDate: seriesData.last_air_date || "", cast,
       trailers: validatedTrailers.map((v) => ({ key: v.key, name: v.name, site: "YouTube", type: "Trailer" })),
       similar: similarItems,
