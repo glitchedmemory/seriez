@@ -69,7 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const movieEntries: MetadataRoute.Sitemap = movieIds.map((id, i) =>
     urlWithAlternates(
-      `/title/${id}?type=movie`,
+      `/movie/${id}`,
       i < PRIORITY_CUTOFF ? 0.9 : 0.7,
       "weekly"
     )
@@ -77,7 +77,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const tvEntries: MetadataRoute.Sitemap = tvIds.map((id, i) =>
     urlWithAlternates(
-      `/title/${id}?type=tv`,
+      `/tv/${id}/season/1`,
       i < PRIORITY_CUTOFF ? 0.9 : 0.7,
       "weekly"
     )

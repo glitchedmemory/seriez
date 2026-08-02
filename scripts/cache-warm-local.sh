@@ -8,7 +8,7 @@ SITEMAP_URL="https://seriez.app/sitemap.xml"
 echo "[cache-warm] fetching sitemap..."
 # Extract ALL language alternates (not just <loc> English URLs)
 curl -s "$SITEMAP_URL" \
-  | grep -oP 'href="https://seriez\.app[^"]+/title/[^"]+' \
+  | grep -oP 'href="https://seriez\.app[^"]+/(movie|tv|anime)[^"]*"' \
   | sed 's/href="//' \
   | sort -u > /tmp/seriez-cache-urls.txt
 
