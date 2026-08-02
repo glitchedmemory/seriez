@@ -230,7 +230,7 @@ export default async function SeasonPage({ params }: Props) {
     const jsonLd = generateTVJsonLd({
       title: data.title, description: data.overview, posterUrl: data.posterPath,
       rating: data.rating, ratingCount: data.voteCount, releaseYear: data.year,
-      genres: data.genres, url: `/title/${seriesId}/season/${seasonNum}`,
+      genres: data.genres, url: `/tv/${seriesId}/season/${seasonNum}`,
       totalSeasons: data.totalSeasons, status: data.status, networks: data.networks,
     });
 
