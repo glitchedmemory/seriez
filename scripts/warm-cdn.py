@@ -72,10 +72,9 @@ def main():
     anime = fetch_anilist(ANIME_PAGES)
     print(f"IDs: {len(movies)} movies, {len(tv)} TV, {len(anime)} anime = {len(movies)+len(tv)+len(anime)} total")
 
-    urls = [f"{DOMAIN}/title/{mid}" for mid in movies]
-    urls += [f"{DOMAIN}/title/{tid}?type=tv" for tid in tv]
-    urls += [f"{DOMAIN}/title/{tid}/season/1" for tid in tv]
-    urls += [f"{DOMAIN}/title/{aid}?type=anime" for aid in anime]
+    urls = [f"{DOMAIN}/movie/{mid}" for mid in movies]
+    urls += [f"{DOMAIN}/tv/{tid}/season/1" for tid in tv]
+    urls += [f"{DOMAIN}/anime/{aid}" for aid in anime]
     urls.append(f"{DOMAIN}/")
     urls.append(f"{DOMAIN}/search")
     print(f"Total URLs: {len(urls)}")
