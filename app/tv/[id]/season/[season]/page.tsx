@@ -7,6 +7,7 @@ import SeasonRecommendations from "@/components/SeasonRecommendations";
 import SeasonInteractive from "@/components/SeasonInteractive";
 import { fetchKitsuThumbnails } from "@/lib/anilist";
 import { validateAndReplaceTrailers } from "@/lib/yt-validator";
+import { TRAILER_OVERRIDES } from "@/lib/trailer-overrides";
 import { notFound } from "next/navigation";
 import { generateTVJsonLd, StructuredDataScript } from "@/lib/structured-data";
 import { unstable_cache } from "next/cache";
@@ -112,7 +113,14 @@ const getSeasonData = unstable_cache(
     for (const v of seasonTitles) { if (!seenTrailer.has(v.key)) { seenTrailer.add(v.key); deduped.push(v); } }
     const rawVideos = deduped.slice(0, 3).map((v: any) => ({ key: v.key, name: v.name || "Trailer" }));
     const searchQuery = `${seriesData.name} season ${seasonNum} official trailer`;
-    const validatedTrailers = await validateAndReplaceTrailers(rawVideos, searchQuery);
+    // If TMDB has no season-matched trailers, check manual override first
+    // (avoids ambiguous YouTube searches surfacing unrelated titles).
+    let validatedTrailers: { key: string; name: string }[];
+    if (rawVideos.length === 0 && TRAILER_OVERRIDES[seriesId]) {
+      validatedTrailers = [TRAILER_OVERRIDES[seriesId]];
+    } else {
+      validatedTrailers = await validateAndReplaceTrailers(rawVideos, searchQuery);
+    }
 
     const episodes = (seasonData.episodes || []).map((ep: any) => ({
       number: ep.episode_number, name: ep.name || `Episode ${ep.episode_number}`,
