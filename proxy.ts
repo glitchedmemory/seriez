@@ -38,11 +38,27 @@ export async function proxy(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
   const userAgent = request.headers.get("user-agent") || "";
 
-  // TV show detail with ?type=tv → instant redirect to season/1 (no API calls)
-  if (path.startsWith("/title/") && request.nextUrl.searchParams.get("type") === "tv") {
-    const id = path.split("/")[2];
-    if (id) {
-      return NextResponse.redirect(new URL(`/title/${id}/season/1`, request.url));
+  // Legacy /title/ URLs → new split routes (route split migration)
+  // Deterministic redirects (type query param / season path) handled here as 301.
+  // Type-less /title/[id] is resolved server-side in app/title/[id]/page.tsx (needs TMDB fetch).
+  if (path.startsWith("/title/")) {
+    const parts = path.split("/"); // ["", "title", id, ...]
+    const id = parts[2];
+    // /title/[id]/season/[n] → /tv/[id]/season/[n]
+    if (id && parts[3] === "season" && parts[4]) {
+      return NextResponse.redirect(new URL(`/tv/${id}/season/${parts[4]}`, request.url), 301);
+    }
+    // /title/[id]?type=tv → /tv/[id]/season/1
+    if (id && request.nextUrl.searchParams.get("type") === "tv") {
+      return NextResponse.redirect(new URL(`/tv/${id}/season/1`, request.url), 301);
+    }
+    // /title/[id]?type=movie → /movie/[id]
+    if (id && request.nextUrl.searchParams.get("type") === "movie") {
+      return NextResponse.redirect(new URL(`/movie/${id}`, request.url), 301);
+    }
+    // /title/[id]?type=anime → /anime/[id]
+    if (id && request.nextUrl.searchParams.get("type") === "anime") {
+      return NextResponse.redirect(new URL(`/anime/${id}`, request.url), 301);
     }
   }
 
