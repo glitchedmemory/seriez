@@ -9,6 +9,7 @@ import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
 import PosterImage from "@/components/PosterImage";
+import { titleHref } from "@/lib/title-utils";
 
 // ─── Inline SVG icon components ───
 function HeartIcon({ active }: { active: boolean }) {
@@ -651,7 +652,7 @@ function SimilarSection({ items }: { items: TmdbDetail["similar"] }) {
         {items.map((item) => (
           <a
             key={item.id}
-            href={`/title/${item.id}?type=${item.type}`}
+            href={titleHref(item.id, item.type)}
             className="flex-shrink-0 w-28 group"
           >
             <div className="aspect-[2/3] rounded-lg overflow-hidden bg-bg-card group-hover:scale-105 transition-transform relative">

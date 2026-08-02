@@ -9,6 +9,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import HistoryClient from "@/app/history/HistoryClient";
 import YearlyRecapSlideshow from "@/components/YearlyRecapSlideshow";
 import { StreamingTop10 } from "@/components/StreamingTop10";
+import { titleHref } from "@/lib/title-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -503,7 +504,7 @@ export default function ProfilePage() {
                 <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-3">{t("profilePage.favorites")}</h3>
                 <div className="grid grid-cols-4 gap-2">
                   {favs.map((item) => (
-                    <a key={(item as any).tmdbId} href={`/title/${(item as any).tmdbId}?type=${(item as any).mediaType}`}
+                    <a key={(item as any).tmdbId} href={titleHref((item as any).tmdbId, (item as any).mediaType)}
                       className="bg-bg-card border border-border rounded-lg overflow-hidden hover:border-accent/40 transition-colors group">
                       <div className="aspect-[2/3] bg-bg-surface relative">
                         {item.poster ? <img src={item.poster} alt={item.title} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full flex items-center justify-center text-2xl">🎬</div>}
@@ -532,7 +533,7 @@ export default function ProfilePage() {
               <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-2 px-1">{t("profilePage.bothEnjoyed")}</h3>
               <div className="space-y-2">
                 {compareData.bothEnjoyed.slice(0, 3).map((item, i) => (
-                  <a key={i} href={`/title/${item.tmdbId}?type=${item.mediaType}`} className="flex items-center gap-3 bg-bg-card border border-border rounded-xl p-3 hover:border-accent/40 transition-colors">
+                  <a key={i} href={titleHref(item.tmdbId, item.mediaType)} className="flex items-center gap-3 bg-bg-card border border-border rounded-xl p-3 hover:border-accent/40 transition-colors">
                     <div className="w-14 h-[84px] rounded-lg overflow-hidden bg-bg-primary flex-shrink-0">{item.poster ? <img src={item.poster} alt={item.title} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full flex items-center justify-center text-text-primary/15 text-lg">🎬</div>}</div>
                     <div className="flex-1 min-w-0"><p className="text-sm text-text-primary font-medium truncate">{item.title}</p>{item.year && <p className="text-[11px] text-text-secondary mt-0.5">{item.year}</p>}</div>
                   </a>
@@ -545,7 +546,7 @@ export default function ProfilePage() {
               <h3 className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-2 px-1">{t("profilePage.ratingsApart")}</h3>
               <div className="space-y-2">
                 {compareData.divergent.slice(0, 3).map((item, i) => (
-                  <a key={i} href={`/title/${item.tmdbId}?type=${item.mediaType}`} className="flex items-center gap-3 bg-bg-card border border-border rounded-xl p-3 hover:border-accent/40 transition-colors">
+                  <a key={i} href={titleHref(item.tmdbId, item.mediaType)} className="flex items-center gap-3 bg-bg-card border border-border rounded-xl p-3 hover:border-accent/40 transition-colors">
                     <div className="w-14 h-[84px] rounded-lg overflow-hidden bg-bg-primary flex-shrink-0">{item.poster ? <img src={item.poster} alt={item.title} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full flex items-center justify-center text-text-primary/15 text-lg">🎬</div>}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-text-primary font-medium truncate">{item.title}</p>
@@ -647,7 +648,7 @@ export default function ProfilePage() {
             <div className="bg-bg-card border border-border rounded-2xl p-8 text-center"><span className="text-5xl block mb-4">📝</span><h2 className="text-lg font-bold text-text-primary mb-2">No reviews yet</h2><p className="text-sm text-text-secondary leading-relaxed">Reviews you write will appear here.</p></div>
           ) : (
             <div className="space-y-3">{userReviews.map((review, i) => (
-              <a key={i} href={`/title/${review.tmdb_id}?type=${review.media_type}`} className="flex gap-3 bg-bg-card border border-border rounded-xl p-3 hover:border-accent/40 transition-colors">
+              <a key={i} href={titleHref(review.tmdb_id, review.media_type)} className="flex gap-3 bg-bg-card border border-border rounded-xl p-3 hover:border-accent/40 transition-colors">
                 <div className="w-12 h-[72px] rounded-lg overflow-hidden bg-bg-surface flex-shrink-0">{review.poster ? <img src={review.poster} alt="" className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full flex items-center justify-center text-lg">🎬</div>}</div>
                 <div className="flex-1 min-w-0"><p className="text-sm font-medium text-text-primary truncate">{review.title}</p><div className="flex items-center gap-2 mt-0.5 mb-1.5"><div className="flex items-center gap-0.5">{[1,2,3,4,5].map(s => <span key={s} className={`text-[10px] ${s <= (review.rating || 0) ? "text-yellow-400" : "text-text-secondary/30"}`}>★</span>)}</div>{review.year && <span className="text-[10px] text-text-secondary">{review.year}</span>}{review.created_at && <span className="text-[10px] text-text-secondary">{new Date(review.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>}</div>{review.content && <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">{review.content}</p>}</div>
               </a>

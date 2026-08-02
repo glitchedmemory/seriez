@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import type { PersonDetail } from "@/lib/tmdb";
 import PosterImage from "@/components/PosterImage";
 import { createClient } from "@/lib/supabase/client";
+import { titleHref } from "@/lib/title-utils";
 
 function CreditCard({ item, type }: { item: { id: number; title: string; character: string; year: number; poster: string | null; rating: number }; type: "movie" | "tv" }) {
   return (
     <a
-      href={`/title/${item.id}?type=${type}`}
+      href={titleHref(item.id, type)}
       className="flex items-center gap-3 bg-bg-card rounded-xl p-3 hover:bg-bg-surface transition-colors"
     >
       <div className="flex-shrink-0 w-10 h-[60px] rounded-lg overflow-hidden bg-bg-primary relative">

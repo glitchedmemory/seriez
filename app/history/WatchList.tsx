@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { titleHref } from "@/lib/title-utils";
 
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w500";
 
@@ -42,7 +43,7 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
         {displayItems.map((item) => (
           <Link
             key={item.tmdbId}
-            href={`/title/${item.tmdbId}?type=${item.mediaType}`}
+            href={titleHref(item.tmdbId, item.mediaType)}
             className="flex gap-3 py-3 items-center hover:bg-bg-card/50 transition-colors -mx-1 px-1 rounded-lg"
           >
             {/* Poster */}

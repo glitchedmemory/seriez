@@ -110,7 +110,7 @@ export default async function AITrendingPage() {
           ratingCount: item.ratingCount,
           releaseYear: item.year ? parseInt(item.year) : 0,
           genres: item.genres || [],
-          url: `/title/${item.id}`,
+          url: `/movie/${item.id}`,
         });
         return <StructuredDataScript key={item.id} data={ld} />;
       })}
@@ -135,7 +135,7 @@ export default async function AITrendingPage() {
               {m.poster && <img src={m.poster} alt={m.title} width="80" height="120" style={{ borderRadius: 8, objectFit: "cover" }} />}
               <div>
                 <h3 style={{ margin: 0, fontSize: "1.1rem", color: "#fff" }}>
-                  <a href={`/title/${m.id}?type=movie`} style={{ color: "#fff", textDecoration: "none" }}>{m.title}</a>
+                  <a href={`/movie/${m.id}`} style={{ color: "#fff", textDecoration: "none" }}>{m.title}</a>
                   {m.year && <span style={{ color: "#666", fontSize: "0.85rem", marginLeft: "0.5rem" }}>({m.year})</span>}
                 </h3>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.35rem" }}>
@@ -146,7 +146,7 @@ export default async function AITrendingPage() {
                 </div>
                 <p style={{ color: "#999", fontSize: "0.85rem", marginTop: "0.5rem", lineHeight: 1.4 }}>{m.overview}</p>
                 <p style={{ marginTop: "0.5rem", fontSize: "0.8rem" }}>
-                  <a href={`/title/${m.id}?type=movie`} style={{ color: "#14b8a6", textDecoration: "none", fontWeight: 600 }}>
+                  <a href={`/movie/${m.id}`} style={{ color: "#14b8a6", textDecoration: "none", fontWeight: 600 }}>
                     Track on Seriez →
                   </a>
                 </p>
@@ -167,7 +167,7 @@ export default async function AITrendingPage() {
               {s.poster && <img src={s.poster} alt={s.title} width="80" height="120" style={{ borderRadius: 8, objectFit: "cover" }} />}
               <div>
                 <h3 style={{ margin: 0, fontSize: "1.1rem", color: "#fff" }}>
-                  <a href={`/title/${s.id}?type=tv`} style={{ color: "#fff", textDecoration: "none" }}>{s.title}</a>
+                  <a href={`/tv/${s.id}/season/1`} style={{ color: "#fff", textDecoration: "none" }}>{s.title}</a>
                   {s.year && <span style={{ color: "#666", fontSize: "0.85rem", marginLeft: "0.5rem" }}>({s.year})</span>}
                 </h3>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.35rem" }}>
@@ -178,7 +178,7 @@ export default async function AITrendingPage() {
                 </div>
                 <p style={{ color: "#999", fontSize: "0.85rem", marginTop: "0.5rem", lineHeight: 1.4 }}>{s.overview}</p>
                 <p style={{ marginTop: "0.5rem", fontSize: "0.8rem" }}>
-                  <a href={`/title/${s.id}?type=tv`} style={{ color: "#6366f1", textDecoration: "none", fontWeight: 600 }}>
+                  <a href={`/tv/${s.id}/season/1`} style={{ color: "#6366f1", textDecoration: "none", fontWeight: 600 }}>
                     Track on Seriez →
                   </a>
                 </p>
@@ -200,7 +200,7 @@ export default async function AITrendingPage() {
                 {a.poster && <img src={a.poster} alt={a.title} width="80" height="120" style={{ borderRadius: 8, objectFit: "cover" }} />}
                 <div>
                   <h3 style={{ margin: 0, fontSize: "1.1rem", color: "#fff" }}>
-                    <a href={`/title/${a.id}?type=anime`} style={{ color: "#fff", textDecoration: "none" }}>{a.title}</a>
+                    <a href={`/anime/${a.id}`} style={{ color: "#fff", textDecoration: "none" }}>{a.title}</a>
                     {a.year && <span style={{ color: "#666", fontSize: "0.85rem", marginLeft: "0.5rem" }}>({a.year})</span>}
                   </h3>
                   <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.35rem", flexWrap: "wrap" }}>
@@ -216,7 +216,7 @@ export default async function AITrendingPage() {
                   </div>
                   <p style={{ color: "#999", fontSize: "0.85rem", marginTop: "0.5rem", lineHeight: 1.4 }}>{a.overview}</p>
                   <p style={{ marginTop: "0.5rem", fontSize: "0.8rem" }}>
-                    <a href={`/title/${a.id}?type=anime`} style={{ color: "#a855f7", textDecoration: "none", fontWeight: 600 }}>
+                    <a href={`/anime/${a.id}`} style={{ color: "#a855f7", textDecoration: "none", fontWeight: 600 }}>
                       Track on Seriez →
                     </a>
                   </p>

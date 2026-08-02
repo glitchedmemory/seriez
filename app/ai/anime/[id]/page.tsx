@@ -71,7 +71,7 @@ export default async function AIAnimePage({ params }: { params: Promise<{ id: st
     ratingCount: anime.popularity || 0,
     releaseYear: anime.seasonYear || 0,
     genres: (anime.genres || []),
-    url: `/title/${animeId}`,
+    url: `/anime/${animeId}`,
   });
 
   return (
@@ -128,7 +128,7 @@ export default async function AIAnimePage({ params }: { params: Promise<{ id: st
             </p>
 
             <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-              <a href={`/title/${animeId}?type=anime`}
+              <a href={`/anime/${animeId}`}
                 style={{ background: "#a855f7", color: "#fff", padding: "12px 24px", borderRadius: 10, textDecoration: "none", fontWeight: 700, fontSize: "1rem", display: "inline-block" }}>
                 🎌 Track on Seriez →
               </a>

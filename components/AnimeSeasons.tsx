@@ -41,7 +41,7 @@ export default function AnimeSeasons({
         {items.map((item, i) => (
           <a
             key={item.id}
-            href={`/title/${item.id}?type=anime`}
+            href={`/anime/${item.id}`}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
               item.id === currentId
                 ? "bg-accent text-white cursor-default pointer-events-none shadow-md"

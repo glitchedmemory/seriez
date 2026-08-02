@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 function CreditCard({ item }: { item: { id: number; title: string; format: string; poster: string | null; rating: number } }) {
   return (
     <a
-      href={`/title/${item.id}?type=anime`}
+      href={`/anime/${item.id}`}
       className="flex items-center gap-3 bg-bg-card rounded-xl p-3 hover:bg-bg-surface transition-colors"
     >
       <div className="flex-shrink-0 w-10 h-[60px] rounded-lg overflow-hidden bg-bg-primary relative">

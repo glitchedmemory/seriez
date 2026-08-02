@@ -42,3 +42,10 @@ export async function resolveConflict(id: number): Promise<"movie" | "tv"> {
   }
   return "movie"; // neither exists — default (caller handles notFound)
 }
+
+// Build detail page URL from media type (route split: /movie /tv /anime)
+export function titleHref(id: number | string, type?: string | null): string {
+  if (type === "tv") return `/tv/${id}/season/1`;
+  if (type === "anime") return `/anime/${id}`;
+  return `/movie/${id}`;
+}

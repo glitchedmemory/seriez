@@ -8,6 +8,7 @@ import { ListSkeleton } from "@/components/Skeletons";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PosterImage from "@/components/PosterImage";
 import EmptyState from "@/components/EmptyState";
+import { titleHref } from "@/lib/title-utils";
 
 // ─── Types ───
 interface LibraryItem {
@@ -121,8 +122,8 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
           : item.title;
         const itemKey = `${item.mediaType}-${item.tmdbId}-${item.seasonNumber}`;
         const itemHref = isSeason && item.mediaType === "tv"
-          ? `/title/${item.tmdbId}/season/${item.seasonNumber}`
-          : `/title/${item.tmdbId}${item.mediaType === "anime" ? `?type=anime` : ""}`;
+          ? `/tv/${item.tmdbId}/season/${item.seasonNumber}`
+          : titleHref(item.tmdbId, item.mediaType);
         return (
         <a key={itemKey} href={itemHref} className="block group">
           <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-bg-card">
@@ -263,8 +264,8 @@ function CollectionsView() {
           const isItemSeason = item.seasonNumber > 0;
           const itemKey = `${item.mediaType}-${item.tmdbId}-${item.seasonNumber}`;
           const itemHref = isItemSeason && item.mediaType === "tv"
-            ? `/title/${item.tmdbId}/season/${item.seasonNumber}`
-            : `/title/${item.tmdbId}${item.mediaType==="tv"?"/season/1":`?type=${item.mediaType}`}`;
+            ? `/tv/${item.tmdbId}/season/${item.seasonNumber}`
+            : titleHref(item.tmdbId, item.mediaType);
           return (
             <div key={itemKey} className="relative group">
               <a href={itemHref} className="block">

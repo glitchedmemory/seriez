@@ -8,6 +8,7 @@ import type { TmdbResult } from "@/lib/tmdb";
 import { createClient } from "@/lib/supabase/client";
 import PosterImage from "@/components/PosterImage";
 import { LockKeyholeOpen } from "lucide-react";
+import { titleHref } from "@/lib/title-utils";
 
 export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResult; nextItem?: TmdbResult; region: string; isPremium?: boolean }) {
   const t = useTranslations();
@@ -82,9 +83,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
   function handleWatchNow(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    const url = item.type === "tv"
-      ? `/title/${item.id}/season/1`
-      : `/title/${item.id}?type=${item.type}`;
+    const url = titleHref(item.id, item.type);
     router.push(url);
   }
 
@@ -102,7 +101,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
     <div className="px-0 pt-0 pb-2">
       {/* Main Hero */}
       <a
-        href={`/title/${item.id}?type=${item.type}`}
+        href={titleHref(item.id, item.type)}
         className="relative block rounded-none md:rounded-2xl min-h-[280px] md:min-h-[340px] group cursor-pointer"
       >
         {/* Backdrop background */}
@@ -251,7 +250,7 @@ export function HeroCard({ item, nextItem, region, isPremium }: { item: TmdbResu
       {/* Tonight's Pick */}
       {nextItem && (
         <a
-          href={`/title/${nextItem.id}?type=${nextItem.type}`}
+          href={titleHref(nextItem.id, nextItem.type)}
           className="mt-3 mx-4 md:mx-0 flex items-center gap-3 bg-bg-card hover:bg-bg-surface rounded-xl p-2.5 transition-colors cursor-pointer"
         >
           <div className="flex-shrink-0 w-12 h-[72px] rounded-lg overflow-hidden bg-bg-primary relative">

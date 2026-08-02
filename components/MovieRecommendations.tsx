@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import type { TmdbResult } from "@/lib/tmdb";
 import Image from "next/image";
+import { titleHref } from "@/lib/title-utils";
 
 export default function MovieRecommendations({ items }: { items: TmdbResult[] }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -22,7 +23,7 @@ export default function MovieRecommendations({ items }: { items: TmdbResult[] })
       </div>
       <div ref={ref} className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar scroll-smooth">
         {items.map((item) => (
-          <a key={item.id} href={`/title/${item.id}?type=${item.type}`} className="flex-shrink-0 w-28 group">
+          <a key={item.id} href={titleHref(item.id, item.type)} className="flex-shrink-0 w-28 group">
             <div className="aspect-[2/3] rounded-lg overflow-hidden bg-bg-card group-hover:scale-105 transition-transform relative">
               <Image src={item.poster} alt={item.title} fill className="object-cover rounded-lg" sizes="112px" />
             </div>

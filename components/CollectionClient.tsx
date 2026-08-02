@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import PosterImage from "@/components/PosterImage";
+import { titleHref } from "@/lib/title-utils";
 
 interface CollectionItem {
   tmdbId: number;
@@ -241,7 +242,7 @@ export default function CollectionClient() {
               className="relative"
             >
               <button
-                onClick={() => router.push(`/title/${item.tmdbId}?type=${item.mediaType}`)}
+                onClick={() => router.push(titleHref(item.tmdbId, item.mediaType))}
                 className="w-full bg-bg-card rounded-xl overflow-hidden text-left hover:ring-1 ring-accent transition-all group"
               >
                 <div className="aspect-[2/3] bg-bg-surface overflow-hidden relative">
