@@ -72,6 +72,23 @@ export default function YearlyRecapSlideshow({
 
   useEffect(() => { setDotsMounted(true); }, []);
 
+  // ── Mouse wheel → horizontal scroll (native-like, same feel as touch swipe) ──
+  // React's onWheel is registered passive (cannot preventDefault), so attach a
+  // non-passive native listener directly to convert vertical wheel into
+  // horizontal scrolling — smooth, with CSS snap handling the rest.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
   const handleScroll = () => {
     const el = scrollRef.current;
     if (!el) return;
@@ -87,6 +104,9 @@ export default function YearlyRecapSlideshow({
     if (!el) return;
     dragState.current = { startX: e.clientX, startScrollLeft: el.scrollLeft, moved: false };
     setIsDragging(true);
+    // Disable snap immediately on the DOM (no waiting for re-render) so the
+    // first movement doesn't fight scroll-snap-mandatory.
+    el.style.scrollSnapType = "none";
     try { el.setPointerCapture(e.pointerId); } catch { /* non-fatal */ }
     el.style.cursor = "grabbing";
   };
@@ -108,6 +128,9 @@ export default function YearlyRecapSlideshow({
     const el = scrollRef.current;
     if (!el) return;
     setIsDragging(false);
+    // Restore snap: clear inline override, React style prop re-applies
+    // "x mandatory" via the isDragging state (className/style both flip).
+    el.style.scrollSnapType = "";
     el.style.cursor = "";
     if (drag.moved) {
       // Snap to the nearest slide smoothly after releasing
