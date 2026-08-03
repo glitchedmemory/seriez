@@ -164,6 +164,23 @@ export default function AdminUserDetailPage() {
           </div>
         </div>
       )}
+
+      {comments.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-sm font-semibold text-white mb-3">Recent Comments</h2>
+          <div className="rounded-2xl border border-[#1a1a2e] bg-[#0a0a14] divide-y divide-[#1a1a2e]/50">
+            {comments.slice(0, 10).map((c: any) => (
+              <div key={c.id} className="px-4 py-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs text-[#52525b]">{new Date(c.created_at).toLocaleDateString()}</span>
+                  {c.is_hidden && <span className="text-[10px] bg-[#ef4444]/10 text-[#ef4444] px-1.5 py-0.5 rounded">hidden</span>}
+                </div>
+                <p className="text-sm text-[#d4d4d8] line-clamp-2">{c.content}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

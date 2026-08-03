@@ -37,11 +37,12 @@ export async function GET(req: NextRequest) {
       .order("created_at", { ascending: false })
       .limit(50);
 
-    // Tracking (media_trackings)
+    // Tracking (media_trackings) — the column stores the user's UUID (users.id),
+    // not the username string, so resolve the id first.
     const { data: library } = await supabaseAdmin
       .from("media_trackings")
       .select("tmdb_id, media_type, status, rating, season_number, updated_at")
-      .eq("username", target)
+      .eq("username", user.id)
       .order("updated_at", { ascending: false })
       .limit(50);
 
