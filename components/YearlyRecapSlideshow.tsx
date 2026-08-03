@@ -63,9 +63,10 @@ export default function YearlyRecapSlideshow({
   const year = new Date().getFullYear();
   const [activeSlide, setActiveSlide] = useState(0);
   const [dotsMounted, setDotsMounted] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const dragState = useRef<{ startX: number; startScrollLeft: number; isDragging: boolean; moved: boolean }>({
-    startX: 0, startScrollLeft: 0, isDragging: false, moved: false,
+  const dragState = useRef<{ startX: number; startScrollLeft: number; moved: boolean }>({
+    startX: 0, startScrollLeft: 0, moved: false,
   });
   const totalSlides = 7;
 
@@ -74,27 +75,31 @@ export default function YearlyRecapSlideshow({
   const handleScroll = () => {
     const el = scrollRef.current;
     if (!el) return;
+    if (dragState.current.moved) return; // skip while dragging to avoid re-render fighting the drag
     const idx = Math.round(el.scrollLeft / el.clientWidth);
     setActiveSlide(idx);
   };
 
-  // ── Desktop drag-to-swipe (mouse) ──
-  const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.button !== 0) return; // left button only
+  // ── Desktop drag-to-swipe (mouse only — touch keeps native swipe) ──
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
     const el = scrollRef.current;
     if (!el) return;
-    dragState.current = { startX: e.clientX, startScrollLeft: el.scrollLeft, isDragging: true, moved: false };
-    el.style.scrollSnapType = "none"; // free movement while dragging
+    dragState.current = { startX: e.clientX, startScrollLeft: el.scrollLeft, moved: false };
+    setIsDragging(true);
+    try { el.setPointerCapture(e.pointerId); } catch { /* non-fatal */ }
     el.style.cursor = "grabbing";
-    el.style.userSelect = "none";
   };
 
-  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const drag = dragState.current;
     const el = scrollRef.current;
-    if (!drag.isDragging || !el) return;
+    if (!el) return;
     const dx = e.clientX - drag.startX;
-    if (Math.abs(dx) > 5) drag.moved = true; // threshold: only count as drag after real movement
+    if (!drag.moved) {
+      if (Math.abs(dx) <= 5) return; // still within click threshold
+      drag.moved = true; // promote to drag
+    }
     el.scrollLeft = drag.startScrollLeft - dx;
   };
 
@@ -102,10 +107,8 @@ export default function YearlyRecapSlideshow({
     const drag = dragState.current;
     const el = scrollRef.current;
     if (!el) return;
-    drag.isDragging = false;
-    el.style.scrollSnapType = "";
+    setIsDragging(false);
     el.style.cursor = "";
-    el.style.userSelect = "";
     if (drag.moved) {
       // Snap to the nearest slide smoothly after releasing
       const idx = Math.round(el.scrollLeft / el.clientWidth);
@@ -222,12 +225,12 @@ export default function YearlyRecapSlideshow({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={endDrag}
-        onMouseLeave={endDrag}
-        className="flex overflow-x-auto snap-x snap-mandatory -mx-4 px-4 cursor-grab select-none"
-        style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        className={`flex overflow-x-auto -mx-4 px-4 cursor-grab select-none ${isDragging ? "snap-none" : "snap-x snap-mandatory"}`}
+        style={{ scrollSnapType: isDragging ? "none" : "x mandatory", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
       >
         {/* ══════ Slide 1 — Intro ══════ */}
         <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center bg-gradient-to-br from-[#0f0f1a] via-[#1a0a2e] to-[#0f172a] min-h-[340px]">
@@ -260,7 +263,7 @@ export default function YearlyRecapSlideshow({
                 <div className="grid grid-cols-3 gap-1 p-3 h-full">
                   {m.posters.map((url, i) => (
                     <div key={i} className="rounded-md overflow-hidden">
-                      <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      <img src={url} alt="" draggable={false} className="w-full h-full object-cover" loading="lazy" />
                     </div>
                   ))}
                 </div>
@@ -299,7 +302,7 @@ export default function YearlyRecapSlideshow({
             <div className="flex-1 flex flex-col items-center text-center">
               <div className="w-28 h-[168px] rounded-xl overflow-hidden bg-bg-primary mb-4 shadow-lg">
                 {highestRated.poster ? (
-                  <img src={highestRated.poster} alt={highestRated.title} className="w-full h-full object-cover" />
+                  <img src={highestRated.poster} alt={highestRated.title} draggable={false} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-3xl">🎬</div>
                 )}
@@ -333,7 +336,7 @@ export default function YearlyRecapSlideshow({
             <div className="flex-1 flex flex-col items-center text-center">
               <div className="w-28 h-[168px] rounded-xl overflow-hidden bg-bg-primary mb-4 shadow-lg opacity-80">
                 {lowestRated.poster ? (
-                  <img src={lowestRated.poster} alt={lowestRated.title} className="w-full h-full object-cover" />
+                  <img src={lowestRated.poster} alt={lowestRated.title} draggable={false} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-3xl">🎬</div>
                 )}
