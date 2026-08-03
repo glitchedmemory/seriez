@@ -134,14 +134,16 @@ def tmdb_request(path, params=None):
 
 
 def find_tmdb(title, media_type):
-    """Search TMDB for a title. Returns (tmdbId, mediaType) or (None, None)."""
+    """Search TMDB for a title. Returns (tmdbId, mediaType, posterPath) or (None, None, None)."""
     title_lower = title.strip().lower()
 
     # Check manual overrides first
     override = TMDB_OVERRIDES.get((title_lower, media_type))
     if override is not None:
         print(f"    ✓ override: {title} → tmdb:{override}")
-        return override, media_type
+        # Overrides skip search, so poster_path must come from a detail call
+        poster_path = fetch_poster_path(override, media_type)
+        return override, media_type, poster_path
 
     # Try exact TMDB search
     if media_type == "movie":
@@ -152,11 +154,11 @@ def find_tmdb(title, media_type):
         results_key = "results"
 
     if not result or not result.get(results_key):
-        return None, None
+        return None, None, None
 
     candidates = result[results_key]
     if not candidates:
-        return None, None
+        return None, None, None
 
     # Match: exact title match, or starts-with, or contains
     best = None
@@ -177,32 +179,78 @@ def find_tmdb(title, media_type):
     tmdb_id = best["id"]
     resolved_type = "movie" if best.get("title") else "tv"
     print(f"    ✓ TMDB match: {title} → tmdb:{tmdb_id} ({resolved_type})")
-    return tmdb_id, resolved_type
+    return tmdb_id, resolved_type, best.get("poster_path")
+
+
+def fetch_poster_path(tmdb_id, media_type):
+    """Fetch poster_path for a known tmdb_id via detail call. Returns path or None."""
+    t = "tv" if media_type == "tv" else "movie"
+    result = tmdb_request(f"/{t}/{tmdb_id}")
+    if result:
+        return result.get("poster_path")
+    return None
 
 
 def enrich_with_tmdb(output):
-    """Add tmdbId and mediaType to every item in the output."""
+    """Add tmdbId, mediaType and TMDB poster URL to every item.
+
+    Reuses already-stored TMDB posters from the previous run (matched by
+    tmdbId) so only new titles hit the TMDB API. Poster is stored as an
+    image.tmdb.org URL, replacing the FlixPatrol CDN URL (which is blocked
+    by Cloudflare with HTTP 403).
+    """
     total_items = sum(
         len(output[p][c])
         for p in PLATFORM_MAP.values()
         for c in ("movies", "tv")
     )
-    print(f"\nEnriching {total_items} items with TMDB IDs...")
+    print(f"\nEnriching {total_items} items with TMDB IDs + posters...")
+
+    # Load previously stored TMDB data (tmdbId + poster) keyed by (title_lower, media_type)
+    # so titles that already have a poster from a previous run are never re-queried.
+    existing = {}
+    if os.path.exists(OUTPUT_PATH):
+        try:
+            with open(OUTPUT_PATH, "r") as f:
+                prev = json.load(f)
+            for plat in prev.get("data", {}).values():
+                for cat in ("movies", "tv"):
+                    for it in plat.get(cat, []):
+                        p = it.get("poster") or ""
+                        if "image.tmdb.org" in p and it.get("tmdbId") and it.get("title"):
+                            key = (it["title"].strip().lower(), it.get("mediaType"))
+                            existing[key] = (it["tmdbId"], p)
+            print(f"  Loaded {len(existing)} cached TMDB posters from previous run")
+        except Exception as e:
+            print(f"  Could not read previous output: {e}", file=sys.stderr)
+
     enriched = 0
+    reused = 0
     for platform in PLATFORM_MAP.values():
         for category in ("movies", "tv"):
             items = output[platform][category]
             for item in items:
                 title = item["title"]
                 media_type = "movie" if category == "movies" else "tv"
-                tmdb_id, mt = find_tmdb(title, media_type)
+                key = (title.strip().lower(), media_type)
+
+                # Reuse existing tmdbId + poster if this title was already enriched
+                if key in existing:
+                    item["tmdbId"], item["poster"] = existing[key]
+                    item["mediaType"] = media_type
+                    reused += 1
+                    continue
+
+                tmdb_id, mt, poster_path = find_tmdb(title, media_type)
                 if tmdb_id:
                     item["tmdbId"] = tmdb_id
                     item["mediaType"] = mt
+                    if poster_path:
+                        item["poster"] = f"https://image.tmdb.org/t/p/w342{poster_path}"
                     enriched += 1
                 time.sleep(0.3)  # TMDB rate limit: ~40 req/10s
 
-    print(f"  Enriched {enriched}/{total_items} items with TMDB IDs")
+    print(f"  Enriched {enriched}/{total_items} items with TMDB IDs; reused {reused} cached posters")
 
 
 # Main with retry logic
