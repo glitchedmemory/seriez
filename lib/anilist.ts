@@ -408,6 +408,7 @@ const _getAnilistIdCached = unstable_cache(
         query: `query($id:Int){Media(id:$id,type:ANIME){id}}`,
         variables: { id: tmdbId },
       }),
+      next: { revalidate: 86400 },
     }).then(async (directRes) => {
       if (!directRes.ok) return null;
       const dj = await directRes.json();
@@ -438,7 +439,9 @@ const _getAnilistIdCached = unstable_cache(
 
   // Fallback: search AniList via Jikan (MAL ID → AniList)
   try {
-    const jikanRes = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(String(tmdbId))}&limit=1`);
+    const jikanRes = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(String(tmdbId))}&limit=1`, {
+      next: { revalidate: 86400 },
+    });
     if (jikanRes.ok) {
       const jd = await jikanRes.json();
       const malId = jd?.data?.[0]?.mal_id;
@@ -450,6 +453,7 @@ const _getAnilistIdCached = unstable_cache(
             query: `query($idMal:Int){Media(idMal:$idMal,type:ANIME){id}}`,
             variables: { idMal: malId },
           }),
+          next: { revalidate: 86400 },
         });
         if (anilistRes.ok) {
           const aj = await anilistRes.json();
