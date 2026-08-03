@@ -157,7 +157,7 @@ export default function AdminUserDetailPage() {
           <div className="rounded-2xl border border-[#1a1a2e] bg-[#0a0a14] divide-y divide-[#1a1a2e]/50">
             {library.slice(0, 10).map((t: any, i: number) => (
               <div key={i} className="px-4 py-2.5 flex items-center justify-between">
-                <span className="text-sm text-[#a1a1aa]">TMDB {t.tmdb_id} · {t.media_type}</span>
+                <span className="text-sm text-[#a1a1aa]">{t.title || `TMDB ${t.tmdb_id}`} <span className="text-xs text-[#52525b]">· {t.media_type}</span></span>
                 <span className="text-xs text-[#52525b]">{t.status} {t.rating ? `· ★${t.rating}` : ""}</span>
               </div>
             ))}
