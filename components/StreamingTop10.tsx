@@ -65,12 +65,6 @@ const PLATFORMS: {
 
 type Category = "movies" | "tv";
 
-// Rewrite FlixPatrol poster URLs to local proxy — browsers block cross-origin FlixPatrol images
-function proxyPoster(url: string | undefined): string | undefined {
-  if (!url) return undefined;
-  return url;
-}
-
 export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
   const t = useTranslations();
   const [activeTab, setActiveTab] = useState("netflix");
@@ -86,21 +80,18 @@ export function StreamingTop10({ variant }: { variant?: "sidebar" | "page" }) {
         return r.json();
       })
       .then((json) => {
-        // Normalize + rewrite FlixPatrol poster URLs to local proxy
+        // Normalize data shape
         const raw = json.data || {};
         const normalized: Record<string, PlatformData> = {};
         for (const [key, val] of Object.entries(raw)) {
           if (Array.isArray(val)) {
-            const items = (val as Top10Item[]).map(item => ({
-              ...item,
-              poster: proxyPoster(item.poster),
-            }));
+            const items = (val as Top10Item[]).map(item => ({ ...item }));
             normalized[key] = { movies: items, tv: [] };
           } else if (val && typeof val === "object" && "movies" in val) {
             const plat = val as PlatformData;
             normalized[key] = {
-              movies: plat.movies.map(item => ({ ...item, poster: proxyPoster(item.poster) })),
-              tv: plat.tv.map(item => ({ ...item, poster: proxyPoster(item.poster) })),
+              movies: plat.movies.map(item => ({ ...item })),
+              tv: plat.tv.map(item => ({ ...item })),
             };
           }
         }
