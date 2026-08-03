@@ -253,6 +253,13 @@ export async function POST(req: NextRequest) {
       await supabaseAdmin.from("rate_log").insert({ username: user, action: "review", content_hash: contentHash });
     } catch { /* non-blocking — rate_log table might not exist yet */ }
 
+    // Invalidate cached stats for this user
+    void supabaseAdmin
+      .from("user_stats_cache")
+      .delete()
+      .eq("username", user)
+      .then(() => {}, () => {});
+
     return NextResponse.json({ id: data.id, username: data.username, content: data.content, rating: FROM_DB(data.rating), likes: data.likes_count || 0, liked: false, createdAt: data.created_at }, { status: 201 });
   } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
 }
@@ -341,6 +348,14 @@ export async function DELETE(req: NextRequest) {
     const { error } = await supabaseAdmin.from("reviews").delete().eq("id", reviewId);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Invalidate cached stats for the review author
+    void supabaseAdmin
+      .from("user_stats_cache")
+      .delete()
+      .eq("username", review.username)
+      .then(() => {}, () => {});
+
     return NextResponse.json({ success: true });
   } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
 }

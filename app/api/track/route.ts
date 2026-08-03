@@ -150,6 +150,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Invalidate cached stats for this user
+    void supabaseAdmin
+      .from("user_stats_cache")
+      .delete()
+      .eq("username", username.trim().slice(0, 20))
+      .then(() => {}, () => {});
+
     // Fetch & store metadata if not provided by client (non-blocking)
     if (!posterUrl || !title) {
       (async () => {
@@ -259,6 +266,13 @@ export async function DELETE(req: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Invalidate cached stats for this user
+    void supabaseAdmin
+      .from("user_stats_cache")
+      .delete()
+      .eq("username", username.trim().slice(0, 20))
+      .then(() => {}, () => {});
 
     return NextResponse.json({ success: true });
   } catch {
