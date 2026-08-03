@@ -1,10 +1,16 @@
 // Seriez Service Worker — hand-written because next-pwa fails with Next.js 16 Turbopack
-const CACHE_JS = "seriez-js-v4";
-const CACHE_CSS = "seriez-css-v4";
-const CACHE_STATIC = "seriez-static-v4";
-const CACHE_TMDB = "seriez-tmdb-v4";
-const CACHE_ANILIST = "seriez-anilist-v4";
-const CACHE_PAGES = "seriez-pages-v4";
+const CACHE_JS = "seriez-js-v5";
+const CACHE_CSS = "seriez-css-v5";
+const CACHE_STATIC = "seriez-static-v5";
+const CACHE_TMDB = "seriez-tmdb-v5";
+const CACHE_ANILIST = "seriez-anilist-v5";
+const CACHE_PAGES = "seriez-pages-v5";
+const CACHE_API = "seriez-api-v5";
+
+// All cache names currently in use (kept so activate can prune older versions)
+const CURRENT_CACHES = [
+  CACHE_JS, CACHE_CSS, CACHE_STATIC, CACHE_TMDB, CACHE_ANILIST, CACHE_PAGES, CACHE_API,
+];
 
 // JS: NetworkFirst (must update on new deploys)
 const JS_PATTERN = /\.js(\?.*)?$/;
@@ -77,7 +83,18 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    (async () => {
+      // Prune any cache from older versions (e.g. seriez-*-v4, seriez-api-v3)
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter((k) => k.startsWith("seriez-") && !CURRENT_CACHES.includes(k))
+          .map((k) => caches.delete(k))
+      );
+      await clients.claim();
+    })()
+  );
 });
 
 self.addEventListener("fetch", (event) => {
@@ -101,7 +118,7 @@ self.addEventListener("fetch", (event) => {
   } else if (ANILIST_PATTERN.test(url.href)) {
     event.respondWith(staleWhileRevalidate(request, CACHE_ANILIST));
   } else if (isAPI(url)) {
-    event.respondWith(networkFirst(request, "seriez-api-v3", 3000));
+    event.respondWith(networkFirst(request, CACHE_API, 3000));
   } else if (isPage(url)) {
     event.respondWith(networkFirst(request, CACHE_PAGES, 3000));
   }
