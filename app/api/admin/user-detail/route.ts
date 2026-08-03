@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     // not the username string, so resolve the id first.
     const { data: library } = await supabaseAdmin
       .from("media_trackings")
-      .select("tmdb_id, media_type, status, rating, season_number, updated_at")
+      .select("tmdb_id, media_type, status, rating, season_number, updated_at, title")
       .eq("username", user.id)
       .order("updated_at", { ascending: false })
       .limit(50);
