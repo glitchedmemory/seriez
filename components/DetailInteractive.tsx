@@ -50,6 +50,11 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
   const [rating, setRating] = useState(0);
   const [trackVersion, setTrackVersion] = useState(0);
   const [trackedAt, setTrackedAt] = useState<string | null>(null);
+  // Preserve the season_number of the existing tracking row so status
+  // updates (POST) and removals (DELETE) hit the same row instead of
+  // creating a duplicate with season 0 (the upsert key includes
+  // season_number, so a missing seasonNumber silently diverges rows).
+  const [trackedSeason, setTrackedSeason] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
   const [authUser, setAuthUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
   const supabase = createClient();
@@ -84,6 +89,7 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
             setTrackStatus(match.status);
             setRating(match.rating || 0);
             setTrackedAt(match.updatedAt || null);
+            setTrackedSeason(match.seasonNumber ?? null);
           }
         }
       })
@@ -123,6 +129,9 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
           tmdbId: detail.id,
           mediaType: detail.type,
           status: newStatus,
+          // Keep the same season_number as the existing row so the upsert
+          // updates it in place instead of creating a season-0 duplicate.
+          ...(trackedSeason != null ? { seasonNumber: trackedSeason } : {}),
         };
         if (status === "completed" && effectiveRating > 0) {
           body.rating = effectiveRating;
@@ -142,6 +151,9 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
             username,
             tmdbId: detail.id,
             mediaType: detail.type,
+            // Match the existing row's season_number so the delete removes
+            // the right row instead of a season-0 miss.
+            ...(trackedSeason != null ? { seasonNumber: trackedSeason } : {}),
           }),
         });
         setTrackedAt(null);
