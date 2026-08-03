@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     // User info (including sanctions)
     const { data: user } = await supabaseAdmin
       .from("users")
-      .select("username, role, is_premium, created_at, updated_at, avatar_url, sanction_type, sanction_reason, sanction_until, sanctioned_at, sanctioned_by")
+      .select("id, username, role, is_premium, created_at, updated_at, avatar_url, sanction_type, sanction_reason, sanction_until, sanctioned_at, sanctioned_by")
       .eq("username", target)
       .maybeSingle();
 
