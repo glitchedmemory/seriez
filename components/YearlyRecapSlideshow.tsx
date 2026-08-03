@@ -64,6 +64,9 @@ export default function YearlyRecapSlideshow({
   const [activeSlide, setActiveSlide] = useState(0);
   const [dotsMounted, setDotsMounted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const dragState = useRef<{ startX: number; startScrollLeft: number; isDragging: boolean; moved: boolean }>({
+    startX: 0, startScrollLeft: 0, isDragging: false, moved: false,
+  });
   const totalSlides = 7;
 
   useEffect(() => { setDotsMounted(true); }, []);
@@ -73,6 +76,42 @@ export default function YearlyRecapSlideshow({
     if (!el) return;
     const idx = Math.round(el.scrollLeft / el.clientWidth);
     setActiveSlide(idx);
+  };
+
+  // ── Desktop drag-to-swipe (mouse) ──
+  const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return; // left button only
+    const el = scrollRef.current;
+    if (!el) return;
+    dragState.current = { startX: e.clientX, startScrollLeft: el.scrollLeft, isDragging: true, moved: false };
+    el.style.scrollSnapType = "none"; // free movement while dragging
+    el.style.cursor = "grabbing";
+    el.style.userSelect = "none";
+  };
+
+  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const drag = dragState.current;
+    const el = scrollRef.current;
+    if (!drag.isDragging || !el) return;
+    const dx = e.clientX - drag.startX;
+    if (Math.abs(dx) > 5) drag.moved = true; // threshold: only count as drag after real movement
+    el.scrollLeft = drag.startScrollLeft - dx;
+  };
+
+  const endDrag = () => {
+    const drag = dragState.current;
+    const el = scrollRef.current;
+    if (!el) return;
+    drag.isDragging = false;
+    el.style.scrollSnapType = "";
+    el.style.cursor = "";
+    el.style.userSelect = "";
+    if (drag.moved) {
+      // Snap to the nearest slide smoothly after releasing
+      const idx = Math.round(el.scrollLeft / el.clientWidth);
+      el.scrollTo({ left: idx * el.clientWidth, behavior: "smooth" });
+    }
+    drag.moved = false;
   };
 
   const handleShare = async () => {
@@ -183,7 +222,11 @@ export default function YearlyRecapSlideshow({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex overflow-x-auto snap-x snap-mandatory -mx-4 px-4"
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={endDrag}
+        onMouseLeave={endDrag}
+        className="flex overflow-x-auto snap-x snap-mandatory -mx-4 px-4 cursor-grab select-none"
         style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
       >
         {/* ══════ Slide 1 — Intro ══════ */}
