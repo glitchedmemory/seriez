@@ -14,13 +14,48 @@ const ANILIST_API = "https://graphql.anilist.co";
 // ─── Rating conversion (DB stores mixed scales: ×10 int or 0–10 int) ───
 const FROM_DB = (v: number) => v > 10 ? v / 10 : v > 5 ? v / 2 : v;
 
+// ─── Runtime metadata cache (shared across all users) ───
+async function loadKnownRuntimes(tracking: { tmdb_id: number; media_type: string }[]): Promise<Map<number, number>> {
+  const map = new Map<number, number>();
+  if (tracking.length === 0) return map;
+  const ids = [...new Set(tracking.map(t => t.tmdb_id))];
+  // Batch in chunks of 100 to stay under URL limits
+  for (let i = 0; i < ids.length; i += 100) {
+    const chunk = ids.slice(i, i + 100);
+    try {
+      const { data } = await supabaseAdmin
+        .from("media_runtimes")
+        .select("tmdb_id, runtime")
+        .in("tmdb_id", chunk);
+      for (const row of data || []) {
+        if (row.runtime > 0) map.set(row.tmdb_id, row.runtime);
+      }
+    } catch { /* ignore */ }
+  }
+  return map;
+}
+
+async function saveRuntimes(entries: { tmdb_id: number; media_type: string; runtime: number }[]): Promise<void> {
+  if (entries.length === 0) return;
+  try {
+    await supabaseAdmin
+      .from("media_runtimes")
+      .upsert(entries, { onConflict: "tmdb_id,media_type" });
+  } catch { /* non-fatal */ }
+}
+
 // ─── TMDB runtime batch fetcher (with free fallbacks: Wikidata + AniList) ───
 async function fetchRuntimes(
   tracking: { tmdb_id: number; media_type: string }[]
 ): Promise<Map<number, number>> {
-  const map = new Map<number, number>();
-  const movieIds = [...new Set(tracking.filter(t => t.media_type === "movie").map(t => t.tmdb_id))];
-  const tvIds = [...new Set(tracking.filter(t => t.media_type === "tv" || t.media_type === "anime").map(t => t.tmdb_id))];
+  // Seed from shared metadata cache — skip external lookups for known titles
+  const known = await loadKnownRuntimes(tracking);
+  const map = new Map<number, number>(known);
+
+  // Only fetch runtimes we don't already know
+  const knownIds = new Set(known.keys());
+  const movieIds = [...new Set(tracking.filter(t => t.media_type === "movie").map(t => t.tmdb_id))].filter(id => !knownIds.has(id));
+  const tvIds = [...new Set(tracking.filter(t => t.media_type === "tv" || t.media_type === "anime").map(t => t.tmdb_id))].filter(id => !knownIds.has(id));
 
   const BATCH = 8;
 
@@ -279,6 +314,18 @@ async function fetchRuntimes(
     }
   }
 
+  // Persist newly discovered runtimes to the shared cache (non-blocking)
+  const typeById = new Map(tracking.map(t => [t.tmdb_id, t.media_type]));
+  const freshEntries: { tmdb_id: number; media_type: string; runtime: number }[] = [];
+  for (const [id, runtime] of map) {
+    if (!knownIds.has(id) && runtime > 0) {
+      freshEntries.push({ tmdb_id: id, media_type: typeById.get(id) || "movie", runtime });
+    }
+  }
+  if (freshEntries.length > 0) {
+    void saveRuntimes(freshEntries);
+  }
+
   return map;
 }
 
@@ -291,6 +338,22 @@ export async function GET(
   const mediaType = searchParams.get("mediaType"); // movie | tv | anime | null
 
   try {
+    // ── 0. Serve from per-user cache when fresh ──
+    try {
+      const { data: cached } = await supabaseAdmin
+        .from("user_stats_cache")
+        .select("stats, updated_at")
+        .eq("username", username)
+        .maybeSingle();
+      if (cached?.stats) {
+        // Cache is valid for 6 hours; after that recompute in background path below
+        const ageMs = Date.now() - new Date(cached.updated_at).getTime();
+        if (ageMs < 6 * 60 * 60 * 1000) {
+          return NextResponse.json(cached.stats);
+        }
+      }
+    } catch { /* fall through to compute */ }
+
     // ── 1. Get user_id ──
     const { data: userData } = await supabase
       .from("users")
@@ -673,7 +736,7 @@ export async function GET(
         : "Collecting genre data...",
     };
 
-    return NextResponse.json({
+    const payload = {
       totals: {
         watched: watched.length,
         watching: watching.length,
@@ -709,7 +772,18 @@ export async function GET(
         .map(([month, count]) => ({ month, count })),
       yearlyRecap,
       viewerDNA,
-    });
+    };
+
+    // Persist computed stats (non-blocking) so the next request is instant
+    void supabaseAdmin
+      .from("user_stats_cache")
+      .upsert(
+        { username, stats: payload, updated_at: new Date().toISOString() },
+        { onConflict: "username" }
+      )
+      .then(() => {}, () => {});
+
+    return NextResponse.json(payload);
   } catch (err: any) {
     console.error("Stats error:", err);
     return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
