@@ -114,14 +114,17 @@ export async function POST(req: NextRequest) {
 
     const progress = count ?? null;
 
-    // Auto-set tracking status to "watching" if not already tracking
+    // Auto-set tracking status to "watching" only when this title has NO
+    // tracking row at all. Matching by season_number alone would treat an
+    // existing row (e.g. completed season 0) as "not tracked" and create a
+    // season-1 watching duplicate that never disappears from the Watching tab.
     const { data: trackData } = await supabaseAdmin
       .from("media_trackings")
-      .select("status")
+      .select("id")
       .eq("username", userId)
       .eq("tmdb_id", tmdbId)
       .eq("media_type", "tv")
-      .eq("season_number", seasonNumber)
+      .limit(1)
       .maybeSingle();
 
     if (!trackData) {
@@ -140,14 +143,14 @@ export async function POST(req: NextRequest) {
           { onConflict: "username,tmdb_id,media_type,season_number" }
         );
     } else {
-      // Update progress only
+      // Already tracking this title (any season) → update progress only,
+      // never change status or create a duplicate row.
       await supabaseAdmin
         .from("media_trackings")
         .update({ progress })
         .eq("username", userId)
         .eq("tmdb_id", tmdbId)
-        .eq("media_type", "tv")
-        .eq("season_number", seasonNumber);
+        .eq("media_type", "tv");
     }
 
     return NextResponse.json({ action: "watched", seasonNumber, episodeNumber, progress });

@@ -56,6 +56,11 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
   const [rating, setRating] = useState(0);
   const [trackVersion, setTrackVersion] = useState(0);
   const [trackedAt, setTrackedAt] = useState<string | null>(null);
+  // Preserve the season_number of the existing tracking row so status
+  // updates (POST) and removals (DELETE) hit the same row instead of
+  // creating a duplicate with season 0 (the upsert key includes
+  // season_number, so a missing seasonNumber silently diverges rows).
+  const [trackedSeason, setTrackedSeason] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
   const [authUser, setAuthUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
   const [watchedEpisodes, setWatchedEpisodes] = useState<Set<string>>(new Set());
@@ -120,6 +125,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
             setTrackStatus(match.status);
             setRating(match.rating || 0);
             setTrackedAt(match.updatedAt || null);
+            setTrackedSeason(match.seasonNumber ?? null);
           }
         }
       })
@@ -174,6 +180,9 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           tmdbId: detail.id,
           mediaType: "anime",
           status: newStatus,
+          // Keep the same season_number as the existing row so the upsert
+          // updates it in place instead of creating a season-0 duplicate.
+          ...(trackedSeason != null ? { seasonNumber: trackedSeason } : {}),
         };
         if (status === "completed" && effectiveRating > 0) {
           body.rating = effectiveRating;
@@ -217,7 +226,14 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         await fetch("/api/track", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime" }),
+          body: JSON.stringify({
+            username,
+            tmdbId: detail.id,
+            mediaType: "anime",
+            // Match the existing row's season_number so the delete removes
+            // the right row instead of a season-0 miss.
+            ...(trackedSeason != null ? { seasonNumber: trackedSeason } : {}),
+          }),
         });
         setTrackedAt(null);
         // If manually unchecking Watching/Watched → uncheck all episodes
