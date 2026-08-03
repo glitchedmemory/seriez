@@ -87,7 +87,9 @@ export default function PosterCalendar({
           // Use first entry's poster for the thumbnail
           const firstEntry = entries[0];
           const posterUrl = firstEntry?.posterPath
-            ? `${TMDB_IMAGE}${firstEntry.posterPath}`
+            ? firstEntry.posterPath.startsWith("http")
+              ? firstEntry.posterPath
+              : `${TMDB_IMAGE}${firstEntry.posterPath}`
             : null;
 
           return (

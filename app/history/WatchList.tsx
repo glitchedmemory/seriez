@@ -50,7 +50,7 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
             <div className="w-12 h-[68px] flex-shrink-0 rounded-md overflow-hidden bg-bg-card">
               {item.posterPath ? (
                 <Image
-                  src={`${TMDB_IMAGE}${item.posterPath}`}
+                  src={item.posterPath.startsWith("http") ? item.posterPath : `${TMDB_IMAGE}${item.posterPath}`}
                   alt={item.title}
                   width={48}
                   height={72}
