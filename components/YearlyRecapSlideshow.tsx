@@ -107,6 +107,18 @@ export default function YearlyRecapSlideshow({
     return first.offsetWidth + marginRight;
   };
 
+  // Snap-to-center scroll position for a slide. Slides use `snap-center`, so the
+  // browser aligns the slide's center to the container's center. That equals
+  // slide.offsetLeft - (container.clientWidth - slide.offsetWidth)/2.
+  const getSnapLeft = (el: HTMLElement, index: number): number => {
+    const slide = el.children[index] as HTMLElement | undefined;
+    if (!slide) return index * getSlideStep(el);
+    const containerW = el.clientWidth;
+    const slideW = slide.offsetWidth;
+    const offset = Math.max(0, Math.floor((containerW - slideW) / 2));
+    return Math.max(0, slide.offsetLeft - offset);
+  };
+
   // ── Desktop drag-to-swipe (mouse only — touch keeps native swipe) ──
   // IMPORTANT: dragging NEVER touches React state. setIsDragging re-renders the
   // component and re-applies scroll-snap-mandatory mid-drag, which fights the
@@ -143,16 +155,25 @@ export default function YearlyRecapSlideshow({
     const el = scrollRef.current;
     if (!el) return;
     const wasMoved = drag.moved;
-    // Restore inline overrides before re-enabling snap so the browser's native
-    // "snap to nearest slide" takes over cleanly (no double-scroll).
+    // Restore inline overrides / classes first.
     el.style.scrollSnapType = "";
     el.style.scrollBehavior = "";
     el.classList.remove("dragging-grabbing");
     el.removeAttribute("data-dragging");
+    drag.moved = false;
     if (wasMoved) {
-      drag.moved = false;
-      // Let native scroll-snap land on the closest slide and update the dots.
-      setActiveSlide(Math.round(el.scrollLeft / getSlideStep(el)));
+      // Compute the exact target slide from how far the drag actually travelled,
+      // then scroll directly to its snap-to-center position. We do NOT rely on
+      // native scroll-snap here: mandatory snap would snap back to the grid
+      // position and reverse the drag. compute nearest index from final scroll.
+      const idx = Math.round(el.scrollLeft / getSlideStep(el));
+      const targetLeft = getSnapLeft(el, idx);
+      // Do the centering scroll with snap temporarily off to avoid a double move.
+      el.style.scrollSnapType = "none";
+      el.scrollTo({ left: targetLeft, behavior: "smooth" });
+      // Re-enable snap AFTER the scroll finishes so subsequent swipes work again.
+      window.setTimeout(() => { el.style.scrollSnapType = ""; }, 350);
+      setActiveSlide(idx);
     }
   };
 
@@ -457,8 +478,8 @@ export default function YearlyRecapSlideshow({
             onClick={() => {
               const el = scrollRef.current;
               if (!el) return;
-              const target = el.children[i] as HTMLElement | undefined;
-              el.scrollTo({ left: target ? target.offsetLeft : i * getSlideStep(el), behavior: "smooth" });
+              el.scrollTo({ left: getSnapLeft(el, i), behavior: "smooth" });
+              setActiveSlide(i);
             }}
             className={`w-2 h-2 rounded-full transition-all ${i === activeSlide ? "bg-accent w-4" : "bg-border hover:bg-text-secondary"}`}
           />
