@@ -69,3 +69,10 @@ img[data-nimg="fill"][style*="color:transparent"] {
   /* Only animate while loading (next/image sets color:transparent before load) */
   animation: shimmer 1.5s infinite;
 }
+
+/* Set while the user is actively dragging a scroll-snap container with the mouse. */
+.dragging-grabbing {
+  cursor: grabbing !important;
+  -webkit-user-select: none;
+  user-select: none;
+}

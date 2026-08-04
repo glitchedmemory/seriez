@@ -63,7 +63,6 @@ export default function YearlyRecapSlideshow({
   const year = new Date().getFullYear();
   const [activeSlide, setActiveSlide] = useState(0);
   const [dotsMounted, setDotsMounted] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ startX: number; startScrollLeft: number; moved: boolean }>({
     startX: 0, startScrollLeft: 0, moved: false,
@@ -109,17 +108,22 @@ export default function YearlyRecapSlideshow({
   };
 
   // ── Desktop drag-to-swipe (mouse only — touch keeps native swipe) ──
+  // IMPORTANT: dragging NEVER touches React state. setIsDragging re-renders the
+  // component and re-applies scroll-snap-mandatory mid-drag, which fights the
+  // drag and makes it stutter/stop before reaching the next slide. Everything
+  // here is driven purely by the DOM via inline styles + event handlers on the
+  // scroller (see the wheel listener and pointer handlers bound at the JSX).
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerType !== "mouse" || e.button !== 0) return;
     const el = scrollRef.current;
     if (!el) return;
     dragState.current = { startX: e.clientX, startScrollLeft: el.scrollLeft, moved: false };
-    setIsDragging(true);
-    // Disable snap immediately on the DOM (no waiting for re-render) so the
-    // first movement doesn't fight scroll-snap-mandatory.
+    // Disable snap directly on the DOM — no re-render involved.
     el.style.scrollSnapType = "none";
+    el.style.scrollBehavior = "auto"; // ensure instant following, no smooth animation mid-drag
+    el.classList.add("dragging-grabbing");
     try { el.setPointerCapture(e.pointerId); } catch { /* non-fatal */ }
-    el.style.cursor = "grabbing";
+    el.setAttribute("data-dragging", "true");
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -138,21 +142,18 @@ export default function YearlyRecapSlideshow({
     const drag = dragState.current;
     const el = scrollRef.current;
     if (!el) return;
-    setIsDragging(false);
-    // Restore snap: clear inline override, React style prop re-applies
-    // "x mandatory" via the isDragging state (className/style both flip).
+    const wasMoved = drag.moved;
+    // Restore inline overrides before re-enabling snap so the browser's native
+    // "snap to nearest slide" takes over cleanly (no double-scroll).
     el.style.scrollSnapType = "";
-    el.style.cursor = "";
-    if (drag.moved) {
-      // Snap to the nearest slide smoothly after releasing — use the real
-      // slide step (offsetWidth + margin), not container clientWidth, so the
-      // slide stays where the mouse released on desktop too.
-      const step = getSlideStep(el);
-      const idx = Math.round(el.scrollLeft / step);
-      const target = el.children[idx] as HTMLElement | undefined;
-      el.scrollTo({ left: target ? target.offsetLeft : idx * step, behavior: "smooth" });
+    el.style.scrollBehavior = "";
+    el.classList.remove("dragging-grabbing");
+    el.removeAttribute("data-dragging");
+    if (wasMoved) {
+      drag.moved = false;
+      // Let native scroll-snap land on the closest slide and update the dots.
+      setActiveSlide(Math.round(el.scrollLeft / getSlideStep(el)));
     }
-    drag.moved = false;
   };
 
   const handleShare = async () => {
@@ -267,8 +268,8 @@ export default function YearlyRecapSlideshow({
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        className={`flex overflow-x-auto -mx-4 px-4 cursor-grab select-none ${isDragging ? "snap-none" : "snap-x snap-mandatory"}`}
-        style={{ scrollSnapType: isDragging ? "none" : "x mandatory", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
+        className="flex overflow-x-auto -mx-4 px-4 cursor-grab select-none snap-x snap-mandatory"
+        style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
       >
         {/* ══════ Slide 1 — Intro ══════ */}
         <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center bg-gradient-to-br from-[#0f0f1a] via-[#1a0a2e] to-[#0f172a] min-h-[340px]">
