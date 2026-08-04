@@ -61,15 +61,11 @@ export default function YearlyRecapSlideshow({
   library, reviewsMap,
 }: YearlyRecapSlideshowProps) {
   const year = new Date().getFullYear();
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [dotsMounted, setDotsMounted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ startX: number; startScrollLeft: number; moved: boolean }>({
     startX: 0, startScrollLeft: 0, moved: false,
   });
   const totalSlides = 7;
-
-  useEffect(() => { setDotsMounted(true); }, []);
 
   // ── Mouse wheel → horizontal scroll (native-like, same feel as touch swipe) ──
   // React's onWheel is registered passive (cannot preventDefault), so attach a
@@ -87,14 +83,6 @@ export default function YearlyRecapSlideshow({
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
-
-  const handleScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    if (dragState.current.moved) return; // skip while dragging to avoid re-render fighting the drag
-    const idx = Math.round(el.scrollLeft / getSlideStep(el));
-    setActiveSlide(idx);
-  };
 
   // Actual slide width (offsetWidth + right margin) — the container clientWidth
   // does NOT equal one slide width on desktop (slides are w-[85vw] max-w-md),
@@ -173,7 +161,6 @@ export default function YearlyRecapSlideshow({
       el.scrollTo({ left: targetLeft, behavior: "smooth" });
       // Re-enable snap AFTER the scroll finishes so subsequent swipes work again.
       window.setTimeout(() => { el.style.scrollSnapType = ""; }, 350);
-      setActiveSlide(idx);
     }
   };
 
@@ -284,7 +271,6 @@ export default function YearlyRecapSlideshow({
       </h3>
       <div
         ref={scrollRef}
-        onScroll={handleScroll}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
@@ -468,24 +454,6 @@ export default function YearlyRecapSlideshow({
         </div>
 
       </div>
-
-      {/* Dots */}
-      {dotsMounted && (
-      <div className="flex justify-center gap-1.5 mt-3">
-        {Array.from({ length: totalSlides }).map((_, i) => (
-          <button
-            key={i}
-            onClick={() => {
-              const el = scrollRef.current;
-              if (!el) return;
-              el.scrollTo({ left: getSnapLeft(el, i), behavior: "smooth" });
-              setActiveSlide(i);
-            }}
-            className={`w-2 h-2 rounded-full transition-all ${i === activeSlide ? "bg-accent w-4" : "bg-border hover:bg-text-secondary"}`}
-          />
-        ))}
-      </div>
-      )}
     </div>
   );
 }
