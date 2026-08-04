@@ -247,7 +247,13 @@ def enrich_with_tmdb(output):
                     item["mediaType"] = mt
                     if poster_path:
                         item["poster"] = f"https://image.tmdb.org/t/p/w342{poster_path}"
+                    else:
+                        item["poster"] = None
                     enriched += 1
+                else:
+                    # No TMDB match (e.g. live events) — clear FlixPatrol URL so the
+                    # frontend falls back to its default placeholder image
+                    item["poster"] = None
                 time.sleep(0.3)  # TMDB rate limit: ~40 req/10s
 
     print(f"  Enriched {enriched}/{total_items} items with TMDB IDs; reused {reused} cached posters")
