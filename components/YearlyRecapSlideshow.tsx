@@ -93,8 +93,19 @@ export default function YearlyRecapSlideshow({
     const el = scrollRef.current;
     if (!el) return;
     if (dragState.current.moved) return; // skip while dragging to avoid re-render fighting the drag
-    const idx = Math.round(el.scrollLeft / el.clientWidth);
+    const idx = Math.round(el.scrollLeft / getSlideStep(el));
     setActiveSlide(idx);
+  };
+
+  // Actual slide width (offsetWidth + right margin) — the container clientWidth
+  // does NOT equal one slide width on desktop (slides are w-[85vw] max-w-md),
+  // so divide by the real slide step to compute the correct slide index.
+  const getSlideStep = (el: HTMLElement): number => {
+    const first = el.children[0] as HTMLElement | undefined;
+    if (!first) return el.clientWidth || 300;
+    const style = getComputedStyle(first);
+    const marginRight = parseFloat(style.marginRight) || 0;
+    return first.offsetWidth + marginRight;
   };
 
   // ── Desktop drag-to-swipe (mouse only — touch keeps native swipe) ──
@@ -133,9 +144,13 @@ export default function YearlyRecapSlideshow({
     el.style.scrollSnapType = "";
     el.style.cursor = "";
     if (drag.moved) {
-      // Snap to the nearest slide smoothly after releasing
-      const idx = Math.round(el.scrollLeft / el.clientWidth);
-      el.scrollTo({ left: idx * el.clientWidth, behavior: "smooth" });
+      // Snap to the nearest slide smoothly after releasing — use the real
+      // slide step (offsetWidth + margin), not container clientWidth, so the
+      // slide stays where the mouse released on desktop too.
+      const step = getSlideStep(el);
+      const idx = Math.round(el.scrollLeft / step);
+      const target = el.children[idx] as HTMLElement | undefined;
+      el.scrollTo({ left: target ? target.offsetLeft : idx * step, behavior: "smooth" });
     }
     drag.moved = false;
   };
@@ -438,7 +453,12 @@ export default function YearlyRecapSlideshow({
         {Array.from({ length: totalSlides }).map((_, i) => (
           <button
             key={i}
-            onClick={() => { scrollRef.current?.scrollTo({ left: scrollRef.current.clientWidth * i, behavior: "smooth" }); }}
+            onClick={() => {
+              const el = scrollRef.current;
+              if (!el) return;
+              const target = el.children[i] as HTMLElement | undefined;
+              el.scrollTo({ left: target ? target.offsetLeft : i * getSlideStep(el), behavior: "smooth" });
+            }}
             className={`w-2 h-2 rounded-full transition-all ${i === activeSlide ? "bg-accent w-4" : "bg-border hover:bg-text-secondary"}`}
           />
         ))}
