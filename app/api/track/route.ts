@@ -132,6 +132,7 @@ export async function POST(req: NextRequest) {
       title,
       year: yearVal,
       tmdb_rating: tmdbRating,
+      updated_at: new Date().toISOString(),
     };
     // Set watched_at only on first completion (existingWatchDate is null or undefined)
     if (status === "completed" && !existingWatchDate) {
