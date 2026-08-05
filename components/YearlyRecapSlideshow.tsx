@@ -135,7 +135,12 @@ export default function YearlyRecapSlideshow({
       if (Math.abs(dx) <= 5) return; // still within click threshold
       drag.moved = true; // promote to drag
     }
-    el.scrollLeft = drag.startScrollLeft - dx;
+    // Carry the content in the direction the mouse moves: dragging the mouse
+    // to the RIGHT should pull the NEXT slide into view (scrollLeft increases).
+    // scrollLeft = startScrollLeft - dx was inverted (mouse right → scroll left
+    // → slides go backward) and hit the scroll boundary, so dragging right
+    // appeared to "stop".
+    el.scrollLeft = drag.startScrollLeft + dx;
   };
 
   const endDrag = () => {
