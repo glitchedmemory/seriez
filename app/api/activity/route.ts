@@ -246,6 +246,12 @@ export async function GET(req: NextRequest) {
                   })()
                 : (d.release_date || "");
               year = dateStr.slice(0, 4) || null;
+              // DIAG: log the computed TV release date + window result
+              if (ep === "tv") {
+                console.log(`[activity-diag] tv ${item.tmdb_id} last=${d.last_air_date} next=${d.next_episode_to_air?.air_date} dateStr=${dateStr}`);
+              } else {
+                console.log(`[activity-diag] ${ep} ${item.tmdb_id} release_date=${d.release_date} dateStr=${dateStr}`);
+              }
               if (dateStr) {
                 releaseDate = new Date(dateStr);
               }
