@@ -67,75 +67,65 @@ export default function YearlyRecapSlideshow({
   });
   const totalSlides = 7;
 
-  // ── Mouse wheel → horizontal scroll (native-like, same feel as touch swipe) ──
-  // React's onWheel is registered passive (cannot preventDefault), so attach a
-  // non-passive native listener directly to convert vertical wheel into
-  // horizontal scrolling — smooth, with CSS snap handling the rest.
+  // ── Mouse drag + wheel → horizontal scroll (native listeners only) ──
+  // React synthetic pointer handlers can fail to hold a drag through pointer
+  // capture in some environments, while the wheel listener (native) always
+  // works. So attach ALL of drag/scroll handling as native listeners on the
+  // DOM node — proven to work (no React re-render, no synthetic-event quirk).
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+
+    // Wheel → horizontal scroll
     const onWheel = (e: WheelEvent) => {
       if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
         e.preventDefault();
         el.scrollLeft += e.deltaY;
       }
     };
+
+    // Pointer drag (mouse left button only)
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      dragState.current = { startX: e.clientX, startScrollLeft: el.scrollLeft, moved: false, dragging: true };
+      el.style.scrollBehavior = "auto";
+      el.classList.add("dragging-grabbing");
+      try { el.setPointerCapture(e.pointerId); } catch { /* non-fatal */ }
+      el.setAttribute("data-dragging", "true");
+    };
+    const onPointerMove = (e: PointerEvent) => {
+      const drag = dragState.current;
+      if (!drag.dragging) return; // only while mouse button is held
+      const dx = e.clientX - drag.startX;
+      if (!drag.moved) {
+        if (Math.abs(dx) <= 5) return;
+        drag.moved = true;
+      }
+      // Follow the pointer: dragging right pulls next slides in (scrollLeft up).
+      el.scrollLeft = drag.startScrollLeft + dx;
+    };
+    const endDrag = () => {
+      const drag = dragState.current;
+      el.style.scrollBehavior = "";
+      el.classList.remove("dragging-grabbing");
+      el.removeAttribute("data-dragging");
+      drag.dragging = false;
+      drag.moved = false;
+    };
+
     el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
+    el.addEventListener("pointerdown", onPointerDown);
+    el.addEventListener("pointermove", onPointerMove);
+    el.addEventListener("pointerup", endDrag);
+    el.addEventListener("pointercancel", endDrag);
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("pointerdown", onPointerDown);
+      el.removeEventListener("pointermove", onPointerMove);
+      el.removeEventListener("pointerup", endDrag);
+      el.removeEventListener("pointercancel", endDrag);
+    };
   }, []);
-
-  // ── Desktop drag-to-swipe (mouse only — touch keeps native swipe) ──
-  // IMPORTANT: dragging NEVER touches React state. setIsDragging re-renders the
-  // component and re-applies scroll-snap-mandatory mid-drag, which fights the
-  // drag and makes it stutter/stop before reaching the next slide. Everything
-  // here is driven purely by the DOM via inline styles + event handlers on the
-  // scroller (see the wheel listener and pointer handlers bound at the JSX).
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType !== "mouse" || e.button !== 0) return;
-    const el = scrollRef.current;
-    if (!el) return;
-    dragState.current = { startX: e.clientX, startScrollLeft: el.scrollLeft, moved: false, dragging: true };
-    // Keep scroll snapping off entirely for this view (no snap classes on the
-    // container/slides), so the drag follows the pointer frictionlessly.
-    el.style.scrollBehavior = "auto"; // ensure instant following, no smooth animation mid-drag
-    el.classList.add("dragging-grabbing");
-    try { el.setPointerCapture(e.pointerId); } catch { /* non-fatal */ }
-    el.setAttribute("data-dragging", "true");
-  };
-
-  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    const drag = dragState.current;
-    const el = scrollRef.current;
-    if (!el) return;
-    // ONLY act when the user is actively holding the mouse button down (dragging).
-    // Without this guard, pointermove fires on hover too and (using stale startX/
-    // startScrollLeft from the last drag) yanks the scroller around on its own.
-    if (!drag.dragging) return;
-    const dx = e.clientX - drag.startX;
-    if (!drag.moved) {
-      if (Math.abs(dx) <= 5) return; // still within click threshold
-      drag.moved = true; // promote to drag
-    }
-    // Carry the content in the direction the mouse moves: dragging the mouse
-    // to the RIGHT should pull the NEXT slide into view (scrollLeft increases).
-    // scrollLeft = startScrollLeft - dx was inverted (mouse right → scroll left
-    // → slides go backward) and hit the scroll boundary, so dragging right
-    // appeared to "stop".
-    el.scrollLeft = drag.startScrollLeft + dx;
-  };
-
-  const endDrag = () => {
-    const drag = dragState.current;
-    const el = scrollRef.current;
-    if (!el) return;
-    // Release the drag — leave the scroller exactly where the mouse let go.
-    // No snap, no auto-center: continuous friction-free dragging both ways.
-    el.style.scrollBehavior = "";
-    el.classList.remove("dragging-grabbing");
-    el.removeAttribute("data-dragging");
-    drag.dragging = false;
-    drag.moved = false;
-  };
 
   const handleShare = async () => {
     const profileUrl = `https://seriez.app/profile?username=${encodeURIComponent(displayName)}`;
@@ -244,10 +234,6 @@ export default function YearlyRecapSlideshow({
       </h3>
       <div
         ref={scrollRef}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
         className="flex overflow-x-auto -mx-4 px-4 cursor-grab select-none"
         style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
       >
