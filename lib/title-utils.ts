@@ -44,8 +44,12 @@ export async function resolveConflict(id: number): Promise<"movie" | "tv"> {
 }
 
 // Build detail page URL from media type (route split: /movie /tv /anime)
-export function titleHref(id: number | string, type?: string | null): string {
-  if (type === "tv") return `/tv/${id}/season/1`;
+// Optional season routes TV to that specific season (e.g. "Ted Lasso S4" → /tv/{id}/season/4)
+export function titleHref(id: number | string, type?: string | null, season?: number | null): string {
+  if (type === "tv") {
+    if (season && season > 0) return `/tv/${id}/season/${season}`;
+    return `/tv/${id}/season/1`;
+  }
   if (type === "anime") return `/anime/${id}`;
   return `/movie/${id}`;
 }

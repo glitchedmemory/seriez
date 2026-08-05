@@ -130,7 +130,7 @@ export default function FeedPage() {
             const hasReview = a.type === "review" && a.content;
             const href = isCollection
               ? `/collections/${a.id.replace("col-", "").replace("v-", "")}`
-              : titleHref(a.tmdbId, a.mediaType);
+              : titleHref(a.tmdbId, a.mediaType, a.season);
             const avatarGradient = getAvatarColor(a.username);
 
             return (
