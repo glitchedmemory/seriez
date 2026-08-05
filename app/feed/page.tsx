@@ -8,7 +8,7 @@ import { titleHref } from "@/lib/title-utils";
 
 interface Activity {
   id: string;
-  type: "review" | "rated" | "watched" | "watching" | "plan_to_watch" | "collection" | "released";
+  type: "review" | "rated" | "watched" | "watching" | "plan_to_watch" | "collection" | "released" | "like" | "comment";
   username: string;
   tmdbId: number;
   mediaType: string;
@@ -20,6 +20,8 @@ interface Activity {
   content?: string;
   collectionName?: string;
   itemCount?: number;
+  reviewId?: string | null;
+  notifRead?: boolean;
   createdAt: string;
 }
 
@@ -32,6 +34,8 @@ function getTypeConfig(t: any) {
     plan_to_watch:{ emoji: "📌", text: t("feedPage.plansToWatch"),  badge: t("feedPage.badgePlan"),     color: "#6b7280", badgeClass: "bg-[#6b7280]/15 text-text-secondary" },
     released:    { emoji: "🎬", text: t("feedPage.released"),          badge: t("feedPage.badgeReleased"), color: "#22c55e", badgeClass: "bg-[#22c55e]/15 text-[#4ade80]" },
     collection:  { emoji: "📁", text: t("feedPage.publishedCollection"), badge: "", color: "#ec4899", badgeClass: "" },
+    like:        { emoji: "❤️", text: t("feedPage.likedReview"),       badge: "", color: "#ec4899", badgeClass: "" },
+    comment:     { emoji: "💬", text: t("feedPage.commentedOnReview"), badge: "", color: "#3b82f6", badgeClass: "" },
   } as Record<string, { emoji: string; text: string; badge: string; color: string; badgeClass: string }>;
 }
 
@@ -128,9 +132,15 @@ export default function FeedPage() {
             const cfg = typeConfig[a.type] || typeConfig.plan_to_watch;
             const isCollection = a.type === "collection";
             const hasReview = a.type === "review" && a.content;
-            const href = isCollection
+            const isNotif = a.type === "like" || a.type === "comment";
+            const baseHref = isCollection
               ? `/collections/${a.id.replace("col-", "").replace("v-", "")}`
               : titleHref(a.tmdbId, a.mediaType, a.season);
+            // like/comment notifications jump to the work page AND scroll to the
+            // specific review via the ?review= anchor.
+            const href = isNotif && a.reviewId
+              ? `${baseHref}?review=${encodeURIComponent(a.reviewId)}`
+              : baseHref;
             const avatarGradient = getAvatarColor(a.username);
 
             return (

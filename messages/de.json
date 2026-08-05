@@ -414,7 +414,9 @@
     "followers": "Followers",
     "following": "Following",
     "released": "wollte sehen — veröffentlicht!",
-    "badgeReleased": "VERÖFFENTLICHT"
+    "badgeReleased": "VERÖFFENTLICHT",
+    "likedReview": "gefällt deine Bewertung",
+    "commentedOnReview": "hat deine Bewertung kommentiert"
   },
   "libraryPage": {
     "toWatch": "To Watch",

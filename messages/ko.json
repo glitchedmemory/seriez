@@ -441,7 +441,9 @@
     "followers": "팔로워",
     "following": "팔로잉",
     "released": "님이 보고싶어한",
-    "badgeReleased": "릴리즈"
+    "badgeReleased": "릴리즈",
+    "likedReview": "님이 리뷰를 좋아합니다",
+    "commentedOnReview": "님이 리뷰에 댓글을 달았습니다"
   },
   "libraryPage": {
     "toWatch": "볼 예정",

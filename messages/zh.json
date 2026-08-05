@@ -441,7 +441,9 @@
     "followers": "粉丝",
     "following": "关注中",
     "released": "想看作品已发布！",
-    "badgeReleased": "已发布"
+    "badgeReleased": "已发布",
+    "likedReview": "赞了你的影评",
+    "commentedOnReview": "评论了你的影评"
   },
   "libraryPage": {
     "toWatch": "想看",

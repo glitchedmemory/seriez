@@ -385,6 +385,35 @@ export async function PATCH(req: NextRequest) {
       const { data: cur } = await supabaseAdmin.from("reviews").select("likes_count").eq("id", reviewId);
       const newCount = (cur?.[0]?.likes_count || 0) + 1;
       await supabaseAdmin.from("reviews").update({ likes_count: newCount }).eq("id", reviewId);
+
+      // Notify the review author (unless self-like). Reuse the notifications table so
+      // the like shows up in the feed as a "like" activity.
+      try {
+        const { data: reviewRow } = await supabaseAdmin
+          .from("reviews")
+          .select("username, tmdb_id, media_type, content")
+          .eq("id", reviewId)
+          .maybeSingle();
+        const author = reviewRow?.username;
+        const tmdbId = reviewRow?.tmdb_id ?? 0;
+        const mediaType = reviewRow?.media_type ?? "";
+        if (author && author !== user) {
+          const snippet = (reviewRow?.content || "").trim().slice(0, 40);
+          await supabaseAdmin.from("notifications").insert({
+            type: "like",
+            actor_username: user,
+            target_username: author,
+            review_id: reviewId,
+            tmdb_id: tmdbId,
+            media_type: mediaType,
+            title_name: snippet ? `리뷰를 좋아합니다: ${snippet}` : "리뷰를 좋아합니다",
+            read: false,
+          });
+        }
+      } catch {
+        // Notification failure must never block the like itself
+      }
+
       return NextResponse.json({ likes: newCount, liked: true });
     }
 

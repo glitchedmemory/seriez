@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 /** Card-style comment tree (Instagram + Discord blend):
@@ -423,6 +423,11 @@ export function ReviewSection({
   const [content, setContent] = useState("");
   const supabase = createClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // ── Deep-link to a specific review (?review=<uuid> from the feed) ──
+  const scrolledToRef = useRef<string | null>(null);
+  const deepLinkReview = searchParams?.get("review") || null;
 
   // ── Comment state ──
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
@@ -752,6 +757,23 @@ export function ReviewSection({
     fetchAll();
   }, [fetchAll]);
 
+  // ── Deep-link from feed (?review=<uuid>): find the review (paging through all
+  //    pages if needed), scroll to it, and auto-expand its comment thread. ──
+  const deepLinkTarget = deepLinkReview;
+  useEffect(() => {
+    if (!deepLinkTarget || scrolledToRef.current === deepLinkTarget) return;
+
+    // If the target review is already on the current page, scroll to it.
+    if (reviews.some((r) => r.id === deepLinkTarget)) {
+      scrollToReview(deepLinkTarget);
+      return;
+    }
+    // Otherwise page forward until we find it (bounded by totalPages).
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1);
+    }
+  }, [deepLinkTarget, reviews, currentPage, totalPages]);
+
   // Re-fetch stats when tracking status or version changes
   useEffect(() => {
     fetchAll(1);
@@ -760,6 +782,26 @@ export function ReviewSection({
   function goToPage(p: number) {
     if (p < 1 || p > totalPages) return;
     fetchAll(p);
+  }
+
+  // Scroll to a specific review card (by id) and auto-expand its comment thread.
+  // Called from the deep-link effect when the ?review=<uuid> target lands on the
+  // current page.
+  function scrollToReview(reviewId: string) {
+    const el = document.getElementById(`review-${reviewId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      scrolledToRef.current = reviewId;
+      // Expand + fetch that review's comments (covers the "comment" notification case).
+      try {
+        const review = reviews.find((r) => r.id === reviewId);
+        if (review && (review.commentCount || 0) > 0 && !expandedComments.has(reviewId)) {
+          toggleComments(reviewId, review.username);
+        }
+      } catch {
+        // non-blocking
+      }
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -918,7 +960,7 @@ export function ReviewSection({
         );
 
         const ReviewCard = ({ review, isPinned }: { review: Review; isPinned?: boolean }) => (
-          <div key={review.id} className={`relative overflow-hidden rounded-2xl p-5 transition-all duration-300 ${
+          <div key={review.id} id={`review-${review.id}`} className={`relative overflow-hidden rounded-2xl p-5 transition-all duration-300 ${
             isPinned
               ? "bg-white/[0.03] light:bg-bg-card backdrop-blur-xl border border-gold/45 shadow-[0_0_20px_rgba(245,158,11,0.08),0_0_60px_rgba(245,158,11,0.03)] hover:border-gold/65 hover:shadow-[0_0_30px_rgba(245,158,11,0.15),0_0_80px_rgba(245,158,11,0.05)]"
               : "bg-white/[0.03] light:bg-bg-card backdrop-blur-xl border border-accent/10 light:border-border hover:border-accent/30 light:hover:border-accent/50 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#6366f1]/8"

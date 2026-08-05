@@ -208,12 +208,26 @@ export async function POST(req: NextRequest) {
     // Create notification for the review author (unless self-comment)
     if (review_author && review_author !== username) {
       try {
+        // Resolve media_type from the review so the feed notification can link to the
+        // right content page (movie/tv/anime). Client sends tmdb_id + title_name but
+        // not media_type.
+        let mediaType = "";
+        try {
+          const { data: revRow } = await supabaseAdmin
+            .from("reviews")
+            .select("media_type")
+            .eq("id", review_id)
+            .maybeSingle();
+          mediaType = revRow?.media_type ?? "";
+        } catch { /* non-blocking */ }
+
         await supabaseAdmin.from("notifications").insert({
           type: "comment",
           actor_username: username.trim().slice(0, 20),
           target_username: review_author,
           review_id,
           tmdb_id: tmdb_id || 0,
+          media_type: mediaType,
           title_name: title_name || "",
           read: false,
         });

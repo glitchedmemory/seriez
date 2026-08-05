@@ -441,7 +441,9 @@
     "followers": "フォロワー",
     "following": "フォロー中",
     "released": "見たかった作品がリリースされました！",
-    "badgeReleased": "リリース"
+    "badgeReleased": "リリース",
+    "likedReview": "さんのレビューにいいねしました",
+    "commentedOnReview": "さんがレビューにコメントしました"
   },
   "libraryPage": {
     "toWatch": "視聴予定",
