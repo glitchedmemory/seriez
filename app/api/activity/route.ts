@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { resolveUserId } from "@/lib/user-utils";
@@ -13,6 +14,15 @@ const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 const ANILIST_API = "https://graphql.anilist.co";
 
 export async function GET(req: NextRequest) {
+  // DIAG: log what cookies() actually sees for this request
+  try {
+    const cs = await cookies();
+    const all = cs.getAll();
+    const authCookies = all.filter(c => c.name.includes("auth-token") || c.name.startsWith("sb-"));
+    console.log(`[activity-diag] cookies() count=${all.length} authCookies=${authCookies.map(c => `${c.name}(len=${c.value.length})`).join(",") || "NONE"}`);
+    for (const c of authCookies) console.log(`[activity-diag]   cookie ${c.name} valueHead="${c.value.slice(0, 24)}..."`);
+  } catch (ce) { console.log(`[activity-diag] cookies() ERROR: ${ce instanceof Error ? ce.message : String(ce)}`); }
+
   const username = await resolveUsername(req);
   // DIAG: log resolution for debugging feed "released" issue
   console.log("[activity-diag] username =", username ?? "NULL");
