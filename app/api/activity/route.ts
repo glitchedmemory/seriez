@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 import { resolveUserId } from "@/lib/user-utils";
 import { resolveUsername } from "@/lib/auth-helper";
 import { tmdbGet } from "@/lib/tmdb";
@@ -152,7 +153,12 @@ export async function GET(req: NextRequest) {
   // ─── PTW release check: scan user's plan_to_watch items for recent releases ───
   if (userId && username) {
     try {
-      const { data: ptwItems } = await supabase
+      // Use the logged-in user's session client so RLS (auth.uid() = username)
+      // lets us read this user's own plan_to_watch items. The global anon
+      // client carries no session JWT → RLS returns an empty list → released
+      // alerts for newly-premiered titles (e.g. Ted Lasso S4) never appear.
+      const authDb = await createServerClient();
+      const { data: ptwItems } = await authDb
         .from("media_trackings")
         .select("tmdb_id, media_type")
         .eq("username", userId)
