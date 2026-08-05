@@ -62,8 +62,8 @@ export default function YearlyRecapSlideshow({
 }: YearlyRecapSlideshowProps) {
   const year = new Date().getFullYear();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const dragState = useRef<{ startX: number; startScrollLeft: number; moved: boolean }>({
-    startX: 0, startScrollLeft: 0, moved: false,
+  const dragState = useRef<{ startX: number; startScrollLeft: number; moved: boolean; dragging: boolean }>({
+    startX: 0, startScrollLeft: 0, moved: false, dragging: false,
   });
   const totalSlides = 7;
 
@@ -117,7 +117,7 @@ export default function YearlyRecapSlideshow({
     if (e.pointerType !== "mouse" || e.button !== 0) return;
     const el = scrollRef.current;
     if (!el) return;
-    dragState.current = { startX: e.clientX, startScrollLeft: el.scrollLeft, moved: false };
+    dragState.current = { startX: e.clientX, startScrollLeft: el.scrollLeft, moved: false, dragging: true };
     // Disable snap directly on the DOM — no re-render involved.
     el.style.scrollSnapType = "none";
     el.style.scrollBehavior = "auto"; // ensure instant following, no smooth animation mid-drag
@@ -130,6 +130,10 @@ export default function YearlyRecapSlideshow({
     const drag = dragState.current;
     const el = scrollRef.current;
     if (!el) return;
+    // ONLY act when the user is actively holding the mouse button down (dragging).
+    // Without this guard, pointermove fires on hover too and (using stale startX/
+    // startScrollLeft from the last drag) yanks the scroller around on its own.
+    if (!drag.dragging) return;
     const dx = e.clientX - drag.startX;
     if (!drag.moved) {
       if (Math.abs(dx) <= 5) return; // still within click threshold
@@ -153,6 +157,7 @@ export default function YearlyRecapSlideshow({
     el.style.scrollBehavior = "";
     el.classList.remove("dragging-grabbing");
     el.removeAttribute("data-dragging");
+    drag.dragging = false;
     drag.moved = false;
     if (wasMoved) {
       // Compute the exact target slide from how far the drag actually travelled,
