@@ -206,12 +206,17 @@ export async function GET(req: NextRequest) {
               const d = await tmdbGet(`/${ep}/${item.tmdb_id}`);
               title = d.title || d.name || "";
               poster = d.poster_path ? `${TMDB_IMAGE_BASE}${d.poster_path}` : null;
-              // TV series must be judged by its MOST RECENT airing (last_air_date),
-              // not first_air_date — otherwise a newly-released season (e.g. Ted Lasso
-              // S4 premiered 2026-08-04) never triggers a "released" notification
-              // because first_air_date is the original series premiere (2020).
+              // TV series "released" = its MOST RECENT episode airing. TMDB keeps
+              // last_air_date stale (e.g. Ted Lasso S4 premiered 2026-08-04 but
+              // last_air_date still says 2023 until aired episodes are processed),
+              // so take the LATEST of last_air_date and next_episode_to_air.air_date.
+              // Otherwise a brand-new season is invisible and no "released" alert fires.
               const dateStr = ep === "tv"
-                ? (d.last_air_date || d.first_air_date || "")
+                ? (() => {
+                    const dates = [d.last_air_date, d.next_episode_to_air?.air_date].filter(Boolean);
+                    if (!dates.length) return d.first_air_date || "";
+                    return dates.sort().at(-1); // newest date
+                  })()
                 : (d.release_date || "");
               year = dateStr.slice(0, 4) || null;
               if (dateStr) {
