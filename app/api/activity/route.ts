@@ -277,7 +277,9 @@ export async function GET(req: NextRequest) {
   // Enrich — skip fallback chains for items that already have poster_url
   const enriched = await Promise.all(
     unique.map(async (a) => {
-      if (a.type === "collection" || a.tmdbId === 0) return a;
+      // released items already carry final title/year/season — don't clobber
+      // year with first_air_date (would show "2020" for a 2026 season premiere).
+      if (a.type === "collection" || a.tmdbId === 0 || a.type === "released") return a;
       
       // Already has poster from DB — just need title/year (fast single API call)
       if (a.poster) {
