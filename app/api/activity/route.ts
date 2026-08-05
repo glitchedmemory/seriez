@@ -206,7 +206,13 @@ export async function GET(req: NextRequest) {
               const d = await tmdbGet(`/${ep}/${item.tmdb_id}`);
               title = d.title || d.name || "";
               poster = d.poster_path ? `${TMDB_IMAGE_BASE}${d.poster_path}` : null;
-              const dateStr = d.release_date || d.first_air_date || "";
+              // TV series must be judged by its MOST RECENT airing (last_air_date),
+              // not first_air_date — otherwise a newly-released season (e.g. Ted Lasso
+              // S4 premiered 2026-08-04) never triggers a "released" notification
+              // because first_air_date is the original series premiere (2020).
+              const dateStr = ep === "tv"
+                ? (d.last_air_date || d.first_air_date || "")
+                : (d.release_date || "");
               year = dateStr.slice(0, 4) || null;
               if (dateStr) {
                 releaseDate = new Date(dateStr);
