@@ -414,7 +414,9 @@
     "followers": "Followers",
     "following": "Following",
     "released": "quería ver — ¡estrenado!",
-    "badgeReleased": "ESTRENO"
+    "badgeReleased": "ESTRENO",
+    "likedReview": "le gusta tu reseña",
+    "commentedOnReview": "comentó tu reseña"
   },
   "libraryPage": {
     "toWatch": "To Watch",

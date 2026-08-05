@@ -264,6 +264,43 @@ export async function GET(req: NextRequest) {
     } catch {}
   }
 
+  // ─── Notifications for the logged-in user: like/comment on their reviews ───
+  // These surface as feed items ("X liked your review") so the feed shows more than
+  // follow activity + PTW releases. They resolve by tmdb_id/media_type at enrich time.
+  if (username) {
+    try {
+      // Use the session-aware client (carries the user's JWT) so RLS lets us read
+      // this user's own notifications. The global anon/supabase client has no session.
+      const authDb = await createServerClient();
+      const { data: notifs } = await authDb
+        .from("notifications")
+        .select("*")
+        .eq("target_username", username.trim().slice(0, 20))
+        .in("type", ["like", "comment"])
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      for (const n of notifs || []) {
+        activities.push({
+          id: `notif-${n.id}`,
+          type: (n.type === "comment" ? "comment" : "like") as Activity["type"],
+          username: n.actor_username || "",
+          tmdbId: n.tmdb_id || 0,
+          mediaType: n.media_type || "",
+          title: n.title_name || "",
+          poster: null,
+          year: null,
+          reviewId: n.review_id || null,
+          targetUsername: n.target_username || null,
+          notifRead: !!n.read,
+          createdAt: n.created_at,
+        });
+      }
+    } catch {
+      // Notification fetch must never break the feed
+    }
+  }
+
   // Re-sort after adding released items
   activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const seen = new Set<string>();
@@ -279,7 +316,9 @@ export async function GET(req: NextRequest) {
     unique.map(async (a) => {
       // released items already carry final title/year/season — don't clobber
       // year with first_air_date (would show "2020" for a 2026 season premiere).
-      if (a.type === "collection" || a.tmdbId === 0 || a.type === "released") return a;
+      // like/comment notifications already carry their message in `title` — don't
+      // let TMDB enrichment overwrite it with just the content title.
+      if (a.type === "collection" || a.tmdbId === 0 || a.type === "released" || a.type === "like" || a.type === "comment") return a;
       
       // Already has poster from DB — just need title/year (fast single API call)
       if (a.poster) {
@@ -505,7 +544,7 @@ async function enrichAnime(anilistId: number): Promise<{ title: string; poster: 
 
 interface Activity {
   id: string;
-  type: "review" | "rated" | "watched" | "watching" | "plan_to_watch" | "collection" | "released";
+  type: "review" | "rated" | "watched" | "watching" | "plan_to_watch" | "collection" | "released" | "like" | "comment";
   username: string;
   tmdbId: number;
   mediaType: string;
@@ -517,5 +556,8 @@ interface Activity {
   content?: string;
   collectionName?: string;
   itemCount?: number;
+  reviewId?: string | null;
+  targetUsername?: string | null;
+  notifRead?: boolean;
   createdAt: string;
 }
