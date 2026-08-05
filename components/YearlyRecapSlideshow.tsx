@@ -84,29 +84,6 @@ export default function YearlyRecapSlideshow({
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
-  // Actual slide width (offsetWidth + right margin) — the container clientWidth
-  // does NOT equal one slide width on desktop (slides are w-[85vw] max-w-md),
-  // so divide by the real slide step to compute the correct slide index.
-  const getSlideStep = (el: HTMLElement): number => {
-    const first = el.children[0] as HTMLElement | undefined;
-    if (!first) return el.clientWidth || 300;
-    const style = getComputedStyle(first);
-    const marginRight = parseFloat(style.marginRight) || 0;
-    return first.offsetWidth + marginRight;
-  };
-
-  // Snap-to-center scroll position for a slide. Slides use `snap-center`, so the
-  // browser aligns the slide's center to the container's center. That equals
-  // slide.offsetLeft - (container.clientWidth - slide.offsetWidth)/2.
-  const getSnapLeft = (el: HTMLElement, index: number): number => {
-    const slide = el.children[index] as HTMLElement | undefined;
-    if (!slide) return index * getSlideStep(el);
-    const containerW = el.clientWidth;
-    const slideW = slide.offsetWidth;
-    const offset = Math.max(0, Math.floor((containerW - slideW) / 2));
-    return Math.max(0, slide.offsetLeft - offset);
-  };
-
   // ── Desktop drag-to-swipe (mouse only — touch keeps native swipe) ──
   // IMPORTANT: dragging NEVER touches React state. setIsDragging re-renders the
   // component and re-applies scroll-snap-mandatory mid-drag, which fights the
@@ -118,8 +95,8 @@ export default function YearlyRecapSlideshow({
     const el = scrollRef.current;
     if (!el) return;
     dragState.current = { startX: e.clientX, startScrollLeft: el.scrollLeft, moved: false, dragging: true };
-    // Disable snap directly on the DOM — no re-render involved.
-    el.style.scrollSnapType = "none";
+    // Keep scroll snapping off entirely for this view (no snap classes on the
+    // container/slides), so the drag follows the pointer frictionlessly.
     el.style.scrollBehavior = "auto"; // ensure instant following, no smooth animation mid-drag
     el.classList.add("dragging-grabbing");
     try { el.setPointerCapture(e.pointerId); } catch { /* non-fatal */ }
@@ -151,27 +128,13 @@ export default function YearlyRecapSlideshow({
     const drag = dragState.current;
     const el = scrollRef.current;
     if (!el) return;
-    const wasMoved = drag.moved;
-    // Restore inline overrides / classes first.
-    el.style.scrollSnapType = "";
+    // Release the drag — leave the scroller exactly where the mouse let go.
+    // No snap, no auto-center: continuous friction-free dragging both ways.
     el.style.scrollBehavior = "";
     el.classList.remove("dragging-grabbing");
     el.removeAttribute("data-dragging");
     drag.dragging = false;
     drag.moved = false;
-    if (wasMoved) {
-      // Compute the exact target slide from how far the drag actually travelled,
-      // then scroll directly to its snap-to-center position. We do NOT rely on
-      // native scroll-snap here: mandatory snap would snap back to the grid
-      // position and reverse the drag. compute nearest index from final scroll.
-      const idx = Math.round(el.scrollLeft / getSlideStep(el));
-      const targetLeft = getSnapLeft(el, idx);
-      // Do the centering scroll with snap temporarily off to avoid a double move.
-      el.style.scrollSnapType = "none";
-      el.scrollTo({ left: targetLeft, behavior: "smooth" });
-      // Re-enable snap AFTER the scroll finishes so subsequent swipes work again.
-      window.setTimeout(() => { el.style.scrollSnapType = ""; }, 350);
-    }
   };
 
   const handleShare = async () => {
@@ -285,11 +248,11 @@ export default function YearlyRecapSlideshow({
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        className="flex overflow-x-auto -mx-4 px-4 cursor-grab select-none snap-x snap-mandatory"
-        style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
+        className="flex overflow-x-auto -mx-4 px-4 cursor-grab select-none"
+        style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
       >
         {/* ══════ Slide 1 — Intro ══════ */}
-        <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center bg-gradient-to-br from-[#0f0f1a] via-[#1a0a2e] to-[#0f172a] min-h-[340px]">
+        <div className="shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center bg-gradient-to-br from-[#0f0f1a] via-[#1a0a2e] to-[#0f172a] min-h-[340px]">
           <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.4) 0%, transparent 50%), radial-gradient(circle at 70% 80%, rgba(168,85,247,0.3) 0%, transparent 50%)" }} />
           <div className="relative z-10 px-4">
             <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-6">
@@ -311,7 +274,7 @@ export default function YearlyRecapSlideshow({
         {/* ══════ Slides 2–4 — Movies / TV / Anime ══════ */}
         {mediaCounts.map((m) => (
           <div key={m.type}
-            className={`snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[340px] bg-gradient-to-br ${m.style.gradient}`}
+            className={`shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[340px] bg-gradient-to-br ${m.style.gradient}`}
           >
             {/* Poster collage background */}
             {m.posters.length > 0 && (
@@ -352,7 +315,7 @@ export default function YearlyRecapSlideshow({
         ))}
 
         {/* ══════ Slide 5 — Highest Rated ══════ */}
-        <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl bg-bg-card border border-border p-6 flex flex-col min-h-[340px]">
+        <div className="shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl bg-bg-card border border-border p-6 flex flex-col min-h-[340px]">
           <p className="text-[10px] uppercase tracking-[0.2em] text-yellow-400 mb-4">Your Crown Jewel</p>
           {highestRated ? (
             <div className="flex-1 flex flex-col items-center text-center">
@@ -386,7 +349,7 @@ export default function YearlyRecapSlideshow({
         </div>
 
         {/* ══════ Slide 6 — Lowest Rated ══════ */}
-        <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl bg-bg-card border border-border p-6 flex flex-col min-h-[340px]">
+        <div className="shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl bg-bg-card border border-border p-6 flex flex-col min-h-[340px]">
           <p className="text-[10px] uppercase tracking-[0.2em] text-text-secondary mb-4">Not Your Cup of Tea</p>
           {lowestRated ? (
             <div className="flex-1 flex flex-col items-center text-center">
@@ -420,7 +383,7 @@ export default function YearlyRecapSlideshow({
         </div>
 
         {/* ══════ Slide 7 — Your Style ══════ */}
-        <div className="snap-center shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[340px]"
+        <div className="shrink-0 w-[85vw] max-w-md mr-3 rounded-2xl overflow-hidden relative flex flex-col items-center justify-center text-center min-h-[340px]"
              style={{ background: `linear-gradient(135deg, ${styleProfile.color}22, ${styleProfile.color}11, #0f0f1a)` }}>
           {/* Genre-specific background image */}
           <div className="absolute inset-0" style={{
