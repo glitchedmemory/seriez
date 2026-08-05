@@ -24,7 +24,14 @@ export async function GET(req: NextRequest) {
   } catch (ce) { console.log(`[activity-diag] cookies() ERROR: ${ce instanceof Error ? ce.message : String(ce)}`); }
 
   const username = await resolveUsername(req);
-  // DIAG: log resolution for debugging feed "released" issue
+  // DIAG: capture the raw getUser outcome to see WHY session resolves to null
+  try {
+    const authClient = await createServerClient();
+    const gu = await authClient.auth.getUser();
+    console.log(`[activity-diag] getUser() → user=${gu.data?.user?.id ? "OK("+(gu.data.user.user_metadata?.username||gu.data.user.id)+")" : "null"} error=${gu.error ? `${gu.error.name}: ${gu.error.message}` : "none"}`);
+    const gs = await authClient.auth.getSession();
+    console.log(`[activity-diag] getSession() → session=${gs.data?.session ? "OK" : "null"} error=${gs.error ? `${gs.error.name}: ${gs.error.message}` : "none"}`);
+  } catch (e) { console.log(`[activity-diag] getUser ERROR: ${e instanceof Error ? e.message : String(e)}`); }
   console.log("[activity-diag] username =", username ?? "NULL");
   let activities: Activity[] = [];
   let userId: string | null = null;
