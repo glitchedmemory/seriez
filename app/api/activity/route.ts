@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { resolveUserId } from "@/lib/user-utils";
@@ -14,25 +13,7 @@ const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 const ANILIST_API = "https://graphql.anilist.co";
 
 export async function GET(req: NextRequest) {
-  // DIAG: log what cookies() actually sees for this request
-  try {
-    const cs = await cookies();
-    const all = cs.getAll();
-    const authCookies = all.filter(c => c.name.includes("auth-token") || c.name.startsWith("sb-"));
-    console.log(`[activity-diag] cookies() count=${all.length} authCookies=${authCookies.map(c => `${c.name}(len=${c.value.length})`).join(",") || "NONE"}`);
-    for (const c of authCookies) console.log(`[activity-diag]   cookie ${c.name} valueHead="${c.value.slice(0, 24)}..."`);
-  } catch (ce) { console.log(`[activity-diag] cookies() ERROR: ${ce instanceof Error ? ce.message : String(ce)}`); }
-
   const username = await resolveUsername(req);
-  // DIAG: capture the raw getUser outcome to see WHY session resolves to null
-  try {
-    const authClient = await createServerClient();
-    const gu = await authClient.auth.getUser();
-    console.log(`[activity-diag] getUser() → user=${gu.data?.user?.id ? "OK("+(gu.data.user.user_metadata?.username||gu.data.user.id)+")" : "null"} error=${gu.error ? `${gu.error.name}: ${gu.error.message}` : "none"}`);
-    const gs = await authClient.auth.getSession();
-    console.log(`[activity-diag] getSession() → session=${gs.data?.session ? "OK" : "null"} error=${gs.error ? `${gs.error.name}: ${gs.error.message}` : "none"}`);
-  } catch (e) { console.log(`[activity-diag] getUser ERROR: ${e instanceof Error ? e.message : String(e)}`); }
-  console.log("[activity-diag] username =", username ?? "NULL");
   let activities: Activity[] = [];
   let userId: string | null = null;
 
@@ -177,14 +158,12 @@ export async function GET(req: NextRequest) {
       // client carries no session JWT → RLS returns an empty list → released
       // alerts for newly-premiered titles (e.g. Ted Lasso S4) never appear.
       const authDb = await createServerClient();
-      const { data: ptwItems, error: ptwErr } = await authDb
+      const { data: ptwItems } = await authDb
         .from("media_trackings")
         .select("tmdb_id, media_type")
         .eq("username", userId)
         .eq("status", "plan_to_watch")
         .limit(50);
-      // DIAG: log the plan_to_watch read result + error
-      console.log(`[activity-diag] userId=${userId} plan_to_watch count=${(ptwItems||[]).length} error=${ptwErr?.message||"none"}`);
       
       if (ptwItems?.length) {
         const today = new Date();
@@ -233,33 +212,30 @@ export async function GET(req: NextRequest) {
               const d = await tmdbGet(`/${ep}/${item.tmdb_id}`);
               title = d.title || d.name || "";
               poster = d.poster_path ? `${TMDB_IMAGE_BASE}${d.poster_path}` : null;
-              // TV series "released" = its MOST RECENT episode airing. TMDB keeps
-              // last_air_date stale (e.g. Ted Lasso S4 premiered 2026-08-04 but
-              // last_air_date still says 2023 until aired episodes are processed),
-              // so take the LATEST of last_air_date and next_episode_to_air.air_date.
-              // Otherwise a brand-new season is invisible and no "released" alert fires.
+              // TV series "released" = the most recent EPISODE THAT HAS ALREADY AIRED.
+              // TMDB may lag updating last_air_date (e.g. brand-new season's premiere
+              // may briefly only show in next_episode_to_air), but next_episode_to_air
+              // is normally the FUTURE next episode — never count an unaired episode.
+              // Rule: prefer last_air_date if it is today-or-past; otherwise fall back
+              // to next_episode_to_air.air_date only if it is today-or-past; else none
+              // (premiere hasn't aired yet → not "released").
               const dateStr = ep === "tv"
                 ? (() => {
-                    const dates = [d.last_air_date, d.next_episode_to_air?.air_date].filter(Boolean);
-                    if (!dates.length) return d.first_air_date || "";
-                    return dates.sort().at(-1); // newest date
+                    const todayStr = new Date().toISOString().slice(0, 10);
+                    const candidates = [
+                      d.last_air_date,
+                      d.next_episode_to_air?.air_date,
+                    ].filter((v) => typeof v === "string" && v && v <= todayStr);
+                    if (candidates.length) return candidates.sort().at(-1);
+                    return ""; // no aired episode yet → not released this window
                   })()
                 : (d.release_date || "");
               year = dateStr.slice(0, 4) || null;
-              // DIAG: log the computed TV release date + window result
-              if (ep === "tv") {
-                console.log(`[activity-diag] tv ${item.tmdb_id} last=${d.last_air_date} next=${d.next_episode_to_air?.air_date} dateStr=${dateStr}`);
-              } else {
-                console.log(`[activity-diag] ${ep} ${item.tmdb_id} release_date=${d.release_date} dateStr=${dateStr}`);
-              }
               if (dateStr) {
                 releaseDate = new Date(dateStr);
               }
             }
-          } catch (err) {
-            // DIAG: log TMDB/AniList lookup failures for the released check
-            console.log(`[activity-diag] lookup FAIL tmdb_id=${item.tmdb_id} type=${item.media_type} err=${err instanceof Error ? err.message : String(err)}`);
-          }
+          } catch {}
 
           if (releaseDate && releaseDate >= recent && releaseDate <= today && title) {
             const key = `rel-${username}-${item.tmdb_id}`;
