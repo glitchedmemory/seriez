@@ -14,6 +14,8 @@ const ANILIST_API = "https://graphql.anilist.co";
 
 export async function GET(req: NextRequest) {
   const username = await resolveUsername(req);
+  // DIAG: log resolution for debugging feed "released" issue
+  console.log("[activity-diag] username =", username ?? "NULL");
   let activities: Activity[] = [];
   let userId: string | null = null;
 
@@ -158,12 +160,14 @@ export async function GET(req: NextRequest) {
       // client carries no session JWT → RLS returns an empty list → released
       // alerts for newly-premiered titles (e.g. Ted Lasso S4) never appear.
       const authDb = await createServerClient();
-      const { data: ptwItems } = await authDb
+      const { data: ptwItems, error: ptwErr } = await authDb
         .from("media_trackings")
         .select("tmdb_id, media_type")
         .eq("username", userId)
         .eq("status", "plan_to_watch")
         .limit(50);
+      // DIAG: log the plan_to_watch read result + error
+      console.log(`[activity-diag] userId=${userId} plan_to_watch count=${(ptwItems||[]).length} error=${ptwErr?.message||"none"}`);
       
       if (ptwItems?.length) {
         const today = new Date();
@@ -229,7 +233,10 @@ export async function GET(req: NextRequest) {
                 releaseDate = new Date(dateStr);
               }
             }
-          } catch {}
+          } catch (err) {
+            // DIAG: log TMDB/AniList lookup failures for the released check
+            console.log(`[activity-diag] lookup FAIL tmdb_id=${item.tmdb_id} type=${item.media_type} err=${err instanceof Error ? err.message : String(err)}`);
+          }
 
           if (releaseDate && releaseDate >= recent && releaseDate <= today && title) {
             const key = `rel-${username}-${item.tmdb_id}`;
