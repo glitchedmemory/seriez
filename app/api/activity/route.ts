@@ -186,6 +186,7 @@ export async function GET(req: NextRequest) {
           let title = "";
           let poster: string | null = null;
           let year: string | null = null;
+          let season: number | null = null;
           
           try {
             if (item.media_type === "anime") {
@@ -212,25 +213,29 @@ export async function GET(req: NextRequest) {
               const d = await tmdbGet(`/${ep}/${item.tmdb_id}`);
               title = d.title || d.name || "";
               poster = d.poster_path ? `${TMDB_IMAGE_BASE}${d.poster_path}` : null;
-              // TV series "released" = the most recent EPISODE THAT HAS ALREADY AIRED.
-              // TMDB may lag updating last_air_date (e.g. brand-new season's premiere
-              // may briefly only show in next_episode_to_air), but next_episode_to_air
-              // is normally the FUTURE next episode — never count an unaired episode.
-              // Rule: prefer last_air_date if it is today-or-past; otherwise fall back
-              // to next_episode_to_air.air_date only if it is today-or-past; else none
-              // (premiere hasn't aired yet → not "released").
-              const dateStr = ep === "tv"
-                ? (() => {
-                    const todayStr = new Date().toISOString().slice(0, 10);
-                    const candidates = [
-                      d.last_air_date,
-                      d.next_episode_to_air?.air_date,
-                    ].filter((v) => typeof v === "string" && v && v <= todayStr);
-                    if (candidates.length) return candidates.sort().at(-1);
-                    return ""; // no aired episode yet → not released this window
-                  })()
-                : (d.release_date || "");
+              // TV series "released" = when its LATEST SEASON PREMIERED. Airing weekly
+              // episodes mid-season (e.g. X-Men '97 S2, which started 7/1) must NOT keep
+              // re-triggering "released" every week — only the season premiere counts.
+              // The season premiere date is the newest season's air_date (start date)
+              // that has already arrived; season = that season's number.
+              const todayStr = new Date().toISOString().slice(0, 10);
+              let dateStr: string;
+              let seasonAired: number | null = null;
+              if (ep === "tv") {
+                const airedSeasons = (d.seasons || [])
+                  .filter((s: { season_number?: number; air_date?: string }) => s && s.season_number! > 0 && s.air_date && s.air_date <= todayStr)
+                  .sort((a: { air_date?: string }, b: { air_date?: string }) => ((a.air_date || "") < (b.air_date || "") ? 1 : -1));
+                if (airedSeasons.length) {
+                  seasonAired = airedSeasons[0].season_number!;
+                  dateStr = airedSeasons[0].air_date!; // season premiere date
+                } else {
+                  dateStr = "";
+                }
+              } else {
+                dateStr = d.release_date || "";
+              }
               year = dateStr.slice(0, 4) || null;
+              if (ep === "tv" && seasonAired !== null) season = seasonAired;
               if (dateStr) {
                 releaseDate = new Date(dateStr);
               }
@@ -249,6 +254,7 @@ export async function GET(req: NextRequest) {
                 title,
                 poster,
                 year,
+                season,
                 createdAt: releaseDate.toISOString(),
               });
             }
@@ -504,6 +510,7 @@ interface Activity {
   title: string;
   poster: string | null;
   year: string | null;
+  season?: number | null;
   rating?: number;
   content?: string;
   collectionName?: string;

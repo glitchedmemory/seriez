@@ -15,6 +15,7 @@ interface Activity {
   title: string;
   poster: string | null;
   year: string | null;
+  season?: number | null;
   rating?: number;
   content?: string;
   collectionName?: string;
@@ -161,7 +162,7 @@ export default function FeedPage() {
                   <span className="text-[13px] font-bold text-accent-light">{a.username}</span>
                   <span className="text-[13px] text-text-secondary">{cfg.text}</span>
                   <span className="text-[13px] font-semibold text-text-primary group-hover:text-accent transition-colors truncate max-w-[200px]">
-                    {isCollection ? a.collectionName : a.title}
+                    {isCollection ? a.collectionName : (a.type === "released" && a.season ? `${a.title} S${a.season}` : a.title)}
                   </span>
                   {cfg.badge && (
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${cfg.badgeClass}`}>
