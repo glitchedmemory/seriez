@@ -214,12 +214,11 @@ export async function GET(req: NextRequest) {
   }
 
   // ── 2. Tracking (watching/completed — 1x) ──
-  const { data: tracking, error: trackErr } = await supabaseAdmin
+  const { data: tracking } = await supabaseAdmin
     .from("media_trackings")
     .select("tmdb_id, media_type, status, rating")
     .eq("username", userId)
     .in("status", ["watching", "completed"]);
-  console.log("FORYOU_DEBUG", JSON.stringify({ name, userId, reviews: reviews?.length, reviewErr: null, tracking: tracking?.length, trackErr: trackErr?.message, sampleTrack: tracking?.[0] }));
 
   if (tracking?.length) {
     for (const t of tracking) {
@@ -353,7 +352,6 @@ export async function GET(req: NextRequest) {
   // Personalization requires 3+ high-rated (4★) titles across rated types.
   // Otherwise fall back to trending on the client (cold start protection).
   if (highRatedCount < 3 || topGenres.length === 0 || ratedTypes.size === 0) {
-    console.log("FORYOU_DEBUG", JSON.stringify({ name, userId, highRatedCount, reviews: reviews?.length, tracking: tracking?.length, planToWatch: planToWatch?.length, topGenres: topGenres?.length, ratedTypes: [...ratedTypes] }));
     return NextResponse.json({
       items: [],
       genres: [],
