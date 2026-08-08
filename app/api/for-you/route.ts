@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { GENRE_MAP, discoverByGenres, type TmdbResult, type TmdbItem, tmdbGet } from "@/lib/tmdb";
 import { resolveUsername } from "@/lib/auth-helper";
+import { resolveUserId } from "@/lib/user-utils";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -164,6 +165,9 @@ export async function GET(req: NextRequest) {
   }
 
   const name = username.trim();
+  // media_trackings.username is a UUID, not the display name — resolve the real id
+  // (resolveUserId falls back to the deterministic hash UUID when no users row exists).
+  const userId = (await resolveUserId(name)) || name;
   const ratedIds = new Set<number>();
   const genreCounts: Record<number, number> = {};
   const topTitles: { tmdbId: number; mediaType: string; rating: number; title: string }[] = [];
@@ -209,7 +213,7 @@ export async function GET(req: NextRequest) {
   const { data: tracking } = await supabase
     .from("media_trackings")
     .select("tmdb_id, media_type, status, rating")
-    .eq("username", name)
+    .eq("username", userId)
     .in("status", ["watching", "completed"]);
 
   if (tracking?.length) {
@@ -241,7 +245,7 @@ export async function GET(req: NextRequest) {
   const { data: planToWatch } = await supabase
     .from("media_trackings")
     .select("tmdb_id, media_type")
-    .eq("username", name)
+    .eq("username", userId)
     .eq("status", "plan_to_watch");
 
   if (planToWatch?.length) {
