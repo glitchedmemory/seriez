@@ -210,11 +210,12 @@ export async function GET(req: NextRequest) {
   }
 
   // ── 2. Tracking (watching/completed — 1x) ──
-  const { data: tracking } = await supabase
+  const { data: tracking, error: trackErr } = await supabase
     .from("media_trackings")
     .select("tmdb_id, media_type, status, rating")
     .eq("username", userId)
     .in("status", ["watching", "completed"]);
+  console.log("FORYOU_DEBUG", JSON.stringify({ name, userId, reviews: reviews?.length, reviewErr: null, tracking: tracking?.length, trackErr: trackErr?.message, sampleTrack: tracking?.[0] }));
 
   if (tracking?.length) {
     for (const t of tracking) {
