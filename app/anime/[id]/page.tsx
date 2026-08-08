@@ -12,11 +12,11 @@ import { notFound } from "next/navigation";
 import { generateMovieJsonLd, generateTVJsonLd, StructuredDataScript } from "@/lib/structured-data";
 import VisitTracker from "@/components/VisitTracker";
 
-// Pre-render popular anime at build time
+// Pre-render popular anime at build time (top ~100 only — keep build light on 3.7GB RAM)
 export async function generateStaticParams() {
   const ids: { id: string }[] = [];
   try {
-    for (let page = 1; page <= 132; page++) {
+    for (let page = 1; page <= 2; page++) {
       try {
         const res = await fetch("https://graphql.anilist.co", {
           method: "POST",

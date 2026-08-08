@@ -33,7 +33,8 @@ async function get(endpoint: string, params: Record<string, string> = {}, locale
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   const cacheKey = url.toString();
   if (tmdbCache.has(cacheKey)) return tmdbCache.get(cacheKey);
-  const res = await fetch(url, { next: { revalidate: 3600 } });
+  // Timeout so a slow/unresponsive TMDB request can never hang build-time prerender.
+  const res = await fetch(url, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(8000) });
   if (!res.ok) throw new Error(`TMDB ${res.status}: ${endpoint}`);
   const data = await res.json();
   tmdbCache.set(cacheKey, data);

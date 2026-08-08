@@ -15,11 +15,11 @@ import VisitTracker from "@/components/VisitTracker";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const API_KEY = process.env.TMDB_API_KEY!;
 
-// Pre-render popular movies at build time
+// Pre-render popular movies at build time (top ~100 only — keep build light on 3.7GB RAM)
 export async function generateStaticParams() {
   const ids: { id: string }[] = [];
   try {
-    for (let page = 1; page <= 335; page++) {
+    for (let page = 1; page <= 5; page++) {
       try {
         const res = await fetch(
           `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=en-US&page=${page}`,
