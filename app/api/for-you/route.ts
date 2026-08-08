@@ -167,6 +167,9 @@ export async function GET(req: NextRequest) {
   const ratedIds = new Set<number>();
   const genreCounts: Record<number, number> = {};
   const topTitles: { tmdbId: number; mediaType: string; rating: number; title: string }[] = [];
+  // Types the user rated 4★+ (only recommend within these types)
+  const ratedTypes = new Set<string>();
+  let highRatedCount = 0;
 
   // ── 1. Reviews (rated items — 2x weight) ──
   const { data: reviews } = await supabase
@@ -180,8 +183,14 @@ export async function GET(req: NextRequest) {
     for (const r of reviews) {
       if (ratedIds.has(r.tmdb_id)) continue;
       ratedIds.add(r.tmdb_id);
-      if (r.rating >= 4 && topTitles.length < 5) {
-        topTitles.push({ tmdbId: r.tmdb_id, mediaType: r.media_type, rating: r.rating, title: "" });
+      if (r.rating >= 4) {
+        highRatedCount++;
+        // anime appears in media_type="anime"; TMDB media_type is movie|tv
+        const t = r.media_type === "anime" ? "anime" : r.media_type === "tv" ? "tv" : "movie";
+        ratedTypes.add(t);
+        if (topTitles.length < 5) {
+          topTitles.push({ tmdbId: r.tmdb_id, mediaType: r.media_type, rating: r.rating, title: "" });
+        }
       }
       try {
         const ep = r.media_type === "movie" ? `/movie/${r.tmdb_id}` : `/tv/${r.tmdb_id}`;
@@ -326,16 +335,22 @@ export async function GET(req: NextRequest) {
   const userGenreIds = topGenres.slice(0, 3);
   const genreNames = userGenreIds.map((id) => GENRE_MAP[id] || String(id));
 
-  // No data at all
-  if (topGenres.length === 0) {
+  // Personalization requires 3+ high-rated (4★) titles across rated types.
+  // Otherwise fall back to trending on the client (cold start protection).
+  if (highRatedCount < 3 || topGenres.length === 0 || ratedTypes.size === 0) {
     return NextResponse.json({
       items: [],
       genres: [],
-      reason: reviews?.length || tracking?.length
-        ? "Discovery service temporarily unavailable"
-        : "Rate or track some titles to get personalized recommendations",
+      reason: highRatedCount < 3
+        ? "Rate at least 3 titles with 4★ to unlock personalized recommendations"
+        : reviews?.length || tracking?.length
+          ? "Discovery service temporarily unavailable"
+          : "Rate or track some titles to get personalized recommendations",
     });
   }
+
+  // Only surfaces from media types the user actually rated 4★.
+  const allowedTypes = ratedTypes;
 
   // ── 4. Multi-Source Collection ──
   const candidates = new Map<number, ScoredItem>();
@@ -343,6 +358,7 @@ export async function GET(req: NextRequest) {
   function addCandidate(item: TmdbResult, sourceWeight: number, reason: string) {
     if (ratedIds.has(item.id)) return;
     if (!item.poster) return;
+    if (!allowedTypes.has(item.type)) return;
     const existing = candidates.get(item.id);
     if (existing && existing.sourceWeight >= sourceWeight) return;
     candidates.set(item.id, { item, score: 0, reason, sourceWeight });
