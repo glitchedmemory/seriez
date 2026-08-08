@@ -447,6 +447,9 @@ export async function GET(req: NextRequest) {
 
   // ── 5. Score & Rank ──
   const ranked = scoreAndRank(candidates, userGenreIds, topGenres);
+  // TEMP DEBUG: which types actually made the final board
+  const dbgTypes: Record<string, number> = {}; for (const i of ranked) dbgTypes[i.type] = (dbgTypes[i.type]||0)+1;
+  console.log("FORYOU_RANK", JSON.stringify({ name, allowedTypes:[...allowedTypes], topTitles: topTitles.map(t=>`${t.tmdbId}:${t.mediaType}:${t.rating}`), animeTop: animeTop.length, candidateCount: candidates.size, rankedCount: ranked.length, byType: dbgTypes }));
 
   // Build reason map
   const reasons: Record<number, string> = {};
