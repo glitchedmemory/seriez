@@ -208,7 +208,7 @@ export async function GET(req: NextRequest) {
   // ── 2. Tracking (watching/completed — 1x) ──
   const { data: tracking } = await supabase
     .from("media_trackings")
-    .select("tmdb_id, media_type, status")
+    .select("tmdb_id, media_type, status, rating")
     .eq("username", name)
     .in("status", ["watching", "completed"]);
 
@@ -216,8 +216,14 @@ export async function GET(req: NextRequest) {
     for (const t of tracking) {
       if (ratedIds.has(t.tmdb_id)) continue;
       ratedIds.add(t.tmdb_id);
+      // A 4★ rating on a tracked/watched title counts toward personalization
+      // and toward the user's rated-type set (movies/tv/anime).
+      if (t.rating >= 4) {
+        highRatedCount++;
+        ratedTypes.add(t.media_type === "anime" ? "anime" : t.media_type === "tv" ? "tv" : "movie");
+      }
       if (topTitles.length < 5) {
-        topTitles.push({ tmdbId: t.tmdb_id, mediaType: t.media_type, rating: 0, title: "" });
+        topTitles.push({ tmdbId: t.tmdb_id, mediaType: t.media_type, rating: t.rating || 0, title: "" });
       }
       try {
         const ep = t.media_type === "movie" ? `/movie/${t.tmdb_id}` : `/tv/${t.tmdb_id}`;
