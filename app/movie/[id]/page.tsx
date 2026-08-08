@@ -20,12 +20,17 @@ export async function generateStaticParams() {
   const ids: { id: string }[] = [];
   try {
     for (let page = 1; page <= 335; page++) {
-      const res = await fetch(
-        `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=en-US&page=${page}`
-      );
-      if (res.ok) {
-        const json = await res.json();
-        (json.results || []).forEach((m: any) => ids.push({ id: String(m.id) }));
+      try {
+        const res = await fetch(
+          `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=en-US&page=${page}`,
+          { signal: AbortSignal.timeout(8000) }
+        );
+        if (res.ok) {
+          const json = await res.json();
+          (json.results || []).forEach((m: any) => ids.push({ id: String(m.id) }));
+        }
+      } catch {
+        // API timeout / rate-limit: skip this page so the build never hangs. Keep going.
       }
     }
   } catch {}
