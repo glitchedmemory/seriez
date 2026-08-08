@@ -127,7 +127,8 @@ interface ScoredItem {
 function scoreAndRank(
   candidates: Map<number, ScoredItem>,
   userGenreIds: number[],
-  ratedGenreIds: number[]
+  ratedGenreIds: number[],
+  ratedTypeCounts?: Record<string, number>
 ): TmdbResult[] {
   const scored = Array.from(candidates.values()).map((c) => {
     const tmdbRating = c.item.rating;
@@ -155,6 +156,42 @@ function scoreAndRank(
   });
 
   scored.sort((a, b) => b.score - a.score);
+
+  // Balance the final board by type so the mix mirrors what the user actually
+  // rated with 4★ (movie-heavy user → movie-heavy board), instead of letting
+  // one source (e.g. AniList 3x) dominate and flood a single type.
+  if (ratedTypeCounts) {
+    const totalRated = Object.values(ratedTypeCounts).reduce((a, b) => a + b, 0);
+    if (totalRated > 0) {
+      const TARGET = 14;
+      const quota: Record<string, number> = {};
+      for (const [type, cnt] of Object.entries(ratedTypeCounts)) {
+        quota[type] = cnt > 0 ? Math.max(1, Math.round((cnt / totalRated) * TARGET)) : 0;
+      }
+      const picked: typeof scored = [];
+      const typeUsed: Record<string, number> = {};
+      for (const s of scored) {
+        if (picked.length >= TARGET) break;
+        const t = s.item.type;
+        const used = typeUsed[t] || 0;
+        const allow = (quota[t] || 0) > used;
+        // Always keep at least 1 slot for every type the user rated, even if
+        // quota round to 0 for a tiny minority type.
+        const keepMinimum = ratedTypeCounts[t] > 0 && !Object.keys(typeUsed).includes(t);
+        if (allow || keepMinimum) {
+          picked.push(s);
+          typeUsed[t] = used + 1;
+        }
+      }
+      // If underfilled (e.g. only anime candidates exist), top up in score order.
+      for (const s of scored) {
+        if (picked.length >= TARGET) break;
+        if (!picked.includes(s)) picked.push(s);
+      }
+      return picked.map((s) => s.item);
+    }
+  }
+
   return scored.slice(0, 14).map((s) => s.item);
 }
 
@@ -177,6 +214,9 @@ export async function GET(req: NextRequest) {
   const topTitles: { tmdbId: number; mediaType: string; rating: number; title: string }[] = [];
   // Types the user rated 4★+ (only recommend within these types)
   const ratedTypes = new Set<string>();
+  // Count of 4★ titles per media type — used to balance the final board so
+  // the mix matches what the user actually rates (movie-heavy → movie-heavy).
+  const ratedTypeCounts: Record<string, number> = { movie: 0, tv: 0, anime: 0 };
   let highRatedCount = 0;
 
   // ── 1. Reviews (rated items — 2x weight) ──
@@ -196,6 +236,7 @@ export async function GET(req: NextRequest) {
         // anime appears in media_type="anime"; TMDB media_type is movie|tv
         const t = r.media_type === "anime" ? "anime" : r.media_type === "tv" ? "tv" : "movie";
         ratedTypes.add(t);
+        ratedTypeCounts[t] = (ratedTypeCounts[t] || 0) + 1;
         if (topTitles.length < 5) {
           topTitles.push({ tmdbId: r.tmdb_id, mediaType: r.media_type, rating: r.rating, title: "" });
         }
@@ -228,9 +269,17 @@ export async function GET(req: NextRequest) {
       // and toward the user's rated-type set (movies/tv/anime).
       if (t.rating >= 4) {
         highRatedCount++;
-        ratedTypes.add(t.media_type === "anime" ? "anime" : t.media_type === "tv" ? "tv" : "movie");
+        const ratedT = t.media_type === "anime" ? "anime" : t.media_type === "tv" ? "tv" : "movie";
+        ratedTypes.add(ratedT);
+        ratedTypeCounts[ratedT] = (ratedTypeCounts[ratedT] || 0) + 1;
       }
-      if (topTitles.length < 5) {
+      // Prefer 4★ titles in topTitles so the "similar to" seeds match the
+      // user's strongest preferences. Only fall back to lower-rated ones if
+      // we still have room after all 4★ titles.
+      const wantTopTitle =
+        (t.rating >= 4 && !topTitles.some((x) => x.tmdbId === t.tmdb_id)) ||
+        (topTitles.filter((x) => x.rating >= 4).length < 1 && topTitles.length < 5 && !topTitles.some((x) => x.tmdbId === t.tmdb_id));
+      if (wantTopTitle && topTitles.length < 5) {
         topTitles.push({ tmdbId: t.tmdb_id, mediaType: t.media_type, rating: t.rating || 0, title: "" });
       }
       try {
@@ -446,10 +495,7 @@ export async function GET(req: NextRequest) {
   }
 
   // ── 5. Score & Rank ──
-  const ranked = scoreAndRank(candidates, userGenreIds, topGenres);
-  // TEMP DEBUG: which types actually made the final board
-  const dbgTypes: Record<string, number> = {}; for (const i of ranked) dbgTypes[i.type] = (dbgTypes[i.type]||0)+1;
-  console.log("FORYOU_RANK", JSON.stringify({ name, allowedTypes:[...allowedTypes], topTitles: topTitles.map(t=>`${t.tmdbId}:${t.mediaType}:${t.rating}`), animeTop: animeTop.length, candidateCount: candidates.size, rankedCount: ranked.length, byType: dbgTypes }));
+  const ranked = scoreAndRank(candidates, userGenreIds, topGenres, ratedTypeCounts);
 
   // Build reason map
   const reasons: Record<number, string> = {};
