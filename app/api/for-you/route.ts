@@ -7,6 +7,10 @@ import { resolveUserId } from "@/lib/user-utils";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
+// media_trackings SELECT is RLS-gated to the row owner (auth.uid()=username);
+// the anon key reads 0 rows. Use the service role to bypass RLS for reading
+// a user's own tracking (writes already go through the service role in /api/track).
+const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 // ─── AniList helpers ───
 
@@ -210,7 +214,7 @@ export async function GET(req: NextRequest) {
   }
 
   // ── 2. Tracking (watching/completed — 1x) ──
-  const { data: tracking, error: trackErr } = await supabase
+  const { data: tracking, error: trackErr } = await supabaseAdmin
     .from("media_trackings")
     .select("tmdb_id, media_type, status, rating")
     .eq("username", userId)
@@ -243,7 +247,7 @@ export async function GET(req: NextRequest) {
   }
 
   // ── 3. Plan to watch (0.5x) ──
-  const { data: planToWatch } = await supabase
+  const { data: planToWatch } = await supabaseAdmin
     .from("media_trackings")
     .select("tmdb_id, media_type")
     .eq("username", userId)
@@ -349,6 +353,7 @@ export async function GET(req: NextRequest) {
   // Personalization requires 3+ high-rated (4★) titles across rated types.
   // Otherwise fall back to trending on the client (cold start protection).
   if (highRatedCount < 3 || topGenres.length === 0 || ratedTypes.size === 0) {
+    console.log("FORYOU_DEBUG", JSON.stringify({ name, userId, highRatedCount, reviews: reviews?.length, tracking: tracking?.length, planToWatch: planToWatch?.length, topGenres: topGenres?.length, ratedTypes: [...ratedTypes] }));
     return NextResponse.json({
       items: [],
       genres: [],
