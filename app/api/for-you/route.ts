@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { GENRE_MAP, discoverByGenres, type TmdbResult, type TmdbItem, tmdbGet } from "@/lib/tmdb";
 import { resolveUsername } from "@/lib/auth-helper";
 import { resolveUserId } from "@/lib/user-utils";
+import { persistentCache } from "@/lib/persistent-cache";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -39,6 +40,7 @@ query($id: Int) {
 }`;
 
 async function fetchAnimeRecs(anilistId: number): Promise<TmdbResult[]> {
+  return persistentCache("foryou", ["animeRecs", anilistId], 86400, async () => {
   try {
     const res = await fetch(ANILIST_API, {
       method: "POST",
@@ -66,6 +68,7 @@ async function fetchAnimeRecs(anilistId: number): Promise<TmdbResult[]> {
   } catch {
     return [];
   }
+  });
 }
 
 function formatResult(item: TmdbItem, type: "movie" | "tv"): TmdbResult {
@@ -85,9 +88,46 @@ function formatResult(item: TmdbItem, type: "movie" | "tv"): TmdbResult {
   };
 }
 
+// ─── Persistent TMDB detail (movie/tv) — shared on disk across all users ───
+interface TmdbDetailShape {
+  title?: string;
+  name?: string;
+  genres?: { id: number; name: string }[];
+}
+
+async function tmdbDetailPersistent(tmdbId: number, mediaType: string): Promise<TmdbDetailShape> {
+  return persistentCache("foryou", ["detail", tmdbId, mediaType], 86400, async () => {
+    try {
+      const ep = mediaType === "movie" ? `/movie/${tmdbId}` : `/tv/${tmdbId}`;
+      return await tmdbGet(ep);
+    } catch {
+      return {};
+    }
+  });
+}
+
+// ─── Persistent AniList genre lookup (anime) — shared on disk across all users ───
+async function anilistGenresPersistent(anilistId: number): Promise<{ genres: string[]; title: string }> {
+  return persistentCache("foryou", ["anilistGenres", anilistId], 86400, async () => {
+    try {
+      const aRes = await fetch(ANILIST_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: `query($id:Int){Media(id:$id){title{romaji english}genres}}`, variables: { id: anilistId } }),
+      });
+      const aJson = await aRes.json();
+      const m = aJson.data?.Media;
+      return { genres: m?.genres || [], title: m?.title?.english || m?.title?.romaji || "" };
+    } catch {
+      return { genres: [], title: "" };
+    }
+  });
+}
+
 // ─── Source A: Similar titles ───
 
 async function fetchSimilar(tmdbId: number, mediaType: string): Promise<{ items: TmdbResult[]; reason: string }> {
+  return persistentCache("foryou", ["similar", tmdbId, mediaType], 86400, async () => {
   try {
     const endpoint = mediaType === "movie" ? `/movie/${tmdbId}/similar` : `/tv/${tmdbId}/similar`;
     const data = await tmdbGet(endpoint);
@@ -98,11 +138,13 @@ async function fetchSimilar(tmdbId: number, mediaType: string): Promise<{ items:
   } catch {
     return { items: [], reason: "" };
   }
+  });
 }
 
 // ─── Source B: TMDB Recommendations ───
 
 async function fetchRecommendations(tmdbId: number, mediaType: string): Promise<{ items: TmdbResult[]; reason: string }> {
+  return persistentCache("foryou", ["recs", tmdbId, mediaType], 86400, async () => {
   try {
     const endpoint = mediaType === "movie" ? `/movie/${tmdbId}/recommendations` : `/tv/${tmdbId}/recommendations`;
     const data = await tmdbGet(endpoint);
@@ -113,6 +155,7 @@ async function fetchRecommendations(tmdbId: number, mediaType: string): Promise<
   } catch {
     return { items: [], reason: "" };
   }
+  });
 }
 
 // ─── Scoring ───
@@ -242,8 +285,7 @@ export async function GET(req: NextRequest) {
         }
       }
       try {
-        const ep = r.media_type === "movie" ? `/movie/${r.tmdb_id}` : `/tv/${r.tmdb_id}`;
-        const detail = await tmdbGet(ep);
+        const detail = await tmdbDetailPersistent(r.tmdb_id, r.media_type);
         // Store title for reason
         const match = topTitles.find((t) => t.tmdbId === r.tmdb_id);
         if (match) match.title = detail.title || detail.name || "";
@@ -283,8 +325,7 @@ export async function GET(req: NextRequest) {
         topTitles.push({ tmdbId: t.tmdb_id, mediaType: t.media_type, rating: t.rating || 0, title: "" });
       }
       try {
-        const ep = t.media_type === "movie" ? `/movie/${t.tmdb_id}` : `/tv/${t.tmdb_id}`;
-        const detail = await tmdbGet(ep);
+        const detail = await tmdbDetailPersistent(t.tmdb_id, t.media_type);
         const match = topTitles.find((x) => x.tmdbId === t.tmdb_id);
         if (match) match.title = detail.title || detail.name || "";
         for (const g of detail.genres || []) {
@@ -306,8 +347,7 @@ export async function GET(req: NextRequest) {
       if (ratedIds.has(p.tmdb_id)) continue;
       ratedIds.add(p.tmdb_id);
       try {
-        const ep = p.media_type === "movie" ? `/movie/${p.tmdb_id}` : `/tv/${p.tmdb_id}`;
-        const detail = await tmdbGet(ep);
+        const detail = await tmdbDetailPersistent(p.tmdb_id, p.media_type);
         for (const g of detail.genres || []) {
           genreCounts[g.id] = (genreCounts[g.id] || 0) + 0.5;
         }
@@ -329,14 +369,9 @@ export async function GET(req: NextRequest) {
     }
     // Fetch genre from AniList
     try {
-      const aRes = await fetch(ANILIST_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: `query($id:Int){Media(id:$id){title{romaji english}genres}}`, variables: { id: r.tmdb_id } }),
-      });
-      const aJson = await aRes.json();
-      const anGenres: string[] = aJson.data?.Media?.genres || [];
-      const anTitle = aJson.data?.Media?.title?.english || aJson.data?.Media?.title?.romaji || "";
+      const a = await anilistGenresPersistent(r.tmdb_id);
+      const anGenres: string[] = a.genres;
+      const anTitle = a.title;
       const match = animeTop.find((x) => x.anilistId === r.tmdb_id);
       if (match && anTitle) match.title = anTitle;
       for (const g of anGenres) {
@@ -354,14 +389,9 @@ export async function GET(req: NextRequest) {
       animeTop.push({ anilistId: t.tmdb_id, rating: 0, title: "", weight: 1 });
     }
     try {
-      const aRes = await fetch(ANILIST_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: `query($id:Int){Media(id:$id){title{romaji english}genres}}`, variables: { id: t.tmdb_id } }),
-      });
-      const aJson = await aRes.json();
-      const anGenres: string[] = aJson.data?.Media?.genres || [];
-      const anTitle = aJson.data?.Media?.title?.english || aJson.data?.Media?.title?.romaji || "";
+      const a = await anilistGenresPersistent(t.tmdb_id);
+      const anGenres: string[] = a.genres;
+      const anTitle = a.title;
       const match = animeTop.find((x) => x.anilistId === t.tmdb_id);
       if (match && anTitle) match.title = anTitle;
       for (const g of anGenres) {
@@ -376,13 +406,8 @@ export async function GET(req: NextRequest) {
     if (p.media_type !== "anime" || seenAnime.has(p.tmdb_id)) continue;
     seenAnime.add(p.tmdb_id);
     try {
-      const aRes = await fetch(ANILIST_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: `query($id:Int){Media(id:$id){genres}}`, variables: { id: p.tmdb_id } }),
-      });
-      const aJson = await aRes.json();
-      for (const g of (aJson.data?.Media?.genres || [])) {
+      const a = await anilistGenresPersistent(p.tmdb_id);
+      for (const g of a.genres) {
         const gid = Object.entries(GENRE_MAP).find(([, name]) => name === g)?.[0];
         if (gid) genreCounts[parseInt(gid)] = (genreCounts[parseInt(gid)] || 0) + 0.5;
       }
