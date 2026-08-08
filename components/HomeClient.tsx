@@ -177,6 +177,34 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
 
   const supabase = createClient();
 
+  // fetch personalized "For You" recommendations for a user
+  const fetchForYou = useCallback(async (uname: string) => {
+    setForYouLoading(true);
+    setForYouReason("");
+    try {
+      const res = await fetch(`/api/for-you?username=${encodeURIComponent(uname)}`);
+      if (!res.ok) {
+        setForYouItems([]);
+        setForYouReason("Recommendations unavailable right now");
+        return;
+      }
+      const data = await res.json();
+      if (data.items?.length) {
+        setForYouItems(data.items);
+        setForYouGenres(data.genres || []);
+        setForYouReasons(data.reasons || {});
+      } else {
+        setForYouItems([]);
+        setForYouReason(data.reason || "Rate or track some titles to get personalized recommendations");
+      }
+    } catch {
+      setForYouItems([]);
+      setForYouReason("Recommendations unavailable right now");
+    } finally {
+      setForYouLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const uname = session?.user?.user_metadata?.username;
@@ -189,7 +217,7 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
           .catch(() => {});
       }
     }).catch(() => {});
-  }, []);
+  }, [fetchForYou]);
 
   // hero + right-now: picked server-side (different each request, no client-side re-roll)
   const hero = trending[heroIndex] || trending[0];
