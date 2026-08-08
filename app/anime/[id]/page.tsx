@@ -17,16 +17,21 @@ export async function generateStaticParams() {
   const ids: { id: string }[] = [];
   try {
     for (let page = 1; page <= 132; page++) {
-      const res = await fetch("https://graphql.anilist.co", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: `query { Page(page: ${page}, perPage: 50) { media(sort: POPULARITY_DESC, type: ANIME) { id } } }`,
-        }),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        (json.data?.Page?.media || []).forEach((m: any) => ids.push({ id: String(m.id) }));
+      try {
+        const res = await fetch("https://graphql.anilist.co", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(8000),
+          body: JSON.stringify({
+            query: `query { Page(page: ${page}, perPage: 50) { media(sort: POPULARITY_DESC, type: ANIME) { id } } }`,
+          }),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          (json.data?.Page?.media || []).forEach((m: any) => ids.push({ id: String(m.id) }));
+        }
+      } catch {
+        // AniList timeout / rate-limit: skip this page so the build never hangs. Keep going.
       }
     }
   } catch {}
