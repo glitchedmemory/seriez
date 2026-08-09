@@ -201,7 +201,7 @@ function scoreAndRank(
   scored.sort((a, b) => b.score - a.score);
 
   // Balance the final board by type so the mix mirrors what the user actually
-  // rated with 4★ (movie-heavy user → movie-heavy board), instead of letting
+  // rated with 3.5★ (movie-heavy user → movie-heavy board), instead of letting
   // one source (e.g. AniList 3x) dominate and flood a single type.
   if (ratedTypeCounts) {
     const totalRated = Object.values(ratedTypeCounts).reduce((a, b) => a + b, 0);
@@ -255,9 +255,9 @@ export async function GET(req: NextRequest) {
   const ratedIds = new Set<number>();
   const genreCounts: Record<number, number> = {};
   const topTitles: { tmdbId: number; mediaType: string; rating: number; title: string }[] = [];
-  // Types the user rated 4★+ (only recommend within these types)
+  // Types the user rated 3.5★+ (only recommend within these types)
   const ratedTypes = new Set<string>();
-  // Count of 4★ titles per media type — used to balance the final board so
+  // Count of 3.5★ titles per media type — used to balance the final board so
   // the mix matches what the user actually rates (movie-heavy → movie-heavy).
   const ratedTypeCounts: Record<string, number> = { movie: 0, tv: 0, anime: 0 };
   let highRatedCount = 0;
@@ -274,7 +274,7 @@ export async function GET(req: NextRequest) {
     for (const r of reviews) {
       if (ratedIds.has(r.tmdb_id)) continue;
       ratedIds.add(r.tmdb_id);
-      if (r.rating >= 4) {
+      if (r.rating >= 3.5) {
         highRatedCount++;
         // anime appears in media_type="anime"; TMDB media_type is movie|tv
         const t = r.media_type === "anime" ? "anime" : r.media_type === "tv" ? "tv" : "movie";
@@ -307,20 +307,20 @@ export async function GET(req: NextRequest) {
     for (const t of tracking) {
       if (ratedIds.has(t.tmdb_id)) continue;
       ratedIds.add(t.tmdb_id);
-      // A 4★ rating on a tracked/watched title counts toward personalization
+      // A 3.5★ rating on a tracked/watched title counts toward personalization
       // and toward the user's rated-type set (movies/tv/anime).
-      if (t.rating >= 4) {
+      if (t.rating >= 3.5) {
         highRatedCount++;
         const ratedT = t.media_type === "anime" ? "anime" : t.media_type === "tv" ? "tv" : "movie";
         ratedTypes.add(ratedT);
         ratedTypeCounts[ratedT] = (ratedTypeCounts[ratedT] || 0) + 1;
       }
-      // Prefer 4★ titles in topTitles so the "similar to" seeds match the
+      // Prefer 3.5★ titles in topTitles so the "similar to" seeds match the
       // user's strongest preferences. Only fall back to lower-rated ones if
-      // we still have room after all 4★ titles.
+      // we still have room after all 3.5★ titles.
       const wantTopTitle =
-        (t.rating >= 4 && !topTitles.some((x) => x.tmdbId === t.tmdb_id)) ||
-        (topTitles.filter((x) => x.rating >= 4).length < 1 && topTitles.length < 5 && !topTitles.some((x) => x.tmdbId === t.tmdb_id));
+        (t.rating >= 3.5 && !topTitles.some((x) => x.tmdbId === t.tmdb_id)) ||
+        (topTitles.filter((x) => x.rating >= 3.5).length < 1 && topTitles.length < 5 && !topTitles.some((x) => x.tmdbId === t.tmdb_id));
       if (wantTopTitle && topTitles.length < 5) {
         topTitles.push({ tmdbId: t.tmdb_id, mediaType: t.media_type, rating: t.rating || 0, title: "" });
       }
@@ -364,7 +364,7 @@ export async function GET(req: NextRequest) {
   for (const r of reviews || []) {
     if (r.media_type !== "anime" || seenAnime.has(r.tmdb_id)) continue;
     seenAnime.add(r.tmdb_id);
-    if (r.rating >= 4 && animeTop.length < 5) {
+    if (r.rating >= 3.5 && animeTop.length < 5) {
       animeTop.push({ anilistId: r.tmdb_id, rating: r.rating, title: "", weight: 2 });
     }
     // Fetch genre from AniList
@@ -423,21 +423,21 @@ export async function GET(req: NextRequest) {
   const userGenreIds = topGenres.slice(0, 3);
   const genreNames = userGenreIds.map((id) => GENRE_MAP[id] || String(id));
 
-  // Personalization requires 3+ high-rated (4★) titles across rated types.
+  // Personalization requires 3+ high-rated (3.5★) titles across rated types.
   // Otherwise fall back to trending on the client (cold start protection).
   if (highRatedCount < 3 || topGenres.length === 0 || ratedTypes.size === 0) {
     return NextResponse.json({
       items: [],
       genres: [],
       reason: highRatedCount < 3
-        ? "Rate at least 3 titles with 4★ to unlock personalized recommendations"
+        ? "Rate at least 3 titles with 3.5★ to unlock personalized recommendations"
         : reviews?.length || tracking?.length
           ? "Discovery service temporarily unavailable"
           : "Rate or track some titles to get personalized recommendations",
     });
   }
 
-  // Only surfaces from media types the user actually rated 4★.
+  // Only surfaces from media types the user actually rated 3.5★.
   const allowedTypes = ratedTypes;
 
   // ── 4. Multi-Source Collection ──
