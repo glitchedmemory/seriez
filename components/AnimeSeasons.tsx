@@ -18,11 +18,18 @@ export default function AnimeSeasons({
   currentTitle: string;
   currentYear: number;
 }) {
-  // Combine relations + current item, sort by year
+  // Combine relations + current item, sort by year.
+  // Items with no known year (0/null) are treated as "latest/current" and pushed
+  // to the END so they never grab an early "S1" label (bug: current item with
+  // year 0 was sorting to position 0 and showing as Season 1).
   const allItems: { id: number; title: string; seasonYear: number | null }[] = [
     ...relations.map(r => ({ id: r.id, title: r.title, seasonYear: r.seasonYear })),
     { id: currentId, title: currentTitle, seasonYear: currentYear || null },
-  ].sort((a, b) => (a.seasonYear || 0) - (b.seasonYear || 0));
+  ].sort((a, b) => {
+    const ay = a.seasonYear || Number.MAX_SAFE_INTEGER;
+    const by = b.seasonYear || Number.MAX_SAFE_INTEGER;
+    return ay - by;
+  });
 
   // Deduplicate by id
   const seen = new Set<number>();
