@@ -448,7 +448,7 @@ export default function ProfilePage() {
       ) : (<>
 
       {/* Stats Dashboard */}
-      {stats && (
+      {stats ? (
         <div className="px-6 mt-5">
           <div className="flex justify-center mb-4">
             <div className="inline-flex bg-bg-card rounded-full p-0.5 border border-border">
@@ -490,6 +490,21 @@ export default function ProfilePage() {
           </div>
             );
           })()}
+        </div>
+      ) : (
+        // Dashboard skeleton while stats compute — keeps the page looking alive
+        <div className="px-6 mt-5">
+          <div className="flex justify-center mb-4">
+            <div className="w-44 h-9 bg-bg-card border border-border rounded-full animate-pulse" />
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="bg-bg-card border border-border rounded-xl p-3 text-center animate-pulse">
+                <div className="h-7 w-12 mx-auto bg-bg-card-hover rounded mb-2" />
+                <div className="h-3 w-14 mx-auto bg-bg-card-hover rounded" />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

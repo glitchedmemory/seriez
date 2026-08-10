@@ -349,7 +349,12 @@ export async function GET(
         // Cache is valid for 6 hours; after that recompute in background path below
         const ageMs = Date.now() - new Date(cached.updated_at).getTime();
         if (ageMs < 6 * 60 * 60 * 1000) {
-          return NextResponse.json(cached.stats);
+          const resp = NextResponse.json(cached.stats);
+          // Allow browser/CDN to cache the computed stats for the full 6h window.
+          // This makes repeat profile visits instant (no origin recompute).
+          resp.headers.set("Cache-Control", "public, max-age=3600, s-maxage=21600, stale-while-revalidate=86400");
+          resp.headers.set("CDN-Cache-Control", "public, s-maxage=21600");
+          return resp;
         }
       }
     } catch { /* fall through to compute */ }
@@ -783,7 +788,11 @@ export async function GET(
       )
       .then(() => {}, () => {});
 
-    return NextResponse.json(payload);
+    const resp = NextResponse.json(payload);
+    // Cache freshly computed stats so repeat visits skip the recompute entirely.
+    resp.headers.set("Cache-Control", "public, max-age=3600, s-maxage=21600, stale-while-revalidate=86400");
+    resp.headers.set("CDN-Cache-Control", "public, s-maxage=21600");
+    return resp;
   } catch (err: any) {
     console.error("Stats error:", err);
     return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
