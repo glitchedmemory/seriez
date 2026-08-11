@@ -246,11 +246,20 @@ export async function GET(req: NextRequest) {
   // Also include watchlist tmdb_ids
   if (tracking) for (const t of tracking) uniqueTmdbIds.add(t.tmdb_id);
   const tmdbResults = [];
-  for (const tmdbId of uniqueTmdbIds) {
-    const info = ratingMap.get(tmdbId);
-    const mediaType = info?.mediaType || "movie";
-    const tmdbInfo = await getTmdbInfo(tmdbId, mediaType);
-    tmdbResults.push({ tmdbId, tmdbInfo, mediaType, rating: info?.rating || 0 });
+  // Fetch metadata in parallel batches. Once each (tmdbId, mediaType) is in the
+  // disk cache this runs at fs speed; only cold misses hit TMDB/AniList, and
+  // batching (not all-at-once) keeps those external calls rate-limit friendly.
+  const ids = Array.from(uniqueTmdbIds);
+  const BATCH = 8;
+  for (let i = 0; i < ids.length; i += BATCH) {
+    const batchIds = ids.slice(i, i + BATCH);
+    const batchResults = await Promise.all(batchIds.map(async (tmdbId) => {
+      const info = ratingMap.get(tmdbId);
+      const mediaType = info?.mediaType || "movie";
+      const tmdbInfo = await getTmdbInfo(tmdbId, mediaType);
+      return { tmdbId, tmdbInfo, mediaType, rating: info?.rating || 0 };
+    }));
+    tmdbResults.push(...batchResults);
   }
 
   const tmdbMap = new Map<number, { tmdbInfo: TmdbCache | null; mediaType: string; rating: number }>();
