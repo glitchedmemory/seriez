@@ -176,18 +176,16 @@ function getPersona(allRatings: RatingEntry[], genreRatings: Record<string, { to
   return { label, desc, tier: avg };
 }
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const monthParam = searchParams.get("month");
-  const queryUsername = searchParams.get("username");
-  if (!queryUsername) return NextResponse.json({ error: "Missing username" }, { status: 400 });
-
+// Build the full Monthly Recap payload for (username, year, month). Pure compute
+// on top of DB reads — no external calls unless metadata is cold (handled inside
+// getTmdbInfo's disk cache). Past months are immutable, so this result is cached
+// wholesale by the GET handler.
+async function buildHistory(
+  queryUsername: string,
+  targetYear: number,
+  targetMonth: number,
+): Promise<Record<string, unknown>> {
   const userId = await resolveUserIdByUsername(queryUsername);
-  if (!userId) return NextResponse.json({ error: "User not found" }, { status: 404 });
-
-  let targetYear: number, targetMonth: number;
-  if (monthParam) { const [y, m] = monthParam.split("-").map(Number); targetYear = y; targetMonth = m; }
-  else { const n = new Date(); targetYear = n.getFullYear(); targetMonth = n.getMonth() + 1; }
 
   const graphStart = new Date(targetYear, targetMonth - 12, 1).toISOString().split("T")[0];
 
@@ -349,10 +347,44 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  return NextResponse.json({
+  return {
     calendar,
     stats: { weeklyHours: Math.round(weeklyMin/6)/10, totalHours: Math.round(totalMin/6)/10, allTimeHours: Math.round(allTimeMin/6)/10, avgRating, totalTitles: titles.size, totalEpisodes: totalEps },
     monthlyGraph, topGenres, watchList, persona: getPersona(allRatings, genreRatings),
     isPremium: userRes?.data?.is_premium === true,
-  });
+  };
+}
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const monthParam = searchParams.get("month");
+  const queryUsername = searchParams.get("username");
+  if (!queryUsername) return NextResponse.json({ error: "Missing username" }, { status: 400 });
+
+  const userId = await resolveUserIdByUsername(queryUsername);
+  if (!userId) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+  let targetYear: number, targetMonth: number;
+  if (monthParam) { const [y, m] = monthParam.split("-").map(Number); targetYear = y; targetMonth = m; }
+  else { const n = new Date(); targetYear = n.getFullYear(); targetMonth = n.getMonth() + 1; }
+
+  const now = new Date();
+  const isCurrentMonth = targetYear === now.getFullYear() && targetMonth === now.getMonth() + 1;
+
+  // Past (non-current) months are immutable — cache the whole payload on disk so
+  // the Monthly Recap calendar renders instantly on every revisit (no DB re-read,
+  // no per-title metadata fetch, no recompute). Only the current month is live.
+  let payload: Record<string, unknown>;
+  if (isCurrentMonth) {
+    payload = await buildHistory(queryUsername, targetYear, targetMonth);
+  } else {
+    payload = await persistentCache(
+      "history-month",
+      [queryUsername, `${targetYear}-${String(targetMonth).padStart(2, "0")}`],
+      30 * 24 * 60 * 60,
+      () => buildHistory(queryUsername, targetYear, targetMonth)
+    );
+  }
+
+  return NextResponse.json(payload);
 }
