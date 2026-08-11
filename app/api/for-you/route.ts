@@ -241,7 +241,6 @@ function scoreAndRank(
 // ─── Main ───
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
   const username = await resolveUsername(req);
 
   if (!username?.trim()) {
@@ -252,9 +251,43 @@ export async function GET(req: NextRequest) {
   // media_trackings.username is a UUID, not the display name — resolve the real id
   // (resolveUserId falls back to the deterministic hash UUID when no users row exists).
   const userId = (await resolveUserId(name)) || name;
+
+  // ── Version gate: only 3.5★+ trackings change the board. ──
+  // Compute a cheap "version" = the latest updated_at among the user's 3.5★+
+  // watching/completed trackings. When it matches the cached version we return
+  // the stored board instantly (no DB scans, no TMDB/AniList calls, no scoring).
+  // The 3.5★ count lookup doubles as the activation check (needs 3+).
+  const { data: ratedRows } = await supabaseAdmin
+    .from("media_trackings")
+    .select("updated_at")
+    .eq("username", userId)
+    .in("status", ["watching", "completed"])
+    .gte("rating", 3.5);
+
+  const ratedCount = ratedRows?.length || 0;
+  if (ratedCount < 3) {
+    return NextResponse.json({
+      items: [],
+      genres: [],
+      reason: "Rate at least 3 titles with 3.5★ to unlock personalized recommendations",
+    });
+  }
+
+  const version = ratedRows
+    ? (ratedRows.map((r) => r.updated_at ?? "").sort().pop() || "v0") + `#n${ratedCount}`
+    : "v0";
+
+  const board = await persistentCache("foryouBoard", [userId, version], 86400, () => computeBoard(userId));
+
+  return NextResponse.json(board);
+}
+
+interface RatedTitle { tmdbId: number; mediaType: string; rating: number; title: string }
+
+async function computeBoard(userId: string): Promise<{ items: TmdbResult[]; genres: string[]; reasons: Record<number, string> }> {
   const ratedIds = new Set<number>();
   const genreCounts: Record<number, number> = {};
-  const topTitles: { tmdbId: number; mediaType: string; rating: number; title: string }[] = [];
+  const topTitles: RatedTitle[] = [];
   // Types the user rated 3.5★+ (only recommend within these types)
   const ratedTypes = new Set<string>();
   // Count of 3.5★ titles per media type — used to balance the final board so
@@ -262,41 +295,8 @@ export async function GET(req: NextRequest) {
   const ratedTypeCounts: Record<string, number> = { movie: 0, tv: 0, anime: 0 };
   let highRatedCount = 0;
 
-  // ── 1. Reviews (rated items — 2x weight) ──
-  const { data: reviews } = await supabase
-    .from("reviews")
-    .select("tmdb_id, media_type, rating")
-    .eq("username", name)
-    .order("created_at", { ascending: false })
-    .limit(30);
-
-  if (reviews?.length) {
-    for (const r of reviews) {
-      if (ratedIds.has(r.tmdb_id)) continue;
-      ratedIds.add(r.tmdb_id);
-      if (r.rating >= 3.5) {
-        highRatedCount++;
-        // anime appears in media_type="anime"; TMDB media_type is movie|tv
-        const t = r.media_type === "anime" ? "anime" : r.media_type === "tv" ? "tv" : "movie";
-        ratedTypes.add(t);
-        ratedTypeCounts[t] = (ratedTypeCounts[t] || 0) + 1;
-        if (topTitles.length < 5) {
-          topTitles.push({ tmdbId: r.tmdb_id, mediaType: r.media_type, rating: r.rating, title: "" });
-        }
-      }
-      try {
-        const detail = await tmdbDetailPersistent(r.tmdb_id, r.media_type);
-        // Store title for reason
-        const match = topTitles.find((t) => t.tmdbId === r.tmdb_id);
-        if (match) match.title = detail.title || detail.name || "";
-        for (const g of detail.genres || []) {
-          genreCounts[g.id] = (genreCounts[g.id] || 0) + 2;
-        }
-      } catch { /* skip */ }
-    }
-  }
-
-  // ── 2. Tracking (watching/completed — 1x) ──
+  // ── 1. Tracking (watching/completed — user's own star rating is the ONLY signal) ──
+  // Only 3.5★+ rated titles influence personalization (reviews no longer carry a rating).
   const { data: tracking } = await supabaseAdmin
     .from("media_trackings")
     .select("tmdb_id, media_type, status, rating")
@@ -307,22 +307,14 @@ export async function GET(req: NextRequest) {
     for (const t of tracking) {
       if (ratedIds.has(t.tmdb_id)) continue;
       ratedIds.add(t.tmdb_id);
-      // A 3.5★ rating on a tracked/watched title counts toward personalization
-      // and toward the user's rated-type set (movies/tv/anime).
-      if (t.rating >= 3.5) {
-        highRatedCount++;
-        const ratedT = t.media_type === "anime" ? "anime" : t.media_type === "tv" ? "tv" : "movie";
-        ratedTypes.add(ratedT);
-        ratedTypeCounts[ratedT] = (ratedTypeCounts[ratedT] || 0) + 1;
-      }
-      // Prefer 3.5★ titles in topTitles so the "similar to" seeds match the
-      // user's strongest preferences. Only fall back to lower-rated ones if
-      // we still have room after all 3.5★ titles.
-      const wantTopTitle =
-        (t.rating >= 3.5 && !topTitles.some((x) => x.tmdbId === t.tmdb_id)) ||
-        (topTitles.filter((x) => x.rating >= 3.5).length < 1 && topTitles.length < 5 && !topTitles.some((x) => x.tmdbId === t.tmdb_id));
-      if (wantTopTitle && topTitles.length < 5) {
-        topTitles.push({ tmdbId: t.tmdb_id, mediaType: t.media_type, rating: t.rating || 0, title: "" });
+      // Below 3.5★ (or unrated) does nothing for For You.
+      if (!t.rating || t.rating < 3.5) continue;
+      highRatedCount++;
+      const ratedT = t.media_type === "anime" ? "anime" : t.media_type === "tv" ? "tv" : "movie";
+      ratedTypes.add(ratedT);
+      ratedTypeCounts[ratedT] = (ratedTypeCounts[ratedT] || 0) + 1;
+      if (topTitles.length < 5 && !topTitles.some((x) => x.tmdbId === t.tmdb_id)) {
+        topTitles.push({ tmdbId: t.tmdb_id, mediaType: t.media_type, rating: t.rating, title: "" });
       }
       try {
         const detail = await tmdbDetailPersistent(t.tmdb_id, t.media_type);
@@ -335,58 +327,16 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // ── 3. Plan to watch (0.5x) ──
-  const { data: planToWatch } = await supabaseAdmin
-    .from("media_trackings")
-    .select("tmdb_id, media_type")
-    .eq("username", userId)
-    .eq("status", "plan_to_watch");
-
-  if (planToWatch?.length) {
-    for (const p of planToWatch) {
-      if (ratedIds.has(p.tmdb_id)) continue;
-      ratedIds.add(p.tmdb_id);
-      try {
-        const detail = await tmdbDetailPersistent(p.tmdb_id, p.media_type);
-        for (const g of detail.genres || []) {
-          genreCounts[g.id] = (genreCounts[g.id] || 0) + 0.5;
-        }
-      } catch { /* skip */ }
-    }
-  }
-
-  // ── 4. Anime genre profiling ──
-  // Collect anime IDs (stored in tmdb_id with media_type="anime")
+  // ── 2. Anime genre profiling (only from 3.5★+ tracked titles) ──
   const animeTop: { anilistId: number; rating: number; title: string; weight: number }[] = [];
   const seenAnime = new Set<number>();
 
-  // From reviews (2x weight)
-  for (const r of reviews || []) {
-    if (r.media_type !== "anime" || seenAnime.has(r.tmdb_id)) continue;
-    seenAnime.add(r.tmdb_id);
-    if (r.rating >= 3.5 && animeTop.length < 5) {
-      animeTop.push({ anilistId: r.tmdb_id, rating: r.rating, title: "", weight: 2 });
-    }
-    // Fetch genre from AniList
-    try {
-      const a = await anilistGenresPersistent(r.tmdb_id);
-      const anGenres: string[] = a.genres;
-      const anTitle = a.title;
-      const match = animeTop.find((x) => x.anilistId === r.tmdb_id);
-      if (match && anTitle) match.title = anTitle;
-      for (const g of anGenres) {
-        const gid = Object.entries(GENRE_MAP).find(([, name]) => name === g)?.[0];
-        if (gid) genreCounts[parseInt(gid)] = (genreCounts[parseInt(gid)] || 0) + 2;
-      }
-    } catch { /* skip */ }
-  }
-
-  // From tracking (1x weight)
   for (const t of tracking || []) {
-    if (t.media_type !== "anime" || seenAnime.has(t.tmdb_id)) continue;
+    if (t.media_type !== "anime" || !t.rating || t.rating < 3.5) continue;
+    if (seenAnime.has(t.tmdb_id)) continue;
     seenAnime.add(t.tmdb_id);
     if (animeTop.length < 5) {
-      animeTop.push({ anilistId: t.tmdb_id, rating: 0, title: "", weight: 1 });
+      animeTop.push({ anilistId: t.tmdb_id, rating: t.rating, title: "", weight: 1 });
     }
     try {
       const a = await anilistGenresPersistent(t.tmdb_id);
@@ -397,19 +347,6 @@ export async function GET(req: NextRequest) {
       for (const g of anGenres) {
         const gid = Object.entries(GENRE_MAP).find(([, name]) => name === g)?.[0];
         if (gid) genreCounts[parseInt(gid)] = (genreCounts[parseInt(gid)] || 0) + 1;
-      }
-    } catch { /* skip */ }
-  }
-
-  // From plan to watch (0.5x weight)
-  for (const p of planToWatch || []) {
-    if (p.media_type !== "anime" || seenAnime.has(p.tmdb_id)) continue;
-    seenAnime.add(p.tmdb_id);
-    try {
-      const a = await anilistGenresPersistent(p.tmdb_id);
-      for (const g of a.genres) {
-        const gid = Object.entries(GENRE_MAP).find(([, name]) => name === g)?.[0];
-        if (gid) genreCounts[parseInt(gid)] = (genreCounts[parseInt(gid)] || 0) + 0.5;
       }
     } catch { /* skip */ }
   }
@@ -426,15 +363,14 @@ export async function GET(req: NextRequest) {
   // Personalization requires 3+ high-rated (3.5★) titles across rated types.
   // Otherwise fall back to trending on the client (cold start protection).
   if (highRatedCount < 3 || topGenres.length === 0 || ratedTypes.size === 0) {
-    return NextResponse.json({
+    return {
       items: [],
       genres: [],
-      reason: highRatedCount < 3
+      reasons: {},
+      reason: highRatedCount < 3 || topGenres.length === 0
         ? "Rate at least 3 titles with 3.5★ to unlock personalized recommendations"
-        : reviews?.length || tracking?.length
-          ? "Discovery service temporarily unavailable"
-          : "Rate or track some titles to get personalized recommendations",
-    });
+        : "Discovery service temporarily unavailable",
+    } as any;
   }
 
   // Only surfaces from media types the user actually rated 3.5★.
@@ -529,5 +465,5 @@ export async function GET(req: NextRequest) {
     if (c?.reason) reasons[item.id] = c.reason;
   }
 
-  return NextResponse.json({ items: ranked, genres: genreNames, reasons });
+  return { items: ranked, genres: genreNames, reasons };
 }
