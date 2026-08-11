@@ -68,14 +68,11 @@ export default function AnimeSeasons({
     <div className="mt-8 px-4 md:px-0">
       <h2 className="text-lg font-semibold text-text-primary mb-3">Seasons</h2>
       <div className="flex flex-wrap gap-2">
-        {items.map((item) => {
-          // Prefer the explicit season from the title; fall back to sequence position
-          const label =
-            item.season !== null && Number.isFinite(item.season)
-              ? `S${item.season}`
-              : item.seasonYear != null
-                ? `S${items.indexOf(item) + 1}`
-                : `S${items.indexOf(item) + 1}`;
+        {items.map((item, idx) => {
+          // Always render labels as sequential S1, S2, S3... (match the sorted order).
+          // This keeps the label text uniform even for entries whose title has no
+          // clean "Season N" (e.g. "Final Season" → last position → "S4").
+          const label = `S${idx + 1}`;
           return (
             <a
               key={item.id}
