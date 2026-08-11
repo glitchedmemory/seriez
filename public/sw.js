@@ -1,11 +1,11 @@
 // Seriez Service Worker — hand-written because next-pwa fails with Next.js 16 Turbopack
-const CACHE_JS = "seriez-js-v7";
-const CACHE_CSS = "seriez-css-v7";
-const CACHE_STATIC = "seriez-static-v7";
-const CACHE_TMDB = "seriez-tmdb-v7";
-const CACHE_ANILIST = "seriez-anilist-v7";
-const CACHE_PAGES = "seriez-pages-v7";
-const CACHE_API = "seriez-api-v7";
+const CACHE_JS = "seriez-js-v8";
+const CACHE_CSS = "seriez-css-v8";
+const CACHE_STATIC = "seriez-static-v8";
+const CACHE_TMDB = "seriez-tmdb-v8";
+const CACHE_ANILIST = "seriez-anilist-v8";
+const CACHE_PAGES = "seriez-pages-v8";
+const CACHE_API = "seriez-api-v8";
 
 // All cache names currently in use (kept so activate can prune older versions)
 const CURRENT_CACHES = [
