@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 import { tmdbGet } from "@/lib/tmdb";
+import { persistentCache } from "@/lib/persistent-cache";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -30,7 +31,11 @@ interface TmdbCache {
   genres: { id: number; name: string }[];
 }
 
-async function getTmdbInfo(tmdbId: number, mediaType: string): Promise<TmdbCache | null> {
+// Title/poster/runtime/genres are shared content metadata — identical for every
+// user. Cache each (tmdbId, mediaType) on disk so the profile's Monthly Recap
+// only pays the external TMDB/AniList call + 50ms delay ONCE per title, not on
+// every calendar render.
+const getTmdbInfoAsync = async (tmdbId: number, mediaType: string): Promise<TmdbCache | null> => {
   // Anime — use AniList GraphQL (stored tmdb_id is actually an AniList ID)
   if (mediaType === "anime") {
     return getAnimeInfo(tmdbId);
@@ -47,7 +52,14 @@ async function getTmdbInfo(tmdbId: number, mediaType: string): Promise<TmdbCache
       : (detail.episode_run_time?.length > 0 ? detail.episode_run_time[0] : null),
     genres: (detail.genres || []).map((g: any) => ({ id: g.id, name: g.name })),
   };
-}
+};
+
+// Wrapped with a 30-day disk cache per (tmdbId, mediaType). First hit fetches
+// from TMDB/AniList; every subsequent hit reads the cached value instantly.
+const getTmdbInfo = (tmdbId: number, mediaType: string): Promise<TmdbCache | null> =>
+  persistentCache("history-media", [tmdbId, mediaType], 30 * 24 * 60 * 60, () =>
+    getTmdbInfoAsync(tmdbId, mediaType)
+  );
 
 async function getAnimeInfo(anilistId: number): Promise<TmdbCache | null> {
   try {
@@ -239,7 +251,6 @@ export async function GET(req: NextRequest) {
     const mediaType = info?.mediaType || "movie";
     const tmdbInfo = await getTmdbInfo(tmdbId, mediaType);
     tmdbResults.push({ tmdbId, tmdbInfo, mediaType, rating: info?.rating || 0 });
-    await new Promise(r => setTimeout(r, 50)); // avoid TMDB rate limit
   }
 
   const tmdbMap = new Map<number, { tmdbInfo: TmdbCache | null; mediaType: string; rating: number }>();
