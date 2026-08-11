@@ -56,10 +56,32 @@ const getTmdbInfoAsync = async (tmdbId: number, mediaType: string): Promise<Tmdb
 
 // Wrapped with a 30-day disk cache per (tmdbId, mediaType). First hit fetches
 // from TMDB/AniList; every subsequent hit reads the cached value instantly.
-const getTmdbInfo = (tmdbId: number, mediaType: string): Promise<TmdbCache | null> =>
-  persistentCache("history-media", [tmdbId, mediaType], 30 * 24 * 60 * 60, () =>
-    getTmdbInfoAsync(tmdbId, mediaType)
-  );
+// IMPORTANT: a failed lookup (null) is NOT persisted — it could be a transient
+// AniList/TMDB rate-limit, so we must not bake a broken poster into the cache.
+const numCache: Record<string, { v: TmdbCache | null; t: number }> = {};
+const getTmdbInfo = async (tmdbId: number, mediaType: string): Promise<TmdbCache | null> => {
+  const inMemKey = `${mediaType}:${tmdbId}`;
+  const mem = numCache[inMemKey];
+  if (mem && Date.now() - mem.t < 5 * 60 * 1000) return mem.v; // short in-memory memo
+  const cached = await persistentCache("history-media", [tmdbId, mediaType], 30 * 24 * 60 * 60, async () => {
+    const v = await getTmdbInfoAsync(tmdbId, mediaType);
+    if (v === null) {
+      // Do not persist failures — throw so persistentCache skips the write
+      // (it only writes when fn() resolves), leaving the cache entry absent so
+      // the next call retries TMDB/AniList instead of returning null forever.
+      throw new Error("metadata-null");
+    }
+    return v;
+  }).then(v => {
+    numCache[inMemKey] = { v, t: Date.now() };
+    return v;
+  }).catch(() => {
+    // Resolve from in-memory memo if present, else return null (and retry next time)
+    const freshMem = numCache[inMemKey];
+    return freshMem && Date.now() - freshMem.t < 5 * 60 * 1000 ? freshMem.v : null;
+  });
+  return cached;
+};
 
 async function getAnimeInfo(anilistId: number): Promise<TmdbCache | null> {
   try {
