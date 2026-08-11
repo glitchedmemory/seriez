@@ -586,19 +586,49 @@ export async function GET(
       .map(([name, info]) => ({ name, count: info.count, personId: info.id, personSource: info.personSource, image: info.image }));
 
     // ── 9. Monthly watch heatmap (last 12 months) ──
+    // Past (completed) months never change, so we persist them in
+    // monthly_watch_snapshot and skip recomputing them on every profile visit.
+    // Only the current month is computed live from tracking below.
     const monthlyWatch: Record<string, number> = {};
     const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
 
+    // Load persisted past-month counts
+    try {
+      const { data: snapshots } = await supabaseAdmin
+        .from("monthly_watch_snapshot")
+        .select("year_month, count")
+        .eq("username", username);
+      for (const s of snapshots || []) {
+        if (s.year_month !== currentMonthKey) monthlyWatch[s.year_month] = s.count;
+      }
+    } catch { /* ignore */ }
+
+    // Compute the current month live from tracking
     for (const t of watched) {
       const date = t.watched_at ? new Date(t.watched_at) : (t.updated_at ? new Date(t.updated_at) : null);
-      if (date && date >= twelveMonthsAgo) {
-        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-        monthlyWatch[key] = (monthlyWatch[key] || 0) + 1;
-      }
+      if (!date || date < twelveMonthsAgo) continue;
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      if (key === currentMonthKey) monthlyWatch[key] = (monthlyWatch[key] || 0) + 1;
     }
 
-    // Fill in missing months with 0
+    // Persist completed months (anything before the current month in our window)
+    // as immutable snapshots so future visits don't recompute them.
+    const snapshotUpserts: { username: string; year_month: string; count: number }[] = [];
+    for (const [key, count] of Object.entries(monthlyWatch)) {
+      if (key !== currentMonthKey) {
+        snapshotUpserts.push({ username, year_month: key, count });
+      }
+    }
+    if (snapshotUpserts.length > 0) {
+      void supabaseAdmin
+        .from("monthly_watch_snapshot")
+        .upsert(snapshotUpserts, { onConflict: "username,year_month" })
+        .then(() => {}, () => {});
+    }
+
+    // Fill in missing months with 0 (display completeness)
     for (let m = 0; m < 12; m++) {
       const d = new Date(now.getFullYear(), now.getMonth() - m, 1);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;

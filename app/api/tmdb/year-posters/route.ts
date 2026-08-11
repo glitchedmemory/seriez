@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { persistentCache } from "@/lib/persistent-cache";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_KEY = process.env.TMDB_API_KEY || "";
@@ -50,28 +51,34 @@ export async function GET(req: NextRequest) {
   const year = searchParams.get("year") || new Date().getFullYear().toString();
   const type = searchParams.get("type") || "movie";
 
-  try {
-    if (type === "anime") {
-      const posters = await fetchAnilist(year);
-      return NextResponse.json({ posters });
-    }
+  // Collage posters for a given (year, type) are content-metadata shared by every
+  // user and rarely change. Cache them on disk for a year so the profile only hits
+  // TMDB/AniList once per year+type, not on every visit.
+  const data = await persistentCache("year-posters", [year, type], 365 * 24 * 60 * 60, async (): Promise<{ posters: string[] }> => {
+    try {
+      if (type === "anime") {
+        const posters = await fetchAnilist(year);
+        return { posters };
+      }
 
-    if (!TMDB_KEY) {
-      return NextResponse.json({ posters: [] });
-    }
+      if (!TMDB_KEY) {
+        return { posters: [] };
+      }
 
-    let url: string;
-    if (type === "movie") {
-      url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&language=en-US&sort_by=popularity.desc&primary_release_year=${year}&vote_count.gte=100&page=1`;
-    } else if (type === "tv") {
-      url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&language=en-US&sort_by=popularity.desc&first_air_date_year=${year}&vote_count.gte=50&page=1`;
-    } else {
-      url = `${TMDB_BASE}/trending/all/week?api_key=${TMDB_KEY}&language=en-US`;
-    }
+      let url: string;
+      if (type === "movie") {
+        url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&language=en-US&sort_by=popularity.desc&primary_release_year=${year}&vote_count.gte=100&page=1`;
+      } else if (type === "tv") {
+        url = `${TMDB_BASE}/discover/tv?api_key=${TMDB_KEY}&language=en-US&sort_by=popularity.desc&first_air_date_year=${year}&vote_count.gte=50&page=1`;
+      } else {
+        url = `${TMDB_BASE}/trending/all/week?api_key=${TMDB_KEY}&language=en-US`;
+      }
 
-    const posters = await fetchTmdb(url);
-    return NextResponse.json({ posters });
-  } catch {
-    return NextResponse.json({ posters: [] });
-  }
+      const posters = await fetchTmdb(url);
+      return { posters };
+    } catch {
+      return { posters: [] };
+    }
+  });
+  return NextResponse.json(data);
 }
