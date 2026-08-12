@@ -115,10 +115,28 @@ export async function POST(req: NextRequest) {
           .maybeSingle())?.data?.watched_at ?? undefined)
       : undefined;
 
-    const posterUrl = body.posterUrl || null;
-    const title = body.title || null;
+    let posterUrl = body.posterUrl || null;
+    let title = body.title || null;
     const yearVal = body.year || null;
     const tmdbRating = body.tmdbRating || null;
+
+    // ── Integrity guard: reject track requests for titles we can't resolve. ──
+    // If the client sent NO metadata (no title AND no poster), the row would be
+    // stored as a dead shell ("Untitled", no poster, TMDB 404). Verify the title
+    // really exists before writing, so a bogus/non-existent TMDB/AniList id can't
+    // create an unresolvable watching/completed shell in the library.
+    if (!title && !posterUrl) {
+      const meta = await fetchMetadata(tmdbId, mediaType);
+      if (!meta.title) {
+        return NextResponse.json(
+          { error: "Could not resolve this title — it may have been removed or doesn't exist." },
+          { status: 422 }
+        );
+      }
+      // Keep the resolved metadata so the row is never stored without a title.
+      if (!posterUrl) posterUrl = meta.poster;
+      if (!title) title = meta.title;
+    }
 
     const upsertData: Record<string, unknown> = {
       username: userId,
