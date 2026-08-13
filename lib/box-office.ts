@@ -1,6 +1,6 @@
 // Multi-country box office scraper
-// US: Box Office Mojo | UK: FDA | KR: KOFIC | JP: eiga.com | FR: AlloCiné
-// DE: InsideKino | AU: Box Office Mojo | MX: CANACINE | ES: taquillaespana.es
+// US: Box Office Mojo (Playwright) | UK: FDA | KR: KOFIC | FR: AlloCiné
+// AU/MX/ES/JP/DE/CN/BR: Box Office Mojo area-specific (Playwright)
 
 import type { TmdbResult } from "@/lib/tmdb";
 import { unstable_cache } from "next/cache";

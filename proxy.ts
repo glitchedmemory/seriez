@@ -27,7 +27,7 @@ const BOT_UA_REGEX = /bot|crawler|spider|anthropic-ai|ChatGPT-User|Google-Extend
 
 // Next-intl middleware with routing config + no cookie for CDN cache
 const handleI18n = createIntlMiddleware({
-  locales: ["en", "ko", "ja", "zh", "fr", "de", "es"],
+  locales: ["en", "ko", "ja", "zh", "fr", "de", "es", "pt"],
   defaultLocale: "en",
   localePrefix: "never",
   localeCookie: false,
@@ -101,7 +101,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Override Accept-Language if user set a locale preference
-  const VALID_LOCALES = ["en", "ko", "ja", "zh", "fr", "de", "es"];
+  const VALID_LOCALES = ["en", "ko", "ja", "zh", "fr", "de", "es", "pt"];
   const cookieLocale = request.cookies.get("SERIEZ_LOCALE")?.value;
   if (cookieLocale && VALID_LOCALES.includes(cookieLocale)) {
     request.headers.set("accept-language", cookieLocale);

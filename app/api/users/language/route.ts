@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
 
     const { language } = await req.json();
-    const validLocales = ["en", "ko", "ja", "zh", "fr", "de", "es"];
+    const validLocales = ["en", "ko", "ja", "zh", "fr", "de", "es", "pt"];
     if (!language || !validLocales.includes(language)) {
       return NextResponse.json({ error: "Invalid language" }, { status: 400 });
     }
