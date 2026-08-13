@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 const BASE_URL = "https://seriez.app";
-const LOCALES = ["en", "ko", "ja", "zh", "fr", "de", "es"] as const;
+const LOCALES = ["en", "ko", "ja", "zh", "fr", "de", "es", "pt"] as const;
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const API_KEY = process.env.TMDB_API_KEY!;
 const PAGES = 25;

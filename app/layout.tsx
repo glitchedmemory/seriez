@@ -23,6 +23,7 @@ import zh from "@/messages/zh.json";
 import fr from "@/messages/fr.json";
 import de from "@/messages/de.json";
 import es from "@/messages/es.json";
+import pt from "@/messages/pt.json";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +35,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const locales = ["en", "ko", "ja", "zh", "fr", "de", "es"] as const;
+const locales = ["en", "ko", "ja", "zh", "fr", "de", "es", "pt"] as const;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://seriez.app";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -113,7 +114,7 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
   const bot = await isBot();
-  const allMessages = { en, ko, ja, zh, fr, de, es };
+  const allMessages = { en, ko, ja, zh, fr, de, es, pt };
 
   let layoutUser: { username?: string | null; avatarUrl?: string | null } | null = null;
   try {
