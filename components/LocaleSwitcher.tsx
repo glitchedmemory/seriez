@@ -10,6 +10,7 @@ const LANGUAGES: Record<string, string> = {
   fr: "Français",
   de: "Deutsch",
   es: "Español",
+  pt: "Português",
 };
 
 export default function LocaleSwitcher() {

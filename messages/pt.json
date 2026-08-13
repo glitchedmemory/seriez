@@ -1,0 +1,466 @@
+{
+  "nav": {
+    "home": "Início",
+    "search": "Buscar",
+    "myList": "Minha Lista",
+    "feed": "Feed",
+    "profile": "Perfil"
+  },
+  "auth": {
+    "signIn": "Entrar",
+    "signUp": "Cadastrar",
+    "signOut": "Sair",
+    "email": "E-mail",
+    "emailPlaceholder": "Endereço de e-mail",
+    "password": "Senha",
+    "username": "Nome de usuário",
+    "createAccount": "Criar conta",
+    "guest": "Visitante",
+    "passwordChanged": "Senha alterada com sucesso. Entre com sua nova senha.",
+    "checkEmail": "Verifique seu e-mail",
+    "confirmEmailSent": "Enviamos um link de confirmação para",
+    "confirmEmailInstruction": "Clique no link do e-mail para ativar sua conta. Não se esqueça de verificar a pasta de spam."
+  },
+  "library": {
+    "signInTitle": "Entre para ver sua lista",
+    "signInDesc": "Crie uma conta para começar a acompanhar o que você assiste.",
+    "signInAction": "Entrar / Cadastrar",
+    "collectionsSignInTitle": "Entre para criar coleções",
+    "collectionsSignInDesc": "Crie uma conta para fazer coleções personalizadas e compartilhá-las.",
+    "collectionsSignInAction": "Criar conta",
+    "collectionsLimit": "Plano gratuito limitado a 3 coleções.",
+    "upgrade": "Assinar o Golden Ticket"
+  },
+  "tracking": {
+    "watching": "Assistindo",
+    "watched": "Assistido",
+    "toWatch": "Quero assistir",
+    "watchNow": "Acompanhar agora",
+    "signInToTrack": "Entre para acompanhar",
+    "signInToSave": "para salvar seu histórico",
+    "markUnwatched": "Marcar como não assistido",
+    "markWatched": "Marcar como assistido",
+    "watchedOn": "Assistido em {date}",
+    "signInEpisodes": "para acompanhar os episódios assistidos"
+  },
+  "streaming": {
+    "title": "Top 10 de Streaming",
+    "movies": "Filmes",
+    "tvShows": "Séries",
+    "failedToLoad": "Falha ao carregar",
+    "loading": "Carregando..."
+  },
+  "search": {
+    "placeholder": "Buscar filmes, séries e animes...",
+    "trendingSearches": "Buscas em alta",
+    "emptyTitle": "Busque filmes, séries e animes",
+    "emptyDesc": "Encontre seu próximo favorito. Tente buscar por gênero, ator ou diretor."
+  },
+  "feed": {
+    "title": "Feed"
+  },
+  "collections": {
+    "signInToLike": "Entre para curtir",
+    "signInToComment": "Entre para comentar",
+    "signInToWrite": "Entre para escrever uma avaliação",
+    "signInToReply": "Entre para comentar",
+    "createOne": "Criar uma →",
+    "addToCollection": "Adicionar à coleção",
+    "addedTo": "Adicionado a \"{name}\" ✓",
+    "publishedCollections": "Coleções publicadas",
+    "yourThought": "Seu comentário",
+    "add": "Adicionar"
+  },
+  "history": {
+    "topGenres": "Principais gêneros",
+    "days": [
+      "Domingo",
+      "Segunda-feira",
+      "Terça-feira",
+      "Quarta-feira",
+      "Quinta-feira",
+      "Sexta-feira",
+      "Sábado"
+    ]
+  },
+  "profile": {
+    "watched": "Assistidos",
+    "reviews": "Avaliações",
+    "reviewsEmpty": "As avaliações que você escrever aparecerão aqui.",
+    "settings": "Configurações",
+    "changeProfile": "Editar perfil",
+    "resetRatings": "Redefinir avaliações e comentários",
+    "language": "Idioma"
+  },
+  "home": {
+    "trending": "Em alta",
+    "nowPlaying": "Em cartaz",
+    "popular": "Populares",
+    "upcoming": "Em breve",
+    "trendingNow": "EM ALTA AGORA",
+    "tonightsPick": "Agora",
+    "trendingThisWeek": "Em alta esta semana",
+    "boxOffice": "Bilheteria",
+    "weekendTop10": "Top 10 do fim de semana",
+    "recommendedForYou": "Recomendado para você",
+    "trendingThisWeekLower": "Em alta esta semana",
+    "forYou": "Para você"
+  },
+  "footer": {
+    "about": "Sobre",
+    "goldenTicket": "Golden Ticket",
+    "terms": "Termos",
+    "refund": "Reembolso",
+    "privacy": "Privacidade"
+  },
+  "common": {
+    "error": "Erro",
+    "back": "Voltar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "none": "Nenhum",
+    "unknown": "Desconhecido",
+    "anime": "Anime",
+    "movie": "Filme",
+    "tv": "Série",
+    "season": "Temporada",
+    "seasons": "Temporadas",
+    "episodes": "Episódios",
+    "rating": "Nota",
+    "year": "Ano",
+    "genre": "Gênero",
+    "genres": "Gêneros",
+    "overview": "Sinopse",
+    "cast": "Elenco",
+    "crew": "Equipe",
+    "reviews": "Avaliações",
+    "noOverview": "Nenhuma sinopse disponível.",
+    "noReviews": "Ainda não há avaliações."
+  },
+  "onboarding": {
+    "watched": "Assistido",
+    "add": "Adicionar",
+    "done": "Concluir",
+    "skip": "Pular",
+    "step1Title": "O que você já assistiu?",
+    "step1Desc": "Busque e selecione títulos que você já viu. Isso nos ajuda a conhecer seu gosto.",
+    "step2Title": "Avalie o que você assistiu",
+    "step2Desc": "Suas notas nos ajudam a encontrar recomendações melhores.",
+    "step3Title": "Tudo pronto!",
+    "step3Desc": "Comece a descobrir novos filmes, séries e animes feitos para você.",
+    "searchPlaceholder": "Buscar um título..."
+  },
+  "about": {
+    "title": "Sobre o Seriez",
+    "description": "O Seriez é uma plataforma para acompanhar filmes, séries e animes. Registre o que você assiste, dê notas, escreva avaliações e monte sua biblioteca pessoal — e a gente aprende seu gosto para recomendar o próximo título.",
+    "whatYouCanDo": "O que você pode fazer",
+    "trackLibrary": "Acompanhe filmes, séries e animes em uma biblioteca unificada",
+    "rateReview": "Avalie e comente tudo o que você assistir",
+    "createCollections": "Crie coleções personalizadas para organizar sua biblioteca",
+    "boxOffice": "Explore os rankings de bilheteria de 11 países",
+    "discover": "Descubra novos títulos com a Roleta e a busca por humor",
+    "smartRoulette": "Acompanhe o que você assiste e a gente aprende seu gosto — recomendações Para Você cada vez melhores.",
+    "community": "Conecte-se com outros espectadores por meio de avaliações e comentários",
+    "goldenTicket": "Golden Ticket",
+    "goldenTicketDesc": "Desbloqueie recursos premium com o Golden Ticket por US$ 4,99/mês. Membros Golden Ticket têm coleções ilimitadas, retrospectivas anuais e muito mais."
+  },
+  "meta": {
+    "title": "Seriez — Acompanhe filmes, séries e animes",
+    "description": "Procurando uma alternativa ao TV Time ou Letterboxd? O Seriez acompanha filmes, séries e animes em um só lugar. Importe seu histórico do TV Time via CSV. Avalie, comente e receba recomendações com IA."
+  },
+  "pro": {
+    "title": "✨ Golden Ticket",
+    "subtitle": "Desbloqueie a experiência completa do Seriez.",
+    "priceMonthly": "US$ 4,99",
+    "perMonth": "/ mês",
+    "priceYearly": "Ou US$ 49 / ano — economize 35%",
+    "includedFeatures": "Recursos incluídos",
+    "features": [
+      "Coleções ilimitadas — organize sua biblioteca do seu jeito",
+      "Publicar coleções — compartilhe suas listas com a comunidade",
+      "Agora — uma recomendação curada entregue diariamente",
+      "Roleta — gire para encontrar sua próxima atração",
+      "Retrospectiva anual — o ano que você assistiu em uma revisão",
+      "DNA do Espectador — sua personalidade de espectador decodificada pelas suas notas",
+      "Estatísticas avançadas — gêneros, atores favoritos e padrões de consumo",
+      "Selo Golden Ticket no seu perfil"
+    ],
+    "paddleNotice": "As compras do Golden Ticket são processadas com segurança pela Paddle.",
+    "upgradeButton": "Assinar o Golden Ticket"
+  },
+  "privacy": {
+    "title": "Política de Privacidade",
+    "lastUpdated": "Última atualização: 20 de junho de 2026",
+    "sections": {
+      "info": {
+        "title": "1. Informações que coletamos",
+        "items": {
+          "account": "<strong>Dados da conta:</strong> nome de usuário, endereço de e-mail e informações de perfil que você fornece.",
+          "usage": "<strong>Dados de uso:</strong> seu histórico de visualização, notas, avaliações, coleções e interações na plataforma.",
+          "technical": "<strong>Dados técnicos:</strong> endereço IP, tipo de navegador e informações do dispositivo, coletados automaticamente para fins de segurança e desempenho."
+        }
+      },
+      "usage": {
+        "title": "2. Como usamos seus dados",
+        "items": {
+          "provide": "Para fornecer e manter a plataforma Seriez.",
+          "display": "Para exibir seu perfil público, avaliações e atividades.",
+          "communicate": "Para enviar comunicações essenciais relacionadas à conta.",
+          "improve": "Para melhorar o serviço e corrigir problemas."
+        }
+      },
+      "sharing": {
+        "title": "3. Compartilhamento de dados",
+        "intro": "Nós <strong>não</strong> vendemos seus dados pessoais a terceiros. Só compartilhamos dados:",
+        "paddle": "Com a Paddle para processamento de pagamentos — a Paddle recebe seu e-mail e dados de pagamento conforme <a>a política de privacidade deles</a>.",
+        "legal": "Quando exigido por lei ou para proteger nossos direitos."
+      }
+    },
+    "storage": {
+      "title": "4. Armazenamento e segurança dos dados",
+      "content": "Seus dados são armazenados em servidores seguros com criptografia padrão da indústria. Tomamos medidas razoáveis para proteger suas informações, mas nenhum método de armazenamento eletrônico é 100% seguro."
+    },
+    "rights": {
+      "title": "5. Seus direitos",
+      "intro": "Você tem o direito de:",
+      "items": {
+        "access": "Acessar os dados pessoais que temos sobre você.",
+        "correct": "Solicitar a correção ou exclusão dos seus dados.",
+        "export": "Exportar seus dados (disponível nas Configurações).",
+        "delete": "Excluir sua conta (disponível nas Configurações)."
+      }
+    },
+    "cookies": {
+      "title": "6. Cookies",
+      "content": "Usamos cookies essenciais para autenticação e gerenciamento de sessão. Não usamos cookies de rastreamento ou publicidade. Nenhum aviso de consentimento de cookies é necessário, pois usamos apenas cookies estritamente necessários."
+    },
+    "changes": {
+      "title": "7. Alterações nesta política",
+      "content": "Podemos atualizar esta política periodicamente. Alterações relevantes serão comunicadas por e-mail ou por aviso na plataforma."
+    },
+    "contact": {
+      "title": "8. Contato",
+      "content": "Para dúvidas relacionadas à privacidade, entre em contato pelo <a>support@seriez.app</a>."
+    }
+  },
+  "terms": {
+    "title": "Termos de Serviço",
+    "lastUpdated": "Última atualização: 20 de junho de 2026",
+    "sections": {
+      "acceptance": {
+        "title": "1. Aceitação dos termos",
+        "content": "Ao usar o Seriez, você concorda com estes Termos de Serviço. Se não concordar, não use o serviço."
+      },
+      "accounts": {
+        "title": "2. Contas de usuário",
+        "content": "Você é responsável por manter a confidencialidade das credenciais da sua conta e por toda atividade realizada nela."
+      },
+      "content": {
+        "title": "3. Conteúdo do usuário",
+        "content": "Você mantém a propriedade das avaliações, notas, comentários e demais conteúdos que publicar. Ao publicar, você concede ao Seriez uma licença não exclusiva e livre de royalties para exibir e distribuir seu conteúdo na plataforma. Você é o único responsável pelo conteúdo que publica e garante que ele não viola leis ou direitos de terceiros."
+      },
+      "use": {
+        "title": "4. Uso aceitável",
+        "content": "Você concorda em não publicar conteúdo ilegal, ofensivo, difamatório, abusivo, ameaçador, obsceno ou de outra forma impróprio. O Seriez reserva-se o direito de remover qualquer conteúdo e suspender ou encerrar contas a seu critério exclusivo."
+      },
+      "goldenTicket": {
+        "title": "5. Assinaturas Golden Ticket",
+        "content": "O Golden Ticket é uma assinatura recorrente de US$ 4,99/mês ou US$ 49/ano. Os pagamentos são processados pela Paddle. Você pode cancelar a qualquer momento; o cancelamento entra em vigor no fim do ciclo de cobrança atual. Não há reembolso por meses parciais."
+      },
+      "thirdParty": {
+        "title": "6. Conteúdo de terceiros",
+        "content": "O Seriez exibe metadados de filmes, séries e animes do TMDB e do AniList. O Seriez não é afiliado nem endossado por esses serviços. Todas as imagens e dados de filmes e séries são fornecidos pelo TMDB conforme os termos deles."
+      },
+      "liability": {
+        "title": "7. Limitação de responsabilidade",
+        "content": "O Seriez é fornecido \"como está\", sem garantias de qualquer tipo. O Seriez não se responsabiliza por quaisquer danos decorrentes do uso ou da impossibilidade de uso do serviço."
+      },
+      "changes": {
+        "title": "8. Alterações dos termos",
+        "content": "Reservamo-nos o direito de modificar estes termos a qualquer momento. O uso continuado após as alterações constitui aceitação dos novos termos."
+      },
+      "contact": {
+        "title": "9. Contato",
+        "content": "Para dúvidas sobre estes termos, entre em contato pelo <a>support@seriez.app</a>."
+      }
+    }
+  },
+  "admin": {
+    "dashboard": "Painel",
+    "dashboardDesc": "Visão geral da sua plataforma",
+    "users": "Usuários",
+    "usersDesc": "{count} usuários",
+    "moderation": "Moderação",
+    "moderationDesc": "Revise o conteúdo denunciado e tome ações",
+    "sanctions": "Sanções",
+    "sanctionsDesc": "Gerencie sanções e restrições de usuários",
+    "auditLog": "Registro de auditoria",
+    "auditLogDesc": "Acompanhe todas as ações de admin e o histórico de moderação",
+    "totalUsers": "Total de usuários",
+    "premium": "Premium",
+    "sanctioned": "Sancionados",
+    "openReports": "Denúncias abertas",
+    "userManagement": "Gerenciamento de usuários",
+    "userManagementDesc": "Veja, busque e gerencie contas, funções e permissões de usuários",
+    "contentModeration": "Moderação de conteúdo",
+    "contentModerationDesc": "Revise conteúdo denunciado, oculte ou exclua itens",
+    "auditDesc": "Acompanhe todas as ações de admin e o histórico de moderação",
+    "refresh": "Atualizar",
+    "all": "Todos",
+    "reviews": "Avaliações",
+    "comments": "Comentários",
+    "collections": "Coleções",
+    "filter": "Filtrar",
+    "noFlaggedContent": "Nenhum conteúdo denunciado. Tudo certo.",
+    "loadingReports": "Carregando denúncias...",
+    "analyze": "Analisar",
+    "analyzing": "Analisando...",
+    "restore": "Restaurar",
+    "delete": "Excluir",
+    "reports": "denúncias",
+    "noAuditLogs": "Ainda não há registros de auditoria",
+    "actionsLogged": "{count} ações registradas",
+    "allActions": "Todas as ações",
+    "hidden": "Oculto",
+    "restored": "Restaurado",
+    "deleted": "Excluído",
+    "userDeleted": "Usuário excluído",
+    "when": "Quando",
+    "admin_": "Admin",
+    "action": "Ação",
+    "target": "Alvo",
+    "details": "Detalhes",
+    "applySanction": "Aplicar sanção",
+    "applying": "Aplicando...",
+    "removeSanction": "Remover sanção",
+    "sanctionApplied": "Sanção aplicada",
+    "sanctionRemoved": "Sanção removida",
+    "selectUser": "Selecionar usuário...",
+    "type": "Tipo",
+    "reason": "Motivo",
+    "reasonPlaceholder": "Motivo da sanção",
+    "warning": "Advertência",
+    "suspension": "Suspensão",
+    "permanentBan": "Banimento permanente",
+    "commentBan": "Banimento de comentários",
+    "hours": "Horas",
+    "days": "Dias",
+    "months": "Meses",
+    "sanctionedUsers": "Usuários sancionados",
+    "noSanctionedUsers": "Nenhum usuário sancionado",
+    "until": "Até",
+    "permanent": "Permanente",
+    "searchUsers": "Buscar usuários...",
+    "username": "Nome de usuário",
+    "role": "Função",
+    "joined": "Entrou em",
+    "status": "Status",
+    "gold": "Gold",
+    "free": "Grátis",
+    "sanctionedStatus": "Sancionado",
+    "noUsersFound": "Nenhum usuário encontrado.",
+    "deleteUser": "Excluir usuário",
+    "deleteUserConfirm": "Excluir permanentemente @{username} e todos os seus dados. Digite o nome de usuário para confirmar.",
+    "typeToConfirm": "Digite o nome de usuário para confirmar",
+    "cancel": "Cancelar",
+    "deleting": "Excluindo...",
+    "checkingAccess": "Verificando acesso...",
+    "backToSite": "Voltar ao site"
+  },
+  "profilePage": {
+    "tabs": {
+      "profile": "Perfil",
+      "insights": "Insights",
+      "ott": "OTT",
+      "reviews": "Avaliações"
+    },
+    "followers": "seguidores",
+    "following": "seguindo",
+    "noFollowers": "Ainda sem seguidores",
+    "noFollowing": "Ainda não segue ninguém",
+    "follow": "Seguir",
+    "following_action": "Seguindo",
+    "signInTitle": "Entre para ver o perfil completo",
+    "signInDesc": "Acompanhe o que você assiste, descubra novos favoritos e conecte-se com amigos",
+    "signInAction": "Entrar / Cadastrar",
+    "watched": "Assistidos",
+    "hours": "Horas",
+    "avgRating": "Nota média ★",
+    "rated": "Avaliados",
+    "favorites": "Favoritos",
+    "movie": "Filme",
+    "tv": "Série",
+    "anime": "Anime",
+    "notifications": "Notificações",
+    "noNotifications": "Ainda não há notificações.",
+    "markAllRead": "Marcar tudo como lido",
+    "markRead": "Marcar como lido",
+    "read": "Lido",
+    "settings": "Configurações",
+    "signOut": "Sair",
+    "since": "Desde",
+    "goldenTicket": "Golden Ticket",
+    "insightsSignInTitle": "Entre para ver os Insights",
+    "insightsSignInDesc": "Acompanhe seus hábitos de visualização, descubra padrões e desbloqueie seu DNA do Espectador.",
+    "tasteMatch": "Compatibilidade de gosto",
+    "bothEnjoyed": "Ambos gostaram",
+    "ratingsApart": "Notas distantes",
+    "you": "Você",
+    "them": "Eles",
+    "topDirectors": "Principais diretores",
+    "favoriteDirectors": "Diretores favoritos",
+    "topActors": "Principais atores",
+    "favoriteActors": "Atores favoritos",
+    "noFavoriteDirectors": "Ainda não há diretores favoritos.",
+    "noFavoriteActors": "Ainda não há atores favoritos.",
+    "from": "de"
+  },
+  "feedPage": {
+    "noActivity": "Ainda sem atividade",
+    "noActivityDesc": "Siga outros usuários para ver as atividades deles aqui.",
+    "reviewed": "avaliou",
+    "rated": "deu nota a",
+    "watched": "assistiu",
+    "isWatching": "está assistindo",
+    "plansToWatch": "planeja assistir",
+    "publishedCollection": "publicou uma coleção",
+    "badgeReview": "AVALIAÇÃO",
+    "badgeRated": "NOTA",
+    "badgeWatched": "ASSISTIDO",
+    "badgeWatching": "ASSISTINDO",
+    "badgePlan": "PLANOS",
+    "item": "item",
+    "items": "itens",
+    "minAgo": "há {n} min",
+    "hourAgo": "há {n} h",
+    "dayAgo": "há {n} d",
+    "back": "Voltar",
+    "followers": "Seguidores",
+    "following": "Seguindo",
+    "released": "queria assistir — já disponível!",
+    "badgeReleased": "LANÇADO",
+    "likedReview": "curtiu sua avaliação",
+    "commentedOnReview": "comentou na sua avaliação"
+  },
+  "libraryPage": {
+    "toWatch": "Quero assistir",
+    "watching": "Assistindo",
+    "watched": "Assistido",
+    "recent": "Recentes",
+    "myRating": "Minha nota",
+    "popular": "Populares",
+    "year": "Ano",
+    "noItems": "Nenhum item ainda",
+    "noItemsDesc": "Adicione filmes e séries a esta coleção.",
+    "noCollections": "Ainda não há coleções",
+    "noCollectionsDesc": "Crie sua primeira coleção para organizar seus títulos favoritos.",
+    "browseTitles": "Explorar títulos",
+    "failedCreate": "Falha ao criar coleção",
+    "failedPublish": "Falha ao publicar",
+    "published": "Publicado ✓",
+    "nowPrivate": "Agora privado ✓"
+  }
+}
