@@ -6,7 +6,7 @@ import { resolveUsername } from "@/lib/auth-helper";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 48;
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
