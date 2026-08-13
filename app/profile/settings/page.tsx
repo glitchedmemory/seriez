@@ -248,6 +248,7 @@ type ImportResult = { shows: number; episodes: number; movies: number; failed: s
                   <option value="fr">Français</option>
                   <option value="de">Deutsch</option>
                   <option value="es">Español</option>
+                  <option value="pt">Português</option>
                 </select>
               </div>
 

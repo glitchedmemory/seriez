@@ -7,15 +7,16 @@ import zh from './messages/zh.json';
 import fr from './messages/fr.json';
 import de from './messages/de.json';
 import es from './messages/es.json';
+import pt from './messages/pt.json';
 
 export const routing = defineRouting({
-  locales: ['en', 'ko', 'ja', 'zh', 'fr', 'de', 'es'],
+  locales: ['en', 'ko', 'ja', 'zh', 'fr', 'de', 'es', 'pt'],
   defaultLocale: 'en',
   localePrefix: 'never',
   localeCookie: false,
 });
 
-const messages: Record<string, any> = { en, ko, ja, zh, fr, de, es };
+const messages: Record<string, any> = { en, ko, ja, zh, fr, de, es, pt };
 
 export default getRequestConfig(async ({ requestLocale }) => {
   // Middleware handles NEXT_LOCALE cookie → requestLocale already reflects user preference

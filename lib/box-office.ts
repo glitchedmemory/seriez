@@ -50,6 +50,8 @@ const COUNTRY_NAMES: Record<string, string> = {
   AU: "Australia",
   MX: "Mexico",
   ES: "Spain",
+  CN: "China",
+  BR: "Brazil",
 };
 
 export function getCountryName(code: string): string {
@@ -290,6 +292,8 @@ async function scrapeMX(): Promise<TmdbResult[]> { return scrapeBOMArea("MX"); }
 async function scrapeES(): Promise<TmdbResult[]> { return scrapeBOMArea("ES"); }
 async function scrapeJP(): Promise<TmdbResult[]> { return scrapeBOMArea("JP"); }
 async function scrapeDE(): Promise<TmdbResult[]> { return scrapeBOMArea("DE"); }
+async function scrapeCN(): Promise<TmdbResult[]> { return scrapeBOMArea("CN"); }
+async function scrapeBR(): Promise<TmdbResult[]> { return scrapeBOMArea("BR"); }
 
 // ─── KR: KOFIC ───
 
@@ -397,6 +401,8 @@ const SCRAPERS: Record<string, () => Promise<TmdbResult[]>> = {
   FR: scrapeFR,
   DE: scrapeDE,
   ES: scrapeES,
+  CN: scrapeCN,
+  BR: scrapeBR,
 };
 
 export const getBoxOffice = unstable_cache(
@@ -416,6 +422,6 @@ export const getBoxOffice = unstable_cache(
   }
   return results.slice(0, 7);
 },
-  ["box-office-v5"],
+  ["box-office-v6"],
   { revalidate: 3600 }
 );
