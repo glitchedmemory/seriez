@@ -10,6 +10,7 @@ interface Poll {
   ends_at: string | null;
   total: number;
   counts: number[];
+  myOption: number | null;
 }
 
 export default function PollCard() {
@@ -25,7 +26,14 @@ export default function PollCard() {
     fetch("/api/polls")
       .then((r) => r.json())
       .then((data) => {
-        if (data.polls && data.polls.length) setPoll(data.polls[0]);
+        if (data.polls && data.polls.length) {
+          const p = data.polls[0];
+          setPoll(p);
+          // 이미 투표한 유저면 결과를 바로 보여줌 (재투표 UI 숨김)
+          if (typeof p.myOption === "number") {
+            setMyOption(p.myOption);
+          }
+        }
       })
       .catch(() => {});
   }, []);
