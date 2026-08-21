@@ -443,7 +443,15 @@
     "released": "님이 보고싶어한",
     "badgeReleased": "릴리즈",
     "likedReview": "님이 리뷰를 좋아합니다",
-    "commentedOnReview": "님이 리뷰에 댓글을 달았습니다"
+    "commentedOnReview": "님이 리뷰에 댓글을 달았습니다",
+    "pollBadge": "투표",
+    "pollVotes": "{n}표",
+    "pollVoteCounted": "투표가 기록되었습니다",
+    "pollClosesIn": "{d}일 후 마감",
+    "pollClosesInHours": "{h}시간 후 마감",
+    "pollUnlimited": "마감일 미정",
+    "pollSignInToVote": "투표하려면 로그인하세요",
+    "pollSectionRecent": "최근 활동"
   },
   "libraryPage": {
     "toWatch": "볼 예정",

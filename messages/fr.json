@@ -416,7 +416,15 @@
     "released": "voulait voir — sorti!",
     "badgeReleased": "SORTIE",
     "likedReview": "aime votre critique",
-    "commentedOnReview": "a commenté votre critique"
+    "commentedOnReview": "a commenté votre critique",
+    "pollBadge": "SONDAGE",
+    "pollVotes": "{n} votes",
+    "pollVoteCounted": "Votre vote a été enregistré",
+    "pollClosesIn": "Se termine dans {d} jours",
+    "pollClosesInHours": "Se termine dans {h} h",
+    "pollUnlimited": "Sans date limite",
+    "pollSignInToVote": "Connectez-vous pour voter",
+    "pollSectionRecent": "Activité récente"
   },
   "libraryPage": {
     "toWatch": "To Watch",

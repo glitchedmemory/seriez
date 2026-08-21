@@ -443,7 +443,15 @@
     "released": "想看作品已发布！",
     "badgeReleased": "已发布",
     "likedReview": "赞了你的影评",
-    "commentedOnReview": "评论了你的影评"
+    "commentedOnReview": "评论了你的影评",
+    "pollBadge": "投票",
+    "pollVotes": "{n}票",
+    "pollVoteCounted": "您的投票已记录",
+    "pollClosesIn": "还有{d}天截止",
+    "pollClosesInHours": "还有{h}小时截止",
+    "pollUnlimited": "无截止日期",
+    "pollSignInToVote": "登录后投票",
+    "pollSectionRecent": "最近动态"
   },
   "libraryPage": {
     "toWatch": "想看",
