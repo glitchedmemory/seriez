@@ -11,6 +11,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/lib/theme";
 import { BotProvider } from "@/components/BotProvider";
+import HumanProof from "@/components/HumanProof";
 import { createClient } from "@/lib/supabase/server";
 import { isBot } from "@/lib/bot";
 import AdminAwareLayout from "@/components/AdminAwareLayout";
@@ -184,6 +185,7 @@ export default async function RootLayout({
                       {children}
             </AdminAwareLayout>
             <FeedbackWidget />
+            <HumanProof />
           </ThemeProvider>
         </LocaleProvider>
         </BotProvider>
