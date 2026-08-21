@@ -451,7 +451,8 @@
     "pollClosesInHours": "{h}시간 후 마감",
     "pollUnlimited": "마감일 미정",
     "pollSignInToVote": "투표하려면 로그인하세요",
-    "pollSectionRecent": "최근 활동"
+    "pollSectionRecent": "최근 활동",
+    "pollConfirm": "확인"
   },
   "libraryPage": {
     "toWatch": "볼 예정",
