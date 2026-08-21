@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     // poll 검증 (active 여부 + 마감 여부)
     const { data: poll } = await supabaseAdmin
       .from("polls")
-      .select("id, option_index_count, options, status, ends_at")
+      .select("id, options, status, ends_at")
       .eq("id", pollId)
       .maybeSingle();
 

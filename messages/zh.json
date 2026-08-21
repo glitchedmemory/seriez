@@ -451,7 +451,8 @@
     "pollClosesInHours": "还有{h}小时截止",
     "pollUnlimited": "无截止日期",
     "pollSignInToVote": "登录后投票",
-    "pollSectionRecent": "最近动态"
+    "pollSectionRecent": "最近动态",
+    "pollConfirm": "确认"
   },
   "libraryPage": {
     "toWatch": "想看",

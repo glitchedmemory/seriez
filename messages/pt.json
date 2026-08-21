@@ -451,7 +451,8 @@
     "pollClosesInHours": "Encerra em {h} h",
     "pollUnlimited": "Sem prazo",
     "pollSignInToVote": "Entre para votar",
-    "pollSectionRecent": "Atividade recente"
+    "pollSectionRecent": "Atividade recente",
+    "pollConfirm": "Confirmar"
   },
   "libraryPage": {
     "toWatch": "Quero assistir",

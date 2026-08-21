@@ -451,7 +451,8 @@
     "pollClosesInHours": "あと{h}時間で締切",
     "pollUnlimited": "締切なし",
     "pollSignInToVote": "投票するにはログインしてください",
-    "pollSectionRecent": "最近のアクティビティ"
+    "pollSectionRecent": "最近のアクティビティ",
+    "pollConfirm": "確認"
   },
   "libraryPage": {
     "toWatch": "視聴予定",

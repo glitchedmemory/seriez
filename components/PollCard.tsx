@@ -16,7 +16,8 @@ export default function PollCard() {
   const t = useTranslations();
   const locale = useLocale();
   const [poll, setPoll] = useState<Poll | null>(null);
-  const [myOption, setMyOption] = useState<number | null>(null);
+  const [selected, setSelected] = useState<number | null>(null); // 확인 전 임시 선택
+  const [myOption, setMyOption] = useState<number | null>(null); // 확정된 투표
   const [voting, setVoting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,26 +48,32 @@ export default function PollCard() {
   const total = poll.total || 0;
   const counts = poll.counts || [];
 
-  // 마감 표시
   const hasVoted = myOption !== null;
   const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0);
 
-  const handleVote = async (idx: number) => {
+  // 선택지 클릭 → 임시 선택만 (투표 아직 안 됨)
+  const handleSelect = (idx: number) => {
     if (hasVoted || voting) return;
+    setSelected(idx);
+  };
+
+  // 확인 버튼 클릭 → 그때서야 투표
+  const handleConfirm = async () => {
+    if (selected === null || hasVoted || voting) return;
     setVoting(true);
     setError(null);
     try {
       const res = await fetch("/api/polls/vote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pollId: poll.id, optionIndex: idx }),
+        body: JSON.stringify({ pollId: poll.id, optionIndex: selected }),
       });
       const data = await res.json();
       if (res.ok) {
-        setMyOption(idx);
+        setMyOption(selected);
         setPoll({ ...poll, total: data.total, counts: data.counts });
       } else if (data.alreadyVoted) {
-        setMyOption(idx);
+        setMyOption(selected);
       } else if (res.status === 401) {
         setError(t("feedPage.pollSignInToVote"));
       } else {
@@ -107,13 +114,13 @@ export default function PollCard() {
 
         <div className="flex flex-col gap-2">
           {options.map((opt, idx) => {
-            const isMine = myOption === idx;
-            const isWinner = hasVoted && counts[idx] === Math.max(...(counts.length ? counts : [0]));
+            const isSelected = selected === idx;
+            const isMine = hasVoted && myOption === idx;
             const barPct = hasVoted ? pct(counts[idx]) : 0;
             return (
               <button
                 key={idx}
-                onClick={() => handleVote(idx)}
+                onClick={() => handleSelect(idx)}
                 disabled={hasVoted || voting}
                 className={`relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border text-left transition-colors ${
                   hasVoted
@@ -130,16 +137,15 @@ export default function PollCard() {
                 )}
 
                 {/* 선택 표시 */}
-                <span className="relative z-10 w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center flex-shrink-0"
+                <span
+                  className="relative z-10 w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center flex-shrink-0"
                   style={{
-                    borderColor: isMine ? "var(--accent)" : "var(--text-secondary)",
-                    background: isMine ? "var(--accent)" : "transparent",
+                    borderColor: isSelected || isMine ? "var(--accent)" : "var(--text-secondary)",
+                    background: isSelected || isMine ? "var(--accent)" : "transparent",
                   }}
                 >
-                  {isMine && (
-                    <span
-                      className="block w-[8px] h-[4px] border-l-2 border-b-2 border-white -rotate-45 -translate-y-px"
-                    />
+                  {(isSelected || isMine) && (
+                    <span className="block w-[8px] h-[4px] border-l-2 border-b-2 border-white -rotate-45 -translate-y-px" />
                   )}
                 </span>
 
@@ -158,6 +164,21 @@ export default function PollCard() {
         </div>
 
         {error && <p className="mt-2 text-[12px] text-red-500">{error}</p>}
+
+        {/* 확인 버튼 — 선택 후에만 표시, 투표 전 */}
+        {!hasVoted && (
+          <button
+            onClick={handleConfirm}
+            disabled={selected === null || voting}
+            className={`w-full mt-3 rounded-xl py-2.5 text-sm font-semibold transition-colors ${
+              selected !== null && !voting
+                ? "bg-accent text-white hover:opacity-90"
+                : "bg-bg-surface text-text-secondary cursor-not-allowed"
+            }`}
+          >
+            {voting ? "..." : t("feedPage.pollConfirm")}
+          </button>
+        )}
       </div>
 
       {closingLabel ? (
