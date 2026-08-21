@@ -80,9 +80,9 @@ export default function PollCard() {
   };
 
   const closingLabel = (() => {
-    if (!poll.ends_at) return t("feedPage.pollUnlimited");
+    if (!poll.ends_at) return ""; // 무기한 → 마감 표시 없음
     const diff = new Date(poll.ends_at).getTime() - Date.now();
-    if (diff <= 0) return t("feedPage.pollUnlimited");
+    if (diff <= 0) return "";
     const days = Math.ceil(diff / 86400000);
     if (days > 1) return t("feedPage.pollClosesIn").replace("{d}", String(days));
     const hours = Math.ceil(diff / 3600000);
@@ -160,15 +160,21 @@ export default function PollCard() {
         {error && <p className="mt-2 text-[12px] text-red-500">{error}</p>}
       </div>
 
-      <div className="px-4 py-2.5 border-t border-border text-[11px] text-text-secondary flex items-center gap-1.5">
-        {hasVoted ? (
-          <>
-            <span>✓</span> {t("feedPage.pollVoteCounted")} · {closingLabel}
-          </>
-        ) : (
-          closingLabel
-        )}
-      </div>
+      {closingLabel ? (
+        <div className="px-4 py-2.5 border-t border-border text-[11px] text-text-secondary flex items-center gap-1.5">
+          {hasVoted ? (
+            <>
+              <span>✓</span> {t("feedPage.pollVoteCounted")} · {closingLabel}
+            </>
+          ) : (
+            closingLabel
+          )}
+        </div>
+      ) : hasVoted ? (
+        <div className="px-4 py-2.5 border-t border-border text-[11px] text-text-secondary flex items-center gap-1.5">
+          <span>✓</span> {t("feedPage.pollVoteCounted")}
+        </div>
+      ) : null}
     </div>
   );
 }
