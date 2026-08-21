@@ -443,7 +443,15 @@
     "released": "見たかった作品がリリースされました！",
     "badgeReleased": "リリース",
     "likedReview": "さんのレビューにいいねしました",
-    "commentedOnReview": "さんがレビューにコメントしました"
+    "commentedOnReview": "さんがレビューにコメントしました",
+    "pollBadge": "投票",
+    "pollVotes": "{n}票",
+    "pollVoteCounted": "投票を受け付けました",
+    "pollClosesIn": "あと{d}日で締切",
+    "pollClosesInHours": "あと{h}時間で締切",
+    "pollUnlimited": "締切なし",
+    "pollSignInToVote": "投票するにはログインしてください",
+    "pollSectionRecent": "最近のアクティビティ"
   },
   "libraryPage": {
     "toWatch": "視聴予定",

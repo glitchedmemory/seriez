@@ -416,7 +416,15 @@
     "released": "wollte sehen — veröffentlicht!",
     "badgeReleased": "VERÖFFENTLICHT",
     "likedReview": "gefällt deine Bewertung",
-    "commentedOnReview": "hat deine Bewertung kommentiert"
+    "commentedOnReview": "hat deine Bewertung kommentiert",
+    "pollBadge": "UMFRAGE",
+    "pollVotes": "{n} Stimmen",
+    "pollVoteCounted": "Deine Stimme wurde gezählt",
+    "pollClosesIn": "Endet in {d} Tagen",
+    "pollClosesInHours": "Endet in {h} Std.",
+    "pollUnlimited": "Ohne Frist",
+    "pollSignInToVote": "Zum Abstimmen anmelden",
+    "pollSectionRecent": "Letzte Aktivität"
   },
   "libraryPage": {
     "toWatch": "To Watch",

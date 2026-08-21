@@ -4,6 +4,7 @@ import { useState, useEffect, Fragment } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import PosterImage from "@/components/PosterImage";
+import PollCard from "@/components/PollCard";
 import { titleHref } from "@/lib/title-utils";
 
 interface Activity {
@@ -107,6 +108,9 @@ export default function FeedPage() {
           {t("feed.title")}
         </h1>
       </header>
+
+      {/* Poll — active 투표 캠페인 (최상단 고정) */}
+      <PollCard />
 
       {loading ? (
         <div className="flex justify-center py-20">

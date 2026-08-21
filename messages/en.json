@@ -443,7 +443,15 @@
     "released": "wanted to watch — now available!",
     "badgeReleased": "RELEASED",
     "likedReview": "liked your review",
-    "commentedOnReview": "commented on your review"
+    "commentedOnReview": "commented on your review",
+    "pollBadge": "POLL",
+    "pollVotes": "{n} votes",
+    "pollVoteCounted": "Your vote is counted",
+    "pollClosesIn": "Closes in {d} days",
+    "pollClosesInHours": "Closes in {h}h",
+    "pollUnlimited": "Open ended",
+    "pollSignInToVote": "Sign in to vote",
+    "pollSectionRecent": "Recent Activity"
   },
   "libraryPage": {
     "toWatch": "To Watch",

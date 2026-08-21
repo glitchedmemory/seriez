@@ -443,7 +443,15 @@
     "released": "queria assistir — já disponível!",
     "badgeReleased": "LANÇADO",
     "likedReview": "curtiu sua avaliação",
-    "commentedOnReview": "comentou na sua avaliação"
+    "commentedOnReview": "comentou na sua avaliação",
+    "pollBadge": "ENQUETE",
+    "pollVotes": "{n} votos",
+    "pollVoteCounted": "Seu voto foi contado",
+    "pollClosesIn": "Encerra em {d} dias",
+    "pollClosesInHours": "Encerra em {h} h",
+    "pollUnlimited": "Sem prazo",
+    "pollSignInToVote": "Entre para votar",
+    "pollSectionRecent": "Atividade recente"
   },
   "libraryPage": {
     "toWatch": "Quero assistir",
