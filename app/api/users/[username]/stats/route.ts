@@ -117,6 +117,7 @@ async function fetchRuntimes(
   const knownIds = new Set(known.keys());
   const movieIds = [...new Set(tracking.filter(t => t.media_type === "movie").map(t => t.tmdb_id))].filter(id => !knownIds.has(id));
   const tvIds = [...new Set(tracking.filter(t => t.media_type === "tv" || t.media_type === "anime").map(t => t.tmdb_id))].filter(id => !knownIds.has(id));
+  console.log(`[stats-timing] fetchRuntimes: known=${known.size}, missingMovies=${movieIds.length}, missingTV=${tvIds.length}`);
 
   const BATCH = 8;
 
