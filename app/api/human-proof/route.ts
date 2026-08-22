@@ -17,8 +17,8 @@ export async function POST(req: NextRequest) {
     const mouseEventCount = Number(body.mouseEventCount) || 0;
     const pageLoadedAt = body.pageLoadedAt as string | null;
 
-    // 최소 조건 서버측 재검증: 상호작용 1회 미만은 기록 안 함 (이중 방어)
-    if (mouseEventCount < 1) {
+    // 최소 조건 서버측 재검증: 마우스/터치 이동 3회 미만은 기록 안 함 (이중 방어)
+    if (mouseEventCount < 3) {
       return NextResponse.json({ ok: false, reason: "no-interaction" });
     }
 

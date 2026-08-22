@@ -15,11 +15,11 @@ import { useEffect, useRef } from "react";
  */
 
 const MIN_DWELL_MS = 3000; // 최소 체류시간 3초
-const MIN_INTERACTION = 1; // 최소 상호작용 1회
+const MIN_MOVES = 3; // 최소 마우스/터치 움직임 횟수 (봇 우회 방지용으로 3회 상향)
 
 export default function HumanProof() {
   const fired = useRef(false);
-  const interactionCount = useRef(0);
+  const moveCount = useRef(0); // 실제 마우스/터치 이동만 카운트
 
   useEffect(() => {
     if (fired.current) return;
@@ -28,18 +28,19 @@ export default function HumanProof() {
     let sendCleanup: (() => void) | null = null;
 
     const recordInteraction = () => {
-      interactionCount.current += 1;
+      moveCount.current += 1;
     };
 
-    // 사람만 유발하는 이벤트들
-    const events: (keyof WindowEventMap)[] = ["mousemove", "pointerdown", "touchstart", "scroll", "keydown", "wheel"];
-    for (const ev of events) {
+    // 봇이 흉내내기 어려운 "실제 마우스/터치 이동" 이벤트만 카운트
+    // (mousemove: 데스크톱 마우스, touchmove: 모바일 터치 드래그)
+    const moveEvents: (keyof WindowEventMap)[] = ["mousemove", "touchmove"];
+    for (const ev of moveEvents) {
       window.addEventListener(ev, recordInteraction, { passive: true });
     }
 
     const sendProof = () => {
       if (fired.current) return;
-      if (interactionCount.current < MIN_INTERACTION) return;
+      if (moveCount.current < MIN_MOVES) return;
       if (Date.now() - pageLoadedAt < MIN_DWELL_MS) return;
       fired.current = true;
 
@@ -47,7 +48,7 @@ export default function HumanProof() {
         path: window.location.pathname,
         referrer: document.referrer || null,
         locale: document.documentElement.lang || null,
-        mouseEventCount: interactionCount.current,
+        mouseEventCount: moveCount.current,
         pageLoadedAt: new Date(pageLoadedAt).toISOString(),
       };
 
@@ -85,7 +86,7 @@ export default function HumanProof() {
 
     sendCleanup = () => {
       clearInterval(interval);
-      for (const ev of events) {
+      for (const ev of moveEvents) {
         window.removeEventListener(ev, recordInteraction);
       }
     };
