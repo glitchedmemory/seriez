@@ -452,6 +452,7 @@ export async function GET(
 }
 
 async function computeAndStore(username: string, userId: string): Promise<NextResponse> {
+  const t0 = Date.now();
   try {
     // ── 1. Get user_id (already resolved by caller) ──
 
@@ -460,9 +461,11 @@ async function computeAndStore(username: string, userId: string): Promise<NextRe
       .from("media_trackings")
       .select("tmdb_id, media_type, status, rating, progress, watched_at, updated_at, anilist_id")
       .eq("username", userId);
+    console.log(`[stats-timing] tracking fetch: ${Date.now() - t0}ms, rows=${tracking?.length || 0}`);
 
     // ── 3. Fetch actual TMDB runtimes (in background — non-blocking for core data) ──
     const runtimeMap = tracking ? await fetchRuntimes(tracking) : new Map<number, number>();
+    console.log(`[stats-timing] fetchRuntimes: ${Date.now() - t0}ms`);
 
     // ── 4. Fetch all reviews ──
     const { data: reviews } = await supabase
@@ -573,6 +576,7 @@ async function computeAndStore(username: string, userId: string): Promise<NextRe
     // Seed from global genre cache — skip external lookups for known titles
     const nonAnimeTracking = (tracking || []).filter(t => t.media_type !== "anime");
     const knownGenres = await loadKnownGenres(nonAnimeTracking);
+    console.log(`[stats-timing] loadKnownGenres: ${Date.now() - t0}ms, hits=${knownGenres.size}`);
     const freshGenreRows: { tmdb_id: number; media_type: string; genres: string[] }[] = [];
 
     for (const t of tracking || []) {
@@ -643,6 +647,7 @@ async function computeAndStore(username: string, userId: string): Promise<NextRe
       .map(id => ({ tmdb_id: id, media_type: tracking?.find(t => t.tmdb_id === id)?.media_type || "movie" }))
       .filter(x => x.media_type !== "anime");
     const knownCredits = await loadKnownCredits(ratedNonAnime);
+    console.log(`[stats-timing] loadKnownCredits: ${Date.now() - t0}ms, hits=${knownCredits.size}`);
     const freshCreditRows: { tmdb_id: number; media_type: string; credits: object }[] = [];
 
     for (const tmdbId of ratedTmdbIds.slice(0, 20)) {
@@ -940,6 +945,7 @@ async function computeAndStore(username: string, userId: string): Promise<NextRe
         { onConflict: "username" }
       )
       .then(() => {}, () => {});
+    console.log(`[stats-timing] total computeAndStore: ${Date.now() - t0}ms`);
 
     const resp = NextResponse.json(payload);
     // Cache freshly computed stats so repeat visits skip the recompute entirely.
