@@ -601,7 +601,7 @@ async function computeAndStore(username: string, userId: string): Promise<NextRe
       } catch { /* skip */ }
     }
 
-    if (freshGenreRows.length > 0) void saveGenres(freshGenreRows);
+    if (freshGenreRows.length > 0) await saveGenres(freshGenreRows);
 
     // Anime genres from AniList
     if (animeIds.length > 0) {
@@ -696,7 +696,7 @@ async function computeAndStore(username: string, userId: string): Promise<NextRe
       } catch { /* skip */ }
     }
 
-    if (freshCreditRows.length > 0) void saveCredits(freshCreditRows);
+    if (freshCreditRows.length > 0) await saveCredits(freshCreditRows);
 
     const topActors = Object.entries(actorMap)
       .sort(([, a], [, b]) => b.count - a.count)
