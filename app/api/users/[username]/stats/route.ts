@@ -23,6 +23,8 @@ async function fetchWithTimeout(url: string, ms = 2000): Promise<Response> {
 }
 
 // ─── Runtime metadata cache (shared across all users) ───
+// A stored runtime of -1 means "we already ran the full fallback chain and found
+// no runtime" — this prevents re-walking 8 external sources on every recompute.
 async function loadKnownRuntimes(tracking: { tmdb_id: number; media_type: string }[]): Promise<Map<number, number>> {
   const map = new Map<number, number>();
   if (tracking.length === 0) return map;
@@ -37,6 +39,7 @@ async function loadKnownRuntimes(tracking: { tmdb_id: number; media_type: string
         .in("tmdb_id", chunk);
       for (const row of data || []) {
         if (row.runtime > 0) map.set(row.tmdb_id, row.runtime);
+        else if (row.runtime === 0) map.set(row.tmdb_id, -1); // known-empty
       }
     } catch { /* ignore */ }
   }
@@ -390,6 +393,13 @@ async function fetchRuntimes(
   for (const [id, runtime] of map) {
     if (!knownIds.has(id) && runtime > 0) {
       freshEntries.push({ tmdb_id: id, media_type: typeById.get(id) || "movie", runtime });
+    }
+  }
+  // Persist "no runtime found" (runtime=0) for titles that walked the full chain
+  // empty, so the next recompute skips re-walking all 8 fallback sources.
+  for (const id of [...movieIds, ...tvIds]) {
+    if (!map.has(id)) {
+      freshEntries.push({ tmdb_id: id, media_type: typeById.get(id) || "movie", runtime: 0 });
     }
   }
   if (freshEntries.length > 0) {
