@@ -44,6 +44,67 @@ async function saveRuntimes(entries: { tmdb_id: number; media_type: string; runt
   } catch { /* non-fatal */ }
 }
 
+// ─── Genre metadata cache (shared across all users) ───
+async function loadKnownGenres(ids: { tmdb_id: number; media_type: string }[]): Promise<Map<number, string[]>> {
+  const map = new Map<number, string[]>();
+  if (ids.length === 0) return map;
+  const tmdbIds = [...new Set(ids.map(i => i.tmdb_id))];
+  for (let i = 0; i < tmdbIds.length; i += 100) {
+    const chunk = tmdbIds.slice(i, i + 100);
+    try {
+      const { data } = await supabaseAdmin
+        .from("media_genres")
+        .select("tmdb_id, media_type, genres")
+        .in("tmdb_id", chunk);
+      for (const row of data || []) {
+        const g: string[] = Array.isArray(row.genres) ? row.genres : [];
+        if (g.length > 0) map.set(row.tmdb_id, g);
+      }
+    } catch { /* ignore */ }
+  }
+  return map;
+}
+
+async function saveGenres(entries: { tmdb_id: number; media_type: string; genres: string[] }[]): Promise<void> {
+  if (entries.length === 0) return;
+  try {
+    await supabaseAdmin
+      .from("media_genres")
+      .upsert(entries, { onConflict: "tmdb_id,media_type" });
+  } catch { /* non-fatal */ }
+}
+
+// ─── Credits (actors/directors) metadata cache (shared across all users) ───
+async function loadKnownCredits(ids: { tmdb_id: number; media_type: string }[]): Promise<Map<number, { actors: { name: string; id: number; image: string | null }[]; directors: { name: string; id: number; personSource: string; image: string | null }[] }>> {
+  const map = new Map();
+  if (ids.length === 0) return map;
+  const tmdbIds = [...new Set(ids.map(i => i.tmdb_id))];
+  for (let i = 0; i < tmdbIds.length; i += 100) {
+    const chunk = tmdbIds.slice(i, i + 100);
+    try {
+      const { data } = await supabaseAdmin
+        .from("media_credits")
+        .select("tmdb_id, media_type, credits")
+        .in("tmdb_id", chunk);
+      for (const row of data || []) {
+        if (row.credits && typeof row.credits === "object") {
+          map.set(row.tmdb_id, row.credits);
+        }
+      }
+    } catch { /* ignore */ }
+  }
+  return map;
+}
+
+async function saveCredits(entries: { tmdb_id: number; media_type: string; credits: object }[]): Promise<void> {
+  if (entries.length === 0) return;
+  try {
+    await supabaseAdmin
+      .from("media_credits")
+      .upsert(entries, { onConflict: "tmdb_id,media_type" });
+  } catch { /* non-fatal */ }
+}
+
 // ─── TMDB runtime batch fetcher (with free fallbacks: Wikidata + AniList) ───
 async function fetchRuntimes(
   tracking: { tmdb_id: number; media_type: string }[]
@@ -337,40 +398,62 @@ export async function GET(
   const { searchParams } = new URL(req.url);
   const mediaType = searchParams.get("mediaType"); // movie | tv | anime | null
 
+  // Resolve user_id up front (needed for both cache-hit and recompute paths)
+  const { data: userData } = await supabase
+    .from("users")
+    .select("id")
+    .eq("username", username)
+    .single();
+
+  if (!userData) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+  const userId = userData.id;
+
   try {
     // ── 0. Serve from per-user cache when fresh ──
+    let cachedStats: any = null;
+    let cacheAgeMs = Infinity;
     try {
       const { data: cached } = await supabaseAdmin
         .from("user_stats_cache")
         .select("stats, updated_at")
         .eq("username", username)
         .maybeSingle();
+      cachedStats = cached?.stats ?? null;
       if (cached?.stats) {
-        // Cache is valid for 6 hours; after that recompute in background path below
-        const ageMs = Date.now() - new Date(cached.updated_at).getTime();
-        if (ageMs < 6 * 60 * 60 * 1000) {
-          const resp = NextResponse.json(cached.stats);
-          // Allow browser/CDN to cache the computed stats for the full 6h window.
-          // This makes repeat profile visits instant (no origin recompute).
-          resp.headers.set("Cache-Control", "public, max-age=3600, s-maxage=21600, stale-while-revalidate=86400");
-          resp.headers.set("CDN-Cache-Control", "public, s-maxage=21600");
-          return resp;
-        }
+        cacheAgeMs = Date.now() - new Date(cached.updated_at).getTime();
       }
-    } catch { /* fall through to compute */ }
+    } catch { /* fall through */ }
 
-    // ── 1. Get user_id ──
-    const { data: userData } = await supabase
-      .from("users")
-      .select("id")
-      .eq("username", username)
-      .single();
-
-    if (!userData) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    // Fresh cache → return immediately
+    if (cachedStats && cacheAgeMs < 6 * 60 * 60 * 1000) {
+      const resp = NextResponse.json(cachedStats);
+      resp.headers.set("Cache-Control", "public, max-age=3600, s-maxage=21600, stale-while-revalidate=86400");
+      resp.headers.set("CDN-Cache-Control", "public, s-maxage=21600");
+      return resp;
     }
 
-    const userId = userData.id;
+    // Stale cache → serve it NOW, recompute in the background (stale-while-revalidate)
+    if (cachedStats) {
+      void computeAndStore(username, userId).catch(() => {});
+      const resp = NextResponse.json(cachedStats);
+      resp.headers.set("Cache-Control", "public, max-age=60, s-maxage=60, stale-while-revalidate=86400");
+      resp.headers.set("CDN-Cache-Control", "public, s-maxage=60");
+      return resp;
+    }
+
+    // No cache → compute synchronously (first-ever visit for this user)
+    return await computeAndStore(username, userId);
+  } catch (err: any) {
+    console.error("Stats error:", err);
+    return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
+  }
+}
+
+async function computeAndStore(username: string, userId: string): Promise<NextResponse> {
+  try {
+    // ── 1. Get user_id (already resolved by caller) ──
 
     // ── 2. Fetch all tracking data (always all types — client-side filters tabs) ──
     const { data: tracking } = await supabaseAdmin
@@ -482,10 +565,15 @@ export async function GET(
       typeStats[label].hours = Math.round((mediaMinutes[label] || 0) / 60);
     }
 
-    // ── 7. Genre distribution ──
+    // ── 7. Genre distribution (shared metadata cache: TMDB/AniList genres) ──
     const genreCounts: Record<string, number> = {};
     const processedIds = new Set<number>();
     const animeIds: number[] = [];
+
+    // Seed from global genre cache — skip external lookups for known titles
+    const nonAnimeTracking = (tracking || []).filter(t => t.media_type !== "anime");
+    const knownGenres = await loadKnownGenres(nonAnimeTracking);
+    const freshGenreRows: { tmdb_id: number; media_type: string; genres: string[] }[] = [];
 
     for (const t of tracking || []) {
       if (processedIds.has(t.tmdb_id)) continue;
@@ -496,15 +584,24 @@ export async function GET(
         continue;
       }
 
+      const cached = knownGenres.get(t.tmdb_id);
+      if (cached) {
+        for (const name of cached) genreCounts[name] = (genreCounts[name] || 0) + 1;
+        continue;
+      }
+
       try {
         const ep = t.media_type === "movie" ? `/movie/${t.tmdb_id}` : `/tv/${t.tmdb_id}`;
         const detail = await tmdbGet(ep);
-        for (const g of detail.genres || []) {
-          const name = g.name;
+        const names = (detail.genres || []).map((g: any) => g.name);
+        for (const name of names) {
           genreCounts[name] = (genreCounts[name] || 0) + 1;
         }
+        if (names.length > 0) freshGenreRows.push({ tmdb_id: t.tmdb_id, media_type: t.media_type, genres: names });
       } catch { /* skip */ }
     }
+
+    if (freshGenreRows.length > 0) void saveGenres(freshGenreRows);
 
     // Anime genres from AniList
     if (animeIds.length > 0) {
@@ -531,7 +628,7 @@ export async function GET(
       .slice(0, 10)
       .map(([name, count]) => ({ name, count }));
 
-    // ── 8. Top actors/directors (from projects rated > 0) ──
+    // ── 8. Top actors/directors (from projects rated > 0) — shared credits cache ──
     const actorMap: Record<string, { count: number; id: number; image: string | null }> = {};
     const directorMap: Record<string, { count: number; id: number; personSource: string; image: string | null }> = {};
     const ratedTmdbIds = [...new Set(allRated.map(r => {
@@ -540,6 +637,13 @@ export async function GET(
     }).filter(Boolean))];
 
     const ANILIST_URL = "https://graphql.anilist.co";
+
+    // Seed from global credits cache (TMDB movie/tv only — anime uses AniList staff)
+    const ratedNonAnime = ratedTmdbIds
+      .map(id => ({ tmdb_id: id, media_type: tracking?.find(t => t.tmdb_id === id)?.media_type || "movie" }))
+      .filter(x => x.media_type !== "anime");
+    const knownCredits = await loadKnownCredits(ratedNonAnime);
+    const freshCreditRows: { tmdb_id: number; media_type: string; credits: object }[] = [];
 
     for (const tmdbId of ratedTmdbIds.slice(0, 20)) {
       try {
@@ -563,17 +667,36 @@ export async function GET(
           continue;
         }
 
+        // Seed from cache
+        const cached = knownCredits.get(tmdbId);
+        if (cached) {
+          for (const a of cached.actors || []) {
+            if (!actorMap[a.name]) actorMap[a.name] = { count: 0, id: a.id, image: a.image };
+            actorMap[a.name].count++;
+          }
+          for (const d of cached.directors || []) {
+            if (!directorMap[d.name]) directorMap[d.name] = { count: 0, id: d.id, personSource: d.personSource, image: d.image };
+            directorMap[d.name].count++;
+          }
+          continue;
+        }
+
         const credits = await tmdbGet(`/${mt}/${tmdbId}/credits`);
-        for (const cast of (credits.cast || []).slice(0, 10)) {
-          if (!actorMap[cast.name]) actorMap[cast.name] = { count: 0, id: cast.id, image: cast.profile_path ? `https://image.tmdb.org/t/p/w185${cast.profile_path}` : null };
-          actorMap[cast.name].count++;
+        const actors = (credits.cast || []).slice(0, 10).map((c: any) => ({ name: c.name, id: c.id, image: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null }));
+        const directors = (credits.crew || []).filter((c: any) => c.job === "Director").map((c: any) => ({ name: c.name, id: c.id, personSource: "tmdb", image: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null }));
+        for (const a of actors) {
+          if (!actorMap[a.name]) actorMap[a.name] = { count: 0, id: a.id, image: a.image };
+          actorMap[a.name].count++;
         }
-        for (const crew of (credits.crew || []).filter((c: any) => c.job === "Director")) {
-          if (!directorMap[crew.name]) directorMap[crew.name] = { count: 0, id: crew.id, personSource: "tmdb", image: crew.profile_path ? `https://image.tmdb.org/t/p/w185${crew.profile_path}` : null };
-          directorMap[crew.name].count++;
+        for (const d of directors) {
+          if (!directorMap[d.name]) directorMap[d.name] = { count: 0, id: d.id, personSource: d.personSource, image: d.image };
+          directorMap[d.name].count++;
         }
+        freshCreditRows.push({ tmdb_id: tmdbId, media_type: mt, credits: { actors, directors } });
       } catch { /* skip */ }
     }
+
+    if (freshCreditRows.length > 0) void saveCredits(freshCreditRows);
 
     const topActors = Object.entries(actorMap)
       .sort(([, a], [, b]) => b.count - a.count)
