@@ -14,6 +14,14 @@ const ANILIST_API = "https://graphql.anilist.co";
 // ─── Rating conversion (DB stores mixed scales: ×10 int or 0–10 int) ───
 const FROM_DB = (v: number) => v > 10 ? v / 10 : v > 5 ? v / 2 : v;
 
+// ─── Bounded fetch (fallback sources must never hang the recompute) ───
+async function fetchWithTimeout(url: string, ms = 2000): Promise<Response> {
+  return fetch(url, {
+    headers: { "User-Agent": "Seriez/1.0" },
+    signal: AbortSignal.timeout(ms),
+  });
+}
+
 // ─── Runtime metadata cache (shared across all users) ───
 async function loadKnownRuntimes(tracking: { tmdb_id: number; media_type: string }[]): Promise<Map<number, number>> {
   const map = new Map<number, number>();
@@ -169,7 +177,7 @@ async function fetchRuntimes(
         const query = `SELECT ?runtime ?article WHERE { ?item wdt:P4947 "${tmdbId}". OPTIONAL { ?item wdt:P2047 ?runtime. } OPTIONAL { ?article schema:about ?item; schema:isPartOf <https://en.wikipedia.org/>. } } LIMIT 1`;
         const url = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(query)}`;
         try {
-          const r = await fetch(url, { headers: { "User-Agent": "Seriez/1.0" } });
+          const r = await fetchWithTimeout(url, 2000);
           if (!r.ok) return { tmdbId, runtime: 0, article: "" };
           const j = await r.json();
           const b = j?.results?.bindings?.[0];
@@ -194,9 +202,9 @@ async function fetchRuntimes(
         wpIds.map(async ({ tmdbId, article }) => {
           const title = article.replace("https://en.wikipedia.org/wiki/", "");
           try {
-            const r = await fetch(
+            const r = await fetchWithTimeout(
               `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&prop=text&section=0&format=json`,
-              { headers: { "User-Agent": "Seriez/1.0" } }
+              2000
             );
             if (!r.ok) return { tmdbId, runtime: 0 };
             const j = await r.json();
@@ -225,7 +233,7 @@ async function fetchRuntimes(
         const query = `SELECT ?runtime ?article WHERE { ?item wdt:P4983 "${tmdbId}". OPTIONAL { ?item wdt:P2047 ?runtime. } OPTIONAL { ?article schema:about ?item; schema:isPartOf <https://en.wikipedia.org/>. } } LIMIT 1`;
         const url = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(query)}`;
         try {
-          const r = await fetch(url, { headers: { "User-Agent": "Seriez/1.0" } });
+          const r = await fetchWithTimeout(url, 2000);
           if (!r.ok) return { tmdbId, runtime: 0, article: "" };
           const j = await r.json();
           const b = j?.results?.bindings?.[0];
@@ -251,9 +259,9 @@ async function fetchRuntimes(
           try {
             // Use Wikipedia title to search TVMaze
             const title = decodeURIComponent(article.replace("https://en.wikipedia.org/wiki/", "").replace(/_/g, " "));
-            const r = await fetch(
+            const r = await fetchWithTimeout(
               `https://api.tvmaze.com/singlesearch/shows?q=${encodeURIComponent(title)}`,
-              { headers: { "User-Agent": "Seriez/1.0" } }
+              2000
             );
             if (!r.ok) return { tmdbId, runtime: 0 };
             const j = await r.json();
@@ -277,9 +285,9 @@ async function fetchRuntimes(
       stillMissingTV.map(async (tmdbId) => {
         const title = titleMap.get(tmdbId)!;
         try {
-          const r = await fetch(
+          const r = await fetchWithTimeout(
             `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(title)}&limit=1`,
-            { headers: { "User-Agent": "Seriez/1.0" } }
+            2000
           );
           if (!r.ok) return { tmdbId, runtime: 0 };
           const j = await r.json();
@@ -303,9 +311,9 @@ async function fetchRuntimes(
       stillMissingAnime.map(async (tmdbId) => {
         const title = titleMap.get(tmdbId)!;
         try {
-          const r = await fetch(
+          const r = await fetchWithTimeout(
             `https://cal.syoboi.jp/json.php?Req=TitleSearch&Search=${encodeURIComponent(title)}`,
-            { headers: { "User-Agent": "Seriez/1.0" } }
+            2000
           );
           if (!r.ok) return { tmdbId, runtime: 0 };
           const j = await r.json();
@@ -313,9 +321,9 @@ async function fetchRuntimes(
           const first = Object.values(titles)[0] as any;
           // Syoboi returns TID; we can get program detail from db.php
           if (!first?.TID) return { tmdbId, runtime: 0 };
-          const d2 = await fetch(
+          const d2 = await fetchWithTimeout(
             `https://cal.syoboi.jp/db.php?Command=ProgLookup&TID=${first.TID}&ChID=`,
-            { headers: { "User-Agent": "Seriez/1.0" } }
+            2000
           );
           if (!d2.ok) return { tmdbId, runtime: 0 };
           const j2 = await d2.json();
@@ -345,17 +353,17 @@ async function fetchRuntimes(
       finalMissing.map(async (tmdbId) => {
         const title = titleMap.get(tmdbId)!;
         try {
-          const sr = await fetch(
+          const sr = await fetchWithTimeout(
             `https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(title)}&format=json`,
-            { headers: { "User-Agent": "Seriez/1.0" } }
+            2000
           );
           if (!sr.ok) return { tmdbId, runtime: 0 };
           const sj = await sr.json();
           const pageTitle = sj?.query?.search?.[0]?.title;
           if (!pageTitle) return { tmdbId, runtime: 0 };
-          const pr = await fetch(
+          const pr = await fetchWithTimeout(
             `https://ja.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(pageTitle)}&prop=text&section=0&format=json`,
-            { headers: { "User-Agent": "Seriez/1.0" } }
+            2000
           );
           if (!pr.ok) return { tmdbId, runtime: 0 };
           const pj = await pr.json();
@@ -608,9 +616,9 @@ async function computeAndStore(username: string, userId: string): Promise<NextRe
 
     if (freshGenreRows.length > 0) await saveGenres(freshGenreRows);
 
-    // Anime genres from AniList
+    // Anime genres from AniList (bounded — don't let rate-limits hang recompute)
     if (animeIds.length > 0) {
-      for (const anilistId of animeIds.slice(0, 30)) {
+      await Promise.all(animeIds.slice(0, 30).map(async (anilistId) => {
         try {
           const res = await fetch(ANILIST_API, {
             method: "POST",
@@ -619,13 +627,14 @@ async function computeAndStore(username: string, userId: string): Promise<NextRe
               query: `query($id:Int){Media(id:$id){genres duration}}`,
               variables: { id: anilistId },
             }),
+            signal: AbortSignal.timeout(3000),
           });
           const json = await res.json();
           for (const g of json.data?.Media?.genres || []) {
             genreCounts[g] = (genreCounts[g] || 0) + 1;
           }
         } catch { /* skip */ }
-      }
+      }));
     }
 
     const topGenres = Object.entries(genreCounts)
@@ -660,7 +669,7 @@ async function computeAndStore(username: string, userId: string): Promise<NextRe
           const anilistId = track?.anilist_id;
           if (anilistId) {
             const q = `{Media(id:${anilistId}){staff(sort:RELEVANCE,perPage:8){edges{role node{id name{full}image{large}}}}}}`;
-            const res = await fetch(ANILIST_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q }) });
+            const res = await fetch(ANILIST_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q }), signal: AbortSignal.timeout(3000) });
             const data = await res.json();
             for (const edge of data?.data?.Media?.staff?.edges || []) {
               if (edge.role === "Director") {
