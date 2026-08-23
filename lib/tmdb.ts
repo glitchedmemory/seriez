@@ -556,12 +556,11 @@ export const getMovieDetail = unstable_cache(
 
   const genreIds: number[] = (detail.genres || []).map((g: { id: number }) => g.id);
 
-  // Fetch franchise/collection movies if this movie belongs to one
+  // Fetch franchise/collection movies if this movie belongs to one.
+  // NOTE: franchise entries are now shown in the dedicated "Series" section above,
+  // so we deliberately do NOT inject them into `similar` (avoid duplicate display).
   const collectionId = detail.belongs_to_collection?.id;
-  const franchiseResults = collectionId
-    ? await getFranchiseMovies(collectionId, detail.id)
-    : [];
-  // Fetch FULL franchise series (for the "Series" section) — parallel, separate from recommendations
+  // Fetch FULL franchise series (for the "Series" section)
   const franchise = collectionId ? await getFranchiseSeries(collectionId) : null;
 
   // Also discover similar by genre + keywords — much better than /similar alone
@@ -599,7 +598,7 @@ export const getMovieDetail = unstable_cache(
     cast: formatCredits(credits),
     // Movie series: include full franchise only when it has 2+ parts
     franchise: franchise && franchise.parts.length >= 2 ? franchise : undefined,
-    similar: mergeSimilar(similarFiltered, discoverResults, franchiseResults, collectionId, collectionMap),
+    similar: mergeSimilar(similarFiltered, discoverResults, [], collectionId, collectionMap),
     videos: [] as TmdbDetail["videos"],
   };
 
