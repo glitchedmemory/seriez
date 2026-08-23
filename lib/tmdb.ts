@@ -224,6 +224,8 @@ export type TmdbDetail = {
   budget?: number;
   revenue?: number;
   director?: string;
+  // Movie series/franchise (sequels in the same TMDB collection)
+  franchise?: { name: string; parts: { id: number; title: string; year: number; rating: number }[] };
   // Common
   cast: { id: number; name: string; character: string; photo: string | null }[];
   similar: TmdbResult[];
@@ -383,6 +385,34 @@ async function discoverPass(
   }
 }
 
+/** Fetch ALL movies in the same TMDB collection (franchise/series) — full list,
+ *  sorted by release date. Used ONLY for the movie "Series" section. Independent
+ *  from getFranchiseMovies (which picks 1 representative for recommendations). */
+async function getFranchiseSeries(
+  collectionId: number,
+): Promise<{ name: string; parts: { id: number; title: string; year: number; rating: number }[] } | null> {
+  try {
+    const data = await get(`/collection/${collectionId}`);
+    const parts: { id: number; title: string; year: number; rating: number }[] = (
+      data.parts || []
+    )
+      .filter((m: TmdbItem) => m.release_date || m.first_air_date)
+      .map((m: TmdbItem) => {
+        const dateStr = m.release_date || m.first_air_date || "";
+        return {
+          id: m.id,
+          title: m.title || m.name || "Unknown",
+          year: dateStr ? parseInt(dateStr.slice(0, 4)) : 0,
+          rating: Math.round(m.vote_average * 10) / 10,
+        };
+      })
+      .sort((a: { year: number; id: number }, b: { year: number; id: number }) => a.year - b.year || a.id - b.id);
+    return { name: data.name || "", parts };
+  } catch {
+    return null;
+  }
+}
+
 /** Fetch movies in the same TMDB collection (franchise/series) — only 1 entry */
 async function getFranchiseMovies(
   collectionId: number,
@@ -531,6 +561,8 @@ export const getMovieDetail = unstable_cache(
   const franchiseResults = collectionId
     ? await getFranchiseMovies(collectionId, detail.id)
     : [];
+  // Fetch FULL franchise series (for the "Series" section) — parallel, separate from recommendations
+  const franchise = collectionId ? await getFranchiseSeries(collectionId) : null;
 
   // Also discover similar by genre + keywords — much better than /similar alone
   const discoverResults = await discoverSimilar(genreIds, "movie", detail.id, keywords);
@@ -565,6 +597,8 @@ export const getMovieDetail = unstable_cache(
     revenue: detail.revenue || 0,
     director: (credits.crew || []).find((c: { job: string }) => c.job === "Director")?.name || "",
     cast: formatCredits(credits),
+    // Movie series: include full franchise only when it has 2+ parts
+    franchise: franchise && franchise.parts.length >= 2 ? franchise : undefined,
     similar: mergeSimilar(similarFiltered, discoverResults, franchiseResults, collectionId, collectionMap),
     videos: [] as TmdbDetail["videos"],
   };
