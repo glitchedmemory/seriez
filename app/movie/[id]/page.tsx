@@ -7,6 +7,7 @@ import MovieOverview from "@/components/MovieOverview";
 import MovieTrailers from "@/components/MovieTrailers";
 import MovieCast from "@/components/MovieCast";
 import MovieRecommendations from "@/components/MovieRecommendations";
+import MovieSeries from "@/components/MovieSeries";
 import DetailInteractive from "@/components/DetailInteractive";
 import { notFound } from "next/navigation";
 import { generateMovieJsonLd, StructuredDataScript } from "@/lib/structured-data";
@@ -68,6 +69,7 @@ export default async function MoviePage({ params }: Props) {
             <MovieInfo detail={detail} />
           </MovieHero>
           <div className="px-4 md:px-0">
+            <MovieSeries detail={detail} />
             <MovieOverview overview={detail.overview} />
             <DetailInteractive mode="reviews-only" detail={{ id: detail.id, type: detail.type, daysUntil: detail.daysUntil }} />
             <MovieTrailers videos={detail.videos} />
