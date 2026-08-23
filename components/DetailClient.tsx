@@ -489,6 +489,38 @@ export default function DetailClient({ detail }: { detail: TmdbDetail }) {
           </div>
         </div>
 
+        {/* Movie Series / Franchise — same position & style as TV season tabs */}
+        {detail.type === "movie" && detail.franchise && detail.franchise.parts.length >= 2 && (() => {
+          const rawName = detail.franchise.name || "";
+          const franchiseTitle = rawName
+            .replace(/\s*(Collection|Series|Trilogy|Saga|Franchise|Quadrilogy)\s*$/i, "")
+            .trim() || "Part";
+          return (
+            <section className="mt-6">
+              <h2 className="text-lg font-semibold text-text-primary mb-3">Series</h2>
+              <div className="flex flex-wrap gap-2">
+                {detail.franchise.parts.map((p, i) => {
+                  const isCurrent = p.id === detail.id;
+                  const label = `${franchiseTitle} ${i + 1}`;
+                  return (
+                    <a
+                      key={p.id}
+                      href={`/movie/${p.id}`}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        isCurrent
+                          ? "bg-accent text-white cursor-default pointer-events-none"
+                          : "bg-bg-card text-text-secondary hover:text-text-primary hover:bg-[#2d2d4a] border border-border hover:border-accent"
+                      }`}
+                    >
+                      {label}
+                    </a>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })()}
+
         {/* Overview */}
         {detail.overview && (
           <section className="mt-6">
