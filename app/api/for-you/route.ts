@@ -458,12 +458,40 @@ async function computeBoard(userId: string): Promise<{ items: TmdbResult[]; genr
   // ── 5. Score & Rank ──
   const ranked = scoreAndRank(candidates, userGenreIds, topGenres, ratedTypeCounts);
 
+  // ── 5b. Year balance: 70% post-2000 / 30% pre-2000 (drop unknown-year items) ──
+  // Older titles previously flooded the board because year had no bearing on
+  // scoring. Drop year=0 (unknown) titles entirely, then re-balance the final
+  // list to a 7:3 post-2000 : pre-2000 ratio, keeping score order within each
+  // bucket and filling shortfalls from the other bucket.
+  const knownYear = ranked.filter((item) => item.year >= 1);
+  const post2000 = knownYear.filter((item) => item.year >= 2000);
+  const pre2000 = knownYear.filter((item) => item.year < 2000);
+
+  const TARGET_TOTAL = knownYear.length < 14 ? knownYear.length : 14;
+  const targetPost = Math.round(TARGET_TOTAL * 0.7);
+  const balanced: TmdbResult[] = [];
+  let pi = 0, pp = 0;
+  while (balanced.length < TARGET_TOTAL) {
+    // Alternate: prefer post-2000 until we hit its quota, then pre-2000.
+    // If one bucket is exhausted, fill from the other.
+    const needPost = balanced.length < targetPost;
+    if (needPost && pi < post2000.length) {
+      balanced.push(post2000[pi++]);
+    } else if (pp < pre2000.length) {
+      balanced.push(pre2000[pp++]);
+    } else if (pi < post2000.length) {
+      balanced.push(post2000[pi++]);
+    } else {
+      break;
+    }
+  }
+
   // Build reason map
   const reasons: Record<number, string> = {};
-  for (const item of ranked) {
+  for (const item of balanced) {
     const c = candidates.get(item.id);
     if (c?.reason) reasons[item.id] = c.reason;
   }
 
-  return { items: ranked, genres: genreNames, reasons };
+  return { items: balanced, genres: genreNames, reasons };
 }
