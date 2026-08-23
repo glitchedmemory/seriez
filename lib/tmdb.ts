@@ -598,7 +598,16 @@ export const getMovieDetail = unstable_cache(
     cast: formatCredits(credits),
     // Movie series: include full franchise only when it has 2+ parts
     franchise: franchise && franchise.parts.length >= 2 ? franchise : undefined,
-    similar: mergeSimilar(similarFiltered, discoverResults, [], collectionId, collectionMap),
+    similar: (() => {
+      const merged = mergeSimilar(similarFiltered, discoverResults, [], collectionId, collectionMap);
+      // Remove any movie that belongs to this movie's franchise (they're already
+      // shown in the "Series" section above) — avoids duplicate display.
+      if (franchise) {
+        const franchiseIds = new Set(franchise.parts.map((p) => p.id));
+        return merged.filter((item) => !franchiseIds.has(item.id));
+      }
+      return merged;
+    })(),
     videos: [] as TmdbDetail["videos"],
   };
 
