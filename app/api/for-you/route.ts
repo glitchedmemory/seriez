@@ -214,7 +214,6 @@ function scoreAndRank(
       const picked: typeof scored = [];
       const typeUsed: Record<string, number> = {};
       for (const s of scored) {
-        if (picked.length >= TARGET) break;
         const t = s.item.type;
         const used = typeUsed[t] || 0;
         const allow = (quota[t] || 0) > used;
@@ -225,17 +224,21 @@ function scoreAndRank(
           picked.push(s);
           typeUsed[t] = used + 1;
         }
+        // Stop once we have a generous over-provisioned pool (year balancing
+        // happens downstream, so we need MORE than the final 14 here).
+        if (picked.length >= 40) break;
       }
-      // If underfilled (e.g. only anime candidates exist), top up in score order.
+      // Top up in score order to a generous pool (post-2000 may be sparse —
+      // a large pool guarantees the 7:3 fill can still find enough of each).
       for (const s of scored) {
-        if (picked.length >= TARGET) break;
+        if (picked.length >= 40) break;
         if (!picked.includes(s)) picked.push(s);
       }
       return picked.map((s) => s.item);
     }
   }
 
-  return scored.slice(0, 14).map((s) => s.item);
+  return scored.map((s) => s.item);
 }
 
 // ─── Main ───
