@@ -47,11 +47,21 @@ export async function POST(req: NextRequest) {
     const { data: urlData } = supabaseAdmin.storage.from("backgrounds").getPublicUrl(filePath);
     const publicUrl = urlData.publicUrl;
 
+    // Admin bypasses content moderation (background is public on their profile)
+    const { data: userData } = await supabaseAdmin
+      .from("users")
+      .select("role")
+      .eq("username", username.trim())
+      .maybeSingle();
+    const isAdmin = userData?.role === "admin";
+
     // Content moderation
-    const modResult = await checkImage(publicUrl);
-    if (!modResult.safe) {
-      await supabaseAdmin.storage.from("backgrounds").remove([filePath]);
-      return NextResponse.json({ error: modResult.reason || "Inappropriate image" }, { status: 422 });
+    if (!isAdmin) {
+      const modResult = await checkImage(publicUrl);
+      if (!modResult.safe) {
+        await supabaseAdmin.storage.from("backgrounds").remove([filePath]);
+        return NextResponse.json({ error: modResult.reason || "Inappropriate image" }, { status: 422 });
+      }
     }
 
     await supabaseAdmin
