@@ -4,7 +4,8 @@ type Relation = {
   type: string;
   format: string;
   seasonYear: number | null;
-  isOriginal: boolean;
+  status?: string;
+  isOriginal?: boolean;
 };
 
 // Try to extract an explicit season number from the title, e.g.

@@ -27,7 +27,7 @@ export default function SeasonRecommendations({ items }: { items: SimilarItem[] 
           <a key={item.id} href={titleHref(item.id, item.type)} className="flex-shrink-0 w-28 group">
             <div className="aspect-[2/3] rounded-lg overflow-hidden bg-bg-card group-hover:scale-105 transition-transform relative">
               <Image
-                src={item.poster}
+                src={item.poster || ""}
                 alt={item.title}
                 fill
                 className="object-cover rounded-lg"

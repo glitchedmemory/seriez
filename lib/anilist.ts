@@ -53,7 +53,7 @@ export type AnimeDetail = {
   characters: { name: string; role: string; voiceActor: string; image: string | null }[];
   recommendations: AnimeRecItem[];
   trailer: { id: string; site: string } | null;
-  relations: { id: number; title: string; type: string; format: string; seasonYear: number | null; status?: string }[];
+  relations: { id: number; title: string; type: string; format: string; seasonYear: number | null; status?: string; isOriginal?: boolean }[];
   daysUntil?: number | null;  // days until release (upcoming items only)
 };
 
@@ -500,7 +500,7 @@ async function fetchJikanEpisodes(malId: number): Promise<AnimeEpisode[]> {
     });
     if (!firstRes.ok) return [];
     const firstData = await firstRes.json();
-    const firstPage = (firstData.data || []).map((ep: any) => ({
+    const firstPage: AnimeEpisode[] = (firstData.data || []).map((ep: any) => ({
       number: ep.mal_id || 0,
       title: ep.title || `Episode ${ep.mal_id}`,
       titleJapanese: ep.title_japanese || "",
@@ -1059,7 +1059,7 @@ query($id: Int) {
  */
 export const enrichAnimeRelations = async (
   currentId: number,
-  existingRelations: { id: number; title: string; type: string; format: string; seasonYear: number | null; status: string }[],
+  existingRelations: { id: number; title: string; type: string; format: string; seasonYear: number | null; status?: string }[],
   currentYear: number,
 ): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null; isOriginal: boolean }[]> => {
   const relationIds = existingRelations.map(r => r.id).sort().join(",");
