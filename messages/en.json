@@ -445,6 +445,7 @@
     "likedReview": "liked your review",
     "commentedOnReview": "commented on your review",
     "pollBadge": "POLL",
+    "activitySection": "Activity",
     "pollVotes": "{n} votes",
     "pollVoteCounted": "Your vote is counted",
     "pollClosesIn": "Closes in {d} days",

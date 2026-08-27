@@ -445,6 +445,7 @@
     "likedReview": "님이 리뷰를 좋아합니다",
     "commentedOnReview": "님이 리뷰에 댓글을 달았습니다",
     "pollBadge": "투표",
+    "activitySection": "활동",
     "pollVotes": "{n}표",
     "pollVoteCounted": "투표가 기록되었습니다",
     "pollClosesIn": "{d}일 후 마감",

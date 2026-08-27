@@ -445,6 +445,7 @@
     "likedReview": "さんのレビューにいいねしました",
     "commentedOnReview": "さんがレビューにコメントしました",
     "pollBadge": "投票",
+    "activitySection": "アクティビティ",
     "pollVotes": "{n}票",
     "pollVoteCounted": "投票を受け付けました",
     "pollClosesIn": "あと{d}日で締切",

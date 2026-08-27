@@ -418,6 +418,7 @@
     "likedReview": "gefällt deine Bewertung",
     "commentedOnReview": "hat deine Bewertung kommentiert",
     "pollBadge": "UMFRAGE",
+    "activitySection": "Aktivität",
     "pollVotes": "{n} Stimmen",
     "pollVoteCounted": "Deine Stimme wurde gezählt",
     "pollClosesIn": "Endet in {d} Tagen",
