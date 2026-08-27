@@ -40,21 +40,6 @@ function getTypeConfig(t: any) {
   } as Record<string, { emoji: string; text: string; badge: string; color: string; badgeClass: string }>;
 }
 
-const AVATAR_COLORS = [
-  "from-[#7c3aed] to-[#a855f7]",
-  "from-[#ea580c] to-[#f59e0b]",
-  "from-[#059669] to-[#22c55e]",
-  "from-[#2563eb] to-[#6366f1]",
-  "from-[#db2777] to-[#ec4899]",
-  "from-[#0891b2] to-[#06b6d4]",
-];
-
-function getAvatarColor(username: string): string {
-  let hash = 0;
-  for (let i = 0; i < username.length; i++) hash = username.charCodeAt(i) + ((hash << 5) - hash);
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-
 function timeAgo(dateStr: string, now: number, t: any): string {
   const diff = now - new Date(dateStr).getTime();
   const min = Math.floor(diff / 60000);
@@ -130,7 +115,15 @@ export default function FeedPage() {
           </p>
         </div>
       ) : (
-        <div className="">
+        <>
+          {/* Activity 섹션 헤딩 */}
+          <div className="flex items-center gap-2 px-4 pt-6 pb-2.5 md:px-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-light" />
+            <span className="text-[11px] font-bold tracking-[0.08em] uppercase text-text-secondary">
+              {t("feedPage.activitySection") || "Activity"}
+            </span>
+          </div>
+          <div className="px-4 md:px-0">
           {activities.map((a, idx) => {
             const typeConfig = getTypeConfig(t);
             const cfg = typeConfig[a.type] || typeConfig.plan_to_watch;
@@ -145,26 +138,20 @@ export default function FeedPage() {
             const href = isNotif && a.reviewId
               ? `${baseHref}?review=${encodeURIComponent(a.reviewId)}`
               : baseHref;
-            const avatarGradient = getAvatarColor(a.username);
 
             return (
               <Fragment key={a.id}>
                 <Link
               key={a.id}
               href={href}
-              className={`flex items-start gap-3 px-4 py-3.5 hover:bg-bg-primary transition-colors group relative ${idx < activities.length - 1 || idx === 2 ? "border-b border-dotted border-border/50" : ""}`}
+              className={`flex items-start gap-3 px-4 py-3.5 hover:bg-bg-primary transition-colors group relative ${idx < activities.length - 1 || idx === 2 ? "border-b border-border/50" : ""}`}
             >
-              {/* Left color bar */}
-              <div
-                className="absolute left-0 top-0 bottom-0 w-[3px] rounded-r"
-                style={{ backgroundColor: cfg.color }}
-              />
-
               {/* Avatar */}
               <div
-                className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center flex-shrink-0 mt-0.5`}
+                className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                style={{ backgroundColor: cfg.color }}
               >
-                <span className="text-xs font-bold text-text-primary">
+                <span className="text-xs font-bold text-white">
                   {a.username.slice(0, 1).toUpperCase()}
                 </span>
               </div>
@@ -203,7 +190,7 @@ export default function FeedPage() {
 
                 {/* Review snippet */}
                 {hasReview && (
-                  <div className="mt-2 text-[11px] text-text-secondary leading-relaxed italic bg-bg-surface border-l-2 border-[#a855f7] rounded-r-md px-2.5 py-2">
+                  <div className="mt-2 text-[12px] text-text-secondary leading-relaxed italic bg-bg-surface rounded-xl px-3 py-2.5">
                     &ldquo;{a.content}&rdquo;
                   </div>
                 )}
@@ -230,7 +217,8 @@ export default function FeedPage() {
               </Fragment>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
