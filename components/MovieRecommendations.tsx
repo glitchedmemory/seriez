@@ -25,7 +25,7 @@ export default function MovieRecommendations({ items }: { items: TmdbResult[] })
         {items.map((item) => (
           <a key={item.id} href={titleHref(item.id, item.type)} className="flex-shrink-0 w-28 group">
             <div className="aspect-[2/3] rounded-lg overflow-hidden bg-bg-card group-hover:scale-105 transition-transform relative">
-              <Image src={item.poster} alt={item.title} fill className="object-cover rounded-lg" sizes="112px" />
+              <Image src={item.poster || ""} alt={item.title} fill className="object-cover rounded-lg" sizes="112px" />
             </div>
             <p className="text-[11px] text-text-primary mt-1 line-clamp-1">{item.title}</p>
             <p className="text-[10px] text-text-secondary"><span className="sr-only">Seriez Rating: </span>★ {item.rating}/10</p>

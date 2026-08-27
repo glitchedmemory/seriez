@@ -25,7 +25,7 @@ export default function MovieHero({ detail, children }: { detail: TmdbDetail; ch
           <div className="flex-shrink-0 w-36 md:w-48 mx-auto md:mx-0">
             <div className="aspect-[2/3] rounded-xl overflow-hidden bg-bg-card shadow-2xl relative">
               <Image
-                src={detail.poster}
+                src={detail.poster || ""}
                 alt={detail.title}
                 fill
                 priority

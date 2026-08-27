@@ -189,7 +189,7 @@ export function Sidebar({ user: serverUser }: { user?: { username?: string | nul
           <a href="/profile" className="flex items-center gap-3 px-1.5 py-2 min-w-max">
             <div className="relative flex-shrink-0">
             {(avatarUrl || user?.avatarUrl) ? (
-              <img src={avatarUrl || user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+              <img src={avatarUrl || user.avatarUrl || "/icons/default-avatar.png"} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             ) : (
               <img src="/icons/default-avatar.png" alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             )}

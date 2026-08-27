@@ -23,9 +23,9 @@ export async function GET(req: NextRequest) {
 
     // DAU — union of usernames from tracking/reviews/comments
     const [{ data: dauTracked }, { data: dauReviews }, { data: dauComments }] = await Promise.all([
-      supabaseAdmin.from("media_trackings").select("username").gte("updated_at", thirtyDaysAgo),
-      supabaseAdmin.from("reviews").select("username").gte("created_at", thirtyDaysAgo),
-      supabaseAdmin.from("review_comments").select("username").gte("created_at", thirtyDaysAgo),
+      supabaseAdmin.from("media_trackings").select("username, updated_at").gte("updated_at", thirtyDaysAgo),
+      supabaseAdmin.from("reviews").select("username, created_at").gte("created_at", thirtyDaysAgo),
+      supabaseAdmin.from("review_comments").select("username, created_at").gte("created_at", thirtyDaysAgo),
     ]);
 
     const dayUsers: Record<string, Set<string>> = {};

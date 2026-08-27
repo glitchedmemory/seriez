@@ -609,6 +609,7 @@ export const getMovieDetail = unstable_cache(
       return merged;
     })(),
     videos: [] as TmdbDetail["videos"],
+    daysUntil: null as number | null,
   };
 
   // Compute daysUntil for upcoming movies
@@ -707,6 +708,7 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
     cast: formatAggregateCredits(aggregateCredits),
     similar: mergeSimilar(similarFiltered, discoverResults),
     videos: [] as TmdbDetail["videos"],
+    daysUntil: null as number | null,
   };
 
   // Compute daysUntil for upcoming TV

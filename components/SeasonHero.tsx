@@ -49,7 +49,7 @@ export default function SeasonHero({ data, children }: { data: SeasonData; child
           <div className="flex-shrink-0 w-36 md:w-48 mx-auto md:mx-0">
             <div className="aspect-[2/3] rounded-xl overflow-hidden bg-bg-card shadow-2xl relative">
               <Image
-                src={data.seasonPoster}
+                src={data.seasonPoster || ""}
                 alt={data.seasonName}
                 fill
                 priority
