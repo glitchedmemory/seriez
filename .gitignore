@@ -24,6 +24,16 @@
 .DS_Store
 *.pem
 
+# local cache & scratch files
+.cache/
+RLS_REPORT.md
+migration_human_visits.js
+migration_polls.js
+mk-session.mjs
+seed_first_poll.js
+seed_poll_votes.js
+unset_poll_ends.js
+
 # debug
 npm-debug.log*
 yarn-debug.log*
