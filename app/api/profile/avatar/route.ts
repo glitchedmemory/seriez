@@ -48,12 +48,22 @@ export async function POST(req: NextRequest) {
     const { data: urlData } = supabaseAdmin.storage.from("avatars").getPublicUrl(filePath);
     const publicUrl = urlData.publicUrl;
 
+    // Admin bypasses content moderation (avatar is public on their profile)
+    const { data: userData } = await supabaseAdmin
+      .from("users")
+      .select("role")
+      .eq("username", username.trim())
+      .maybeSingle();
+    const isAdmin = userData?.role === "admin";
+
     // Content moderation check
-    const modResult = await checkImage(publicUrl);
-    if (!modResult.safe) {
-      // Delete the uploaded file
-      await supabaseAdmin.storage.from("avatars").remove([filePath]);
-      return NextResponse.json({ error: modResult.reason || "Inappropriate image" }, { status: 422 });
+    if (!isAdmin) {
+      const modResult = await checkImage(publicUrl);
+      if (!modResult.safe) {
+        // Delete the uploaded file
+        await supabaseAdmin.storage.from("avatars").remove([filePath]);
+        return NextResponse.json({ error: modResult.reason || "Inappropriate image" }, { status: 422 });
+      }
     }
 
     // Update user's avatar_url

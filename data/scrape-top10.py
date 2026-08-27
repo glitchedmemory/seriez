@@ -1,116 +1,152 @@
 #!/home/ava/.local/invisible_playwright/bin/python3
-"""Scrape FlixPatrol Top 10 for Netflix, Disney+, Amazon Prime — Movies + TV Shows + Posters.
-Uses Invisible Playwright to extract both text rankings and poster images.
-Enriches each title with TMDB ID for clickable links.
-With retry logic: up to 3 attempts with exponential backoff."""
+"""Scrape streaming Top 10 for Netflix, Disney+, Amazon Prime — Movies + TV Shows.
+
+Data source: JustWatch (justwatch.com/us/provider/{slug}).
+
+JustWatch SSR-embeds an Apollo GraphQL cache (__APOLLO_STATE__) that carries the
+provider's "streaming chart" — the platform's own weekly-popularity ranking,
+split by objectType (MOVIE = movies, SHOW = tv). Each chart entry exposes a
+StreamingChartInfo node with rank / trend / daysInTop10. The root
+`streamingCharts(country:US, filter:{category:WEEKLY_POPULARITY_SAME_CONTENT_TYPE,
+objectType, packages:[code]}, first:10)` query returns the top 10 titles,
+already sorted by popularity. We re-map the list index to rank 1..10 (the
+absolute `rank` field is the title's position in the broader US-wide chart, not
+its rank inside the top-10 list, so it is NOT used as the output rank).
+
+Each title also carries a TMDB id (tmXXXXX / tsXXXXX) straight from JustWatch,
+so tmdbId is resolved without a separate TMDB search; TMDB is only queried for
+the poster URL when JustWatch's own poster is unavailable.
+
+Uses the Invisible Playwright venv Python (for the shebang + urllib), no browser
+needed — plain HTTP fetch of the SSR HTML.
+"""
 import os
 import re
 import sys
-import time
 import json
+import time
 from datetime import datetime, timezone
 from urllib.request import urlopen, Request
 from urllib.parse import quote
 
-FLIXPATROL_BASE = "https://flixpatrol.com"
-PLATFORM_MAP = {"Netflix": "netflix", "Disney+": "disney", "Amazon Prime": "amazon"}
+# JustWatch provider slug → (output key, package code)
+PLATFORM_MAP = {
+    "netflix":            {"key": "netflix", "pkg": "nfx"},
+    "disney-plus":        {"key": "disney",  "pkg": "dnp"},
+    "amazon-prime-video": {"key": "amazon",  "pkg": "amp"},
+}
 OUTPUT_PATH = "/home/ava/workspace/seriez-2026-06-09/data/streaming-top10.json"
 MAX_RETRIES = 3
 BASE_DELAY = 10
 TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "")
 
-HEADER_RE = re.compile(r'TOP (Movies|TV Shows) on (.+?) on \w+ \d+, \d+')
-ITEM_RE = re.compile(r'^(\d+)\.\t\n(.+?)\n\t(\d+)', re.MULTILINE)
-IMG_RE = re.compile(r'<img[^>]+src="([^"]+)"[^>]*>')
-
-# Known title disambiguation: FlixPatrol title → correct TMDB ID
-# Titles that are ambiguous or have remakes need manual mapping
-TMDB_OVERRIDES = {
-    # (title_lower, media_type) → tmdbId
-    ("toy story", "movie"): 862,           # Original Toy Story (1995) — FlixPatrol often lists classic when trending
-    ("toy story 5", "movie"): None,         # Not yet in TMDB — skip, will search
-}
+JW_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
 
 
-def fetch_page():
-    """Fetch FlixPatrol via Invisible Playwright. Returns (inner_text, html) or (None, None)."""
+def jw_fetch(url):
+    """Fetch a URL and return decoded text, or None on failure."""
+    req = Request(url, headers={"User-Agent": JW_UA, "Accept-Language": "en-US,en;q=0.9"})
     try:
-        from invisible_playwright import InvisiblePlaywright
-
-        with InvisiblePlaywright(headless=True) as browser:
-            page = browser.new_page()
-            page.goto("https://flixpatrol.com/top10/", wait_until="domcontentloaded", timeout=60000)
-            page.wait_for_timeout(5000)  # Wait for images to load
-            text = page.inner_text("body")
-            html = page.content()
-            return text, html
+        with urlopen(req, timeout=30) as resp:
+            return resp.read().decode("utf-8", "ignore")
     except Exception as e:
-        print(f"Playwright error: {e}", file=sys.stderr)
-        return None, None
+        print(f"  fetch error: {e}", file=sys.stderr)
+        return None
 
 
-def parse_items(text, html):
-    """Parse streaming top 10 items with posters from FlixPatrol."""
-    headers = [(m.start(), m.group(1), m.group(2)) for m in HEADER_RE.finditer(text)]
+def parse_justwatch(html):
+    """Parse a single JustWatch provider page's Apollo state.
 
-    output = {}
-    for key in PLATFORM_MAP.values():
-        output[key] = {"movies": [], "tv": []}
+    Returns {"movies": [...], "tv": [...]} for the provider in that single page,
+    or None if the page has no usable data.
+    """
+    m = re.search(r'__APOLLO_STATE__\s*=\s*(\{.*?\})\s*;?\s*</script>', html, re.DOTALL)
+    if not m:
+        return None
+    try:
+        state = json.loads(m.group(1))
+    except Exception:
+        return None
+    default = state.get("defaultClient", state)
 
-    for i, (pos, media_type, platform) in enumerate(headers):
-        key = PLATFORM_MAP.get(platform)
-        if key is None:
+    result = {"movies": [], "tv": []}
+
+    for objtype, cat in (("MOVIE", "movies"), ("SHOW", "tv")):
+        # Locate the root streamingCharts query for this page's package + objectType
+        root_key = None
+        for k in default.keys():
+            if not isinstance(k, str):
+                continue
+            if ("streamingCharts" not in k) or ("ROOT_QUERY" not in k):
+                continue
+            if '"objectType":"%s"' % objtype in k:
+                root_key = k
+                break
+        if root_key is None:
             continue
 
-        category = "movies" if media_type == "Movies" else "tv"
-        end_pos = headers[i + 1][0] if i + 1 < len(headers) else len(text)
-        section_text = text[pos:end_pos]
-
-        # Find corresponding section in HTML for image extraction
-        header_text = f"TOP {media_type} on {platform}"
-        html_start = html.find(header_text)
-        if html_start >= 0 and i + 1 < len(headers):
-            nh_media, nh_platform = headers[i + 1][1], headers[i + 1][2]
-            nh_text = f"TOP {nh_media} on {nh_platform}"
-            html_end = html.find(nh_text, html_start + 100)
-            if html_end < 0:
-                html_end = len(html)
-        elif html_start >= 0:
-            html_end = len(html)
-        else:
-            html_end = 0
-
-        section_html = html[html_start:html_end] if html_end > html_start else ""
-        section_imgs = IMG_RE.findall(section_html)
-        poster_urls = [f"{FLIXPATROL_BASE}{u}" for u in section_imgs if '/posters/' in u]
-
-        # Parse text items
+        conn = default.get(root_key, {})
+        edge_refs = conn.get("edges", [])
         items = []
-        for m in ITEM_RE.finditer(section_text):
-            rank = int(m.group(1))
-            title = m.group(2).strip()
-            score = int(m.group(3))
-            if rank <= 10:
-                poster = poster_urls[rank - 1] if rank - 1 < len(poster_urls) else None
+        for er in edge_refs:
+            if not isinstance(er, dict):
+                continue
+            edge = default.get(er.get("id"), {})
+
+            # resolve node object id (tmXXXXX / tsXXXXX) for tmdbId
+            node = edge.get("node", {})
+            objid = None
+            otype = None
+            if isinstance(node, dict):
+                nid = node.get("id")
+                if nid and nid in default:
+                    node_data = default[nid]
+                    objid = node_data.get("id")
+                    otype = node_data.get("__typename")
+
+            # resolve title from the content node (poster is fetched via TMDB later)
+            title = None
+            if objid:
+                for ck, cv in default.items():
+                    if isinstance(cv, dict) and cv.get("__typename") in ("MovieContent", "ShowContent"):
+                        if objid in ck:
+                            title = cv.get("title")
+                            break
+
+            if title:
                 items.append({
-                    "rank": rank,
                     "title": title,
-                    "score": score,
-                    "poster": poster,
+                    "mediaType": "movie" if otype == "Movie" else "tv",
                 })
+                # resolve rank (absolute chart position; NOT used as output rank)
+                sci = edge.get("streamingChartInfo", {})
+                if isinstance(sci, dict):
+                    sid = sci.get("id")
+                    if sid and sid in default:
+                        rank = default[sid].get("rank")
+                        if rank is not None:
+                            items[-1]["_chartRank"] = rank
 
-        output[key][category] = items
-        poster_count = sum(1 for it in items if it.get("poster"))
-        print(f"  {key}/{category}: {len(items)} items, {poster_count} posters")
+        # edges arrive sorted by popularity — assign 1..10 in that order
+        items = items[:10]
+        for i, it in enumerate(items):
+            it["rank"] = i + 1
+            # score = absolute chart position (trend/popularity signal); keep the
+            # field for schema compatibility with the old FlixPatrol output.
+            cr = it.pop("_chartRank", None)
+            it["score"] = cr if cr is not None else 0
+        result[cat] = items
 
-    return output
+    return result
 
 
 def is_valid(output):
-    """Check if all 3 platforms have 10 movies AND 10 TV shows."""
-    for key in PLATFORM_MAP.values():
+    """All 3 platforms must have 9-10 movies AND 9-10 TV shows."""
+    for cfg in PLATFORM_MAP.values():
+        key = cfg["key"]
         for cat in ("movies", "tv"):
-            if not (9 <= len(output.get(key, {}).get(cat, [])) <= 10):
+            n = len(output.get(key, {}).get(cat, []))
+            if not (9 <= n <= 10):
                 return False
     return True
 
@@ -124,7 +160,7 @@ def tmdb_request(path, params=None):
         for k, v in params.items():
             qs += f"&{k}={quote(str(v))}"
     url = f"https://api.themoviedb.org/3{path}?{qs}"
-    req = Request(url, headers={"User-Agent": "Seriez/1.0", "Accept": "application/json"})
+    req = Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
     try:
         with urlopen(req, timeout=10) as resp:
             return json.loads(resp.read())
@@ -134,18 +170,9 @@ def tmdb_request(path, params=None):
 
 
 def find_tmdb(title, media_type):
-    """Search TMDB for a title. Returns (tmdbId, mediaType, posterPath) or (None, None, None)."""
+    """Search TMDB by title (JustWatch's tmXXXXX id is NOT a TMDB id, so we
+    must match by title). Returns (tmdbId, mediaType, posterPath) or (None...)."""
     title_lower = title.strip().lower()
-
-    # Check manual overrides first
-    override = TMDB_OVERRIDES.get((title_lower, media_type))
-    if override is not None:
-        print(f"    ✓ override: {title} → tmdb:{override}")
-        # Overrides skip search, so poster_path must come from a detail call
-        poster_path = fetch_poster_path(override, media_type)
-        return override, media_type, poster_path
-
-    # Try exact TMDB search
     if media_type == "movie":
         result = tmdb_request("/search/movie", {"query": title, "language": "en-US", "page": 1})
         results_key = "results"
@@ -160,7 +187,7 @@ def find_tmdb(title, media_type):
     if not candidates:
         return None, None, None
 
-    # Match: exact title match, or starts-with, or contains
+    # Match: exact, then starts-with/contains, then first result
     best = None
     for item in candidates:
         item_title = (item.get("title") or item.get("name") or "").strip().lower()
@@ -174,40 +201,24 @@ def find_tmdb(title, media_type):
                 best = item
                 break
     if not best:
-        best = candidates[0]  # fallback to first result
+        best = candidates[0]
 
     tmdb_id = best["id"]
     resolved_type = "movie" if best.get("title") else "tv"
-    print(f"    ✓ TMDB match: {title} → tmdb:{tmdb_id} ({resolved_type})")
     return tmdb_id, resolved_type, best.get("poster_path")
 
 
-def fetch_poster_path(tmdb_id, media_type):
-    """Fetch poster_path for a known tmdb_id via detail call. Returns path or None."""
-    t = "tv" if media_type == "tv" else "movie"
-    result = tmdb_request(f"/{t}/{tmdb_id}")
-    if result:
-        return result.get("poster_path")
-    return None
+def enrich_posters(output):
+    """Match every title to TMDB by name and set its TMDB poster + tmdbId.
 
-
-def enrich_with_tmdb(output):
-    """Add tmdbId, mediaType and TMDB poster URL to every item.
-
-    Reuses already-stored TMDB posters from the previous run (matched by
-    tmdbId) so only new titles hit the TMDB API. Poster is stored as an
-    image.tmdb.org URL, replacing the FlixPatrol CDN URL (which is blocked
-    by Cloudflare with HTTP 403).
+    JustWatch's `id` field (tmXXXXX / tsXXXXX) is a JustWatch-internal id, NOT a
+    TMDB id — so tmdbId must be resolved by TMDB title search. Posters are
+    always served from image.tmdb.org (no Cloudflare block). Cached results
+    from the previous run are reused by (title_lower, mediaType).
     """
-    total_items = sum(
-        len(output[p][c])
-        for p in PLATFORM_MAP.values()
-        for c in ("movies", "tv")
-    )
-    print(f"\nEnriching {total_items} items with TMDB IDs + posters...")
+    total = sum(len(output[cfg["key"]][c]) for cfg in PLATFORM_MAP.values() for c in ("movies", "tv"))
+    print(f"\nResolving TMDB ids + posters for {total} items...")
 
-    # Load previously stored TMDB data (tmdbId + poster) keyed by (title_lower, media_type)
-    # so titles that already have a poster from a previous run are never re-queried.
     existing = {}
     if os.path.exists(OUTPUT_PATH):
         try:
@@ -217,79 +228,99 @@ def enrich_with_tmdb(output):
                 for cat in ("movies", "tv"):
                     for it in plat.get(cat, []):
                         p = it.get("poster") or ""
-                        if "image.tmdb.org" in p and it.get("tmdbId") and it.get("title"):
-                            key = (it["title"].strip().lower(), it.get("mediaType"))
-                            existing[key] = (it["tmdbId"], p)
-            print(f"  Loaded {len(existing)} cached TMDB posters from previous run")
-        except Exception as e:
-            print(f"  Could not read previous output: {e}", file=sys.stderr)
+                        if p.startswith("https://image.tmdb.org") and it.get("tmdbId") and it.get("title"):
+                            existing[(it["title"].strip().lower(), it.get("mediaType"))] = (it["tmdbId"], p)
+            if existing:
+                print(f"  Loaded {len(existing)} cached TMDB entries")
+        except Exception:
+            pass
 
-    enriched = 0
-    reused = 0
-    for platform in PLATFORM_MAP.values():
-        for category in ("movies", "tv"):
-            items = output[platform][category]
-            for item in items:
+    filled = reused = unmatched = 0
+    for cfg in PLATFORM_MAP.values():
+        for cat in ("movies", "tv"):
+            for item in output[cfg["key"]][cat]:
                 title = item["title"]
-                media_type = "movie" if category == "movies" else "tv"
-                key = (title.strip().lower(), media_type)
-
-                # Reuse existing tmdbId + poster if this title was already enriched
+                mt = "movie" if cat == "movies" else "tv"
+                key = (title.strip().lower(), mt)
                 if key in existing:
                     item["tmdbId"], item["poster"] = existing[key]
-                    item["mediaType"] = media_type
+                    item["mediaType"] = mt
                     reused += 1
                     continue
-
-                tmdb_id, mt, poster_path = find_tmdb(title, media_type)
+                tmdb_id, resolved_type, poster_path = find_tmdb(title, mt)
                 if tmdb_id:
                     item["tmdbId"] = tmdb_id
-                    item["mediaType"] = mt
+                    item["mediaType"] = resolved_type
                     if poster_path:
                         item["poster"] = f"https://image.tmdb.org/t/p/w342{poster_path}"
                     else:
                         item["poster"] = None
-                    enriched += 1
+                    filled += 1
                 else:
-                    # No TMDB match (e.g. live events) — clear FlixPatrol URL so the
-                    # frontend falls back to its default placeholder image
+                    item["tmdbId"] = None
+                    item["mediaType"] = mt
                     item["poster"] = None
-                time.sleep(0.3)  # TMDB rate limit: ~40 req/10s
+                    unmatched += 1
+                time.sleep(0.3)
 
-    print(f"  Enriched {enriched}/{total_items} items with TMDB IDs; reused {reused} cached posters")
+    print(f"  Matched {filled} via TMDB search; reused {reused} cached; unmatched {unmatched}")
 
 
-# Main with retry logic
-for attempt in range(1, MAX_RETRIES + 1):
-    print(f"Attempt {attempt}/{MAX_RETRIES}...")
+def main():
+    output = None
+    for attempt in range(1, MAX_RETRIES + 1):
+        print(f"Attempt {attempt}/{MAX_RETRIES}...")
+        all_pages = {}
+        for slug in PLATFORM_MAP:
+            html = jw_fetch(f"https://www.justwatch.com/us/provider/{slug}")
+            if html is None:
+                all_pages[slug] = None
+            else:
+                all_pages[slug] = html
 
-    text, html = fetch_page()
-    if text is None:
+        # Parse each platform independently and merge
+        merged = {cfg["key"]: {"movies": [], "tv": []} for cfg in PLATFORM_MAP.values()}
+        ok = True
+        for slug, html in all_pages.items():
+            if html is None:
+                ok = False
+                continue
+            parsed = parse_justwatch(html)
+            if parsed is None:
+                ok = False
+                continue
+            key = PLATFORM_MAP[slug]["key"]
+            merged[key] = parsed
+
+        if ok:
+            output = merged
+            break
+
         if attempt < MAX_RETRIES:
             delay = BASE_DELAY * (2 ** (attempt - 1))
-            print(f"  Retrying in {delay}s...", file=sys.stderr)
+            print(f"  Invalid results, retrying in {delay}s...", file=sys.stderr)
             time.sleep(delay)
-        continue
 
-    output = parse_items(text, html)
+    if output is None or not is_valid(output):
+        print(f"\nFAILED after {MAX_RETRIES} attempts", file=sys.stderr)
+        sys.exit(1)
 
-    if is_valid(output):
-        # Enrich with TMDB IDs so titles are clickable
-        enrich_with_tmdb(output)
+    # Verify each platform's counts
+    for key in ("netflix", "disney", "amazon"):
+        for cat in ("movies", "tv"):
+            n = len(output[key][cat])
+            print(f"  {key}/{cat}: {n} items")
 
-        with open(OUTPUT_PATH, "w") as f:
-            json.dump({
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-                "data": output,
-                "source": "flixpatrol",
-            }, f, indent=2)
-        print(f"\nSaved to {OUTPUT_PATH}")
-        sys.exit(0)
+    enrich_posters(output)
 
-    if attempt < MAX_RETRIES:
-        delay = BASE_DELAY * (2 ** (attempt - 1))
-        print(f"  Invalid results, retrying in {delay}s...", file=sys.stderr)
-        time.sleep(delay)
+    with open(OUTPUT_PATH, "w") as f:
+        json.dump({
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "data": output,
+            "source": "justwatch",
+        }, f, indent=2)
+    print(f"\nSaved to {OUTPUT_PATH}")
 
-print(f"\nFAILED after {MAX_RETRIES} attempts", file=sys.stderr)
-sys.exit(1)
+
+if __name__ == "__main__":
+    main()
