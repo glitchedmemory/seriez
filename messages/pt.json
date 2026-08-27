@@ -445,6 +445,7 @@
     "likedReview": "curtiu sua avaliação",
     "commentedOnReview": "comentou na sua avaliação",
     "pollBadge": "ENQUETE",
+    "activitySection": "Atividade",
     "pollVotes": "{n} votos",
     "pollVoteCounted": "Seu voto foi contado",
     "pollClosesIn": "Encerra em {d} dias",

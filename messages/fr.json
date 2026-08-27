@@ -418,6 +418,7 @@
     "likedReview": "aime votre critique",
     "commentedOnReview": "a commenté votre critique",
     "pollBadge": "SONDAGE",
+    "activitySection": "Activité",
     "pollVotes": "{n} votes",
     "pollVoteCounted": "Votre vote a été enregistré",
     "pollClosesIn": "Se termine dans {d} jours",

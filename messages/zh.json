@@ -445,6 +445,7 @@
     "likedReview": "赞了你的影评",
     "commentedOnReview": "评论了你的影评",
     "pollBadge": "投票",
+    "activitySection": "活动",
     "pollVotes": "{n}票",
     "pollVoteCounted": "您的投票已记录",
     "pollClosesIn": "还有{d}天截止",

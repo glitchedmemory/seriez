@@ -418,6 +418,7 @@
     "likedReview": "le gusta tu reseña",
     "commentedOnReview": "comentó tu reseña",
     "pollBadge": "ENCUESTA",
+    "activitySection": "Actividad",
     "pollVotes": "{n} votos",
     "pollVoteCounted": "Tu voto ha sido contado",
     "pollClosesIn": "Cierra en {d} días",
