@@ -99,28 +99,36 @@ export default function PollCard() {
     const diff = new Date(poll.ends_at).getTime() - Date.now();
     if (diff <= 0) return "";
     const days = Math.ceil(diff / 86400000);
-    if (days > 1) return t("feedPage.pollClosesIn").replace("{d}", String(days));
+    if (days > 1) return t("feedPage.pollClosesIn", { d: days });
     const hours = Math.ceil(diff / 3600000);
-    return t("feedPage.pollClosesInHours").replace("{h}", String(hours));
+    return t("feedPage.pollClosesInHours", { h: hours });
   })();
 
   return (
-    <div className="mt-4 mx-4 md:mx-0 bg-bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-        <span className="text-[10px] font-bold tracking-wide uppercase text-accent bg-bg-surface px-2 py-0.5 rounded-full">
+    <>
+      {/* 섹션 헤딩 */}
+      <div className="flex items-center gap-2 px-4 pt-5 pb-2.5 md:px-0">
+        <span className="w-1.5 h-1.5 rounded-full bg-accent-light" />
+        <span className="text-[11px] font-bold tracking-[0.08em] uppercase text-text-secondary">
           {t("feedPage.pollBadge")}
-        </span>
-        <span className="ml-auto text-[11px] font-medium text-text-secondary">
-          {t("feedPage.pollVotes").replace("{n}", String(total))}
         </span>
       </div>
 
-      <div className="p-4">
-        <p className="text-[15px] font-bold leading-snug mb-3.5 text-text-primary">
+      <div className="mx-4 md:mx-0 bg-bg-card border border-border rounded-[20px] overflow-hidden">
+        <div className="flex items-center gap-2.5 px-[18px] pt-4 pb-3">
+          <span className="text-[10px] font-bold tracking-[0.06em] text-accent-light bg-accent-light/15 px-2.5 py-1 rounded-full">
+            {t("feedPage.pollBadge")}
+          </span>
+          <span className="ml-auto text-[12px] text-text-secondary">
+            {t("feedPage.pollVotes", { n: total })}
+          </span>
+        </div>
+
+        <p className="px-[18px] pb-3.5 text-[17px] font-bold tracking-[-0.01em] leading-snug text-text-primary">
           {question}
         </p>
 
-        <div className="flex flex-col gap-2">
+        <div className="px-3.5 pb-2 flex flex-col gap-2">
           {options.map((opt, idx) => {
             const isSelected = selected === idx;
             const isMine = hasVoted && myOption === idx;
@@ -130,39 +138,39 @@ export default function PollCard() {
                 key={idx}
                 onClick={() => handleSelect(idx)}
                 disabled={hasVoted || voting}
-                className={`relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border text-left transition-colors ${
+                className={`relative flex items-center gap-2.5 px-3.5 py-3 rounded-[14px] border text-left overflow-hidden transition-[border-color,background] duration-150 ${
                   hasVoted
                     ? "border-border bg-bg-primary cursor-default"
-                    : "border-border bg-bg-primary hover:border-accent hover:bg-bg-card-hover cursor-pointer"
+                    : (isSelected
+                        ? "border-accent bg-accent/10"
+                        : "border-border bg-bg-primary hover:border-accent cursor-pointer")
                 }`}
               >
                 {/* 결과 막대 (투표 후) */}
                 {hasVoted && (
                   <span
-                    className="absolute left-0 top-0 bottom-0 bg-accent-light/15 rounded-l-xl"
-                    style={{ width: `${barPct}%` }}
+                    className="absolute left-0 top-0 bottom-0 bg-accent-light/15"
+                    style={{ width: `${barPct}%`, transition: "width .5s cubic-bezier(.22,1,.36,1)" }}
                   />
                 )}
 
-                {/* 선택 표시 */}
+                {/* 라디오 체크 */}
                 <span
-                  className="relative z-10 w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                  style={{
-                    borderColor: isSelected || isMine ? "var(--accent)" : "var(--text-secondary)",
-                    background: isSelected || isMine ? "var(--accent)" : "transparent",
-                  }}
+                  className={`relative z-10 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-[border-color,background] duration-150 ${
+                    (isSelected || isMine) ? "border-accent bg-accent" : "border-text-secondary"
+                  }`}
                 >
                   {(isSelected || isMine) && (
-                    <span className="block w-[8px] h-[4px] border-l-2 border-b-2 border-white -rotate-45 -translate-y-px" />
+                    <span className="block w-1.5 h-2.5 border-r-2 border-b-2 border-white rotate-45 -translate-y-px" />
                   )}
                 </span>
 
-                <span className="relative z-10 flex-1 text-[13px] font-medium text-text-primary">
+                <span className="relative z-10 flex-1 text-[14px] font-medium text-text-primary">
                   {opt}
                 </span>
 
                 {hasVoted && (
-                  <span className="relative z-10 text-[12px] font-bold text-text-primary">
+                  <span className="relative z-10 text-[13px] font-bold text-text-primary tabular-nums">
                     {pct(counts[idx])}%
                   </span>
                 )}
@@ -171,39 +179,39 @@ export default function PollCard() {
           })}
         </div>
 
-        {error && <p className="mt-2 text-[12px] text-red-500">{error}</p>}
+        {error && <p className="mt-2 px-[18px] text-[12px] text-red-500">{error}</p>}
 
-        {/* 확인 버튼 — 선택 후에만 표시, 투표 전 */}
+        {/* 투표 버튼 — 투표 전에만 */}
         {!hasVoted && (
-          <button
-            onClick={handleConfirm}
-            disabled={selected === null || voting}
-            className={`w-full mt-3 rounded-xl py-2.5 text-sm font-semibold transition-colors ${
-              selected !== null && !voting
-                ? "bg-accent text-white hover:opacity-90"
-                : "bg-bg-surface text-text-secondary cursor-not-allowed"
-            }`}
-          >
-            {voting ? "..." : t("feedPage.pollConfirm")}
-          </button>
+          <div className="px-3.5 pb-3.5">
+            <button
+              onClick={handleConfirm}
+              disabled={selected === null || voting}
+              className={`w-full rounded-[13px] py-3 text-sm font-bold transition-opacity ${
+                selected !== null && !voting
+                  ? "bg-accent text-white hover:opacity-90"
+                  : "bg-bg-surface text-text-secondary cursor-not-allowed"
+              }`}
+            >
+              {voting ? "..." : t("feedPage.pollConfirm")}
+            </button>
+          </div>
+        )}
+
+        {/* 하단 상태 */}
+        {(hasVoted || closingLabel) && (
+          <div className="px-[18px] py-2.5 border-t border-border text-[12px] text-text-secondary flex items-center gap-1.5">
+            {hasVoted && (
+              <>
+                <span className="text-[#22c55e] font-bold">✓</span>
+                <span>{t("feedPage.pollVoteCounted")}</span>
+                {closingLabel && <span>· {closingLabel}</span>}
+              </>
+            )}
+            {!hasVoted && closingLabel && <span>{closingLabel}</span>}
+          </div>
         )}
       </div>
-
-      {closingLabel ? (
-        <div className="px-4 py-2.5 border-t border-border text-[11px] text-text-secondary flex items-center gap-1.5">
-          {hasVoted ? (
-            <>
-              <span>✓</span> {t("feedPage.pollVoteCounted")} · {closingLabel}
-            </>
-          ) : (
-            closingLabel
-          )}
-        </div>
-      ) : hasVoted ? (
-        <div className="px-4 py-2.5 border-t border-border text-[11px] text-text-secondary flex items-center gap-1.5">
-          <span>✓</span> {t("feedPage.pollVoteCounted")}
-        </div>
-      ) : null}
-    </div>
+    </>
   );
 }
