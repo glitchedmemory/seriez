@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { GENRE_MAP, discoverByGenres, type TmdbResult, type TmdbItem, tmdbGet } from "@/lib/tmdb";
-import { resolveUsername } from "@/lib/auth-helper";
-import { resolveUserId } from "@/lib/user-utils";
+import { resolveUsername, resolveAuthUid } from "@/lib/auth-helper";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 import { persistentCache } from "@/lib/persistent-cache";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -251,16 +251,23 @@ export async function GET(req: NextRequest) {
   }
 
   const name = username.trim();
-  // media_trackings.username is a UUID, not the display name — resolve the real id
-  // (resolveUserId falls back to the deterministic hash UUID when no users row exists).
-  const userId = (await resolveUserId(name)) || name;
+  // Canonical id: the authenticated user's auth.uid() — this is what
+  // media_trackings.username stores and what RLS checks against.
+  const userId = await resolveAuthUid(req);
+  if (!userId) {
+    return NextResponse.json({ error: "Username required" }, { status: 400 });
+  }
+
+  // Read the user's own trackings through the session client so RLS applies
+  // (previously the service role read was needed when writes wrote hash UUIDs).
+  const serverSupabase = await createServerClient();
 
   // ── Version gate: only 3.5★+ trackings change the board. ──
   // Compute a cheap "version" = the latest updated_at among the user's 3.5★+
   // watching/completed trackings. When it matches the cached version we return
   // the stored board instantly (no DB scans, no TMDB/AniList calls, no scoring).
   // The 3.5★ count lookup doubles as the activation check (needs 3+).
-  const { data: ratedRows } = await supabaseAdmin
+  const { data: ratedRows } = await serverSupabase
     .from("media_trackings")
     .select("updated_at")
     .eq("username", userId)

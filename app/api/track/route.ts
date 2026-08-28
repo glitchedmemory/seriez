@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { resolveUserId } from "@/lib/user-utils";
 import { checkSanction, getSanctionError } from "@/lib/sanction-utils";
 import { tmdbGet } from "@/lib/tmdb";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -11,7 +11,7 @@ const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROL
 
 const VALID_STATUSES = ["watching", "completed", "plan_to_watch", "on_hold", "dropped"];
 
-import { resolveUsername } from "@/lib/auth-helper";
+import { resolveUsername, resolveAuthUid } from "@/lib/auth-helper";
 
 // ─── GET: fetch tracking list ───
 export async function GET(req: NextRequest) {
@@ -23,12 +23,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing username" }, { status: 400 });
   }
 
-  const userId = await resolveUserId(username);
+  const userId = await resolveAuthUid(req);
   if (!userId) {
     return NextResponse.json([]);
   }
 
-  let query = supabaseAdmin
+  // Use the server session client so RLS (auth.uid() = username) applies
+  // and returns only the authenticated user's own rows.
+  const serverSupabase = await createServerClient();
+  let query = serverSupabase
   .from("media_trackings")
   .select("*")
   .eq("username", userId)
@@ -96,16 +99,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userId = await resolveUserId(username);
+    const userId = await resolveAuthUid(req);
     if (!userId) {
       return NextResponse.json({ error: "Failed to resolve user" }, { status: 500 });
     }
+
+    // Use the session client so RLS (auth.uid() = username) lets the user
+    // write only their own rows — this is the correct, secure path.
+    const serverSupabase = await createServerClient();
 
     const sn = seasonNumber ?? 0;
 
     // Preserve existing watched_at — only set on first completion
     const existingWatchDate = status === "completed"
-      ? ((await supabaseAdmin
+      ? ((await serverSupabase
           .from("media_trackings")
           .select("watched_at")
           .eq("username", userId)
@@ -159,7 +166,7 @@ export async function POST(req: NextRequest) {
       upsertData.watched_at = existingWatchDate;
     }
 
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await serverSupabase
       .from("media_trackings")
       .upsert(upsertData, { onConflict: "username,tmdb_id,media_type,season_number" })
       .select("*")
@@ -187,7 +194,7 @@ export async function POST(req: NextRequest) {
           if (!yearVal && meta.year) updates.year = meta.year;
           if (!tmdbRating && meta.rating) updates.tmdb_rating = meta.rating;
           if (Object.keys(updates).length > 0) {
-            await supabaseAdmin.from("media_trackings").update(updates).eq("id", data.id);
+            await serverSupabase.from("media_trackings").update(updates).eq("id", data.id);
           }
         } catch {}
       })();
@@ -267,14 +274,15 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const userId = await resolveUserId(username);
+    const userId = await resolveAuthUid(req);
     if (!userId) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const sn = seasonNumber ?? 0;
 
-    const { error } = await supabaseAdmin
+    const serverSupabase = await createServerClient();
+    const { error } = await serverSupabase
       .from("media_trackings")
       .delete()
       .eq("username", userId)
