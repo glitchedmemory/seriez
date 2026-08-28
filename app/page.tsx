@@ -12,7 +12,6 @@ import { unstable_cache } from "next/cache";
 async function fetchInjectedTitles(): Promise<TmdbResult[]> {
   const KEY = process.env.TMDB_API_KEY;
   const injectIds = [
-    { id: 969681, type: "movie" as const }, // Spider-Man: Brand New Day
     { id: 97546, type: "tv" as const },     // Ted Lasso S4 (Aug 4)
     { id: 95350, type: "tv" as const },     // Lanterns (HBO, Aug 16)
     { id: 95480, type: "tv" as const },     // Slow Horses S6 (Apple TV+, Sep 16)
@@ -55,7 +54,8 @@ async function fetchInjectedTitles(): Promise<TmdbResult[]> {
       }
     })
   );
-  return results.filter(Boolean) as TmdbResult[];
+  // Auto-prune: drop any injected title whose release/air date has already passed
+  return results.filter((r) => r && r.daysUntil !== null) as TmdbResult[];
 }
 
 export default async function Home() {
