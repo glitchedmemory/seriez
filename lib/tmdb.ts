@@ -133,6 +133,14 @@ export async function getUpcoming(): Promise<TmdbResult[]> {
 
   const movies = (movieData.results as TmdbItem[])
     .filter(filterAnime)
+    // Exclude movies whose release date is already in the past (TMDB /movie/upcoming
+    // sometimes still returns recently-released titles). Keep those with a future date
+    // or no date at all (announced/undated).
+    .filter((item) => {
+      const d = item.release_date;
+      if (!d) return true;
+      return new Date(d).getTime() >= Date.now();
+    })
     .map(format)
     .filter((item) => {
       if (!item.daysUntil) return item.year === 0;
