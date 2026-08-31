@@ -23,6 +23,15 @@ interface ActivityAnalytics {
   signup_trend: { date: string; count: number }[];
 }
 
+interface VisitorAnalytics {
+  total_human_visits_7d: number;
+  top_pages: { path: string; count: number }[];
+  daily_visits: { date: string; count: number }[];
+  countries: { country: string; count: number }[];
+  devices: { device: string; count: number }[];
+  top_titles: { tmdb_id: number; media_type: string; count: number }[];
+}
+
 function fmtShortDate(iso: string) {
   const d = new Date(iso);
   const m = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -37,19 +46,22 @@ export default function AnalyticsPage() {
     most_collected: PopularItem[];
   } | null>(null);
   const [activity, setActivity] = useState<ActivityAnalytics | null>(null);
+  const [visitors, setVisitors] = useState<VisitorAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [s, p, a] = await Promise.all([
+      const [s, p, a, v] = await Promise.all([
         fetch("/api/admin/search-analytics").then((r) => (r.ok ? r.json() : null)),
         fetch("/api/admin/popular-content").then((r) => (r.ok ? r.json() : null)),
         fetch("/api/admin/user-activity").then((r) => (r.ok ? r.json() : null)),
+        fetch("/api/admin/visitor-analytics").then((r) => (r.ok ? r.json() : null)),
       ]);
       if (s) setSearch(s);
       if (p) setPopular(p);
       if (a) setActivity(a);
+      if (v) setVisitors(v);
     } catch {}
     setLoading(false);
   }, []);
@@ -79,6 +91,94 @@ export default function AnalyticsPage() {
         <p className="text-sm text-[#71717a]">Loading analytics...</p>
       ) : (
         <div className="space-y-6">
+          {/* Visitors */}
+          <section className="rounded-2xl border border-[#1a1a2e] bg-[#0a0a14] p-6">
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="text-sm font-semibold text-white">Visitors</h2>
+              <span className="text-xs text-[#71717a]">
+                {visitors?.total_human_visits_7d ?? 0} real visits · 7 days
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Daily visits trend */}
+              <div>
+                <h3 className="text-xs font-medium text-[#a1a1aa] uppercase tracking-wider mb-3">
+                  Visit Trend
+                </h3>
+                {!visitors || visitors.daily_visits.length === 0 ? (
+                  <p className="text-sm text-[#71717a]">No visit data yet.</p>
+                ) : (
+                  <BarChart rows={visitors.daily_visits.slice(-14)} />
+                )}
+              </div>
+
+              {/* Top pages */}
+              <div>
+                <h3 className="text-xs font-medium text-[#a1a1aa] uppercase tracking-wider mb-3">
+                  Top Pages
+                </h3>
+                {!visitors || visitors.top_pages.length === 0 ? (
+                  <p className="text-sm text-[#71717a]">No page data yet.</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {visitors.top_pages.slice(0, 10).map((p) => (
+                      <div key={p.path} className="flex items-center justify-between">
+                        <span className="text-sm text-[#d4d4d8] truncate">{p.path}</span>
+                        <span className="text-xs text-[#71717a] shrink-0 ml-3">{p.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Countries + devices */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div>
+                <h3 className="text-xs font-medium text-[#a1a1aa] uppercase tracking-wider mb-3">
+                  Countries
+                </h3>
+                {!visitors || visitors.countries.length === 0 ? (
+                  <p className="text-sm text-[#71717a]">No country data yet.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {visitors.countries.map((c) => (
+                      <span
+                        key={c.country}
+                        className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl border border-[#1a1a2e] bg-[#111118] text-[#d4d4d8]"
+                      >
+                        {c.country}
+                        <span className="text-[#06b6d4] font-medium">{c.count}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h3 className="text-xs font-medium text-[#a1a1aa] uppercase tracking-wider mb-3">
+                  Devices
+                </h3>
+                {!visitors || visitors.devices.length === 0 ? (
+                  <p className="text-sm text-[#71717a]">No device data yet.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {visitors.devices.map((d) => (
+                      <span
+                        key={d.device}
+                        className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl border border-[#1a1a2e] bg-[#111118] text-[#d4d4d8] capitalize"
+                      >
+                        {d.device}
+                        <span className="text-[#06b6d4] font-medium">{d.count}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
           {/* Top queries */}
           <section className="rounded-2xl border border-[#1a1a2e] bg-[#0a0a14] p-6">
             <div className="flex items-baseline justify-between mb-4">
