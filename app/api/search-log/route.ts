@@ -45,8 +45,6 @@ export async function POST(req: NextRequest) {
 
     await supabaseAdmin.from("search_logs").insert({
       query: trimmed,
-      tmdb_id: tmdbId || null,
-      media_type: mediaType || null,
       clicked_tmdb_id: clickedTmdbId || null,
       country,
     });
