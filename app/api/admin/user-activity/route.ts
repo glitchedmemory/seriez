@@ -66,10 +66,23 @@ export async function GET(req: NextRequest) {
     for (const row of recentReview || []) incUser(row.username);
     for (const row of recentComment || []) incUser(row.username);
 
+    // Resolve UUIDs (media_trackings.username stores user.id, not display name) to display names
+    const { data: allUsers } = await supabaseAdmin
+      .from("users")
+      .select("id, username");
+
+    const idToName: Record<string, string> = {};
+    for (const u of allUsers || []) {
+      idToName[u.id] = u.username;
+    }
+
     const mostActive = Object.entries(userActivity)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 20)
-      .map(([username, count]) => ({ username, count }));
+      .map(([key, count]) => {
+        const displayName = idToName[key] || key;
+        return { username: displayName, count };
+      })
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 20);
 
     // Signup trend
     const { data: signups } = await supabaseAdmin
