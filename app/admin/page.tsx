@@ -20,6 +20,15 @@ export default async function AdminDashboard() {
     .from("users").select("*", { count: "exact", head: true })
     .not("sanction_type", "is", null);
 
+  const { count: totalReviews } = await supabase
+    .from("reviews").select("*", { count: "exact", head: true });
+
+  const { count: totalTracked } = await supabase
+    .from("user_library").select("*", { count: "exact", head: true });
+
+  const { count: totalCollections } = await supabase
+    .from("user_lists").select("*", { count: "exact", head: true });
+
   // Signup tracking
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -107,6 +116,30 @@ export default async function AdminDashboard() {
       bg: "from-[#f59e0b]/10 to-[#f59e0b]/5",
       border: "border-[#f59e0b]/20",
     },
+    {
+      label: "Total Reviews",
+      value: totalReviews ?? 0,
+      href: "/admin/moderation",
+      accent: "#a855f7",
+      bg: "from-[#a855f7]/10 to-[#a855f7]/5",
+      border: "border-[#a855f7]/20",
+    },
+    {
+      label: "Total Tracked",
+      value: totalTracked ?? 0,
+      href: "/admin/analytics",
+      accent: "#06b6d4",
+      bg: "from-[#06b6d4]/10 to-[#06b6d4]/5",
+      border: "border-[#06b6d4]/20",
+    },
+    {
+      label: "Total Collections",
+      value: totalCollections ?? 0,
+      href: "/admin/analytics",
+      accent: "#ec4899",
+      bg: "from-[#ec4899]/10 to-[#ec4899]/5",
+      border: "border-[#ec4899]/20",
+    },
   ];
 
   return (
@@ -150,7 +183,7 @@ export default async function AdminDashboard() {
         </Link>
 
         <Link
-          href="/admin/reports"
+          href="/admin/moderation"
           className="rounded-2xl border border-[#1a1a2e] bg-[#0a0a14] p-6 hover:border-[#f97316]/30 transition-all duration-200 group"
         >
           <div className="w-10 h-10 rounded-xl bg-[#f97316]/10 flex items-center justify-center mb-4 group-hover:bg-[#f97316]/20 transition-colors">
@@ -160,6 +193,19 @@ export default async function AdminDashboard() {
           </div>
           <h3 className="font-semibold text-white mb-1">Content Moderation</h3>
           <p className="text-xs text-[#71717a] leading-relaxed">Review reported content, hide or delete items</p>
+        </Link>
+
+        <Link
+          href="/admin/analytics"
+          className="rounded-2xl border border-[#1a1a2e] bg-[#0a0a14] p-6 hover:border-[#06b6d4]/30 transition-all duration-200 group"
+        >
+          <div className="w-10 h-10 rounded-xl bg-[#06b6d4]/10 flex items-center justify-center mb-4 group-hover:bg-[#06b6d4]/20 transition-colors">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3v18h18M7 16l4-4 3 3 5-6" />
+            </svg>
+          </div>
+          <h3 className="font-semibold text-white mb-1">Site Analytics</h3>
+          <p className="text-xs text-[#71717a] leading-relaxed">Search trends, popular titles, and user activity</p>
         </Link>
 
         <Link
