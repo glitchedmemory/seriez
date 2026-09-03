@@ -46,36 +46,103 @@ interface Props {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://seriez.app";
 
+// Direct (uncached) AniList lookup for metadata — unstable_cache wrappers
+// (getAnilistId / getAnimeDetail) trigger DYNAMIC_SERVER_USAGE inside
+// generateMetadata, so we hit the API directly here instead.
+async function fetchAnimeMeta(numId: number): Promise<{ title: string; description: string; posterUrl: string | null } | null> {
+  try {
+    const res = await fetch("https://graphql.anilist.co", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        query: `query($id:Int){Media(id:$id,type:ANIME){title{romaji english native}description coverImage{large}}}`,
+        variables: { id: numId },
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const media = json.data?.Media;
+    if (!media) return null;
+    const title = media.title?.english || media.title?.romaji || media.title?.native || "Seriez";
+    const description = (media.description || "").replace(/<[^>]*>/g, "").slice(0, 300) || "Track movies, TV shows, and anime in one place.";
+    return { title, description, posterUrl: media.coverImage?.large || null };
+  } catch {
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const numId = parseInt(id);
   if (isNaN(numId)) return {};
 
+  // `/anime/[id]` receives a TMDB id and must resolve it to an AniList id first.
   try {
-    const anilistId = await getAnilistId(numId);
+    const resolveRes = await fetch("https://graphql.anilist.co", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        query: `query($id:Int){Media(id:$id,type:ANIME){id}}`,
+        variables: { id: numId },
+      }),
+    });
+    let anilistId: number | null = null;
+    if (resolveRes.ok) {
+      const rj = await resolveRes.json();
+      anilistId = rj.data?.Media?.id ?? null;
+    }
+    // If the TMDB id itself isn't an AniList id, resolve via Jikan search.
+    if (!anilistId) {
+      try {
+        const jikanRes = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(String(numId))}&limit=1`, {
+          headers: { Accept: "application/json" },
+          signal: AbortSignal.timeout(8000),
+        });
+        if (jikanRes.ok) {
+          const jd = await jikanRes.json();
+          const first = jd.data?.[0];
+          if (first?.mal_id) {
+            const alRes = await fetch("https://graphql.anilist.co", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Accept": "application/json" },
+              body: JSON.stringify({
+                query: `query($id:Int){Media(idMal:$id,type:ANIME){id}}`,
+                variables: { id: first.mal_id },
+              }),
+            });
+            if (alRes.ok) {
+              const aj = await alRes.json();
+              anilistId = aj.data?.Media?.id ?? null;
+            }
+          }
+        }
+      } catch {
+        // ignore — fall through to null
+      }
+    }
     if (!anilistId) return {};
-    const detail = await getAnimeDetail(anilistId);
-    if (!detail) return {};
-    const title = detail.title || "Seriez";
-    const description = detail.overview || "Track movies, TV shows, and anime in one place.";
-    const posterUrl = detail.poster || null;
+
+    const meta = await fetchAnimeMeta(anilistId);
+    if (!meta) return {};
+
     return {
-      title,
-      description,
+      title: meta.title,
+      description: meta.description,
       alternates: { canonical: `${SITE_URL}/anime/${numId}` },
       openGraph: {
-        title,
-        description,
+        title: meta.title,
+        description: meta.description,
         type: "website",
         siteName: "Seriez",
         url: `${SITE_URL}/anime/${numId}`,
-        ...(posterUrl ? { images: [{ url: posterUrl, alt: title }] } : {}),
+        ...(meta.posterUrl ? { images: [{ url: meta.posterUrl, alt: meta.title }] } : {}),
       },
       twitter: {
         card: "summary_large_image",
-        title,
-        description,
-        ...(posterUrl ? { images: [posterUrl] } : {}),
+        title: meta.title,
+        description: meta.description,
+        ...(meta.posterUrl ? { images: [meta.posterUrl] } : {}),
       },
     };
   } catch {
