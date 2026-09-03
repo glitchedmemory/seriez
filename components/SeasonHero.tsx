@@ -1,4 +1,5 @@
 import Image from "next/image";
+import ShareButton from "@/components/ShareButton";
 
 interface SeasonData {
   id: number;
@@ -23,7 +24,7 @@ interface SeasonData {
   daysUntil?: number | null;
 }
 
-export default function SeasonHero({ data, children }: { data: SeasonData; children?: React.ReactNode }) {
+export default function SeasonHero({ data, children, shareUrl }: { data: SeasonData; children?: React.ReactNode; shareUrl?: string }) {
   const hasBackdrop = !!(data.backdropPath || data.youtubeBackdrop || data.anilistBanner || data.posterPath);
 
   return (
@@ -40,6 +41,7 @@ export default function SeasonHero({ data, children }: { data: SeasonData; child
             className={(!data.backdropPath && !data.youtubeBackdrop && !data.anilistBanner) ? "object-cover blur-2xl scale-125 opacity-50" : "object-cover"}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
+          {shareUrl && <ShareButton title={data.title} url={shareUrl} variant="backdrop" />}
         </div>
       )}
 

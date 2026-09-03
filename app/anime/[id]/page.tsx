@@ -9,8 +9,10 @@ import AnimeRecommendations from "@/components/AnimeRecommendations";
 import AnimeTrailer from "@/components/AnimeTrailer";
 import AnimeInteractive from "@/components/AnimeInteractive";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { generateMovieJsonLd, generateTVJsonLd, StructuredDataScript } from "@/lib/structured-data";
 import VisitTracker from "@/components/VisitTracker";
+import ShareButton from "@/components/ShareButton";
 
 // Pre-render popular anime at build time (top ~100 only — keep build light on 3.7GB RAM)
 export async function generateStaticParams() {
@@ -40,6 +42,45 @@ export async function generateStaticParams() {
 
 interface Props {
   params: Promise<{ id: string }>;
+}
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://seriez.app";
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const numId = parseInt(id);
+  if (isNaN(numId)) return {};
+
+  try {
+    const anilistId = await getAnilistId(numId);
+    if (!anilistId) return {};
+    const detail = await getAnimeDetail(anilistId);
+    if (!detail) return {};
+    const title = detail.title || "Seriez";
+    const description = detail.overview || "Track movies, TV shows, and anime in one place.";
+    const posterUrl = detail.poster || null;
+    return {
+      title,
+      description,
+      alternates: { canonical: `${SITE_URL}/anime/${numId}` },
+      openGraph: {
+        title,
+        description,
+        type: "website",
+        siteName: "Seriez",
+        url: `${SITE_URL}/anime/${numId}`,
+        ...(posterUrl ? { images: [{ url: posterUrl, alt: title }] } : {}),
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        ...(posterUrl ? { images: [posterUrl] } : {}),
+      },
+    };
+  } catch {
+    return {};
+  }
 }
 
 export default async function AnimePage({ params }: Props) {
@@ -75,7 +116,7 @@ export default async function AnimePage({ params }: Props) {
       <StructuredDataScript data={animeJsonLd} />
       <VisitTracker tmdbId={numId} mediaType="anime" />
       <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
-        <AnimeHero detail={detail}>
+        <AnimeHero detail={detail} shareUrl={`${SITE_URL}/anime/${numId}`}>
           <AnimeInteractive mode="buttons-only" detail={detail} episodes={episodes} />
         </AnimeHero>
         <AnimeSeasons relations={detail.relations} currentId={detail.id} currentTitle={detail.title} currentYear={detail.year} />

@@ -9,6 +9,7 @@ import { fetchKitsuThumbnails } from "@/lib/anilist";
 import { validateAndReplaceTrailers } from "@/lib/yt-validator";
 import { TRAILER_OVERRIDES } from "@/lib/trailer-overrides";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { generateTVJsonLd, StructuredDataScript } from "@/lib/structured-data";
 import { unstable_cache } from "next/cache";
 import VisitTracker from "@/components/VisitTracker";
@@ -16,6 +17,7 @@ import VisitTracker from "@/components/VisitTracker";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const ANILIST_API = "https://graphql.anilist.co";
 const API_KEY = process.env.TMDB_API_KEY!;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://seriez.app";
 
 function poster(path: string | null) {
   return path ? `https://image.tmdb.org/t/p/w780${path}` : null;
@@ -220,6 +222,41 @@ interface Props {
   params: Promise<{ id: string; season: string }>;
 }
 
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id, season } = await params;
+  const seriesId = parseInt(id);
+  const seasonNum = parseInt(season);
+  if (isNaN(seriesId) || isNaN(seasonNum)) return {};
+
+  try {
+    const data = await getSeasonData(seriesId, seasonNum);
+    const title = data.title || "Seriez";
+    const description = data.overview || "Track movies, TV shows, and anime in one place.";
+    const posterUrl = data.posterPath || data.seasonPoster || null;
+    return {
+      title,
+      description,
+      alternates: { canonical: `${SITE_URL}/tv/${seriesId}/season/${seasonNum}` },
+      openGraph: {
+        title,
+        description,
+        type: "website",
+        siteName: "Seriez",
+        url: `${SITE_URL}/tv/${seriesId}/season/${seasonNum}`,
+        ...(posterUrl ? { images: [{ url: posterUrl, alt: title }] } : {}),
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        ...(posterUrl ? { images: [posterUrl] } : {}),
+      },
+    };
+  } catch {
+    return {};
+  }
+}
+
 export default async function SeasonPage({ params }: Props) {
   const { id, season } = await params;
   const seriesId = parseInt(id);
@@ -247,7 +284,7 @@ export default async function SeasonPage({ params }: Props) {
         <StructuredDataScript data={jsonLd} />
         <VisitTracker tmdbId={seriesId} mediaType="tv" />
         <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
-          <SeasonHero data={data}>
+          <SeasonHero data={data} shareUrl={`${SITE_URL}/tv/${seriesId}/season/${seasonNum}`}>
             <SeasonInteractive mode="buttons-only" data={{
               id: data.id, title: data.title, seasonNumber: data.seasonNumber,
               seasonName: data.seasonName, seasonPoster: data.seasonPoster,

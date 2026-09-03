@@ -1,7 +1,8 @@
 import type { TmdbDetail } from "@/lib/tmdb";
 import Image from "next/image";
+import ShareButton from "@/components/ShareButton";
 
-export default function MovieHero({ detail, children }: { detail: TmdbDetail; children?: React.ReactNode }) {
+export default function MovieHero({ detail, children, shareUrl }: { detail: TmdbDetail; children?: React.ReactNode; shareUrl?: string }) {
   const hasBackdrop = !!(detail.backdrop || detail.poster);
 
   return (
@@ -17,6 +18,7 @@ export default function MovieHero({ detail, children }: { detail: TmdbDetail; ch
             className={detail.backdrop ? "object-cover" : "object-cover blur-2xl scale-125 opacity-50"}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
+          {shareUrl && <ShareButton title={detail.title} url={shareUrl} variant="backdrop" />}
         </div>
       )}
 
