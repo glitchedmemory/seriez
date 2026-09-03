@@ -1,13 +1,14 @@
 "use client";
 import type { AnimeDetail } from "@/lib/anilist";
 import PosterImage from "@/components/PosterImage";
+import ShareButton from "@/components/ShareButton";
 
 function seasonLabel(detail: AnimeDetail): string | null {
   if (!detail.season || !detail.year) return null;
   return `${detail.season} ${detail.year}`;
 }
 
-export default function AnimeHero({ detail, children }: { detail: AnimeDetail; children?: React.ReactNode }) {
+export default function AnimeHero({ detail, children, shareUrl }: { detail: AnimeDetail; children?: React.ReactNode; shareUrl?: string }) {
   const label = seasonLabel(detail);
   const hasBackdrop = !!(detail.backdrop || detail.poster);
 
@@ -18,6 +19,7 @@ export default function AnimeHero({ detail, children }: { detail: AnimeDetail; c
         <div className="relative w-full h-48 md:h-72 overflow-hidden">
           <PosterImage src={detail.backdrop || detail.poster} alt="" fill priority unoptimized className={!detail.backdrop ? "blur-2xl scale-125 opacity-50" : ""} />
           <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
+          {shareUrl && <ShareButton title={detail.title} url={shareUrl} variant="backdrop" />}
         </div>
       )}
 

@@ -10,11 +10,13 @@ import MovieRecommendations from "@/components/MovieRecommendations";
 import MovieSeries from "@/components/MovieSeries";
 import DetailInteractive from "@/components/DetailInteractive";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { generateMovieJsonLd, StructuredDataScript } from "@/lib/structured-data";
 import VisitTracker from "@/components/VisitTracker";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const API_KEY = process.env.TMDB_API_KEY!;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://seriez.app";
 
 // Pre-render popular movies at build time (top ~100 only — keep build light on 3.7GB RAM)
 export async function generateStaticParams() {
@@ -42,6 +44,40 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const numId = parseInt(id);
+  if (isNaN(numId)) return {};
+
+  try {
+    const detail = await getMovieDetail(numId);
+    const title = detail.title || "Seriez";
+    const description = detail.overview || "Track movies, TV shows, and anime in one place.";
+    const posterUrl = detail.poster || null;
+    return {
+      title,
+      description,
+      alternates: { canonical: `${SITE_URL}/movie/${numId}` },
+      openGraph: {
+        title,
+        description,
+        type: "website",
+        siteName: "Seriez",
+        url: `${SITE_URL}/movie/${numId}`,
+        ...(posterUrl ? { images: [{ url: posterUrl, width: 780, height: 1170, alt: title }] } : {}),
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        ...(posterUrl ? { images: [posterUrl] } : {}),
+      },
+    };
+  } catch {
+    return {};
+  }
+}
+
 export default async function MoviePage({ params }: Props) {
   const { id } = await params;
   const numId = parseInt(id);
@@ -64,7 +100,7 @@ export default async function MoviePage({ params }: Props) {
         <StructuredDataScript data={jsonLd} />
         <VisitTracker tmdbId={numId} mediaType="movie" />
         <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
-          <MovieHero detail={detail}>
+          <MovieHero detail={detail} shareUrl={`${SITE_URL}/movie/${numId}`}>
             <DetailInteractive mode="buttons-only" detail={{ id: detail.id, type: detail.type, daysUntil: detail.daysUntil }} />
             <MovieInfo detail={detail} />
           </MovieHero>
