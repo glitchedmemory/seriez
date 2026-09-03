@@ -55,8 +55,38 @@ export async function GET(req: NextRequest) {
     // --- Content visits: country + device + top titles (last 7 days) ---
     const { data: contentVisits } = await supabaseAdmin
       .from("content_visits")
-      .select("tmdb_id, media_type, country, device")
+      .select("tmdb_id, media_type, country, device, source")
       .gte("created_at", sevenDaysAgo);
+
+    // Share-driven visits (utm_source=share)
+    const { count: shareVisits7d } = await supabaseAdmin
+      .from("content_visits")
+      .select("*", { count: "exact", head: true })
+      .eq("source", "share")
+      .gte("created_at", sevenDaysAgo);
+
+    // Referrer (origin) breakdown — from human_visits.referrer
+    const { data: humanVisitsWithRef } = await supabaseAdmin
+      .from("human_visits")
+      .select("referrer")
+      .gte("created_at", sevenDaysAgo);
+
+    const referrerMap: Record<string, number> = {};
+    for (const v of humanVisitsWithRef || []) {
+      const raw = v.referrer || "";
+      if (!raw) continue;
+      let host = "unknown";
+      try {
+        host = new URL(raw).hostname.replace(/^www\./, "");
+      } catch {
+        continue;
+      }
+      referrerMap[host] = (referrerMap[host] || 0) + 1;
+    }
+    const referrers = Object.entries(referrerMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20)
+      .map(([referrer, count]) => ({ referrer, count }));
 
     // Country breakdown
     const countryMap: Record<string, number> = {};
@@ -94,10 +124,12 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       total_human_visits_7d: totalHumanVisits7d || 0,
+      share_visits_7d: shareVisits7d || 0,
       top_pages: top_pages.slice(0, 20),
       daily_visits,
       countries: countries.slice(0, 15),
       devices,
+      referrers,
       top_titles,
     });
   } catch (err: any) {

@@ -25,10 +25,12 @@ interface ActivityAnalytics {
 
 interface VisitorAnalytics {
   total_human_visits_7d: number;
+  share_visits_7d: number;
   top_pages: { path: string; count: number }[];
   daily_visits: { date: string; count: number }[];
   countries: { country: string; count: number }[];
   devices: { device: string; count: number }[];
+  referrers: { referrer: string; count: number }[];
   top_titles: { tmdb_id: number; media_type: string; count: number }[];
 }
 
@@ -98,6 +100,22 @@ export default function AnalyticsPage() {
               <span className="text-xs text-[#71717a]">
                 {visitors?.total_human_visits_7d ?? 0} real visits · 7 days
               </span>
+            </div>
+
+            {/* Share-driven visits highlight */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="rounded-xl border border-[#1a1a2e] bg-[#111118] p-4">
+                <p className="text-xs text-[#71717a] uppercase tracking-wider">Share Visits (7d)</p>
+                <p className="text-2xl font-bold text-[#06b6d4] mt-1">
+                  {visitors?.share_visits_7d ?? 0}
+                </p>
+              </div>
+              <div className="rounded-xl border border-[#1a1a2e] bg-[#111118] p-4">
+                <p className="text-xs text-[#71717a] uppercase tracking-wider">Total Visits (7d)</p>
+                <p className="text-2xl font-bold text-white mt-1">
+                  {visitors?.total_human_visits_7d ?? 0}
+                </p>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -177,9 +195,29 @@ export default function AnalyticsPage() {
                 )}
               </div>
             </div>
-          </section>
 
-          {/* Top queries */}
+            {/* Referrer sources */}
+            <div className="mt-6">
+              <h3 className="text-xs font-medium text-[#a1a1aa] uppercase tracking-wider mb-3">
+                Referrer Sources
+              </h3>
+              {!visitors || visitors.referrers.length === 0 ? (
+                <p className="text-sm text-[#71717a]">No referrer data yet.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {visitors.referrers.map((r) => (
+                    <span
+                      key={r.referrer}
+                      className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl border border-[#1a1a2e] bg-[#111118] text-[#d4d4d8]"
+                    >
+                      {r.referrer}
+                      <span className="text-[#06b6d4] font-medium">{r.count}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
           <section className="rounded-2xl border border-[#1a1a2e] bg-[#0a0a14] p-6">
             <div className="flex items-baseline justify-between mb-4">
               <h2 className="text-sm font-semibold text-white">Top Searches</h2>

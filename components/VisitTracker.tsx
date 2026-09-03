@@ -21,7 +21,13 @@ export default function VisitTracker({ tmdbId, mediaType, source, username }: Vi
     fired.current = true;
 
     const searchParams = new URLSearchParams(window.location.search);
-    const ref = searchParams.get("ref") || searchParams.get("source") || source || "direct";
+    const ref =
+      searchParams.get("utm_source") ||
+      searchParams.get("utm_medium") ||
+      searchParams.get("ref") ||
+      searchParams.get("source") ||
+      source ||
+      "direct";
 
     fetch("/api/visit", {
       method: "POST",
