@@ -13,8 +13,23 @@ export default function ShareButton({
 }) {
   const [copied, setCopied] = useState(false);
 
+  // Append UTM params so share-driven visits can be distinguished in analytics.
+  function shareUrl() {
+    try {
+      const u = new URL(url);
+      u.searchParams.set("utm_source", "share");
+      u.searchParams.set("utm_medium", "social");
+      u.searchParams.set("utm_campaign", "title_share");
+      return u.toString();
+    } catch {
+      const sep = url.includes("?") ? "&" : "?";
+      return `${url}${sep}utm_source=share&utm_medium=social&utm_campaign=title_share`;
+    }
+  }
+
   async function handleShare() {
-    const shareData = { title, text: `${title} — Seriez`, url };
+    const targetUrl = shareUrl();
+    const shareData = { title, text: `${title} — Seriez`, url: targetUrl };
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share(shareData);
@@ -25,7 +40,7 @@ export default function ShareButton({
     }
     // Fallback: copy the URL to the clipboard.
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(targetUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
