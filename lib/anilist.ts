@@ -927,15 +927,9 @@ export const getAnimeEpisodes = unstable_cache(
 ): Promise<AnimeEpisode[]> => {
   let episodes: AnimeEpisode[] = [];
 
-  // Track A: Jikan (MyAnimeList) — fastest, no page limit, reliable for all episode counts
-  if (idMal && idMal > 0) {
-    const jikanEps = await fetchJikanEpisodes(idMal);
-    if (jikanEps.length > 0) episodes = jikanEps;
-  }
-
-  // Track B: Kitsu (has episode thumbnails + titles + air dates)
-  // Only used if Jikan fails — kept with page limit for safety
-  if (episodes.length === 0) {
+  // Track A: Kitsu (primary — has episode numbers, most complete for airing shows
+  // where Jikan/MAL data lags behind. Avoid Jikan's missing/empty episode lists.)
+  {
     const searchTitle = titleRomaji || title;
     let kitsuEps = await fetchKitsuEpisodes(searchTitle);
     if (kitsuEps.length === 0 && title !== searchTitle) {
@@ -944,6 +938,12 @@ export const getAnimeEpisodes = unstable_cache(
     if (kitsuEps.length > 0) {
       episodes = kitsuEps;
     }
+  }
+
+  // Track B: Jikan (MyAnimeList) — fallback when Kitsu has nothing
+  if (episodes.length === 0 && idMal && idMal > 0) {
+    const jikanEps = await fetchJikanEpisodes(idMal);
+    if (jikanEps.length > 0) episodes = jikanEps;
   }
 
   // Track C: AniDB fallback (slower, no thumbnails)
