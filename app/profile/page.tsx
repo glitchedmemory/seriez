@@ -126,7 +126,6 @@ export default function ProfilePage() {
       const res = await fetch(`/api/profile?username=${encodeURIComponent(effectiveUsername)}`).then(r => r.json());
       setAvatarUrl(res.avatar_url || null);
       setBackgroundUrl(res.background_url || null);
-      setIsPremium(res.is_premium || false);
       if (res.joined_at) setJoinedDate(res.joined_at);
       if (isOwn) {
         setBgScale(res.background_scale ?? 100);
@@ -135,6 +134,14 @@ export default function ProfilePage() {
       }
     } catch {}
   }, [effectiveUsername, isOwn]);
+
+  const fetchPremium = useCallback(async () => {
+    if (!effectiveUsername) return;
+    try {
+      const res = await fetch(`/api/premium?username=${encodeURIComponent(effectiveUsername)}`).then(r => r.json());
+      setIsPremium(res.is_premium || false);
+    } catch {}
+  }, [effectiveUsername]);
 
   const fetchReviewsMap = useCallback(async () => {
     if (!effectiveUsername) return;
@@ -232,8 +239,8 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
-    if (mounted) { fetchFollowData(); fetchFollowStatus(); fetchLibrary(); fetchProfileData(); fetchStats(); fetchReviewsMap(); }
-  }, [mounted, fetchFollowData, fetchFollowStatus, fetchLibrary, fetchProfileData, fetchStats, fetchReviewsMap]);
+    if (mounted) { fetchFollowData(); fetchFollowStatus(); fetchLibrary(); fetchProfileData(); fetchStats(); fetchReviewsMap(); fetchPremium(); }
+  }, [mounted, fetchFollowData, fetchFollowStatus, fetchLibrary, fetchProfileData, fetchStats, fetchReviewsMap, fetchPremium]);
 
   useEffect(() => { if (mounted && effectiveUsername) fetchCompare(); }, [mounted, effectiveUsername, fetchCompare]);
 

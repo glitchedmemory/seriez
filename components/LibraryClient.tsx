@@ -187,11 +187,11 @@ function CollectionsView() {
     setLoading(true);
     Promise.all([
       fetch(`/api/collections?username=${encodeURIComponent(username)}`).then(r => r.json()),
-      fetch(`/api/profile?username=${encodeURIComponent(username)}`).then(r => r.json()),
+      fetch(`/api/premium?username=${encodeURIComponent(username)}`).then(r => r.json()),
     ])
-      .then(([collData, profileData]) => {
+      .then(([collData, premiumData]) => {
         setCollections(collData.collections || []);
-        setIsPremium(profileData.is_premium || false);
+        setIsPremium(premiumData.is_premium || false);
         setLoading(false);
       }).catch(() => setLoading(false));
   };
