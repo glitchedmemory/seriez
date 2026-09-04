@@ -211,7 +211,7 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
       if (uname) {
         setSeriezUsername(uname);
         fetchForYou(uname);
-        fetch(`/api/profile?username=${encodeURIComponent(uname)}`)
+        fetch(`/api/premium?username=${encodeURIComponent(uname)}`)
           .then((r) => r.json())
           .then((data) => setIsPremium(data.is_premium || false))
           .catch(() => {});

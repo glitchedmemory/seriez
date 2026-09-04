@@ -16,12 +16,14 @@ export async function GET(req: NextRequest) {
   try {
     const { data, error } = await supabaseAdmin
       .from("users")
-      .select("avatar_url, background_url, background_scale, background_position_x, background_position_y, is_premium")
+      .select("avatar_url, background_url, background_scale, background_position_x, background_position_y")
       .eq("username", username.trim())
       .maybeSingle();
 
     if (error) throw error;
-    return NextResponse.json(data || {});
+    const res = NextResponse.json(data || {});
+    res.headers.set("Cache-Control", "public, max-age=86400, stale-while-revalidate=86400");
+    return res;
   } catch {
     return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
