@@ -247,18 +247,18 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
         {mounted && (
           <div className="flex gap-2 justify-center md:justify-start">
             <button onClick={() => handleTrack("plan_to_watch")} disabled={trackLoading}
-              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
-              style={{ color: isWanted ? "#14b8a6" : "var(--color-text-secondary)", backgroundColor: isWanted ? "#14b8a610" : "var(--color-bg-card)", border: isWanted ? "1px solid #14b8a640" : "1px solid var(--color-border)" }}>
+              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all border hover:border-accent hover:text-text-primary"
+              style={{ color: isWanted ? "#14b8a6" : "var(--color-text-secondary)", backgroundColor: isWanted ? "#14b8a610" : "var(--color-bg-card)", borderColor: isWanted ? "#14b8a640" : "var(--color-border)" }}>
               <HeartIcon active={isWanted} />TO WATCH
             </button>
             <button onClick={() => handleTrack("watching")} disabled={trackLoading || (detail.daysUntil != null && detail.daysUntil > 0)}
-              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
-              style={{ color: isWatching ? "#14b8a6" : "var(--color-text-secondary)", backgroundColor: isWatching ? "#14b8a610" : "var(--color-bg-card)", border: isWatching ? "1px solid #14b8a640" : "1px solid var(--color-border)" }}>
+              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all border hover:border-accent hover:text-text-primary"
+              style={{ color: isWatching ? "#14b8a6" : "var(--color-text-secondary)", backgroundColor: isWatching ? "#14b8a610" : "var(--color-bg-card)", borderColor: isWatching ? "#14b8a640" : "var(--color-border)" }}>
               <PlayIcon active={isWatching} />WATCHING
             </button>
             <button onClick={() => handleTrack("completed")} disabled={trackLoading || (detail.daysUntil != null && detail.daysUntil > 0)}
-              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all"
-              style={{ color: isWatched ? "#14b8a6" : "var(--color-text-secondary)", backgroundColor: isWatched ? "#14b8a610" : "var(--color-bg-card)", border: isWatched ? "1px solid #14b8a640" : "1px solid var(--color-border)" }}>
+              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all border hover:border-accent hover:text-text-primary"
+              style={{ color: isWatched ? "#14b8a6" : "var(--color-text-secondary)", backgroundColor: isWatched ? "#14b8a610" : "var(--color-bg-card)", borderColor: isWatched ? "#14b8a640" : "var(--color-border)" }}>
               <CheckIcon active={isWatched} />WATCHED
             </button>
           </div>
