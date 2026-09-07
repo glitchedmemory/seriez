@@ -46,9 +46,8 @@ interface Props {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://seriez.app";
 
-// Direct (uncached) AniList lookup for metadata — unstable_cache wrappers
-// (getAnilistId / getAnimeDetail) trigger DYNAMIC_SERVER_USAGE inside
-// generateMetadata, so we hit the API directly here instead.
+// Direct (uncached) AniList lookup for metadata — uses static fetch (revalidate)
+// so it never triggers DYNAMIC_SERVER_USAGE when AniList is down.
 async function fetchAnimeMeta(numId: number): Promise<{ title: string; description: string; posterUrl: string | null } | null> {
   try {
     const res = await fetch("https://graphql.anilist.co", {
@@ -58,7 +57,7 @@ async function fetchAnimeMeta(numId: number): Promise<{ title: string; descripti
         query: `query($id:Int){Media(id:$id,type:ANIME){title{romaji english native}description coverImage{large}}}`,
         variables: { id: numId },
       }),
-      signal: AbortSignal.timeout(8000),
+      next: { revalidate: 86400 },
     });
     if (!res.ok) return null;
     const json = await res.json();
@@ -86,6 +85,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         query: `query($id:Int){Media(id:$id,type:ANIME){id}}`,
         variables: { id: numId },
       }),
+      next: { revalidate: 86400 },
     });
     let anilistId: number | null = null;
     if (resolveRes.ok) {
@@ -97,7 +97,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       try {
         const jikanRes = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(String(numId))}&limit=1`, {
           headers: { Accept: "application/json" },
-          signal: AbortSignal.timeout(8000),
+          next: { revalidate: 86400 },
         });
         if (jikanRes.ok) {
           const jd = await jikanRes.json();
@@ -110,6 +110,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                 query: `query($id:Int){Media(idMal:$id,type:ANIME){id}}`,
                 variables: { id: first.mal_id },
               }),
+              next: { revalidate: 86400 },
             });
             if (alRes.ok) {
               const aj = await alRes.json();
