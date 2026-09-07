@@ -594,12 +594,13 @@ const _getAnilistIdCached = unstable_cache(
 export async function getAnilistId(tmdbId: number): Promise<number | null> {
   const cached = await _getAnilistIdCached(tmdbId);
   if (cached !== null) return cached;
-  // Null cached — one fresh retry
+  // Null cached — one fresh retry (static fetch with revalidate to avoid DYNAMIC_SERVER_USAGE)
   try {
     const res = await fetch("https://graphql.anilist.co", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
       body: JSON.stringify({ query: "query($id:Int){Media(id:$id,type:ANIME){id}}", variables: { id: tmdbId } }),
+      next: { revalidate: 86400 },
     });
     if (!res.ok) return null;
     const json = await res.json();
