@@ -216,6 +216,96 @@ async function fetchKitsuBackdrop(title: string, year: number, titleRomaji?: str
   }
 }
 
+// ─── Kitsu fallback: AniList ID → Kitsu anime (works even when AniList is down) ───
+
+const KITSU_MAPPINGS_API = "https://kitsu.io/api/edge/mappings";
+const KITSU_ANIME_API = "https://kitsu.io/api/edge/anime";
+
+/** Resolve an AniList ID to a Kitsu anime id via Kitsu's own mappings table
+ *  (externalSite=anilist/anime). This does NOT depend on the AniList API. */
+async function resolveAnilistIdToKitsu(anilistId: number): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `${KITSU_MAPPINGS_API}?filter[externalSite]=anilist/anime&filter[externalId]=${anilistId}&page[limit]=1`,
+      { headers: { "Accept": "application/vnd.api+json" }, next: { revalidate: 86400 } }
+    );
+    if (!res.ok) return null;
+    const json = await res.json();
+    const mapping = json.data?.[0];
+    if (!mapping) return null;
+    // The related item URL points at the Kitsu anime item (e.g. .../mappings/254652/item)
+    const related = mapping.relationships?.item?.links?.related;
+    if (!related) return null;
+    const itemRes = await fetch(related, {
+      headers: { "Accept": "application/vnd.api+json" },
+      next: { revalidate: 86400 },
+    });
+    if (!itemRes.ok) return null;
+    const itemJson = await itemRes.json();
+    return itemJson.data?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Build an AnimeDetail from a Kitsu anime item (fallback when AniList is down). */
+function buildAnimeDetailFromKitsu(item: any): AnimeDetail | null {
+  if (!item) return null;
+  const a = item.attributes || {};
+  const titleEn = a.titles?.en || a.canonicalTitle || "";
+  const titleEnJp = a.titles?.en_jp || "";
+  const titleJa = a.titles?.ja_jp || "";
+  const title = titleEn || titleEnJp || a.canonicalTitle || "Unknown";
+  const poster = a.posterImage?.original || a.posterImage?.large || a.posterImage?.medium || null;
+  const cover = a.coverImage?.original || a.coverImage?.large || null;
+  const rating = a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0;
+  const startYear = a.startDate ? Number(String(a.startDate).slice(0, 4)) || 0 : 0;
+
+  return {
+    id: item.id ? Number(item.id) : 0,
+    idMal: 0,
+    title,
+    titleRomaji: titleEnJp || titleEn,
+    titleNative: titleJa,
+    overview: (a.synopsis || "").slice(0, 2000),
+    poster,
+    backdrop: cover,
+    rating,
+    popularity: 0,
+    year: startYear,
+    season: "",
+    format: "TV",
+    status: (a.status || "finished").toUpperCase(),
+    episodes: a.episodeCount || 0,
+    duration: a.episodeLength || 0,
+    genres: [],
+    tags: [],
+    studios: [],
+    staff: [],
+    characters: [],
+    recommendations: [],
+    trailer: null,
+    relations: [],
+  };
+}
+
+/** Fallback entry point: try AniList ID → Kitsu, used when AniList GraphQL is down. */
+export async function getAnimeDetailFromKitsu(anilistId: number): Promise<AnimeDetail | null> {
+  try {
+    const kitsuId = await resolveAnilistIdToKitsu(anilistId);
+    if (!kitsuId) return null;
+    const res = await fetch(`${KITSU_ANIME_API}/${kitsuId}`, {
+      headers: { "Accept": "application/vnd.api+json" },
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return buildAnimeDetailFromKitsu(json.data);
+  } catch {
+    return null;
+  }
+}
+
 // ─── Main fetch ───
 
 /** Lightweight AniList query: only idMal + titles + duration. Used to parallelize detail + episodes. */
@@ -228,7 +318,20 @@ export const getAnimeIds = unstable_cache(
     body: JSON.stringify({ query, variables: { id } }),
     next: { revalidate: 86400 },
   });
-  if (!res.ok) throw new Error("AniList failed");
+  if (!res.ok) {
+    // AniList down — resolve titles via Kitsu fallback
+    const kd = await getAnimeDetailFromKitsu(id);
+    if (kd) {
+      return {
+        idMal: kd.idMal || 0,
+        title: kd.title,
+        titleRomaji: kd.titleRomaji || "",
+        titleNative: kd.titleNative || "",
+        duration: kd.duration || 0,
+      };
+    }
+    throw new Error("AniList failed");
+  }
   const m = (await res.json()).data?.Media;
   return {
     idMal: m?.idMal || 0,
@@ -262,10 +365,13 @@ export const getAnimeDetail = unstable_cache(
       }
     }
 
-    if (!res!.ok) return null;
+    if (!res!.ok) {
+      // AniList down — fall back to Kitsu (via AniList ID → Kitsu mapping)
+      return getAnimeDetailFromKitsu(id);
+    }
     const json = await res!.json();
     const m = json.data?.Media;
-    if (!m) return null;
+    if (!m) return getAnimeDetailFromKitsu(id);
 
     // Characters with voice actors
     const characters = (m.characters?.edges || []).map((e: any) => ({

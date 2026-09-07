@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 import { tmdbGet } from "@/lib/tmdb";
 import { persistentCache } from "@/lib/persistent-cache";
+import { getAnimeDetailFromKitsu } from "@/lib/anilist";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -93,10 +94,33 @@ async function getAnimeInfo(anilistId: number): Promise<TmdbCache | null> {
         variables: { id: anilistId },
       }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      // AniList down — fall back to Kitsu (AniList ID → Kitsu mapping)
+      const kd = await getAnimeDetailFromKitsu(anilistId);
+      if (kd) {
+        return {
+          title: kd.title,
+          posterPath: kd.poster,
+          runtime: kd.duration || null,
+          genres: (kd.genres || []).map((g: string) => ({ id: 0, name: g })),
+        };
+      }
+      return null;
+    }
     const json = await res.json();
     const m = json.data?.Media;
-    if (!m) return null;
+    if (!m) {
+      const kd = await getAnimeDetailFromKitsu(anilistId);
+      if (kd) {
+        return {
+          title: kd.title,
+          posterPath: kd.poster,
+          runtime: kd.duration || null,
+          genres: (kd.genres || []).map((g: string) => ({ id: 0, name: g })),
+        };
+      }
+      return null;
+    }
     return {
       title: m.title?.english || m.title?.romaji || "Unknown",
       posterPath: m.coverImage?.extraLarge || null,
