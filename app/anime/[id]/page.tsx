@@ -1,6 +1,6 @@
 export const revalidate = 86400;
 
-import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations } from "@/lib/anilist";
+import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations, getAnilistId } from "@/lib/anilist";
 import AnimeHero from "@/components/AnimeHero";
 import AnimeOverview from "@/components/AnimeOverview";
 import AnimeSeasons from "@/components/AnimeSeasons";
@@ -46,8 +46,9 @@ interface Props {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://seriez.app";
 
-// Direct (uncached) AniList lookup for metadata — uses static fetch (revalidate)
-// so it never triggers DYNAMIC_SERVER_USAGE when AniList is down.
+// Direct (uncached) AniList lookup for metadata — unstable_cache wrappers
+// (getAnilistId / getAnimeDetail) trigger DYNAMIC_SERVER_USAGE inside
+// generateMetadata, so we hit the API directly here instead.
 async function fetchAnimeMeta(numId: number): Promise<{ title: string; description: string; posterUrl: string | null } | null> {
   try {
     const res = await fetch("https://graphql.anilist.co", {
@@ -57,7 +58,7 @@ async function fetchAnimeMeta(numId: number): Promise<{ title: string; descripti
         query: `query($id:Int){Media(id:$id,type:ANIME){title{romaji english native}description coverImage{large}}}`,
         variables: { id: numId },
       }),
-      next: { revalidate: 86400 },
+      signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return null;
     const json = await res.json();
@@ -85,7 +86,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         query: `query($id:Int){Media(id:$id,type:ANIME){id}}`,
         variables: { id: numId },
       }),
-      next: { revalidate: 86400 },
     });
     let anilistId: number | null = null;
     if (resolveRes.ok) {
@@ -97,7 +97,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       try {
         const jikanRes = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(String(numId))}&limit=1`, {
           headers: { Accept: "application/json" },
-          next: { revalidate: 86400 },
+          signal: AbortSignal.timeout(8000),
         });
         if (jikanRes.ok) {
           const jd = await jikanRes.json();
@@ -110,7 +110,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                 query: `query($id:Int){Media(idMal:$id,type:ANIME){id}}`,
                 variables: { id: first.mal_id },
               }),
-              next: { revalidate: 86400 },
             });
             if (alRes.ok) {
               const aj = await alRes.json();
@@ -156,10 +155,8 @@ export default async function AnimePage({ params }: Props) {
   const numId = parseInt(id);
   if (isNaN(numId)) notFound();
 
-  // `/anime/[id]` id IS the AniList ID (URLs always use AniList IDs for anime).
-  // No TMDB→AniList resolution needed — and calling getAnilistId would break
-  // when AniList is down. Use numId directly.
-  const anilistId = numId;
+  const anilistId = await getAnilistId(numId);
+  if (!anilistId) notFound();
   const ids = await getAnimeIds(anilistId);
   const [detail, episodes] = await Promise.all([
     getAnimeDetail(anilistId),

@@ -216,104 +216,11 @@ async function fetchKitsuBackdrop(title: string, year: number, titleRomaji?: str
   }
 }
 
-// ─── Kitsu fallback: AniList ID → Kitsu anime (works even when AniList is down) ───
-
-const KITSU_MAPPINGS_API = "https://kitsu.io/api/edge/mappings";
-const KITSU_ANIME_API = "https://kitsu.io/api/edge/anime";
-
-/** Resolve an AniList ID to a Kitsu anime item id via Kitsu's mappings table.
- *  This uses Kitsu's own server-side mapping (externalSite=anilist/anime),
- *  so it does NOT depend on the AniList API being up. */
-async function resolveAnilistIdToKitsu(anilistId: number): Promise<string | null> {
-  try {
-    const res = await fetch(
-      `${KITSU_MAPPINGS_API}?filter[externalSite]=anilist/anime&filter[externalId]=${anilistId}&page[limit]=1`,
-      { headers: { "Accept": "application/vnd.api+json" }, next: { revalidate: 86400 } }
-    );
-    if (!res.ok) return null;
-    const json = await res.json();
-    const mapping = json.data?.[0];
-    if (!mapping) return null;
-    // The related item URL points at the Kitsu anime item (e.g. .../mappings/254652/item)
-    const related = mapping.relationships?.item?.links?.related;
-    if (!related) return null;
-    // Fetch the item relationship to get the actual Kitsu anime id
-    const itemRes = await fetch(related, {
-      headers: { "Accept": "application/vnd.api+json" },
-      next: { revalidate: 86400 },
-    });
-    if (!itemRes.ok) return null;
-    const itemJson = await itemRes.json();
-    return itemJson.data?.id ?? null;
-  } catch {
-    return null;
-  }
-}
-
-/** Build an AnimeDetail from a Kitsu anime item (fallback when AniList is down). */
-function buildAnimeDetailFromKitsu(item: any): AnimeDetail | null {
-  if (!item) return null;
-  const a = item.attributes || {};
-  const titleEn = a.titles?.en || a.canonicalTitle || "";
-  const titleEnJp = a.titles?.en_jp || "";
-  const titleJa = a.titles?.ja_jp || "";
-  const title = titleEn || titleEnJp || a.canonicalTitle || "Unknown";
-  const poster = a.posterImage?.original || a.posterImage?.large || a.posterImage?.medium || null;
-  const cover = a.coverImage?.original || a.coverImage?.large || null;
-  const rating = a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0;
-  const kGenres = a.categories || []; // categories are not anime genres — leave empty
-  const startYear = a.startDate ? Number(String(a.startDate).slice(0, 4)) || 0 : 0;
-
-  return {
-    id: item.id ? Number(item.id) : 0,
-    idMal: 0,
-    title,
-    titleRomaji: titleEnJp || titleEn,
-    titleNative: titleJa,
-    overview: (a.synopsis || "").slice(0, 2000),
-    poster,
-    backdrop: cover,
-    rating,
-    popularity: 0,
-    year: startYear,
-    season: "",
-    format: "TV",
-    status: (a.status || "finished").toUpperCase(),
-    episodes: a.episodeCount || 0,
-    duration: a.episodeLength || 0,
-    genres: kGenres as string[],
-    tags: [],
-    studios: [],
-    staff: [],
-    characters: [],
-    recommendations: [],
-    trailer: null,
-    relations: [],
-  };
-}
-
-/** Fallback entry point: try AniList ID → Kitsu, used when AniList GraphQL is down. */
-export async function getAnimeDetailFromKitsu(anilistId: number): Promise<AnimeDetail | null> {
-  try {
-    const kitsuId = await resolveAnilistIdToKitsu(anilistId);
-    if (!kitsuId) return null;
-    const res = await fetch(`${KITSU_ANIME_API}/${kitsuId}`, {
-      headers: { "Accept": "application/vnd.api+json" },
-      next: { revalidate: 86400 },
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return buildAnimeDetailFromKitsu(json.data);
-  } catch {
-    return null;
-  }
-}
-
 // ─── Main fetch ───
 
 /** Lightweight AniList query: only idMal + titles + duration. Used to parallelize detail + episodes. */
-const _getAnimeIdsCached = unstable_cache(
-  async (id: number): Promise<{ idMal: number; title: string; titleRomaji: string; titleNative: string; duration: number } | null> => {
+export const getAnimeIds = unstable_cache(
+  async (id: number): Promise<{ idMal: number; title: string; titleRomaji: string; titleNative: string; duration: number }> => {
   const query = `query($id:Int){Media(id:$id){idMal title{romaji english native} duration}}`;
   const res = await fetch(ANILIST_API, {
     method: "POST",
@@ -321,41 +228,21 @@ const _getAnimeIdsCached = unstable_cache(
     body: JSON.stringify({ query, variables: { id } }),
     next: { revalidate: 86400 },
   });
-  if (!res.ok) return null;
+  if (!res.ok) throw new Error("AniList failed");
   const m = (await res.json()).data?.Media;
-  if (!m) return null;
   return {
-    idMal: m.idMal || 0,
-    title: m.title?.english || m.title?.romaji || "Unknown",
-    titleRomaji: m.title?.romaji || "",
-    titleNative: m.title?.native || "",
-    duration: m.duration || 0,
+    idMal: m?.idMal || 0,
+    title: m?.title?.english || m?.title?.romaji || "Unknown",
+    titleRomaji: m?.title?.romaji || "",
+    titleNative: m?.title?.native || "",
+    duration: m?.duration || 0,
   };
 },
   ["anime-ids"],
   { revalidate: 86400 }
 );
 
-// Public wrapper: AniList first, Kitsu fallback when AniList is down.
-export async function getAnimeIds(id: number): Promise<{ idMal: number; title: string; titleRomaji: string; titleNative: string; duration: number }> {
-  const cached = await _getAnimeIdsCached(id);
-  if (cached) return cached;
-  // AniList down — resolve titles via Kitsu fallback (outside unstable_cache)
-  const kd = await getAnimeDetailFromKitsu(id);
-  if (kd) {
-    return {
-      idMal: kd.idMal || 0,
-      title: kd.title,
-      titleRomaji: kd.titleRomaji || "",
-      titleNative: kd.titleNative || "",
-      duration: kd.duration || 0,
-    };
-  }
-  throw new Error("AniList failed");
-}
-
-// Inner cached fetch: AniList-only (fetch inside unstable_cache is fine with revalidate)
-const _getAnimeDetailCached = unstable_cache(
+export const getAnimeDetail = unstable_cache(
   async (id: number): Promise<AnimeDetail | null> => {
   try {
     // Retry AniList fetch with backoff (handles 429 + network errors)
@@ -507,14 +394,6 @@ const _getAnimeDetailCached = unstable_cache(
   { revalidate: 86400 }
 );
 
-// Public wrapper: AniList first, Kitsu fallback when AniList is down.
-// Kitsu fallback is called OUTSIDE unstable_cache to avoid DYNAMIC_SERVER_USAGE.
-export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
-  const cached = await _getAnimeDetailCached(id);
-  if (cached) return cached;
-  return getAnimeDetailFromKitsu(id);
-}
-
 // ─── TMDB ID → AniList ID resolution (cached 24h) ───
 
 const _getAnilistIdCached = unstable_cache(
@@ -594,13 +473,12 @@ const _getAnilistIdCached = unstable_cache(
 export async function getAnilistId(tmdbId: number): Promise<number | null> {
   const cached = await _getAnilistIdCached(tmdbId);
   if (cached !== null) return cached;
-  // Null cached — one fresh retry (static fetch with revalidate to avoid DYNAMIC_SERVER_USAGE)
+  // Null cached — one fresh retry
   try {
     const res = await fetch("https://graphql.anilist.co", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
       body: JSON.stringify({ query: "query($id:Int){Media(id:$id,type:ANIME){id}}", variables: { id: tmdbId } }),
-      next: { revalidate: 86400 },
     });
     if (!res.ok) return null;
     const json = await res.json();
