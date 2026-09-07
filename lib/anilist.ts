@@ -223,8 +223,10 @@ const KITSU_ANIME_API = "https://kitsu.io/api/edge/anime";
 
 /** Resolve an AniList ID to a Kitsu anime item id via Kitsu's mappings table.
  *  This uses Kitsu's own server-side mapping (externalSite=anilist/anime),
- *  so it does NOT depend on the AniList API being up. */
-async function resolveAnilistIdToKitsu(anilistId: number): Promise<string | null> {
+ *  so it does NOT depend on the AniList API being up.
+ *  Wrapped in unstable_cache so its internal fetches are cache-safe. */
+const resolveAnilistIdToKitsu = unstable_cache(
+  async (anilistId: number): Promise<string | null> => {
   try {
     const res = await fetch(
       `${KITSU_MAPPINGS_API}?filter[externalSite]=anilist/anime&filter[externalId]=${anilistId}&page[limit]=1`,
@@ -238,25 +240,20 @@ async function resolveAnilistIdToKitsu(anilistId: number): Promise<string | null
     const related = mapping.relationships?.item?.links?.related;
     if (!related) return null;
     // Fetch the item relationship to get the actual Kitsu anime id
-    return fetchKitsuItemIdFromMapping(related);
-  } catch {
-    return null;
-  }
-}
-
-async function fetchKitsuItemIdFromMapping(relatedUrl: string): Promise<string | null> {
-  try {
-    const res = await fetch(relatedUrl, {
+    const itemRes = await fetch(related, {
       headers: { "Accept": "application/vnd.api+json" },
       next: { revalidate: 86400 },
     });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json.data?.id ?? null;
+    if (!itemRes.ok) return null;
+    const itemJson = await itemRes.json();
+    return itemJson.data?.id ?? null;
   } catch {
     return null;
   }
-}
+},
+  ["anime-kitsu-mapping"],
+  { revalidate: 86400 }
+);
 
 /** Build an AnimeDetail from a Kitsu anime item (fallback when AniList is down). */
 function buildAnimeDetailFromKitsu(item: any): AnimeDetail | null {
@@ -300,8 +297,11 @@ function buildAnimeDetailFromKitsu(item: any): AnimeDetail | null {
   };
 }
 
-/** Fallback entry point: try AniList ID → Kitsu, used when AniList GraphQL is down. */
-export async function getAnimeDetailFromKitsu(anilistId: number): Promise<AnimeDetail | null> {
+/** Fallback entry point: try AniList ID → Kitsu, used when AniList GraphQL is down.
+ *  Wrapped in unstable_cache so its internal fetches run inside the cache layer
+ *  (avoids DYNAMIC_SERVER_USAGE when called from other unstable_cache fns). */
+export const getAnimeDetailFromKitsu = unstable_cache(
+  async (anilistId: number): Promise<AnimeDetail | null> => {
   try {
     const kitsuId = await resolveAnilistIdToKitsu(anilistId);
     if (!kitsuId) return null;
@@ -315,7 +315,10 @@ export async function getAnimeDetailFromKitsu(anilistId: number): Promise<AnimeD
   } catch {
     return null;
   }
-}
+},
+  ["anime-kitsu-fallback"],
+  { revalidate: 86400 }
+);
 
 // ─── Main fetch ───
 
