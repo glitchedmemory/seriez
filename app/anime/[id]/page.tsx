@@ -1,6 +1,6 @@
 export const revalidate = 86400;
 
-import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations, getAnilistId } from "@/lib/anilist";
+import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations } from "@/lib/anilist";
 import AnimeHero from "@/components/AnimeHero";
 import AnimeOverview from "@/components/AnimeOverview";
 import AnimeSeasons from "@/components/AnimeSeasons";
@@ -156,8 +156,10 @@ export default async function AnimePage({ params }: Props) {
   const numId = parseInt(id);
   if (isNaN(numId)) notFound();
 
-  const anilistId = await getAnilistId(numId);
-  if (!anilistId) notFound();
+  // `/anime/[id]` id IS the AniList ID (URLs always use AniList IDs for anime).
+  // No TMDB→AniList resolution needed — and calling getAnilistId would break
+  // when AniList is down. Use numId directly.
+  const anilistId = numId;
   const ids = await getAnimeIds(anilistId);
   const [detail, episodes] = await Promise.all([
     getAnimeDetail(anilistId),
