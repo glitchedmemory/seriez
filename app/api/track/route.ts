@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { checkSanction, getSanctionError } from "@/lib/sanction-utils";
 import { tmdbGet } from "@/lib/tmdb";
+import { getAnimeDetailFromKitsu } from "@/lib/anilist";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -235,6 +236,16 @@ async function fetchMetadata(tmdbId: number, mediaType: string): Promise<{poster
           title: m?.title?.english || m?.title?.romaji || null,
           year: m?.startDate?.year || null,
           rating: m?.averageScore ? Math.round(m.averageScore) / 10 : null,
+        };
+      }
+      // AniList down — fall back to Kitsu for title/poster/year/rating
+      const kd = await getAnimeDetailFromKitsu(tmdbId);
+      if (kd) {
+        return {
+          poster: kd.poster || null,
+          title: kd.title || null,
+          year: kd.year || null,
+          rating: kd.rating || null,
         };
       }
     } else {
