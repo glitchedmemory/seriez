@@ -223,10 +223,8 @@ const KITSU_ANIME_API = "https://kitsu.io/api/edge/anime";
 
 /** Resolve an AniList ID to a Kitsu anime item id via Kitsu's mappings table.
  *  This uses Kitsu's own server-side mapping (externalSite=anilist/anime),
- *  so it does NOT depend on the AniList API being up.
- *  Wrapped in unstable_cache so its internal fetches are cache-safe. */
-const resolveAnilistIdToKitsu = unstable_cache(
-  async (anilistId: number): Promise<string | null> => {
+ *  so it does NOT depend on the AniList API being up. */
+async function resolveAnilistIdToKitsu(anilistId: number): Promise<string | null> {
   try {
     const res = await fetch(
       `${KITSU_MAPPINGS_API}?filter[externalSite]=anilist/anime&filter[externalId]=${anilistId}&page[limit]=1`,
@@ -250,10 +248,7 @@ const resolveAnilistIdToKitsu = unstable_cache(
   } catch {
     return null;
   }
-},
-  ["anime-kitsu-mapping"],
-  { revalidate: 86400 }
-);
+}
 
 /** Build an AnimeDetail from a Kitsu anime item (fallback when AniList is down). */
 function buildAnimeDetailFromKitsu(item: any): AnimeDetail | null {
@@ -297,11 +292,8 @@ function buildAnimeDetailFromKitsu(item: any): AnimeDetail | null {
   };
 }
 
-/** Fallback entry point: try AniList ID → Kitsu, used when AniList GraphQL is down.
- *  Wrapped in unstable_cache so its internal fetches run inside the cache layer
- *  (avoids DYNAMIC_SERVER_USAGE when called from other unstable_cache fns). */
-export const getAnimeDetailFromKitsu = unstable_cache(
-  async (anilistId: number): Promise<AnimeDetail | null> => {
+/** Fallback entry point: try AniList ID → Kitsu, used when AniList GraphQL is down. */
+export async function getAnimeDetailFromKitsu(anilistId: number): Promise<AnimeDetail | null> {
   try {
     const kitsuId = await resolveAnilistIdToKitsu(anilistId);
     if (!kitsuId) return null;
@@ -315,16 +307,13 @@ export const getAnimeDetailFromKitsu = unstable_cache(
   } catch {
     return null;
   }
-},
-  ["anime-kitsu-fallback"],
-  { revalidate: 86400 }
-);
+}
 
 // ─── Main fetch ───
 
 /** Lightweight AniList query: only idMal + titles + duration. Used to parallelize detail + episodes. */
-export const getAnimeIds = unstable_cache(
-  async (id: number): Promise<{ idMal: number; title: string; titleRomaji: string; titleNative: string; duration: number }> => {
+const _getAnimeIdsCached = unstable_cache(
+  async (id: number): Promise<{ idMal: number; title: string; titleRomaji: string; titleNative: string; duration: number } | null> => {
   const query = `query($id:Int){Media(id:$id){idMal title{romaji english native} duration}}`;
   const res = await fetch(ANILIST_API, {
     method: "POST",
@@ -332,34 +321,41 @@ export const getAnimeIds = unstable_cache(
     body: JSON.stringify({ query, variables: { id } }),
     next: { revalidate: 86400 },
   });
-  if (!res.ok) {
-    // AniList down — resolve titles via Kitsu fallback
-    const kd = await getAnimeDetailFromKitsu(id);
-    if (kd) {
-      return {
-        idMal: kd.idMal || 0,
-        title: kd.title,
-        titleRomaji: kd.titleRomaji || "",
-        titleNative: kd.titleNative || "",
-        duration: kd.duration || 0,
-      };
-    }
-    throw new Error("AniList failed");
-  }
+  if (!res.ok) return null;
   const m = (await res.json()).data?.Media;
+  if (!m) return null;
   return {
-    idMal: m?.idMal || 0,
-    title: m?.title?.english || m?.title?.romaji || "Unknown",
-    titleRomaji: m?.title?.romaji || "",
-    titleNative: m?.title?.native || "",
-    duration: m?.duration || 0,
+    idMal: m.idMal || 0,
+    title: m.title?.english || m.title?.romaji || "Unknown",
+    titleRomaji: m.title?.romaji || "",
+    titleNative: m.title?.native || "",
+    duration: m.duration || 0,
   };
 },
   ["anime-ids"],
   { revalidate: 86400 }
 );
 
-export const getAnimeDetail = unstable_cache(
+// Public wrapper: AniList first, Kitsu fallback when AniList is down.
+export async function getAnimeIds(id: number): Promise<{ idMal: number; title: string; titleRomaji: string; titleNative: string; duration: number }> {
+  const cached = await _getAnimeIdsCached(id);
+  if (cached) return cached;
+  // AniList down — resolve titles via Kitsu fallback (outside unstable_cache)
+  const kd = await getAnimeDetailFromKitsu(id);
+  if (kd) {
+    return {
+      idMal: kd.idMal || 0,
+      title: kd.title,
+      titleRomaji: kd.titleRomaji || "",
+      titleNative: kd.titleNative || "",
+      duration: kd.duration || 0,
+    };
+  }
+  throw new Error("AniList failed");
+}
+
+// Inner cached fetch: AniList-only (fetch inside unstable_cache is fine with revalidate)
+const _getAnimeDetailCached = unstable_cache(
   async (id: number): Promise<AnimeDetail | null> => {
   try {
     // Retry AniList fetch with backoff (handles 429 + network errors)
@@ -379,13 +375,10 @@ export const getAnimeDetail = unstable_cache(
       }
     }
 
-    if (!res!.ok) {
-      // AniList down — fall back to Kitsu (via AniList ID → Kitsu mapping)
-      return getAnimeDetailFromKitsu(id);
-    }
+    if (!res!.ok) return null;
     const json = await res!.json();
     const m = json.data?.Media;
-    if (!m) return getAnimeDetailFromKitsu(id);
+    if (!m) return null;
 
     // Characters with voice actors
     const characters = (m.characters?.edges || []).map((e: any) => ({
@@ -513,6 +506,14 @@ export const getAnimeDetail = unstable_cache(
   ["anime-detail"],
   { revalidate: 86400 }
 );
+
+// Public wrapper: AniList first, Kitsu fallback when AniList is down.
+// Kitsu fallback is called OUTSIDE unstable_cache to avoid DYNAMIC_SERVER_USAGE.
+export async function getAnimeDetail(id: number): Promise<AnimeDetail | null> {
+  const cached = await _getAnimeDetailCached(id);
+  if (cached) return cached;
+  return getAnimeDetailFromKitsu(id);
+}
 
 // ─── TMDB ID → AniList ID resolution (cached 24h) ───
 
