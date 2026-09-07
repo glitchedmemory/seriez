@@ -152,7 +152,16 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
     let json: any = null;
     try {
       if (newStatus) {
-        const body: Record<string, unknown> = { username, tmdbId: detail.id, mediaType: "anime", status: newStatus };
+        const body: Record<string, unknown> = {
+          username,
+          tmdbId: detail.id,
+          mediaType: "anime",
+          status: newStatus,
+          title: detail.title || undefined,
+          posterUrl: detail.poster || undefined,
+          year: detail.year || undefined,
+          tmdbRating: detail.rating || undefined,
+        };
         if (status === "completed" && effectiveRating > 0) body.rating = effectiveRating;
         const res = await fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
         json = await res.json();
@@ -189,7 +198,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
     const willHaveWatched = !wasWatched || watchedEpisodes.size > 1;
     if (willHaveWatched && (!trackStatus || trackStatus === "plan_to_watch" || trackStatus === "completed")) {
       syncTrackState("watching");
-      await fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching" }) });
+      await fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined }) });
     } else if (!willHaveWatched && trackStatus === "watching") {
       syncTrackState(null);
       await fetch("/api/track", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime" }) });
@@ -198,7 +207,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
     setEpToggleLoading(null);
     if (trackStatus === "completed" && wasWatched && watchedEpisodes.size - 1 < episodes.length) {
       syncTrackState("watching");
-      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching" }) }).catch(() => {});
+      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined }) }).catch(() => {});
     }
     const nowAllWatched = !wasWatched && watchedEpisodes.size + 1 >= episodes.length;
     if (nowAllWatched && trackStatus !== "completed") {

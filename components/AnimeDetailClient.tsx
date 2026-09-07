@@ -180,6 +180,10 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
           tmdbId: detail.id,
           mediaType: "anime",
           status: newStatus,
+          title: detail.title || undefined,
+          posterUrl: detail.poster || undefined,
+          year: detail.year || undefined,
+          tmdbRating: detail.rating || undefined,
           // Keep the same season_number as the existing row so the upsert
           // updates it in place instead of creating a season-0 duplicate.
           ...(trackedSeason != null ? { seasonNumber: trackedSeason } : {}),
@@ -277,7 +281,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       await fetch("/api/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching" }),
+        body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined }),
       });
     } else if (!willHaveWatched && trackStatus === "watching") {
       setTrackStatus(null);
@@ -303,7 +307,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       fetch("/api/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching" }),
+        body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined }),
       }).catch(() => {});
     }
 
@@ -315,7 +319,7 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
       fetch("/api/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "completed" }),
+        body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "completed", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined }),
       }).catch(() => {});
     }
   }
