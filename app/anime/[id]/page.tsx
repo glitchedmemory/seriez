@@ -1,6 +1,10 @@
 export const revalidate = 86400;
+// Force dynamic rendering: this page performs external fetches (AniList → Kitsu
+// fallback) that Next.js would otherwise flag as DYNAMIC_SERVER_USAGE when
+// AniList is down and the ISR page falls back to on-demand rendering.
+export const dynamic = "force-dynamic";
 
-import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations, getAnilistId } from "@/lib/anilist";
+import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations } from "@/lib/anilist";
 import AnimeHero from "@/components/AnimeHero";
 import AnimeOverview from "@/components/AnimeOverview";
 import AnimeSeasons from "@/components/AnimeSeasons";
@@ -155,8 +159,10 @@ export default async function AnimePage({ params }: Props) {
   const numId = parseInt(id);
   if (isNaN(numId)) notFound();
 
-  const anilistId = await getAnilistId(numId);
-  if (!anilistId) notFound();
+  // `/anime/[id]` id IS the AniList ID (anime URLs always use AniList IDs).
+  // No TMDB→AniList resolution needed — and getAnilistId would return null
+  // when AniList is down, breaking the page before the Kitsu fallback runs.
+  const anilistId = numId;
   const ids = await getAnimeIds(anilistId);
   const [detail, episodes] = await Promise.all([
     getAnimeDetail(anilistId),
