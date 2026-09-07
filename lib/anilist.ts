@@ -306,6 +306,74 @@ export async function getAnimeDetailFromKitsu(anilistId: number): Promise<AnimeD
   }
 }
 
+/** Fallback: fetch trending anime list from Kitsu (used when AniList is down).
+ *  Returns items shaped like AniList trending results (TmdbResult-ish for the home page). */
+type KitsuAnimeListResult = {
+  id: number;
+  title: string;
+  poster: string | null;
+  backdrop: string | null;
+  rating: number;
+  year: number;
+  type: "anime";
+  overview: string;
+  genres: string[];
+  daysUntil: number | null;
+};
+
+async function fetchKitsuTrendingAnime(limit = 14): Promise<KitsuAnimeListResult[]> {
+  try {
+    const res = await fetch(`https://kitsu.io/api/edge/trending/anime?limit=${limit}`, {
+      headers: { "Accept": "application/vnd.api+json" },
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const data = json.data || [];
+    // Resolve each Kitsu id → AniList id (via mappings) so /anime/{id} links work.
+    const out: KitsuAnimeListResult[] = await Promise.all(
+      data.map(async (item: any): Promise<KitsuAnimeListResult | null> => {
+        const a = item.attributes || {};
+        const kitsuId = Number(item.id) || 0;
+        if (!kitsuId) return null;
+        // Fetch AniList id from Kitsu mappings (best-effort; ignore failures)
+        let anilistId = kitsuId;
+        try {
+          const mRes = await fetch(`${KITSU_ANIME_API}/${kitsuId}?include=mappings`, {
+            headers: { "Accept": "application/vnd.api+json" },
+            next: { revalidate: 86400 },
+          });
+          if (mRes.ok) {
+            const mJson = await mRes.json();
+            const mapping = (mJson.included || []).find(
+              (inc: any) => inc.type === "mappings" && inc.attributes?.externalSite === "anilist/anime"
+            );
+            if (mapping?.attributes?.externalId) anilistId = Number(mapping.attributes.externalId);
+          }
+        } catch {}
+        const posterImg = a.posterImage || {};
+        const coverImg = a.coverImage || {};
+        const startYear = a.startDate ? Number(String(a.startDate).slice(0, 4)) || 0 : 0;
+        return {
+          id: anilistId,
+          title: a.canonicalTitle || a.titles?.en || "Unknown",
+          poster: posterImg.original || posterImg.large || posterImg.medium || null,
+          backdrop: coverImg.original || coverImg.large || null,
+          rating: a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0,
+          year: startYear,
+          type: "anime" as const,
+          overview: (a.synopsis || "").slice(0, 300),
+          genres: [],
+          daysUntil: null,
+        };
+      })
+    );
+    return out.filter((r): r is KitsuAnimeListResult => r !== null);
+  } catch {
+    return [];
+  }
+}
+
 // ─── Main fetch ───
 
 /** Lightweight AniList query: only idMal + titles + duration. Used to parallelize detail + episodes. */
@@ -1488,7 +1556,10 @@ export async function getAnimeTrending(): Promise<TmdbResult[]> {
       body: JSON.stringify({ query: TRENDING_QUERY, variables: { page: 1, perPage: 14 } }),
       next: { revalidate: 3600 },
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      // AniList down — fall back to Kitsu trending
+      return fetchKitsuTrendingAnime(14);
+    }
     const json = await res.json();
     const media = json.data?.Page?.media || [];
     const results: TmdbResult[] = [];

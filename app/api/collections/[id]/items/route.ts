@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { resolveUserId } from "@/lib/user-utils";
 import { resolveUsername } from "@/lib/auth-helper";
 import { tmdbGet } from "@/lib/tmdb";
+import { getAnimeDetailFromKitsu } from "@/lib/anilist";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabase = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
@@ -76,7 +77,20 @@ const ANILIST_ITEMS_API = "https://graphql.anilist.co";
       try {
         if (item.media_type === "anime") {
           const m = animeMap.get(item.tmdb_id);
-          if (!m) return base; // AniList failed, use fallback
+          if (!m) {
+            // AniList down — fall back to Kitsu for title/poster
+            const kd = await getAnimeDetailFromKitsu(item.tmdb_id);
+            if (kd) {
+              return {
+                ...base,
+                title: kd.title || base.title,
+                poster: kd.poster || null,
+                year: kd.year ? String(kd.year) : null,
+                rating: kd.rating || 0,
+              };
+            }
+            return base; // both failed, use fallback
+          }
           return {
             ...base,
             title: m.title?.english || m.title?.romaji || base.title,
