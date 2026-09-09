@@ -533,7 +533,7 @@ function buildAnimeDetailFromKitsu(item: any): AnimeDetail | null {
     staff: [],
     characters: [],
     recommendations: [],
-    trailer: null,
+    trailer: a.youtubeVideoId ? { id: a.youtubeVideoId, site: "YouTube" } : null,
     relations: [],
   };
 }
