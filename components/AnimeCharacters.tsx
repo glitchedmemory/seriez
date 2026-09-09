@@ -13,7 +13,8 @@ export default function AnimeCharacters({
   staff?: Staff[];
   characters: Character[];
 }) {
-  const [showAll, setShowAll] = useState(false);
+  const [showAllDirectors, setShowAllDirectors] = useState(false);
+  const [showAllCast, setShowAllCast] = useState(false);
   const directors = staff.filter((s) => /director/i.test(s.role));
   // MAIN first, then supporting — single unified "Cast" section (matches movie/tv detail pages).
   const cast = [
@@ -21,8 +22,8 @@ export default function AnimeCharacters({
     ...characters.filter((c) => c.role !== "MAIN"),
   ];
 
-  const visibleDirectors = showAll ? directors : directors.slice(0, 5);
-  const visibleCast = showAll ? cast : cast.slice(0, 10);
+  const visibleDirectors = showAllDirectors ? directors : directors.slice(0, 5);
+  const visibleCast = showAllCast ? cast : cast.slice(0, 10);
 
   return (
     <>
@@ -42,10 +43,10 @@ export default function AnimeCharacters({
           </div>
           {directors.length > 5 && (
             <button
-              onClick={() => setShowAll(!showAll)}
+              onClick={() => setShowAllDirectors(!showAllDirectors)}
               className="mt-3 text-xs text-accent hover:underline mx-auto block"
             >
-              {showAll ? "Show less" : `Show all ${directors.length} directors`}
+              {showAllDirectors ? "Show less" : `Show all ${directors.length} directors`}
             </button>
           )}
         </section>
@@ -68,10 +69,10 @@ export default function AnimeCharacters({
           </div>
           {cast.length > 10 && (
             <button
-              onClick={() => setShowAll(!showAll)}
+              onClick={() => setShowAllCast(!showAllCast)}
               className="mt-3 text-xs text-accent hover:underline mx-auto block"
             >
-              {showAll ? "Show less" : `Show all ${cast.length} cast members`}
+              {showAllCast ? "Show less" : `Show all ${cast.length} cast members`}
             </button>
           )}
         </section>
