@@ -830,7 +830,7 @@ export const getAnimeDetail = unstable_cache(
     return null;
   }
 },
-  ["anime-detail"],
+  ["anime-detail-v2"],
   { revalidate: 86400 }
 );
 
