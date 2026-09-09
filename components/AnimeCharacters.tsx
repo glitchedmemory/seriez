@@ -45,7 +45,6 @@ export default function AnimeCharacters({
                   <Image src={c.image || ""} alt={c.name} fill className="object-cover rounded-full" sizes="(max-width: 768px) 48px, 64px" />
                 </div>
                 <p className="text-xs font-medium text-text-primary truncate">{c.name}</p>
-                <p className="text-[10px] text-text-secondary truncate">{c.role}</p>
                 {c.voiceActor && (
                   <p className="text-[10px] text-accent truncate">{c.voiceActor}</p>
                 )}
