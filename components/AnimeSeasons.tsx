@@ -57,17 +57,23 @@ export default function AnimeSeasons({
   // Also collapse multiple "parts" of the same season (e.g. "Season 3" + "Season 3
   // Part 2", or "Final Season" + "Final Season Part 2") into ONE entry so the
   // Season list matches the official season count instead of every broadcast part.
+  // When collapsing, always prefer the CURRENT item so the active highlight works.
   const bySeason = new Map<number, { id: number; title: string; seasonYear: number | null }>();
   const order: number[] = [];
   for (const item of uniqueItems) {
     const season = seasonNumberFromTitle(item.title);
     const key = season ?? Number.MAX_SAFE_INTEGER;
-    if (!bySeason.has(key)) {
+    const existing = bySeason.get(key);
+    if (!existing) {
       bySeason.set(key, { id: item.id, title: item.title, seasonYear: item.seasonYear });
       order.push(key);
+    } else if (item.id === currentId) {
+      // The current item always wins its season slot so it stays highlighted.
+      const before = order.indexOf(key);
+      bySeason.set(key, { id: item.id, title: item.title, seasonYear: item.seasonYear });
+      // keep original order position
+      order[before] = key;
     }
-    // If the same season already exists, keep the FIRST (earliest) occurrence and
-    // drop later parts. The current item should still be highlighted below.
   }
 
   const items = order
