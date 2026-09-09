@@ -35,6 +35,9 @@ async function animePopular(): Promise<TmdbResult[]> {
   try {
     const q = `query{Page(perPage:15){media(sort:POPULARITY_DESC,type:ANIME,isAdult:false){id title{romaji english}coverImage{extraLarge}bannerImage averageScore seasonYear description genres}}}`;
     const r = await fetch(ANILIST, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q }), next: { revalidate: 1800 } });
+    if (!r.ok) {
+      return fetchKitsuPopularFallback();
+    }
     const j = await r.json();
     return (j.data?.Page?.media || []).map((m: any) => ({
       id: m.id, title: m.title?.english || m.title?.romaji || "Unknown",
@@ -44,6 +47,54 @@ async function animePopular(): Promise<TmdbResult[]> {
       genres: (m.genres || []).slice(0, 5), daysUntil: null,
     }));
   } catch { return []; }
+}
+
+/** Kitsu fallback for popular anime (AniList down). */
+async function fetchKitsuPopularFallback(): Promise<TmdbResult[]> {
+  try {
+    const res = await fetch("https://kitsu.io/api/edge/trending/anime?limit=15", {
+      headers: { "Accept": "application/vnd.api+json" },
+      next: { revalidate: 1800 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const data = json.data || [];
+    return await Promise.all(data.map(async (item: any): Promise<TmdbResult | null> => {
+      const a = item.attributes || {};
+      const kitsuId = Number(item.id) || 0;
+      if (!kitsuId) return null;
+      // Resolve AniList id via mappings so /anime/{id} links work
+      let anilistId = kitsuId;
+      try {
+        const mRes = await fetch(`https://kitsu.io/api/edge/anime/${kitsuId}?include=mappings`, {
+          headers: { "Accept": "application/vnd.api+json" },
+          next: { revalidate: 86400 },
+        });
+        if (mRes.ok) {
+          const mJson = await mRes.json();
+          const mapping = (mJson.included || []).find((inc: any) => inc.type === "mappings" && inc.attributes?.externalSite === "anilist/anime");
+          if (mapping?.attributes?.externalId) anilistId = Number(mapping.attributes.externalId);
+        }
+      } catch {}
+      const posterImg = a.posterImage || {};
+      const coverImg = a.coverImage || {};
+      const startYear = a.startDate ? Number(String(a.startDate).slice(0, 4)) || 0 : 0;
+      return {
+        id: anilistId,
+        title: a.canonicalTitle || a.titles?.en || "Unknown",
+        poster: posterImg.original || posterImg.large || posterImg.medium || null,
+        backdrop: coverImg.original || coverImg.large || null,
+        rating: a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0,
+        year: startYear,
+        type: "anime" as const,
+        overview: (a.synopsis || "").slice(0, 300),
+        genres: (a.categories?.map((c: any) => c?.title).filter(Boolean) || []).slice(0, 5),
+        daysUntil: null,
+      };
+    })).then((rs) => rs.filter((x): x is TmdbResult => x !== null));
+  } catch {
+    return [];
+  }
 }
 
 // ─── Time period → genres ───

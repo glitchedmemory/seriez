@@ -65,6 +65,10 @@ async function getTrendingAnime() {
       }),
       next: { revalidate: 3600 },
     });
+    if (!res.ok) {
+      // AniList down — fall back to Kitsu trending
+      return fetchKitsuTrendingFallback();
+    }
     const json = await res.json();
     return (json.data?.Page?.media || []).map((a: any) => ({
       id: a.id,
@@ -76,6 +80,48 @@ async function getTrendingAnime() {
       year: a.seasonYear ? `${a.seasonYear}` : "",
       genres: (a.genres || []).slice(0, 3),
     }));
+  } catch {
+    return [];
+  }
+}
+
+async function fetchKitsuTrendingFallback(): Promise<any[]> {
+  try {
+    const res = await fetch("https://kitsu.io/api/edge/trending/anime?limit=20", {
+      headers: { "Accept": "application/vnd.api+json" },
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const data = json.data || [];
+    return await Promise.all(data.map(async (item: any): Promise<any | null> => {
+      const a = item.attributes || {};
+      const kitsuId = Number(item.id) || 0;
+      if (!kitsuId) return null;
+      let anilistId = kitsuId;
+      try {
+        const mRes = await fetch(`https://kitsu.io/api/edge/anime/${kitsuId}?include=mappings`, {
+          headers: { "Accept": "application/vnd.api+json" },
+          next: { revalidate: 86400 },
+        });
+        if (mRes.ok) {
+          const mJson = await mRes.json();
+          const mapping = (mJson.included || []).find((inc: any) => inc.type === "mappings" && inc.attributes?.externalSite === "anilist/anime");
+          if (mapping?.attributes?.externalId) anilistId = Number(mapping.attributes.externalId);
+        }
+      } catch {}
+      const posterImg = a.posterImage || {};
+      return {
+        id: anilistId,
+        title: a.canonicalTitle || a.titles?.en || "Unknown",
+        overview: (a.synopsis || "").slice(0, 200),
+        poster: posterImg.original || posterImg.large || posterImg.medium || null,
+        rating: a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0,
+        ratingCount: a.popularityRank || 0,
+        year: a.startDate ? String(a.startDate).slice(0, 4) : "",
+        genres: (a.categories?.map((c: any) => c?.title).filter(Boolean) || []).slice(0, 3),
+      };
+    })).then((rs) => rs.filter((x): x is NonNullable<typeof x> => x !== null));
   } catch {
     return [];
   }

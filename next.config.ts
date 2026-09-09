@@ -53,6 +53,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "image.tmdb.org" },
       { protocol: "https", hostname: "static.tvmaze.com" },
       { protocol: "https", hostname: "media.kitsu.app" },
+      { protocol: "https", hostname: "kitsu-production-media.s3.us-west-002.backblazeb2.com" },
       { protocol: "https", hostname: "img.flixpatrol.com" },
       { protocol: "https", hostname: "s4.anilist.co" },
       { protocol: "https", hostname: "cdn.myanimelist.net" },

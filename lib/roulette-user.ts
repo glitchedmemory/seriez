@@ -344,7 +344,12 @@ export async function searchAniListWithFilters(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query, variables: { year: searchYear, season } }),
       });
-      if (!res.ok) continue;
+      if (!res.ok) {
+        // AniList down — fall back to Kitsu for this season
+        const kitsuResults = await searchKitsuBySeasonFallback(season, searchYear, excludeSet);
+        allResults.push(...kitsuResults);
+        continue;
+      }
       const json = await res.json();
       const media = (json.data?.Page?.media || []) as any[];
 
@@ -373,4 +378,73 @@ export async function searchAniListWithFilters(
   }
 
   return allResults;
+}
+
+/** Kitsu fallback for season-based anime search (AniList down). */
+async function searchKitsuBySeasonFallback(
+  season: string,
+  year: number | undefined,
+  excludeSet: Set<number>
+): Promise<any[]> {
+  try {
+    // Kitsu seasonFilter values: winter/spring/summer/fall
+    const seasonMap: Record<string, string> = {
+      WINTER: "winter", SPRING: "spring", SUMMER: "summer", FALL: "fall",
+    };
+    const ks = seasonMap[season] || "";
+    let url = `https://kitsu.io/api/edge/anime?page%5Blimit%5D=20&sort=popularityRank`;
+    if (ks) url += `&filter%5Bseason%5D=${ks}`;
+    if (year) url += `&filter%5Byear%5D=${year}`;
+
+    const res = await fetch(url, {
+      headers: { "Accept": "application/vnd.api+json" },
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const data = json.data || [];
+    const out: any[] = [];
+    for (const item of data) {
+      const a = item.attributes || {};
+      const kitsuId = Number(item.id) || 0;
+      if (!kitsuId) continue;
+      // AniList id via mappings (best-effort)
+      let anilistId = kitsuId;
+      try {
+        const mRes = await fetch(`https://kitsu.io/api/edge/anime/${kitsuId}?include=mappings`, {
+          headers: { "Accept": "application/vnd.api+json" },
+          next: { revalidate: 86400 },
+        });
+        if (mRes.ok) {
+          const mJson = await mRes.json();
+          const mapping = (mJson.included || []).find((inc: any) => inc.type === "mappings" && inc.attributes?.externalSite === "anilist/anime");
+          if (mapping?.attributes?.externalId) anilistId = Number(mapping.attributes.externalId);
+        }
+      } catch {}
+      if (excludeSet.has(anilistId)) continue;
+      const posterImg = a.posterImage || {};
+      const coverImg = a.coverImage || {};
+      const ay = a.startDate ? Number(String(a.startDate).slice(0, 4)) || 0 : 0;
+      const genresKitsu: string[] = [];
+      const categories = a.categories || [];
+      // Kitsu categories are objects; extract titles as genre-ish names
+      for (const c of categories) {
+        const t = c?.title || c?.attributes?.title;
+        if (t) genresKitsu.push(String(t));
+      }
+      out.push({
+        id: anilistId,
+        title: { romaji: a.canonicalTitle || a.titles?.en_jp || "", english: a.titles?.en || a.canonicalTitle || "" },
+        coverImage: { extraLarge: posterImg.original || posterImg.large || null, large: posterImg.large || null },
+        bannerImage: coverImg.original || coverImg.large || null,
+        startDate: { year: ay },
+        averageScore: a.averageRating ? Math.round(a.averageRating / 10) : 0,
+        genres: genresKitsu.length ? genresKitsu : (a.categories?.map((c: any) => c?.title).filter(Boolean) || []),
+        description: a.synopsis || "",
+      });
+    }
+    return out;
+  } catch {
+    return [];
+  }
 }
