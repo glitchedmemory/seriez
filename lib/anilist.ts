@@ -1247,98 +1247,6 @@ async function fetchAniDBEpisodes(title: string): Promise<AnimeEpisode[]> {
   }
 }
 
-// ─── TMDB Episode Thumbnails ───
-
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w780";
-const TMDB_API = "https://api.themoviedb.org/3";
-const TMDB_KEY = process.env.TMDB_API_KEY!;
-
-async function fetchTMDBThumbnails(title: string): Promise<Map<number, string>> {
-  const thumbs = new Map<number, string>();
-  try {
-    // Step 1: Search TMDB for the anime as a TV show
-    const searchUrl = `${TMDB_API}/search/tv?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}`;
-    const searchRes = await fetch(searchUrl, { next: { revalidate: 86400 }, signal: AbortSignal.timeout(5000) });
-    if (!searchRes.ok) return thumbs;
-    const searchData = await searchRes.json();
-    const tvResults = searchData.results || [];
-    if (tvResults.length === 0) return thumbs;
-    // Prefer Japanese anime entry (avoid live-action adaptations like Netflix One Piece)
-    const tvId = (tvResults.find((r: any) => r.original_language === "ja") || tvResults[0]).id;
-
-    // Step 2: Fetch all seasons' episodes
-    const tvRes = await fetch(
-      `${TMDB_API}/tv/${tvId}?api_key=${TMDB_KEY}`,
-      { next: { revalidate: 86400 }, signal: AbortSignal.timeout(5000) }
-    );
-    if (!tvRes.ok) return thumbs;
-    const tvData = await tvRes.json();
-    const seasons = (tvData.seasons || []).filter((s: any) => s.season_number > 0);
-
-    // Step 3: Fetch all seasons' episodes in parallel (TMDB has per-season still images)
-    const seasonNumbers = seasons.map((s: any) => s.season_number);
-    const seasonResults = await Promise.all(
-      seasonNumbers.map(async (sn: number) => {
-        try {
-          const epRes = await fetch(
-            `${TMDB_API}/tv/${tvId}/season/${sn}?api_key=${TMDB_KEY}`,
-            { next: { revalidate: 86400 }, signal: AbortSignal.timeout(5000) }
-          );
-          if (!epRes.ok) return [];
-          const epData = await epRes.json();
-          return (epData.episodes || []).filter((ep: any) => ep.still_path);
-        } catch {
-          return [];
-        }
-      })
-    );
-    for (const epList of seasonResults) {
-      for (const ep of epList) {
-        if (ep.episode_number) {
-          thumbs.set(ep.episode_number, `${TMDB_IMAGE_BASE}${ep.still_path}`);
-        }
-      }
-    }
-  } catch {
-    // Fail silently — thumbnails are optional
-  }
-  return thumbs;
-}
-
-// ─── TVmaze Episode Thumbnails (free, no API key) ───
-
-async function fetchTVmazeThumbnails(title: string): Promise<Map<number, string>> {
-  const thumbs = new Map<number, string>();
-  try {
-    // Step 1: Search TVmaze
-    const searchUrl = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(title)}`;
-    const searchRes = await fetch(searchUrl, { next: { revalidate: 86400 } });
-    if (!searchRes.ok) return thumbs;
-    const searchData = await searchRes.json();
-    if (!searchData.length) return thumbs;
-    const showId = searchData[0].show.id;
-
-    // Step 2: Fetch all episodes
-    const epRes = await fetch(`https://api.tvmaze.com/shows/${showId}/episodes`, {
-      next: { revalidate: 86400 },
-    });
-    if (!epRes.ok) return thumbs;
-    const episodes = await epRes.json();
-
-    // Map by sequential episode number across all seasons
-    for (let i = 0; i < episodes.length; i++) {
-      const ep = episodes[i];
-      if (ep.image?.medium) {
-        // Use sequential number (1-based) — matches Jikan/Kitsu flat numbering
-        thumbs.set(i + 1, ep.image.medium);
-      }
-    }
-  } catch {
-    // Fail silently
-  }
-  return thumbs;
-}
-
 // ─── AniList streamingEpisodes → Crunchyroll thumbnails ───
 
 async function fetchAniListStreamingThumbnails(title: string): Promise<Map<number, string>> {
@@ -1449,35 +1357,10 @@ export const getAnimeEpisodes = unstable_cache(
     if (anidbEps.length > 0) episodes = anidbEps;
   }
 
-  // Merge TMDB + TVmaze thumbnails into episodes (runs regardless of source)
+  // Merge anime-native thumbnails into episodes (Kitsu + AniList streaming +
+  // Crunchyroll RSS). TMDB/TVmaze are intentionally excluded — anime pages must
+  // never use TMDB data, which would surface live-action adaptation thumbnails.
   if (episodes.length > 0) {
-    // Try native Japanese first (correct TMDB anime entry), then romaji, then english
-    const searchTitles = [titleNative, titleRomaji, title].filter(Boolean) as string[];
-
-    // Parallel: fetch TMDB + TVmaze thumbnails for all title variants simultaneously
-    const [tmdbResults, tvmazeResults] = await Promise.all([
-      Promise.all(searchTitles.map(t => fetchTMDBThumbnails(t).catch(() => new Map<number, string>()))),
-      Promise.all(searchTitles.map(t => fetchTVmazeThumbnails(t).catch(() => new Map<number, string>()))),
-    ]);
-
-    // Merge TMDB results — first source with thumbs wins
-    let tmdbThumbs = new Map<number, string>();
-    for (const thumbs of tmdbResults) {
-      if (thumbs.size > 0) { tmdbThumbs = thumbs; break; }
-    }
-    // TVmaze as fallback
-    if (tmdbThumbs.size === 0) {
-      for (const thumbs of tvmazeResults) {
-        if (thumbs.size > 0) { tmdbThumbs = thumbs; break; }
-      }
-    }
-    if (tmdbThumbs.size > 0) {
-      episodes = episodes.map(ep => {
-        const thumb = tmdbThumbs.get(ep.number);
-        return thumb ? { ...ep, thumbnail: thumb } : ep;
-      });
-    }
-
     // Parallel: Kitsu + AniList streaming + Crunchyroll RSS (all independent sources)
     const searchTitle = titleRomaji || title;
     const [kitsuThumbs, alThumbs, crThumbs] = await Promise.all([
