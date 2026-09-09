@@ -6,6 +6,7 @@ import SeasonCast from "@/components/SeasonCast";
 import SeasonRecommendations from "@/components/SeasonRecommendations";
 import SeasonInteractive from "@/components/SeasonInteractive";
 import { fetchKitsuThumbnails } from "@/lib/anilist";
+import { saveTmdbCache, readTmdbCache } from "@/lib/tmdb";
 import { validateAndReplaceTrailers } from "@/lib/yt-validator";
 import { TRAILER_OVERRIDES } from "@/lib/trailer-overrides";
 import { notFound } from "next/navigation";
@@ -186,7 +187,7 @@ const getSeasonData = unstable_cache(
     const youtubeBackdrop = (!seriesData.backdrop_path && validatedTrailers.length > 0)
       ? `https://img.youtube.com/vi/${validatedTrailers[0].key}/maxresdefault.jpg` : null;
 
-    return {
+    const result = {
       id: seriesData.id, title: seriesData.name || "Unknown", tagline: seriesData.tagline || "",
       overview: seriesData.overview || "", posterPath: poster(seriesData.poster_path),
       backdropPath: backdrop(seriesData.backdrop_path), youtubeBackdrop,
@@ -213,6 +214,11 @@ const getSeasonData = unstable_cache(
       seasonAirDate: seasonData.air_date || "", episodes,
       firstAirDate: seriesData.first_air_date || "",
     };
+
+    // Persist to DB so a TMDB outage can still serve this season page.
+    await saveTmdbCache("season", seriesId * 1000 + seasonNum, result);
+
+    return result;
   },
   ["season-data"],
   { revalidate: 86400 }
@@ -264,7 +270,15 @@ export default async function SeasonPage({ params }: Props) {
   if (isNaN(seriesId) || isNaN(seasonNum)) notFound();
 
   try {
-    const data = await getSeasonData(seriesId, seasonNum);
+    let data;
+    try {
+      data = await getSeasonData(seriesId, seasonNum);
+    } catch {
+      // TMDB down — fall back to DB cache.
+      const cached = await readTmdbCache<any>("season", seriesId * 1000 + seasonNum);
+      if (!cached) throw new Error(`TMDB down and no cache for season ${seriesId}/${seasonNum}`);
+      data = cached;
+    }
 
     // Compute daysUntil (dynamic — computed per request, but data is cached)
     if (data.firstAirDate) {

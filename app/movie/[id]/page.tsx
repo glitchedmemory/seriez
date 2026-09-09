@@ -1,6 +1,6 @@
 export const revalidate = 86400;
 
-import { getMovieDetail } from "@/lib/tmdb";
+import { resolveMovieDetail } from "@/lib/tmdb";
 import MovieHero from "@/components/MovieHero";
 import MovieInfo from "@/components/MovieInfo";
 import MovieOverview from "@/components/MovieOverview";
@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (isNaN(numId)) return {};
 
   try {
-    const detail = await getMovieDetail(numId);
+    const detail = await resolveMovieDetail(numId);
     const title = detail.title || "Seriez";
     const description = detail.overview || "Track movies, TV shows, and anime in one place.";
     const posterUrl = detail.poster || null;
@@ -84,7 +84,7 @@ export default async function MoviePage({ params }: Props) {
   if (isNaN(numId)) notFound();
 
   try {
-    const detail = await getMovieDetail(numId);
+    const detail = await resolveMovieDetail(numId);
     const jsonLd = generateMovieJsonLd({
       title: detail.title || "Unknown",
       description: detail.overview || "",
