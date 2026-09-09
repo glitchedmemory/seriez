@@ -53,6 +53,7 @@ export type AnimeDetail = {
   characters: { name: string; role: string; voiceActor: string; image: string | null }[];
   recommendations: AnimeRecItem[];
   trailer: { id: string; site: string } | null;
+  trailers: { key: string; name: string }[];  // multiple trailers (matches movie/tv detail pages)
   relations: { id: number; title: string; type: string; format: string; seasonYear: number | null; status?: string; isOriginal?: boolean }[];
   daysUntil?: number | null;  // days until release (upcoming items only)
 };
@@ -587,6 +588,7 @@ function buildAnimeDetailFromKitsu(item: any): AnimeDetail | null {
     characters: [],
     recommendations: [],
     trailer: a.youtubeVideoId ? { id: a.youtubeVideoId, site: "YouTube" } : null,
+    trailers: a.youtubeVideoId ? [{ key: a.youtubeVideoId, name: "Trailer" }] : [],
     relations: [],
   };
 }
@@ -847,6 +849,7 @@ export const getAnimeDetail = unstable_cache(
       characters,
       recommendations,
       trailer: null as { id: string; site: string } | null,
+      trailers: [] as { key: string; name: string }[],
       relations,
     };
     // Compute daysUntil for upcoming anime
@@ -860,17 +863,18 @@ export const getAnimeDetail = unstable_cache(
     if (!result.backdrop && result.year) {
       result.backdrop = (await fetchKitsuBackdrop(result.title, result.year, result.titleRomaji)) || "";
     }
-    // Validate trailer (if AnyList has one) or search YouTube (if not)
+    // Validate trailer (if AniList has one) or search YouTube (if not) — fetch up to 3
     const animeTitle = m.title?.english || m.title?.romaji || "";
     const validated = await validateAndReplaceTrailers(
       trailer ? [{ key: trailer.id, name: "Trailer" }] : [],
       `${animeTitle} anime official trailer`,
-      1,
+      3,
       undefined,
       m.id
     );
     if (validated.length > 0) {
       result.trailer = { id: validated[0].key, site: "YouTube" };
+      result.trailers = validated.map((v) => ({ key: v.key, name: v.name || "Trailer" }));
     }
 
     // YouTube trailer thumbnail as backdrop fallback when AniList/Kitsu both miss

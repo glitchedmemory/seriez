@@ -196,7 +196,7 @@ export default async function AnimePage({ params }: Props) {
         <AnimeOverview overview={detail.overview} />
         <AnimeInteractive mode="reviews-only" detail={detail} episodes={episodes} />
         <AnimeInteractive mode="episodes-only" detail={detail} episodes={episodes} />
-        <AnimeTrailer trailer={detail.trailer} />
+        <AnimeTrailer trailers={detail.trailers} />
         <AnimeCharacters staff={detail.staff} characters={detail.characters} />
         <AnimeRecommendations recommendations={detail.recommendations} />
       </div>
