@@ -260,15 +260,16 @@ async function resolveAnilistIdToKitsu(anilistId: number): Promise<string | null
  * Kitsu poster URLs come in two domains depending on when the metadata was
  * written: `media.kitsu.app/anime/poster_images/{id}/large.jpg` (stable) and
  * `kitsu-production-media.s3...backblazeb2.com/anime/poster_image/{hash}.jpg?X-Amz-...`
- * (signed URLs that expire / 404). Normalize the latter to the stable media.kitsu.app
- * URL using the Kitsu id, so posters never render as empty boxes.
+ * (signed URLs that expire after 900s). The Backblaze bucket is publicly readable,
+ * so stripping the query string makes the URL permanent. media.kitsu.app URLs are
+ * left as-is.
  */
-function normalizeKitsuPoster(url: string | null | undefined, kitsuId: number | string): string | null {
+function normalizeKitsuPoster(url: string | null | undefined, kitsuId?: number | string): string | null {
   if (!url) return null;
   if (url.includes("media.kitsu.app")) return url;
-  // Backblaze B2 signed URL (or any non-media.kitsu.app) → stable media.kitsu.app large poster
-  if (kitsuId) return `https://media.kitsu.app/anime/poster_images/${kitsuId}/large.jpg`;
-  return url;
+  // Strip the expiring X-Amz signature query string from Backblaze URLs.
+  const q = url.indexOf("?");
+  return q > 0 ? url.slice(0, q) : url;
 }
 
 /** Resolve a Kitsu anime id → { anilistId, malId } via Kitsu's mappings (no AniList dep). */
