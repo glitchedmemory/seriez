@@ -220,6 +220,7 @@ async function fetchKitsuBackdrop(title: string, year: number, titleRomaji?: str
 
 const KITSU_MAPPINGS_API = "https://kitsu.io/api/edge/mappings";
 const KITSU_ANIME_API = "https://kitsu.io/api/edge/anime";
+const KITSU_MEDIA_CHARACTERS_API = "https://kitsu.io/api/edge/media-characters";
 
 /** Resolve an AniList ID to a Kitsu anime id via Kitsu's own mappings table
  *  (externalSite=anilist/anime). This does NOT depend on the AniList API. */
@@ -248,7 +249,255 @@ async function resolveAnilistIdToKitsu(anilistId: number): Promise<string | null
   }
 }
 
-/** Build an AnimeDetail from a Kitsu anime item (fallback when AniList is down). */
+// ─── Kitsu fallback enrichment ───
+// When AniList is down, `getAnimeDetailFromKitsu` fills the detail via Kitsu.
+// These helpers populate the fields AniList normally supplies (characters +
+// voice actors, staff/director, relations/seasons, recommendations) so the
+// anime detail page stays fully rendered during an AniList outage.
+
+/** Resolve a Kitsu anime id → { anilistId, malId } via Kitsu's mappings (no AniList dep). */
+async function resolveKitsuIdToExternal(kitsuId: string): Promise<{ anilistId: number | null; malId: number | null }> {
+  try {
+    const res = await fetch(`${KITSU_ANIME_API}/${kitsuId}?include=mappings`, {
+      headers: { "Accept": "application/vnd.api+json" },
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return { anilistId: null, malId: null };
+    const json = await res.json();
+    let anilistId: number | null = null;
+    let malId: number | null = null;
+    for (const inc of json.included || []) {
+      if (inc.type !== "mappings") continue;
+      const site = inc.attributes?.externalSite;
+      const ext = inc.attributes?.externalId;
+      if (site === "anilist/anime" && ext) anilistId = Number(ext);
+      if (site === "myanimelist/anime" && ext) malId = Number(ext);
+    }
+    return { anilistId, malId };
+  } catch {
+    return { anilistId: null, malId: null };
+  }
+}
+
+/** Fetch characters + Japanese voice actors from Kitsu. */
+async function fetchKitsuCharacters(kitsuId: string): Promise<AnimeDetail["characters"]> {
+  try {
+    const res = await fetch(
+      `${KITSU_ANIME_API}/${kitsuId}/characters?page%5Blimit%5D=20&include=character`,
+      { headers: { "Accept": "application/vnd.api+json" }, next: { revalidate: 86400 } }
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+
+    // character id → name + image
+    const charMeta = new Map<string, { name: string; image: string | null }>();
+    for (const inc of json.included || []) {
+      if (inc.type !== "characters") continue;
+      const a = inc.attributes || {};
+      charMeta.set(inc.id, {
+        name: a.canonicalName || a.name || "Unknown",
+        image: (a.image && (a.image.tiny || a.image.large || a.image.original)) || null,
+      });
+    }
+
+    // Build the character list (mediaCharacter id → character)
+    const roles: { mediaCharacterId: string; role: string; name: string; image: string | null }[] = [];
+    for (const mc of json.data || []) {
+      const role = ((mc.attributes?.role) || "supporting").toUpperCase();
+      const cid = mc.relationships?.character?.data?.id;
+      const meta = (cid && charMeta.get(cid)) || { name: "Unknown", image: null };
+      roles.push({ mediaCharacterId: mc.id, role, name: meta.name, image: meta.image });
+    }
+
+    // Sort: MAIN first, then others (mirrors AniList order)
+    const ordered = [
+      ...roles.filter((r) => r.role === "MAIN"),
+      ...roles.filter((r) => r.role !== "MAIN"),
+    ].slice(0, 20);
+
+    // Fetch Japanese voice actors per media-character (limited batch).
+    const out: AnimeDetail["characters"] = [];
+    for (const c of ordered) {
+      let voiceActor = "";
+      try {
+        const vRes = await fetch(
+          `${KITSU_MEDIA_CHARACTERS_API}/${c.mediaCharacterId}/voices?include=person&page%5Blimit%5D=20`,
+          { headers: { "Accept": "application/vnd.api+json" }, next: { revalidate: 86400 } }
+        );
+        if (vRes.ok) {
+          const vJson = await vRes.json();
+          const people = new Map<string, string>();
+          for (const inc of vJson.included || []) {
+            if (inc.type === "people") people.set(inc.id, inc.attributes?.name || "");
+          }
+          for (const v of vJson.data || []) {
+            if (v.attributes?.locale !== "ja_jp") continue;
+            const pid = v.relationships?.person?.data?.id;
+            if (pid && people.get(pid)) { voiceActor = people.get(pid)!; break; }
+          }
+        }
+      } catch {}
+      out.push({ name: c.name, role: c.role, voiceActor, image: c.image });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+/** Fetch staff (director, writers, etc.) from Kitsu. */
+async function fetchKitsuStaff(kitsuId: string): Promise<AnimeDetail["staff"]> {
+  try {
+    const res = await fetch(
+      `${KITSU_ANIME_API}/${kitsuId}/staff?page%5Blimit%5D=10&include=person`,
+      { headers: { "Accept": "application/vnd.api+json" }, next: { revalidate: 86400 } }
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+    const people = new Map<string, string>();
+    for (const inc of json.included || []) {
+      if (inc.type === "people") people.set(inc.id, inc.attributes?.name || "");
+    }
+    const seen = new Set<string>();
+    const out: AnimeDetail["staff"] = [];
+    for (const s of json.data || []) {
+      const role = (s.attributes?.role || "Staff").split(",")[0].trim();
+      const pid = s.relationships?.person?.data?.id;
+      const name = (pid && people.get(pid)) || "Unknown";
+      const key = `${name}-${role}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ id: Number(s.id) || 0, name, role, image: null });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+/** Fetch relations (sequels/prequels → seasons) from Kitsu, mapped back to AniList IDs. */
+async function fetchKitsuRelations(kitsuId: string): Promise<AnimeDetail["relations"]> {
+  try {
+    const res = await fetch(
+      `${KITSU_ANIME_API}/${kitsuId}/media-relationships?page%5Blimit%5D=20&include=destination`,
+      { headers: { "Accept": "application/vnd.api+json" }, next: { revalidate: 86400 } }
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+
+    // dest id → anime meta
+    const destMeta = new Map<string, { title: string; format: string; year: number | null }>();
+    for (const inc of json.included || []) {
+      if (inc.type !== "anime") continue;
+      const a = inc.attributes || {};
+      destMeta.set(inc.id, {
+        title: a.canonicalTitle || a.titles?.en || "Unknown",
+        format: (a.subtype || "TV").toUpperCase(),
+        year: a.startDate ? Number(String(a.startDate).slice(0, 4)) || null : null,
+      });
+    }
+
+    const out: AnimeDetail["relations"] = [];
+    for (const rel of json.data || []) {
+      const relationType = (rel.attributes?.role || "").toUpperCase();
+      // Only sequel/prequel (and side_story for completeness) → these drive the Seasons UI.
+      if (!["SEQUEL", "PREQUEL", "SIDE_STORY"].includes(relationType)) continue;
+      const destId = rel.relationships?.destination?.data?.id;
+      const meta = (destId && destMeta.get(destId)) || null;
+      if (!meta) continue;
+      // Map the Kitsu destination id → its AniList id so /anime/{id} links work.
+      let anilistId: number | null = null;
+      if (destId) {
+        const ext = await resolveKitsuIdToExternal(destId);
+        anilistId = ext.anilistId;
+      }
+      if (!anilistId) continue;
+      out.push({
+        id: anilistId,
+        title: meta.title,
+        type: "ANIME",
+        format: meta.format,
+        seasonYear: meta.year,
+        status: "",
+      });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+/** Fetch recommendations from Jikan/MAL (AniList has none when down; Kitsu has none at all). */
+async function fetchJikanRecommendations(malId: number): Promise<AnimeRecItem[]> {
+  if (!malId) return [];
+  try {
+    const res = await fetch(`https://api.jikan.moe/v4/anime/${malId}/recommendations`, {
+      headers: { "Accept": "application/json" },
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const recs = (json.data || []).slice(0, 12);
+    const out: AnimeRecItem[] = [];
+    for (const r of recs) {
+      const entry = r.entry || {};
+      const recMalId = entry.mal_id;
+      if (!recMalId) continue;
+      // Map MAL id → AniList id so /anime/{id} links work.
+      // (Jikan returns MAL ids; our anime routes use AniList ids.)
+      let anilistId: number | null = null;
+      try {
+        const jid = await resolveMalIdToAnilist(recMalId);
+        anilistId = jid;
+      } catch {}
+      out.push({
+        id: anilistId || recMalId,
+        title: entry.title || "Unknown",
+        poster: entry.images?.jpg?.large_image_url || entry.images?.jpg?.image_url || null,
+        rating: 0,
+        year: 0,
+        genres: [],
+      });
+    }
+    return out.filter((x) => x.title !== "Unknown");
+  } catch {
+    return [];
+  }
+}
+
+/** Resolve a MAL (MyAnimeList) id → AniList id via Jikan anime endpoint (side data) OR Kitsu mappings. */
+async function resolveMalIdToAnilist(malId: number): Promise<number | null> {
+  try {
+    // Kitsu mappings can resolve via MAL external site too.
+    const res = await fetch(
+      `${KITSU_MAPPINGS_API}?filter[externalSite]=myanimelist/anime&filter[externalId]=${malId}&page[limit]=1`,
+      { headers: { "Accept": "application/vnd.api+json" }, next: { revalidate: 86400 } }
+    );
+    if (res.ok) {
+      const json = await res.json();
+      const mapping = json.data?.[0];
+      if (mapping) {
+        const related = mapping.relationships?.item?.links?.related;
+        if (related) {
+          const itemRes = await fetch(related, { headers: { "Accept": "application/vnd.api+json" }, next: { revalidate: 86400 } });
+          if (itemRes.ok) {
+            const itemJson = await itemRes.json();
+            const kitsuId = itemJson.data?.id;
+            if (kitsuId) {
+              const ext = await resolveKitsuIdToExternal(String(kitsuId));
+              if (ext.anilistId) return ext.anilistId;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+
 function buildAnimeDetailFromKitsu(item: any): AnimeDetail | null {
   if (!item) return null;
   const a = item.attributes || {};
@@ -300,7 +549,24 @@ export async function getAnimeDetailFromKitsu(anilistId: number): Promise<AnimeD
     });
     if (!res.ok) return null;
     const json = await res.json();
-    return buildAnimeDetailFromKitsu(json.data);
+    const detail = buildAnimeDetailFromKitsu(json.data);
+    if (!detail) return null;
+
+    // Enrich the fallback detail with the fields AniList normally supplies,
+    // using Kitsu/Jikan so the anime page stays complete while AniList is down.
+    const external = await resolveKitsuIdToExternal(kitsuId);
+    const malId = external.malId || 0;
+    const [characters, staff, relations, recommendations] = await Promise.all([
+      fetchKitsuCharacters(kitsuId),
+      fetchKitsuStaff(kitsuId),
+      fetchKitsuRelations(kitsuId),
+      fetchJikanRecommendations(malId),
+    ]);
+    detail.characters = characters;
+    detail.staff = staff;
+    detail.relations = relations;
+    detail.recommendations = recommendations;
+    return detail;
   } catch {
     return null;
   }
