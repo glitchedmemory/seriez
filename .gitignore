@@ -55,3 +55,4 @@ next-env.d.ts
 
 /app/generated/prisma
 supabase/config.toml
+backfill-tmdb.sh
