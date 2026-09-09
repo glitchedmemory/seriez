@@ -115,7 +115,7 @@ async function fetchKitsuTrendingFallback(): Promise<any[]> {
         id: anilistId,
         title: a.canonicalTitle || a.titles?.en || "Unknown",
         overview: (a.synopsis || "").slice(0, 200),
-        poster: posterImg.original || posterImg.large || posterImg.medium || null,
+        poster: posterImg.large || posterImg.medium || posterImg.original || null,
         rating: a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0,
         ratingCount: a.popularityRank || 0,
         year: a.startDate ? String(a.startDate).slice(0, 4) : "",

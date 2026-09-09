@@ -435,7 +435,7 @@ async function searchKitsuBySeasonFallback(
       out.push({
         id: anilistId,
         title: { romaji: a.canonicalTitle || a.titles?.en_jp || "", english: a.titles?.en || a.canonicalTitle || "" },
-        coverImage: { extraLarge: posterImg.original || posterImg.large || null, large: posterImg.large || null },
+        coverImage: { extraLarge: posterImg.large || posterImg.original || null, large: posterImg.large || null },
         bannerImage: coverImg.original || coverImg.large || null,
         startDate: { year: ay },
         averageScore: a.averageRating ? Math.round(a.averageRating / 10) : 0,

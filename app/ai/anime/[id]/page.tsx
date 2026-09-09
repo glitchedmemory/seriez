@@ -43,7 +43,7 @@ async function fetchKitsuAnimeFallback(anilistId: number): Promise<any | null> {
         native: a.titles?.ja_jp || "",
       },
       description: a.synopsis || "",
-      coverImage: { extraLarge: posterImg.original || posterImg.large || null },
+      coverImage: { extraLarge: posterImg.large || posterImg.original || null },
       bannerImage: (a.coverImage?.original || null),
       averageScore: a.averageRating ? Math.round(a.averageRating / 10) : 0,
       popularity: 0,

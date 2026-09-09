@@ -558,7 +558,7 @@ function buildAnimeDetailFromKitsu(item: any): AnimeDetail | null {
   const titleEnJp = a.titles?.en_jp || "";
   const titleJa = a.titles?.ja_jp || "";
   const title = titleEn || titleEnJp || a.canonicalTitle || "Unknown";
-  const poster = a.posterImage?.original || a.posterImage?.large || a.posterImage?.medium || null;
+  const poster = a.posterImage?.large || a.posterImage?.original || a.posterImage?.medium || null;
   const cover = a.coverImage?.original || a.coverImage?.large || null;
   const rating = a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0;
   const startYear = a.startDate ? Number(String(a.startDate).slice(0, 4)) || 0 : 0;
@@ -676,7 +676,7 @@ async function fetchKitsuTrendingAnime(limit = 14): Promise<KitsuAnimeListResult
         return {
           id: anilistId,
           title: a.canonicalTitle || a.titles?.en || "Unknown",
-          poster: posterImg.original || posterImg.large || posterImg.medium || null,
+          poster: posterImg.large || posterImg.medium || posterImg.original || null,
           backdrop: coverImg.original || coverImg.large || null,
           rating: a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0,
           year: startYear,
@@ -1857,7 +1857,7 @@ async function fetchKitsuUpcomingAnime(limit = 4): Promise<{ id: number; title: 
       return {
         id: anilistId,
         title: a.canonicalTitle || a.titles?.en || "Unknown",
-        poster: posterImg.original || posterImg.large || posterImg.medium || null,
+        poster: posterImg.large || posterImg.medium || posterImg.original || null,
         backdrop: coverImg.original || coverImg.large || null,
         rating: a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0,
         year: startYear,
