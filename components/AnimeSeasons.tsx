@@ -18,9 +18,9 @@ function seasonNumberFromTitle(title: string): number | null {
   if (m) return parseInt(m[1], 10);
   m = t.match(/\b(\d+)(?:st|nd|rd|th)\s+season\b/i);
   if (m) return parseInt(m[1], 10);
-  // "Final Season", "Last Season" → we treat as the last one (very large number,
-  // resolved by sorting; explicit ordinal takes precedence below)
-  if (/\bfinal season\b|\blast season\b/i.test(t)) return Number.MAX_SAFE_INTEGER;
+  // "Final Season", "Final Season Part 2", "Final Chapters", "Last Season"
+  // → treat as the last one (very large number, resolved by sorting).
+  if (/\bfinal\b|\blast season\b/i.test(t)) return Number.MAX_SAFE_INTEGER;
   // ordinal like "2nd", "3rd" at the end (e.g. "Something 3rd")
   m = t.match(/(\d+)(?:st|nd|rd|th)\s*$/);
   if (m) return parseInt(m[1], 10);
@@ -53,13 +53,28 @@ export default function AnimeSeasons({
     return true;
   });
 
-  // Resolve a sort key: explicit season number from title > seasonYear > Infinity
-  const items = uniqueItems
-    .map(item => ({ ...item, season: seasonNumberFromTitle(item.title) }))
+  // Resolve a sort key: explicit season number from title > seasonYear > Infinity.
+  // Also collapse multiple "parts" of the same season (e.g. "Season 3" + "Season 3
+  // Part 2", or "Final Season" + "Final Season Part 2") into ONE entry so the
+  // Season list matches the official season count instead of every broadcast part.
+  const bySeason = new Map<number, { id: number; title: string; seasonYear: number | null }>();
+  const order: number[] = [];
+  for (const item of uniqueItems) {
+    const season = seasonNumberFromTitle(item.title);
+    const key = season ?? Number.MAX_SAFE_INTEGER;
+    if (!bySeason.has(key)) {
+      bySeason.set(key, { id: item.id, title: item.title, seasonYear: item.seasonYear });
+      order.push(key);
+    }
+    // If the same season already exists, keep the FIRST (earliest) occurrence and
+    // drop later parts. The current item should still be highlighted below.
+  }
+
+  const items = order
+    .map(key => bySeason.get(key)!)
     .sort((a, b) => {
-      // Non-finite (Final Season) resolves by its title season (Infinity) → goes last
-      const as = a.season ?? (a.seasonYear || Number.MAX_SAFE_INTEGER);
-      const bs = b.season ?? (b.seasonYear || Number.MAX_SAFE_INTEGER);
+      const as = seasonNumberFromTitle(a.title) ?? (a.seasonYear || Number.MAX_SAFE_INTEGER);
+      const bs = seasonNumberFromTitle(b.title) ?? (b.seasonYear || Number.MAX_SAFE_INTEGER);
       return as - bs;
     });
 
