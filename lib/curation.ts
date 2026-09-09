@@ -82,7 +82,7 @@ async function fetchKitsuPopularFallback(): Promise<TmdbResult[]> {
       return {
         id: anilistId,
         title: a.canonicalTitle || a.titles?.en || "Unknown",
-        poster: posterImg.original || posterImg.large || posterImg.medium || null,
+        poster: posterImg.large || posterImg.medium || posterImg.original || null,
         backdrop: coverImg.original || coverImg.large || null,
         rating: a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0,
         year: startYear,
