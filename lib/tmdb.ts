@@ -4,9 +4,42 @@ const API_KEY = process.env.TMDB_API_KEY!;
 import { validateAndReplaceTrailers } from "./yt-validator";
 import { getCustomPoster } from "./custom-posters";
 import { unstable_cache } from "next/cache";
+import { createClient } from "@supabase/supabase-js";
 
 // Shared cache: tmdb_id 한 번만 조회, 모든 사용자 재사용
 const tmdbCache = new Map<string, any>();
+
+// ─── DB-backed TMDB cache (survives TMDB outages) ───
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+// Persist a fully-rendered payload to tmdb_cache. Best-effort — never throw.
+export async function saveTmdbCache(mediaType: "movie" | "tv" | "home" | "upcoming" | "season", tmdbId: number, data: unknown): Promise<void> {
+  try {
+    await supabaseAdmin.from("tmdb_cache").upsert({
+      tmdb_id: tmdbId,
+      media_type: mediaType,
+      data,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "tmdb_id,media_type" });
+  } catch {
+    // cache write failure is non-fatal
+  }
+}
+
+// Read a cached payload. Returns null on miss. Best-effort — never throw.
+export async function readTmdbCache<T>(mediaType: string, tmdbId: number): Promise<T | null> {
+  try {
+    const { data } = await supabaseAdmin.from("tmdb_cache")
+      .select("data")
+      .eq("tmdb_id", tmdbId)
+      .eq("media_type", mediaType)
+      .single();
+    return (data?.data as T | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
 
 const poster = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w780${path}` : null;
@@ -103,60 +136,76 @@ function format(item: TmdbItem): TmdbResult {
 }
 
 export async function getTrending(): Promise<TmdbResult[]> {
-  // Fetch movie and TV trending separately to guarantee 14 each
-  const [movieData, tvData] = await Promise.all([
-    get("/trending/movie/week"),
-    get("/trending/tv/week"),
-  ]);
-  const movies = (movieData.results as TmdbItem[]).filter((item: TmdbItem) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 14).map(format);
-  const tvs = (tvData.results as TmdbItem[]).filter((item: TmdbItem) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 14).map(format);
-  return [...movies, ...tvs];
+  try {
+    // Fetch movie and TV trending separately to guarantee 14 each
+    const [movieData, tvData] = await Promise.all([
+      get("/trending/movie/week"),
+      get("/trending/tv/week"),
+    ]);
+    const movies = (movieData.results as TmdbItem[]).filter((item: TmdbItem) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 14).map(format);
+    const tvs = (tvData.results as TmdbItem[]).filter((item: TmdbItem) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 14).map(format);
+    const result = [...movies, ...tvs];
+    await saveTmdbCache("home", 0, result);
+    return result;
+  } catch {
+    const cached = await readTmdbCache<TmdbResult[]>("home", 0);
+    if (cached) return cached;
+    throw new Error("TMDB down and no cache for trending");
+  }
 }
 
 export async function getUpcoming(): Promise<TmdbResult[]> {
-  // V5: top 5 movies + top 5 TV by popularity, release_date/first_air_date >= today
-  const today = new Date();
-  const future90 = new Date(today); future90.setDate(future90.getDate() + 90);
-  const todayStr = today.toISOString().slice(0, 10);
-  const future90Str = future90.toISOString().slice(0, 10);
-  const [movieData, tvData] = await Promise.all([
-    get("/movie/upcoming", { region: "US", sort_by: "popularity.desc" }),
-    get("/discover/tv", {
-      "first_air_date.gte": todayStr,
-      "first_air_date.lte": future90Str,
-      sort_by: "popularity.desc",
-    }),
-  ]);
+  try {
+    // V5: top 5 movies + top 5 TV by popularity, release_date/first_air_date >= today
+    const today = new Date();
+    const future90 = new Date(today); future90.setDate(future90.getDate() + 90);
+    const todayStr = today.toISOString().slice(0, 10);
+    const future90Str = future90.toISOString().slice(0, 10);
+    const [movieData, tvData] = await Promise.all([
+      get("/movie/upcoming", { region: "US", sort_by: "popularity.desc" }),
+      get("/discover/tv", {
+        "first_air_date.gte": todayStr,
+        "first_air_date.lte": future90Str,
+        sort_by: "popularity.desc",
+      }),
+    ]);
 
-  const filterAnime = (item: any) =>
-    !((item.genre_ids || []).includes(16) && item.original_language === "ja");
+    const filterAnime = (item: any) =>
+      !((item.genre_ids || []).includes(16) && item.original_language === "ja");
 
-  const movies = (movieData.results as TmdbItem[])
-    .filter(filterAnime)
-    // Exclude movies whose release date is already in the past (TMDB /movie/upcoming
-    // sometimes still returns recently-released titles). Keep those with a future date
-    // or no date at all (announced/undated).
-    .filter((item) => {
-      const d = item.release_date;
-      if (!d) return true;
-      return new Date(d).getTime() >= Date.now();
-    })
-    .map(format)
-    .filter((item) => {
-      if (!item.daysUntil) return item.year === 0;
-      return item.daysUntil > 0;
-    });
+    const movies = (movieData.results as TmdbItem[])
+      .filter(filterAnime)
+      // Exclude movies whose release date is already in the past (TMDB /movie/upcoming
+      // sometimes still returns recently-released titles). Keep those with a future date
+      // or no date at all (announced/undated).
+      .filter((item) => {
+        const d = item.release_date;
+        if (!d) return true;
+        return new Date(d).getTime() >= Date.now();
+      })
+      .map(format)
+      .filter((item) => {
+        if (!item.daysUntil) return item.year === 0;
+        return item.daysUntil > 0;
+      });
 
-  const tvs = (tvData.results as TmdbItem[])
-    .filter(filterAnime)
-    .map(format)
-    .filter((item) => {
-      if (!item.daysUntil) return item.year === 0;
-      return item.daysUntil > 0;
-    })
-    .slice(0, 5);
+    const tvs = (tvData.results as TmdbItem[])
+      .filter(filterAnime)
+      .map(format)
+      .filter((item) => {
+        if (!item.daysUntil) return item.year === 0;
+        return item.daysUntil > 0;
+      })
+      .slice(0, 5);
 
-  return [...movies.slice(0, 5), ...tvs];
+    const result = [...movies.slice(0, 5), ...tvs];
+    await saveTmdbCache("upcoming", 0, result);
+    return result;
+  } catch {
+    const cached = await readTmdbCache<TmdbResult[]>("upcoming", 0);
+    if (cached) return cached;
+    throw new Error("TMDB down and no cache for upcoming");
+  }
 }
 
 export async function getNowPlaying(region: string = "US"): Promise<TmdbResult[]> {
@@ -666,11 +715,28 @@ export const getMovieDetail = unstable_cache(
     result.poster = await getCustomPoster(detail.id);
   }
 
+  // Persist to DB so a later TMDB outage can still serve this movie.
+  await saveTmdbCache("movie", detail.id, result);
+
   return result;
 },
   ["movie-detail"],
   { revalidate: 86400 }
 );
+
+/**
+ * Fetch a movie detail — falls back to the DB cache if TMDB is down.
+ * This is the ONLY entry point pages should call (not getMovieDetail directly).
+ */
+export async function resolveMovieDetail(id: number): Promise<TmdbDetail> {
+  try {
+    return await getMovieDetail(id);
+  } catch {
+    const cached = await readTmdbCache<TmdbDetail>("movie", id);
+    if (cached) return cached;
+    throw new Error(`TMDB down and no cache for movie ${id}`);
+  }
+}
 
 export async function getTVDetail(id: number): Promise<TmdbDetail> {
   const [detail, credits, similar, videos, keywords, aggregateCredits] = await Promise.all([
@@ -746,7 +812,23 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
     resultTV.poster = await getCustomPoster(detail.id);
   }
 
+  // Persist to DB so a later TMDB outage can still serve this TV show.
+  await saveTmdbCache("tv", detail.id, resultTV);
+
   return resultTV;
+}
+
+/**
+ * Fetch a TV detail — falls back to the DB cache if TMDB is down.
+ */
+export async function resolveTVDetail(id: number): Promise<TmdbDetail> {
+  try {
+    return await getTVDetail(id);
+  } catch {
+    const cached = await readTmdbCache<TmdbDetail>("tv", id);
+    if (cached) return cached;
+    throw new Error(`TMDB down and no cache for tv ${id}`);
+  }
 }
 
 // ── TV Season types ──
