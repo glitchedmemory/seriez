@@ -256,6 +256,21 @@ async function resolveAnilistIdToKitsu(anilistId: number): Promise<string | null
 // voice actors, staff/director, relations/seasons, recommendations) so the
 // anime detail page stays fully rendered during an AniList outage.
 
+/**
+ * Kitsu poster URLs come in two domains depending on when the metadata was
+ * written: `media.kitsu.app/anime/poster_images/{id}/large.jpg` (stable) and
+ * `kitsu-production-media.s3...backblazeb2.com/anime/poster_image/{hash}.jpg?X-Amz-...`
+ * (signed URLs that expire / 404). Normalize the latter to the stable media.kitsu.app
+ * URL using the Kitsu id, so posters never render as empty boxes.
+ */
+function normalizeKitsuPoster(url: string | null | undefined, kitsuId: number | string): string | null {
+  if (!url) return null;
+  if (url.includes("media.kitsu.app")) return url;
+  // Backblaze B2 signed URL (or any non-media.kitsu.app) → stable media.kitsu.app large poster
+  if (kitsuId) return `https://media.kitsu.app/anime/poster_images/${kitsuId}/large.jpg`;
+  return url;
+}
+
 /** Resolve a Kitsu anime id → { anilistId, malId } via Kitsu's mappings (no AniList dep). */
 async function resolveKitsuIdToExternal(kitsuId: string): Promise<{ anilistId: number | null; malId: number | null }> {
   try {
@@ -678,7 +693,7 @@ async function fetchKitsuTrendingAnime(limit = 14): Promise<KitsuAnimeListResult
         return {
           id: anilistId,
           title: a.canonicalTitle || a.titles?.en || "Unknown",
-          poster: posterImg.large || posterImg.medium || posterImg.original || null,
+          poster: normalizeKitsuPoster(posterImg.large || posterImg.medium || posterImg.original, kitsuId),
           backdrop: coverImg.original || coverImg.large || null,
           rating: a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0,
           year: startYear,
@@ -1744,7 +1759,7 @@ async function fetchKitsuUpcomingAnime(limit = 4): Promise<{ id: number; title: 
       return {
         id: anilistId,
         title: a.canonicalTitle || a.titles?.en || "Unknown",
-        poster: posterImg.large || posterImg.medium || posterImg.original || null,
+        poster: normalizeKitsuPoster(posterImg.large || posterImg.medium || posterImg.original, kitsuId),
         backdrop: coverImg.original || coverImg.large || null,
         rating: a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0,
         year: startYear,
