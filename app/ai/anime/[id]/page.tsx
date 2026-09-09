@@ -3,6 +3,66 @@ import { notFound } from "next/navigation";
 
 const ANILIST_API = "https://graphql.anilist.co";
 
+// Kitsu fallback for anime detail (AniList down). Resolves AniList id → Kitsu id,
+// then shapes the Kitsu payload into the same field structure the page expects.
+async function fetchKitsuAnimeFallback(anilistId: number): Promise<any | null> {
+  try {
+    // Resolve AniList id → Kitsu id via Kitsu mappings
+    let kitsuId: string | null = null;
+    try {
+      const mRes = await fetch(`https://kitsu.io/api/edge/mappings?filter%5BexternalSite%5D=anilist/anime&filter%5BexternalId%5D=${anilistId}&page%5Blimit%5D=1`, {
+        headers: { "Accept": "application/vnd.api+json" },
+        next: { revalidate: 86400 },
+      });
+      if (mRes.ok) {
+        const mj = await mRes.json();
+        const relItem = mj.data?.[0]?.relationships?.item?.links?.related;
+        if (relItem) {
+          const match = (relItem as string).match(/\/anime\/(\d+)/);
+          if (match) kitsuId = match[1];
+        }
+      }
+    } catch {}
+    if (!kitsuId) return null;
+
+    const res = await fetch(`https://kitsu.io/api/edge/anime/${kitsuId}`, {
+      headers: { "Accept": "application/vnd.api+json" },
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const a = json.data?.attributes;
+    if (!a) return null;
+    const posterImg = a.posterImage || {};
+    const startYear = a.startDate ? Number(String(a.startDate).slice(0, 4)) || 0 : 0;
+    return {
+      id: anilistId,
+      title: {
+        romaji: a.canonicalTitle || a.titles?.en_jp || "",
+        english: a.titles?.en || a.canonicalTitle || "",
+        native: a.titles?.ja_jp || "",
+      },
+      description: a.synopsis || "",
+      coverImage: { extraLarge: posterImg.original || posterImg.large || null },
+      bannerImage: (a.coverImage?.original || null),
+      averageScore: a.averageRating ? Math.round(a.averageRating / 10) : 0,
+      popularity: 0,
+      favourites: 0,
+      seasonYear: startYear || null,
+      episodes: a.episodeCount || 0,
+      duration: a.episodeLength || 0,
+      status: (a.status || "").toUpperCase(),
+      genres: (a.categories?.map((c: any) => c?.title).filter(Boolean) || []),
+      studios: { nodes: [] },
+      format: a.subtype ? a.subtype.toUpperCase() : "TV",
+      startDate: { year: startYear || null, month: null, day: null },
+      endDate: null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return {
@@ -53,9 +113,14 @@ export default async function AIAnimePage({ params }: { params: Promise<{ id: st
     });
     const json = await res.json();
     anime = json.data?.Media;
+    if (!anime) {
+      // AniList down — fall back to Kitsu by resolving AniList id → Kitsu id
+      anime = await fetchKitsuAnimeFallback(animeId);
+    }
     if (!anime) notFound();
   } catch {
-    notFound();
+    anime = await fetchKitsuAnimeFallback(animeId);
+    if (!anime) notFound();
   }
 
   const title = anime.title?.english || anime.title?.romaji || "Unknown";

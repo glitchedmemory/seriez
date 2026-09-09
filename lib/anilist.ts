@@ -1775,7 +1775,10 @@ export async function getAnimeUpcoming(): Promise<{ id: number; title: string; p
       body: JSON.stringify({ query: UPCOMING_QUERY, variables: { page: 1, perPage: 4 } }),
       next: { revalidate: 3600 },
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      // AniList down — fall back to Kitsu upcoming anime
+      return fetchKitsuUpcomingAnime(4);
+    }
     const json = await res.json();
     const media = json.data?.Page?.media || [];
     const results: { id: number; title: string; poster: string | null; rating: number; year: number; type: "anime"; genres: string[]; daysUntil: number | null; overview: string; backdrop: string | null }[] = [];
@@ -1807,6 +1810,63 @@ export async function getAnimeUpcoming(): Promise<{ id: number; title: string; p
       });
     }
     return results;
+  } catch {
+    return [];
+  }
+}
+
+/** Kitsu fallback for upcoming anime (AniList down). */
+async function fetchKitsuUpcomingAnime(limit = 4): Promise<{ id: number; title: string; poster: string | null; rating: number; year: number; type: "anime"; genres: string[]; daysUntil: number | null; overview: string; backdrop: string | null }[]> {
+  try {
+    const res = await fetch(`https://kitsu.io/api/edge/anime?filter%5Bstatus%5D=upcoming&sort=-startDate&page%5Blimit%5D=${limit}`, {
+      headers: { "Accept": "application/vnd.api+json" },
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const data = json.data || [];
+    return await Promise.all(data.map(async (item: any): Promise<any | null> => {
+      const a = item.attributes || {};
+      const kitsuId = Number(item.id) || 0;
+      if (!kitsuId) return null;
+      // Resolve AniList id via mappings so /anime/{id} links work
+      let anilistId = kitsuId;
+      try {
+        const mRes = await fetch(`${KITSU_ANIME_API}/${kitsuId}?include=mappings`, {
+          headers: { "Accept": "application/vnd.api+json" },
+          next: { revalidate: 86400 },
+        });
+        if (mRes.ok) {
+          const mJson = await mRes.json();
+          const mapping = (mJson.included || []).find((inc: any) => inc.type === "mappings" && inc.attributes?.externalSite === "anilist/anime");
+          if (mapping?.attributes?.externalId) anilistId = Number(mapping.attributes.externalId);
+        }
+      } catch {}
+      const posterImg = a.posterImage || {};
+      const coverImg = a.coverImage || {};
+      const startYear = a.startDate ? Number(String(a.startDate).slice(0, 4)) || 0 : 0;
+      // daysUntil from startDate
+      let daysUntil: number | null = null;
+      if (a.startDate) {
+        const d = new Date(a.startDate);
+        if (!isNaN(d.getTime())) {
+          const diff = Math.ceil((d.getTime() - Date.now()) / 86400000);
+          daysUntil = diff > 0 ? diff : null;
+        }
+      }
+      return {
+        id: anilistId,
+        title: a.canonicalTitle || a.titles?.en || "Unknown",
+        poster: posterImg.original || posterImg.large || posterImg.medium || null,
+        backdrop: coverImg.original || coverImg.large || null,
+        rating: a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0,
+        year: startYear,
+        type: "anime" as const,
+        genres: [],
+        daysUntil,
+        overview: (a.synopsis || "").slice(0, 300),
+      };
+    })).then((rs) => rs.filter((r): r is NonNullable<typeof r> => r !== null));
   } catch {
     return [];
   }

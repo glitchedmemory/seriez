@@ -55,86 +55,90 @@ def jw_fetch(url):
 
 
 def parse_justwatch(html):
-    """Parse a single JustWatch provider page's Apollo state.
+    """Parse a single JustWatch provider page's Nuxt devalue payload.
 
-    Returns {"movies": [...], "tv": [...]} for the provider in that single page,
+    JustWatch migrated from Next.js/Apollo (`__APOLLO_STATE__`) to Nuxt.js,
+    so the SSR data now lives in a `<script id="__NUXT_DATA__">` tag holding a
+    devalue-encoded reference array. Every dict/list value that is an int is a
+    single index into that top-level array; deref once to resolve it.
+
+    Returns {"movies": [...], "tv": [...]} for the provider in that page,
     or None if the page has no usable data.
     """
-    m = re.search(r'__APOLLO_STATE__\s*=\s*(\{.*?\})\s*;?\s*</script>', html, re.DOTALL)
+    m = re.search(r'<script[^>]*id="__NUXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL)
     if not m:
         return None
     try:
-        state = json.loads(m.group(1))
+        data = json.loads(m.group(1))
     except Exception:
         return None
-    default = state.get("defaultClient", state)
+
+    # data[4] is the Apollo cache (keys like "ROOT_QUERY", "Show:ts...", "Movie:tm...")
+    try:
+        cache = data[4]
+    except (IndexError, TypeError):
+        return None
+    if not isinstance(cache, dict) or "ROOT_QUERY" not in cache:
+        return None
+
+    def d(v):
+        """Single index deref: int -> data[int], else pass through."""
+        if isinstance(v, int) and 0 <= v < len(data):
+            return data[v]
+        return v
 
     result = {"movies": [], "tv": []}
 
     for objtype, cat in (("MOVIE", "movies"), ("SHOW", "tv")):
-        # Locate the root streamingCharts query for this page's package + objectType
-        root_key = None
-        for k in default.keys():
-            if not isinstance(k, str):
-                continue
-            if ("streamingCharts" not in k) or ("ROOT_QUERY" not in k):
-                continue
-            if '"objectType":"%s"' % objtype in k:
-                root_key = k
+        rqnode = d(cache.get("ROOT_QUERY"))
+        if not isinstance(rqnode, dict):
+            continue
+        key = None
+        for k in rqnode:
+            if isinstance(k, str) and "streamingCharts" in k and '"objectType":"%s"' % objtype in k:
+                key = k
                 break
-        if root_key is None:
+        if key is None:
+            continue
+        chart = d(rqnode[key])
+        if not isinstance(chart, dict) or "edges" not in chart:
+            continue
+        edges = d(chart["edges"])
+        if not isinstance(edges, list):
             continue
 
-        conn = default.get(root_key, {})
-        edge_refs = conn.get("edges", [])
         items = []
-        for er in edge_refs:
-            if not isinstance(er, dict):
+        for eidx in edges:
+            edge = d(eidx)
+            if not isinstance(edge, dict):
                 continue
-            edge = default.get(er.get("id"), {})
-
-            # resolve node object id (tmXXXXX / tsXXXXX) for tmdbId
-            node = edge.get("node", {})
-            objid = None
-            otype = None
-            if isinstance(node, dict):
-                nid = node.get("id")
-                if nid and nid in default:
-                    node_data = default[nid]
-                    objid = node_data.get("id")
-                    otype = node_data.get("__typename")
-
-            # resolve title from the content node (poster is fetched via TMDB later)
+            info = d(edge.get("streamingChartInfo"))
+            rank = d(info.get("rank")) if isinstance(info, dict) else None
+            node = d(edge.get("node"))
+            ref = d(node.get("__ref")) if isinstance(node, dict) else None
             title = None
-            if objid:
-                for ck, cv in default.items():
-                    if isinstance(cv, dict) and cv.get("__typename") in ("MovieContent", "ShowContent"):
-                        if objid in ck:
-                            title = cv.get("title")
+            if ref:
+                nd = d(cache.get(ref))
+                if isinstance(nd, dict):
+                    for ck, cv in nd.items():
+                        if isinstance(ck, str) and ck.startswith("content("):
+                            cd = d(cv)
+                            if isinstance(cd, dict):
+                                title = d(cd.get("title"))
                             break
-
             if title:
                 items.append({
                     "title": title,
-                    "mediaType": "movie" if otype == "Movie" else "tv",
+                    "mediaType": "movie" if objtype == "MOVIE" else "tv",
+                    "_chartRank": rank if isinstance(rank, int) else 0,
                 })
-                # resolve rank (absolute chart position; NOT used as output rank)
-                sci = edge.get("streamingChartInfo", {})
-                if isinstance(sci, dict):
-                    sid = sci.get("id")
-                    if sid and sid in default:
-                        rank = default[sid].get("rank")
-                        if rank is not None:
-                            items[-1]["_chartRank"] = rank
 
         # edges arrive sorted by popularity — assign 1..10 in that order
         items = items[:10]
         for i, it in enumerate(items):
             it["rank"] = i + 1
-            # score = absolute chart position (trend/popularity signal); keep the
-            # field for schema compatibility with the old FlixPatrol output.
             cr = it.pop("_chartRank", None)
-            it["score"] = cr if cr is not None else 0
+            it["score"] = cr if isinstance(cr, int) else 0
         result[cat] = items
 
     return result
@@ -171,7 +175,10 @@ def tmdb_request(path, params=None):
 
 def find_tmdb(title, media_type):
     """Search TMDB by title (JustWatch's tmXXXXX id is NOT a TMDB id, so we
-    must match by title). Returns (tmdbId, mediaType, posterPath) or (None...)."""
+    must match by title). Returns (tmdbId, mediaType, posterPath, officialTitle)
+    or (None, None, None, None). officialTitle is the TMDB canonical name, used
+    to normalize JustWatch's noisy titles (e.g. "Ready or Not 2: Here I Come"
+    -> "Ready or Not: Here I Come")."""
     title_lower = title.strip().lower()
     if media_type == "movie":
         result = tmdb_request("/search/movie", {"query": title, "language": "en-US", "page": 1})
@@ -181,11 +188,11 @@ def find_tmdb(title, media_type):
         results_key = "results"
 
     if not result or not result.get(results_key):
-        return None, None, None
+        return None, None, None, None
 
     candidates = result[results_key]
     if not candidates:
-        return None, None, None
+        return None, None, None, None
 
     # Match: exact, then starts-with/contains, then first result
     best = None
@@ -205,7 +212,8 @@ def find_tmdb(title, media_type):
 
     tmdb_id = best["id"]
     resolved_type = "movie" if best.get("title") else "tv"
-    return tmdb_id, resolved_type, best.get("poster_path")
+    official_title = best.get("title") or best.get("name") or title
+    return tmdb_id, resolved_type, best.get("poster_path"), official_title
 
 
 def enrich_posters(output):
@@ -213,44 +221,31 @@ def enrich_posters(output):
 
     JustWatch's `id` field (tmXXXXX / tsXXXXX) is a JustWatch-internal id, NOT a
     TMDB id — so tmdbId must be resolved by TMDB title search. Posters are
-    always served from image.tmdb.org (no Cloudflare block). Cached results
-    from the previous run are reused by (title_lower, mediaType).
+    always served from image.tmdb.org (no Cloudflare block).
+
+    NOTE (2026-09-09): the old (title, mediaType)-keyed cache that reused the
+    previous run's tmdbId was removed. A bad match from an earlier run corrupted
+    the cache and propagated wrong tmdbIds forever (e.g. Reacher->314375, a
+    totally different show). Always re-query TMDB so corrupted entries can't
+    survive. 60 items * ~0.3s is well within TMDB's 40 req/s rate limit.
     """
     total = sum(len(output[cfg["key"]][c]) for cfg in PLATFORM_MAP.values() for c in ("movies", "tv"))
     print(f"\nResolving TMDB ids + posters for {total} items...")
 
-    existing = {}
-    if os.path.exists(OUTPUT_PATH):
-        try:
-            with open(OUTPUT_PATH, "r") as f:
-                prev = json.load(f)
-            for plat in prev.get("data", {}).values():
-                for cat in ("movies", "tv"):
-                    for it in plat.get(cat, []):
-                        p = it.get("poster") or ""
-                        if p.startswith("https://image.tmdb.org") and it.get("tmdbId") and it.get("title"):
-                            existing[(it["title"].strip().lower(), it.get("mediaType"))] = (it["tmdbId"], p)
-            if existing:
-                print(f"  Loaded {len(existing)} cached TMDB entries")
-        except Exception:
-            pass
-
-    filled = reused = unmatched = 0
+    filled = unmatched = 0
     for cfg in PLATFORM_MAP.values():
         for cat in ("movies", "tv"):
             for item in output[cfg["key"]][cat]:
                 title = item["title"]
                 mt = "movie" if cat == "movies" else "tv"
-                key = (title.strip().lower(), mt)
-                if key in existing:
-                    item["tmdbId"], item["poster"] = existing[key]
-                    item["mediaType"] = mt
-                    reused += 1
-                    continue
-                tmdb_id, resolved_type, poster_path = find_tmdb(title, mt)
+                tmdb_id, resolved_type, poster_path, official_title = find_tmdb(title, mt)
                 if tmdb_id:
                     item["tmdbId"] = tmdb_id
                     item["mediaType"] = resolved_type
+                    # Normalize noisy JustWatch titles to the TMDB canonical name
+                    # (e.g. "Ready or Not 2: Here I Come" -> "Ready or Not: Here I Come")
+                    if official_title:
+                        item["title"] = official_title
                     if poster_path:
                         item["poster"] = f"https://image.tmdb.org/t/p/w342{poster_path}"
                     else:
@@ -263,7 +258,7 @@ def enrich_posters(output):
                     unmatched += 1
                 time.sleep(0.3)
 
-    print(f"  Matched {filled} via TMDB search; reused {reused} cached; unmatched {unmatched}")
+    print(f"  Matched {filled} via TMDB search; unmatched {unmatched}")
 
 
 def main():
