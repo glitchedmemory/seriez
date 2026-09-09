@@ -377,7 +377,8 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
     const extractSeasonNum = (t: string): number | null => {
       const s = t.match(/season\s*(\d+)/i) || t.match(/(\d+)(?:st|nd|rd|th)\s*season/i);
       if (s) return parseInt(s[1]);
-      if (/\bfinal\s*season\b/i.test(t)) return 99;
+      // "Final Season", "Final Season Part 2", "Final Chapters (Part 1)" → 99
+      if (/\bfinal\b/i.test(t)) return 99;
       // "Part 2" without season → indeterminate, return null
       return null;
     };
