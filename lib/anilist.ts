@@ -427,6 +427,59 @@ async function fetchKitsuRelations(kitsuId: string): Promise<AnimeDetail["relati
   }
 }
 
+/** Fetch sequel/prequel TV destination Kitsu entries for one anime, resolving each
+ *  destination to its AniList id (stable `?include=mappings` lookup). Used to walk the
+ *  full season chain via Kitsu while AniList is down. Returns AniList-id keyed relations. */
+async function fetchKitsuSeasonRelations(kitsuId: string): Promise<AnimeDetail["relations"]> {
+  try {
+    const res = await fetch(
+      `${KITSU_ANIME_API}/${kitsuId}/media-relationships?page%5Blimit%5D=20&include=destination`,
+      { headers: { "Accept": "application/vnd.api+json" }, next: { revalidate: 86400 } }
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+
+    const destMeta = new Map<string, { title: string; format: string; year: number | null }>();
+    for (const inc of json.included || []) {
+      if (inc.type !== "anime") continue;
+      const a = inc.attributes || {};
+      destMeta.set(inc.id, {
+        title: a.canonicalTitle || a.titles?.en || "Unknown",
+        format: (a.subtype || "TV").toUpperCase(),
+        year: a.startDate ? Number(String(a.startDate).slice(0, 4)) || null : null,
+      });
+    }
+
+    const links: { kitsuId: string; title: string; format: string; year: number | null }[] = [];
+    for (const rel of json.data || []) {
+      const relationType = (rel.attributes?.role || "").toUpperCase();
+      if (relationType !== "SEQUEL" && relationType !== "PREQUEL") continue;
+      const destId = rel.relationships?.destination?.data?.id;
+      const meta = (destId && destMeta.get(destId)) || null;
+      if (!destId || !meta || meta.format !== "TV") continue;
+      links.push({ kitsuId: destId, title: meta.title, format: meta.format, year: meta.year });
+    }
+
+    // Resolve all destinations to AniList ids in parallel (single fetch each).
+    const out = await Promise.all(
+      links.map(async (l) => {
+        const ext = await resolveKitsuIdToExternal(l.kitsuId);
+        if (!ext.anilistId) return null;
+        return {
+          id: ext.anilistId,
+          title: l.title,
+          type: "ANIME" as const,
+          format: l.format,
+          seasonYear: l.year,
+        };
+      })
+    );
+    return out.filter((x): x is NonNullable<typeof x> => x !== null);
+  } catch {
+    return [];
+  }
+}
+
 /** Fetch recommendations from Jikan/MAL (AniList has none when down; Kitsu has none at all). */
 async function fetchJikanRecommendations(malId: number): Promise<AnimeRecItem[]> {
   if (!malId) return [];
@@ -1509,37 +1562,50 @@ export const enrichAnimeRelations = async (
   const result: { id: number; title: string; type: string; format: string; seasonYear: number | null }[] = [];
 
   // Start with existing TV relations
-  const queue = existingRelations.filter(r => r.format === "TV");
-  for (const r of queue) {
+  for (const r of existingRelations.filter(r => r.format === "TV")) {
     if (!seen.has(r.id)) {
       seen.add(r.id);
       result.push(r);
     }
   }
 
-  // BFS: keep fetching relations until no new TV entries
+  // BFS over the season chain. AniList relations are only 1-hop, so walk sequels/prequels
+  // iteratively. Try AniList first (it returns the full relation set when up); if AniList is
+  // down, walk the chain via Kitsu media-relationships so the Seasons UI still shows all
+  // seasons. Each node is deduped by AniList id (no infinite loops).
+  const queue: number[] = result.map(r => r.id).concat(currentId);
+
   while (queue.length > 0) {
-    const batch = queue.splice(0, 5); // fetch up to 5 at a time
-    const promises = batch.map(async (rel) => {
+    const batch = queue.splice(0, 6);
+    const promises = batch.map(async (anilistId): Promise<{ id: number; title: string; format: string; seasonYear: number | null }[]> => {
+      // 1) Try AniList (full relation set, single request).
       try {
         const res = await fetch(ANILIST_API, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: RELATIONS_ONLY_QUERY, variables: { id: rel.id } }),
+          body: JSON.stringify({ query: RELATIONS_ONLY_QUERY, variables: { id: anilistId } }),
           next: { revalidate: 86400 },
         });
-        if (!res.ok) return [];
-        const json = await res.json();
-        const edges = json.data?.Media?.relations?.edges || [];
-        return edges
-          .filter((e: any) => e.node?.type === "ANIME" && e.node?.format === "TV" && (e.relationType === "SEQUEL" || e.relationType === "PREQUEL"))
-          .map((e: any) => ({
-            id: e.node.id,
-            title: e.node.title?.english || e.node.title?.romaji || "Unknown",
-            type: "ANIME" as const,
-            format: e.node.format || "",
-            seasonYear: e.node.seasonYear || null,
-          }));
+        if (res.ok) {
+          const json = await res.json();
+          const edges = json.data?.Media?.relations?.edges || [];
+          return edges
+            .filter((e: any) => e.node?.type === "ANIME" && e.node?.format === "TV" && (e.relationType === "SEQUEL" || e.relationType === "PREQUEL"))
+            .map((e: any) => ({
+              id: e.node.id,
+              title: e.node.title?.english || e.node.title?.romaji || "Unknown",
+              format: e.node.format || "",
+              seasonYear: e.node.seasonYear || null,
+            }));
+        }
+      } catch { /* fall through to Kitsu */ }
+
+      // 2) AniList down → walk via Kitsu media-relationships.
+      try {
+        const kitsuId = await resolveAnilistIdToKitsu(anilistId);
+        if (!kitsuId) return [];
+        const rels = await fetchKitsuSeasonRelations(kitsuId);
+        return rels.map(r => ({ id: r.id, title: r.title, format: r.format, seasonYear: r.seasonYear }));
       } catch {
         return [];
       }
@@ -1548,10 +1614,10 @@ export const enrichAnimeRelations = async (
     const results = await Promise.all(promises);
     for (const items of results) {
       for (const item of items) {
-        if (!seen.has(item.id)) {
+        if (item.id && !seen.has(item.id)) {
           seen.add(item.id);
-          result.push(item);
-          queue.push(item);
+          result.push({ id: item.id, title: item.title, type: "ANIME", format: item.format, seasonYear: item.seasonYear });
+          queue.push(item.id);
         }
       }
     }
