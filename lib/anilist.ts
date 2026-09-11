@@ -1403,7 +1403,8 @@ export const enrichAnimeRelations = async (
     }
     const startKitsu = String(startKitsuId);
 
-    const seenKitsu = new Set<string>();
+    const seen = new Set<string>();
+    const queued = new Set<string>([startKitsu]);
     const result: { id: number; title: string; format: string; seasonYear: number | null }[] = [];
 
     // BFS over sequel + prequel edges, walking both directions from the current item.
@@ -1415,25 +1416,28 @@ export const enrichAnimeRelations = async (
     while (queue.length > 0) {
       const batch = queue.splice(0, 8);
       const neighbors = await Promise.all(
-        batch.map(async ({ kitsuId }): Promise<{ kitsuId: string; title: string; year: number | null }[]> => {
-          if (seenKitsu.has(kitsuId)) return [];
-          seenKitsu.add(kitsuId);
-          const rels = await fetchKitsuSeasonNeighbors(kitsuId);
-          return rels;
+        batch.map(async ({ kitsuId }: { kitsuId: string }): Promise<{ kitsuId: string; title: string; year: number | null }[]> => {
+          // Always fetch neighbors for the node being visited (do NOT skip:
+          // a node that was already discovered still needs its own neighbors
+          // walked so the chain continues past it).
+          return fetchKitsuSeasonNeighbors(kitsuId);
         })
       );
 
       for (const items of neighbors) {
         for (const n of items) {
-          if (seenKitsu.has(n.kitsuId)) continue;
+          if (seen.has(n.kitsuId)) continue;
+          seen.add(n.kitsuId);
           // Resolve Kitsu id → AniList id via ani.zip (accurate, no AniList dep).
           const ext = await resolveKitsuIdToAnilist(n.kitsuId);
           if (!ext.anilistId) continue;
           if (ext.anilistId === currentId) continue;
           result.push({ id: ext.anilistId, title: n.title, format: "TV", seasonYear: n.year });
           if (n.year && n.year <= earliestYear) { earliestYear = n.year; earliestId = ext.anilistId; }
-          seenKitsu.add(n.kitsuId);
-          queue.push({ kitsuId: n.kitsuId, dir: "any" });
+          if (!queued.has(n.kitsuId)) {
+            queued.add(n.kitsuId);
+            queue.push({ kitsuId: n.kitsuId, dir: "any" });
+          }
         }
       }
     }
