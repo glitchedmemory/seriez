@@ -1432,7 +1432,9 @@ export const enrichAnimeRelations = async (
           const ext = await resolveKitsuIdToAnilist(n.kitsuId);
           if (!ext.anilistId) continue;
           if (ext.anilistId === currentId) continue;
-          result.push({ id: ext.anilistId, title: n.title, format: "TV", seasonYear: n.year });
+          // Prefer the official English title from ani.zip over Kitsu's romaji.
+          const title = ext.titleEn || n.title;
+          result.push({ id: ext.anilistId, title, format: "TV", seasonYear: n.year });
           if (n.year && n.year <= earliestYear) { earliestYear = n.year; earliestId = ext.anilistId; }
           if (!queued.has(n.kitsuId)) {
             queued.add(n.kitsuId);

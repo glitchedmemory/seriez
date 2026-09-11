@@ -24,6 +24,10 @@ function seasonNumberFromTitle(title: string): number | null {
   // ordinal like "2nd", "3rd" at the end (e.g. "Something 3rd")
   m = t.match(/(\d+)(?:st|nd|rd|th)\s*$/);
   if (m) return parseInt(m[1], 10);
+  // plain trailing number (e.g. "Boku no Hero Academia 2", "Naruto Shippuden 2")
+  // → treat as that season number.
+  m = t.match(/\s(\d+)\s*$/);
+  if (m) return parseInt(m[1], 10);
   // base title with no marker → season 1
   return 1;
 }
