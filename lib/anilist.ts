@@ -697,7 +697,6 @@ export const getAnimeIds = unstable_cache(
 export const getAnimeDetail = unstable_cache(
   async (id: number): Promise<AnimeDetail | null> => {
   try {
-    console.log(`[perf] getAnimeDetail(${id}) CALLED`);
     // Fast path: serve the cached detail from Supabase (permanent, survives
     // restarts) so we skip the AniList/ani.zip/Kitsu/YouTube calls entirely
     // for content we've already seen — detail data is effectively immutable.
@@ -863,8 +862,10 @@ export const getAnimeDetail = unstable_cache(
       result.backdrop = `https://img.youtube.com/vi/${result.trailer.id}/maxresdefault.jpg`;
     }
 
-    // Persist to Supabase (fire-and-forget) so future visits serve from DB.
-    saveField(id, "detail", result);
+    // Persist to Supabase so future visits serve from DB. Await it — inside
+    // unstable_cache a fire-and-forget write can be dropped when the cache
+    // callback resolves, so the detail would never get cached.
+    await saveField(id, "detail", result);
 
     return result;
   } catch {
@@ -1382,9 +1383,10 @@ export const getAnimeEpisodes = unstable_cache(
     );
   }
 
-  // Persist to Supabase (fire-and-forget) so future visits serve from DB.
+  // Persist to Supabase so future visits serve from DB (await to guarantee the
+  // write lands — inside unstable_cache a fire-and-forget write can be dropped).
   if (anilistId && anilistId > 0 && episodes.length > 0) {
-    saveField(anilistId, "episodes", episodes);
+    await saveField(anilistId, "episodes", episodes);
   }
 
   return episodes;
@@ -1525,10 +1527,7 @@ async function getCachedField<T>(anilistId: number, column: "chain" | "detail" |
     const { createClient } = await import("@supabase/supabase-js");
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !key) {
-      console.log(`[perf] getCachedField(${anilistId}, ${column}): url=${url ? "있음" : "없음"}, key=${key ? "있음" : "없음"}`);
-      return null;
-    }
+    if (!url || !key) return null;
     const supabase = createClient(url, key);
     const { data } = await supabase
       .from("anime_season_cache")
@@ -1536,8 +1535,7 @@ async function getCachedField<T>(anilistId: number, column: "chain" | "detail" |
       .eq("anilist_id", anilistId)
       .maybeSingle();
     return (data as Record<string, unknown> | null)?.[column] as T ?? null;
-  } catch (e) {
-    console.log(`[perf] getCachedField(${anilistId}, ${column}) error: ${(e as Error).message}`);
+  } catch {
     return null;
   }
 }
