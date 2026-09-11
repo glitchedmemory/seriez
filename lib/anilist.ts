@@ -394,58 +394,6 @@ async function fetchKitsuStaff(kitsuId: string): Promise<AnimeDetail["staff"]> {
   }
 }
 
-/** Fetch relations (sequels/prequels → seasons) from Kitsu, mapped back to AniList IDs. */
-async function fetchKitsuRelations(kitsuId: string): Promise<AnimeDetail["relations"]> {
-  try {
-    const res = await fetch(
-      `${KITSU_ANIME_API}/${kitsuId}/media-relationships?page%5Blimit%5D=20&include=destination`,
-      { headers: { "Accept": "application/vnd.api+json" }, next: { revalidate: 86400 } }
-    );
-    if (!res.ok) return [];
-    const json = await res.json();
-
-    // dest id → anime meta
-    const destMeta = new Map<string, { title: string; format: string; year: number | null }>();
-    for (const inc of json.included || []) {
-      if (inc.type !== "anime") continue;
-      const a = inc.attributes || {};
-      destMeta.set(inc.id, {
-        title: a.canonicalTitle || a.titles?.en || "Unknown",
-        format: (a.subtype || "TV").toUpperCase(),
-        year: a.startDate ? Number(String(a.startDate).slice(0, 4)) || null : null,
-      });
-    }
-
-    const out: AnimeDetail["relations"] = [];
-    for (const rel of json.data || []) {
-      const relationType = (rel.attributes?.role || "").toUpperCase();
-      // Only sequel/prequel (and side_story for completeness) → these drive the Seasons UI.
-      if (!["SEQUEL", "PREQUEL", "SIDE_STORY"].includes(relationType)) continue;
-      const destId = rel.relationships?.destination?.data?.id;
-      const meta = (destId && destMeta.get(destId)) || null;
-      if (!meta) continue;
-      // Map the Kitsu destination id → its AniList id so /anime/{id} links work.
-      let anilistId: number | null = null;
-      if (destId) {
-        const ext = await resolveKitsuIdToExternal(destId);
-        anilistId = ext.anilistId;
-      }
-      if (!anilistId) continue;
-      out.push({
-        id: anilistId,
-        title: meta.title,
-        type: "ANIME",
-        format: meta.format,
-        seasonYear: meta.year,
-        status: "",
-      });
-    }
-    return out;
-  } catch {
-    return [];
-  }
-}
-
 /** Fetch recommendations from Jikan/MAL (AniList has none when down; Kitsu has none at all). */
 async function fetchJikanRecommendations(malId: number): Promise<AnimeRecItem[]> {
   if (!malId) return [];
@@ -577,15 +525,21 @@ export async function getAnimeDetailFromKitsu(anilistId: number): Promise<AnimeD
     // using Kitsu/Jikan so the anime page stays complete while AniList is down.
     const external = await resolveKitsuIdToExternal(kitsuId);
     const malId = external.malId || 0;
-    const [characters, staff, relations, recommendations] = await Promise.all([
+    // FIX: detail.id must be the AniList id, not the Kitsu id. buildAnimeDetailFromKitsu
+    // sets id to the Kitsu id, which breaks /anime/{id} links (S1 would point at /anime/7442).
+    detail.id = external.anilistId || anilistId;
+    detail.idMal = external.malId || 0;
+    const [characters, staff, recommendations] = await Promise.all([
       fetchKitsuCharacters(kitsuId),
       fetchKitsuStaff(kitsuId),
-      fetchKitsuRelations(kitsuId),
       fetchJikanRecommendations(malId),
     ]);
     detail.characters = characters;
     detail.staff = staff;
-    detail.relations = relations;
+    // relations are NOT set here — enrichAnimeRelations (Kitsu BFS) recomputes the full
+    // season chain at the page level from anilist ids, so leave relations empty to avoid
+    // Kitsu-id leaking into the Seasons links.
+    detail.relations = [];
     detail.recommendations = recommendations;
     return detail;
   } catch {
