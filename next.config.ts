@@ -59,6 +59,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdn.myanimelist.net" },
       { protocol: "https", hostname: "img1.ak.crunchyroll.com" },
       { protocol: "https", hostname: "placehold.co" },
+      { protocol: "https", hostname: "artworks.thetvdb.com" },
     ],
     unoptimized: false,
   },
