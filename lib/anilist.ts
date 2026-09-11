@@ -5,6 +5,7 @@ import { persistentCache } from "./persistent-cache";
 
 import type { TmdbResult } from "./tmdb";
 import { validateAndReplaceTrailers } from "./yt-validator";
+import { fetchAniZipByAnilistId, pickTitle, pickAniZipImage, anizipEpisodesToAnimeEpisodes } from "./anidb";
 
 // ─── Retry wrapper ───
 
@@ -35,6 +36,7 @@ export type AnimeDetail = {
   title: string;
   titleRomaji: string;
   titleNative: string;
+  titles: Record<string, string>;  // multi-language titles from ani.zip (ko, en, ja, zh, ...)
   overview: string;
   poster: string | null;
   backdrop: string | null;
@@ -586,6 +588,7 @@ function buildAnimeDetailFromKitsu(item: any): AnimeDetail | null {
     title,
     titleRomaji: titleEnJp || titleEn,
     titleNative: titleJa,
+    titles: (a.titles && typeof a.titles === "object") ? a.titles : {},
     overview: (a.synopsis || "").slice(0, 2000),
     poster,
     backdrop: cover,
@@ -716,6 +719,13 @@ async function fetchKitsuTrendingAnime(limit = 14): Promise<KitsuAnimeListResult
 /** Lightweight AniList query: only idMal + titles + duration. Used to parallelize detail + episodes. */
 export const getAnimeIds = unstable_cache(
   async (id: number): Promise<{ idMal: number; title: string; titleRomaji: string; titleNative: string; duration: number }> => {
+  // ani.zip provides idMal + titles in one call and works even when AniList is down
+  const anizip = await fetchAniZipByAnilistId(id);
+  const anizipTitle = anizip ? pickTitle(anizip.titles, "en") : null;
+  const anizipRomaji = anizip?.titles?.["x-jat"] || null;
+  const anizipNative = anizip?.titles?.["ja"] || null;
+  const anizipMal = anizip?.mappings?.mal_id || 0;
+
   const query = `query($id:Int){Media(id:$id){idMal title{romaji english native} duration}}`;
   const res = await fetch(ANILIST_API, {
     method: "POST",
@@ -724,7 +734,16 @@ export const getAnimeIds = unstable_cache(
     next: { revalidate: 86400 },
   });
   if (!res.ok) {
-    // AniList down — resolve titles via Kitsu fallback
+    // AniList down — prefer ani.zip titles, else Kitsu fallback
+    if (anizip) {
+      return {
+        idMal: anizipMal,
+        title: anizipTitle || anizipRomaji || "Unknown",
+        titleRomaji: anizipRomaji || "",
+        titleNative: anizipNative || "",
+        duration: 0,
+      };
+    }
     const kd = await getAnimeDetailFromKitsu(id);
     if (kd) {
       return {
@@ -739,10 +758,10 @@ export const getAnimeIds = unstable_cache(
   }
   const m = (await res.json()).data?.Media;
   return {
-    idMal: m?.idMal || 0,
-    title: m?.title?.english || m?.title?.romaji || "Unknown",
-    titleRomaji: m?.title?.romaji || "",
-    titleNative: m?.title?.native || "",
+    idMal: anizipMal || m?.idMal || 0,
+    title: m?.title?.english || m?.title?.romaji || anizipTitle || "Unknown",
+    titleRomaji: anizipRomaji || m?.title?.romaji || "",
+    titleNative: anizipNative || m?.title?.native || "",
     duration: m?.duration || 0,
   };
 },
@@ -753,6 +772,12 @@ export const getAnimeIds = unstable_cache(
 export const getAnimeDetail = unstable_cache(
   async (id: number): Promise<AnimeDetail | null> => {
   try {
+    // ani.zip (AniDB) is the primary source for titles, poster, backdrop and
+    // episodes. Fetch it first (single call) so multi-language titles and the
+    // richer AniDB dataset win when available, and the site survives AniList
+    // outages for title/poster/episode data.
+    const anizip = await fetchAniZipByAnilistId(id);
+
     // Retry AniList fetch with backoff (handles 429 + network errors)
     let res: Response | undefined;
     for (let attempt = 1; attempt <= 3; attempt++) {
@@ -772,7 +797,19 @@ export const getAnimeDetail = unstable_cache(
 
     if (!res!.ok) {
       // AniList down — fall back to Kitsu (via AniList ID → Kitsu mapping)
-      return getAnimeDetailFromKitsu(id);
+      const kd = await getAnimeDetailFromKitsu(id);
+      // If we still have ani.zip data, overlay its titles/poster/episodes so
+      // the page keeps multi-language titles even during an AniList outage.
+      if (kd && anizip) {
+        kd.titles = anizip.titles || {};
+        kd.titleRomaji = anizip.titles?.["x-jat"] || kd.titleRomaji;
+        kd.titleNative = anizip.titles?.["ja"] || anizip.titles?.["x-jat"] || kd.titleNative;
+        kd.poster = pickAniZipImage(anizip.images, "Poster") || kd.poster;
+        kd.backdrop = pickAniZipImage(anizip.images, "Banner") || kd.backdrop;
+        if (anizip.episodeCount) kd.episodes = anizip.episodeCount;
+        if (anizip.mappings?.mal_id) kd.idMal = anizip.mappings.mal_id;
+      }
+      return kd;
     }
     const json = await res!.json();
     const m = json.data?.Media;
@@ -843,20 +880,21 @@ export const getAnimeDetail = unstable_cache(
     // Build result first (without trailer — validated below)
     const result: AnimeDetail = {
       id: m.id,
-      idMal: m.idMal || 0,
+      idMal: anizip?.mappings?.mal_id || m.idMal || 0,
       title: m.title?.english || m.title?.romaji || "Unknown",
-      titleRomaji: m.title?.romaji || "",
-      titleNative: m.title?.native || "",
+      titleRomaji: anizip?.titles?.["x-jat"] || m.title?.romaji || "",
+      titleNative: anizip?.titles?.["ja"] || m.title?.native || "",
+      titles: anizip?.titles || {},
       overview: (m.description || "").replace(/<br\s*\/?>/gi, " ").replace(/ {2,}/g, " ").trim(),
-      poster: m.coverImage?.extraLarge || m.coverImage?.large || "",
-      backdrop: m.bannerImage || "",
+      poster: pickAniZipImage(anizip?.images, "Poster") || m.coverImage?.extraLarge || m.coverImage?.large || "",
+      backdrop: pickAniZipImage(anizip?.images, "Banner") || m.bannerImage || "",
       rating: Math.round(((m.averageScore || 0) / 10) * 10) / 10,
       popularity: m.popularity || 0,
       year: m.seasonYear || 0,
       season: formatSeason(m.season),
-      format: m.format || "TV",
+      format: m.format || anizip?.mappings?.type || "TV",
       status: formatStatus(m.status),
-      episodes: m.episodes || 0,
+      episodes: anizip?.episodeCount || m.episodes || 0,
       duration: m.duration || 0,
       genres: m.genres || [],
       tags,
@@ -1344,13 +1382,25 @@ export const getAnimeEpisodes = unstable_cache(
   titleRomaji: string,
   idMal?: number,
   titleNative?: string,
-  seriesDuration?: number
+  seriesDuration?: number,
+  anilistId?: number
 ): Promise<AnimeEpisode[]> => {
   let episodes: AnimeEpisode[] = [];
 
+  // Track 0: ani.zip (AniDB) — primary and most accurate, fetched directly by
+  // AniList id (no fuzzy title search). Provides episode titles in multiple
+  // languages, air dates, runtimes and TVDB thumbnails in a single call.
+  if (anilistId && anilistId > 0) {
+    const anizip = await fetchAniZipByAnilistId(anilistId);
+    const anizipEps = anizipEpisodesToAnimeEpisodes(anizip?.episodes);
+    if (anizipEps.length > 0) {
+      episodes = anizipEps;
+    }
+  }
+
   // Track A: Kitsu (primary — has episode numbers, most complete for airing shows
   // where Jikan/MAL data lags behind. Avoid Jikan's missing/empty episode lists.)
-  {
+  if (episodes.length === 0) {
     const searchTitle = titleRomaji || title;
     let kitsuEps = await fetchKitsuEpisodes(searchTitle);
     if (kitsuEps.length === 0 && title !== searchTitle) {
