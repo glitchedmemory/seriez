@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { GENRE_MAP, type TmdbResult } from "@/lib/tmdb";
+import { GENRE_MAP } from "@/lib/genres";
+import type { TmdbResult } from "@/lib/tmdb";
 import PosterImage from "@/components/PosterImage";
 
 // ── Search dropdown item ──
