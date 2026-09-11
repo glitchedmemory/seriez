@@ -5,7 +5,7 @@ import SeasonTrailers from "@/components/SeasonTrailers";
 import SeasonCast from "@/components/SeasonCast";
 import SeasonRecommendations from "@/components/SeasonRecommendations";
 import SeasonInteractive from "@/components/SeasonInteractive";
-import { fetchKitsuThumbnails } from "@/lib/anilist";
+import { fetchKitsuThumbnails, anilistFetch } from "@/lib/anilist";
 import { validateAndReplaceTrailers } from "@/lib/yt-validator";
 import { TRAILER_OVERRIDES } from "@/lib/trailer-overrides";
 import { notFound } from "next/navigation";
@@ -29,15 +29,7 @@ function backdrop(path: string | null) {
 
 async function fetchAnilistBanner(title: string): Promise<string | null> {
   try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: `query($search: String) { Media(search: $search, type: ANIME) { bannerImage } }`,
-        variables: { search: title },
-      }),
-      next: { revalidate: 86400 },
-    });
+    const res = await anilistFetch(`query($search: String) { Media(search: $search, type: ANIME) { bannerImage } }`, { search: title }, { revalidate: 86400 });
     if (!res.ok) return null;
     const json = await res.json();
     return json.data?.Media?.bannerImage || null;

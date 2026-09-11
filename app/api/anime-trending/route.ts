@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { anilistFetch } from "@/lib/anilist";
 
 const ANILIST_API = "https://graphql.anilist.co";
 
@@ -21,15 +22,7 @@ query TrendingAnime($page: Int, $perPage: Int) {
 
 export async function GET() {
   try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: TRENDING_QUERY,
-        variables: { page: 1, perPage: 20 },
-      }),
-      next: { revalidate: 3600 },
-    });
+    const res = await anilistFetch(TRENDING_QUERY, { page: 1, perPage: 20 }, { revalidate: 3600 });
 
     if (!res.ok) {
       return NextResponse.json({ results: [] });

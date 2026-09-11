@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { persistentCache } from "@/lib/persistent-cache";
+import { anilistFetch } from "@/lib/anilist";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_KEY = process.env.TMDB_API_KEY || "";
@@ -28,14 +29,7 @@ async function fetchAnilist(year: string): Promise<string[]> {
   const seasons = ["SPRING", "SUMMER", "FALL", "WINTER"];
   for (const season of seasons) {
     try {
-      const res = await fetch(ANILIST_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query,
-          variables: { year: parseInt(year), season },
-        }),
-      });
+      const res = await anilistFetch(query, { year: parseInt(year), season });
       const json = await res.json();
       const posters = (json.data?.Page?.media || [])
         .filter((m: any) => m.coverImage?.large)

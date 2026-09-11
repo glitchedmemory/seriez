@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { anilistFetch } from "@/lib/anilist";
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE = "https://api.themoviedb.org/3";
@@ -20,14 +21,7 @@ query($search: String) {
 
 async function searchAniList(query: string) {
   try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: ANILIST_SEARCH_QUERY,
-        variables: { search: query },
-      }),
-    });
+    const res = await anilistFetch(ANILIST_SEARCH_QUERY, { search: query });
     if (!res.ok) return [];
     const json = await res.json();
     const media = json.data?.Page?.media || [];

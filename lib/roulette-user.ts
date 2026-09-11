@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { resolveUserId } from "@/lib/user-utils";
+import { anilistFetch } from "@/lib/anilist";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
@@ -121,11 +122,7 @@ async function fetchTMDBGenres(tmdbId: number, mediaType: string): Promise<strin
 async function fetchAniListGenres(anilistId: number): Promise<string[]> {
   try {
     const query = `query($id:Int){Media(id:$id){genres}}`;
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query, variables: { id: anilistId } }),
-    });
+    const res = await anilistFetch(query, { id: anilistId });
     if (!res.ok) return [];
     const json = await res.json();
     const rawGenres: string[] = json.data?.Media?.genres || [];
@@ -160,11 +157,7 @@ async function fetchTMDBYear(tmdbId: number, mediaType: string): Promise<number 
 async function fetchAniListYear(anilistId: number): Promise<number | null> {
   try {
     const query = `query($id:Int){Media(id:$id){startDate{year}}}`;
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query, variables: { id: anilistId } }),
-    });
+    const res = await anilistFetch(query, { id: anilistId });
     if (!res.ok) return null;
     const json = await res.json();
     return json.data?.Media?.startDate?.year || null;
@@ -339,11 +332,7 @@ export async function searchAniListWithFilters(
   for (const season of seasons) {
     try {
       const query = `query($year:Int,$season:MediaSeason){Page(perPage:20){media(seasonYear:$year,season:$season,type:ANIME,sort:POPULARITY_DESC){id title{romaji english}coverImage{extraLarge}bannerImage startDate{year}averageScore genres description}}}`;
-      const res = await fetch(ANILIST_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, variables: { year: searchYear, season } }),
-      });
+      const res = await anilistFetch(query, { year: searchYear, season });
       if (!res.ok) {
         // AniList down — fall back to Kitsu for this season
         const kitsuResults = await searchKitsuBySeasonFallback(season, searchYear, excludeSet);

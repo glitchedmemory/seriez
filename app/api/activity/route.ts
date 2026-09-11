@@ -4,6 +4,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { resolveUserId } from "@/lib/user-utils";
 import { resolveUsername } from "@/lib/auth-helper";
 import { tmdbGet } from "@/lib/tmdb";
+import { anilistFetch } from "@/lib/anilist";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -190,11 +191,7 @@ export async function GET(req: NextRequest) {
           
           try {
             if (item.media_type === "anime") {
-              const res = await fetch("https://graphql.anilist.co", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Accept": "application/json" },
-                body: JSON.stringify({ query: `query($id:Int){Media(id:$id){title{english romaji}coverImage{extraLarge}startDate{year month day}seasonYear}}`, variables: { id: item.tmdb_id } }),
-              });
+              const res = await anilistFetch(`query($id:Int){Media(id:$id){title{english romaji}coverImage{extraLarge}startDate{year month day}seasonYear}}`, { id: item.tmdb_id });
               if (res.ok) {
                 const j = await res.json();
                 const m = j.data?.Media;
@@ -324,11 +321,7 @@ export async function GET(req: NextRequest) {
       if (a.poster) {
         try {
           if (a.mediaType === "anime") {
-            const res = await fetch("https://graphql.anilist.co", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", "Accept": "application/json" },
-              body: JSON.stringify({ query: `query($id:Int){Media(id:$id){title{romaji english}seasonYear}}`, variables: { id: a.tmdbId } }),
-            });
+            const res = await anilistFetch(`query($id:Int){Media(id:$id){title{romaji english}seasonYear}}`, { id: a.tmdbId });
             if (res.ok) {
               const j = await res.json();
               const m = j.data?.Media;
@@ -466,14 +459,7 @@ async function fetchTVMazePoster(title: string): Promise<string | null> {
 async function enrichAnime(anilistId: number): Promise<{ title: string; poster: string | null; year: string | null }> {
   // 1. AniList GraphQL
   try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        query: `query($id:Int){Media(id:$id){idMal title{romaji english}coverImage{extraLarge}seasonYear}}`,
-        variables: { id: anilistId },
-      }),
-    });
+    const res = await anilistFetch(`query($id:Int){Media(id:$id){idMal title{romaji english}coverImage{extraLarge}seasonYear}}`, { id: anilistId });
     if (res.ok) {
       const json = await res.json();
       const m = json.data?.Media;

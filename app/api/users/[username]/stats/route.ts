@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { GENRE_MAP, tmdbGet } from "@/lib/tmdb";
+import { anilistFetch } from "@/lib/anilist";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -625,15 +626,7 @@ async function computeAndStore(username: string, userId: string): Promise<NextRe
     if (animeIds.length > 0) {
       await Promise.all(animeIds.slice(0, 30).map(async (anilistId) => {
         try {
-          const res = await fetch(ANILIST_API, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              query: `query($id:Int){Media(id:$id){genres duration}}`,
-              variables: { id: anilistId },
-            }),
-            signal: AbortSignal.timeout(3000),
-          });
+          const res = await anilistFetch(`query($id:Int){Media(id:$id){genres duration}}`, { id: anilistId }, { signal: AbortSignal.timeout(3000) });
           const json = await res.json();
           for (const g of json.data?.Media?.genres || []) {
             genreCounts[g] = (genreCounts[g] || 0) + 1;
@@ -673,7 +666,7 @@ async function computeAndStore(username: string, userId: string): Promise<NextRe
           const anilistId = track?.anilist_id;
           if (anilistId) {
             const q = `{Media(id:${anilistId}){staff(sort:RELEVANCE,perPage:8){edges{role node{id name{full}image{large}}}}}}`;
-            const res = await fetch(ANILIST_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q }), signal: AbortSignal.timeout(3000) });
+            const res = await anilistFetch(q, {}, { signal: AbortSignal.timeout(3000) });
             const data = await res.json();
             for (const edge of data?.data?.Media?.staff?.edges || []) {
               if (edge.role === "Director") {

@@ -4,7 +4,7 @@ export const revalidate = 86400;
 // AniList is down and the ISR page falls back to on-demand rendering.
 export const dynamic = "force-dynamic";
 
-import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations } from "@/lib/anilist";
+import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations, anilistFetch } from "@/lib/anilist";
 import AnimeHero from "@/components/AnimeHero";
 import AnimeOverview from "@/components/AnimeOverview";
 import AnimeSeasons from "@/components/AnimeSeasons";
@@ -24,14 +24,7 @@ export async function generateStaticParams() {
   try {
     for (let page = 1; page <= 2; page++) {
       try {
-        const res = await fetch("https://graphql.anilist.co", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          signal: AbortSignal.timeout(8000),
-          body: JSON.stringify({
-            query: `query { Page(page: ${page}, perPage: 50) { media(sort: POPULARITY_DESC, type: ANIME) { id } } }`,
-          }),
-        });
+        const res = await anilistFetch(`query { Page(page: ${page}, perPage: 50) { media(sort: POPULARITY_DESC, type: ANIME) { id } } }`, {}, { signal: AbortSignal.timeout(8000) });
         if (res.ok) {
           const json = await res.json();
           (json.data?.Page?.media || []).forEach((m: any) => ids.push({ id: String(m.id) }));
@@ -55,15 +48,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://seriez.app";
 // generateMetadata, so we hit the API directly here instead.
 async function fetchAnimeMeta(numId: number): Promise<{ title: string; description: string; posterUrl: string | null } | null> {
   try {
-    const res = await fetch("https://graphql.anilist.co", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        query: `query($id:Int){Media(id:$id,type:ANIME){title{romaji english native}description coverImage{large}}}`,
-        variables: { id: numId },
-      }),
-      signal: AbortSignal.timeout(8000),
-    });
+    const res = await anilistFetch(`query($id:Int){Media(id:$id,type:ANIME){title{romaji english native}description coverImage{large}}}`, { id: numId }, { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return null;
     const json = await res.json();
     const media = json.data?.Media;
@@ -83,14 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   // `/anime/[id]` receives a TMDB id and must resolve it to an AniList id first.
   try {
-    const resolveRes = await fetch("https://graphql.anilist.co", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        query: `query($id:Int){Media(id:$id,type:ANIME){id}}`,
-        variables: { id: numId },
-      }),
-    });
+    const resolveRes = await anilistFetch(`query($id:Int){Media(id:$id,type:ANIME){id}}`, { id: numId });
     let anilistId: number | null = null;
     if (resolveRes.ok) {
       const rj = await resolveRes.json();
@@ -107,14 +85,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           const jd = await jikanRes.json();
           const first = jd.data?.[0];
           if (first?.mal_id) {
-            const alRes = await fetch("https://graphql.anilist.co", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", "Accept": "application/json" },
-              body: JSON.stringify({
-                query: `query($id:Int){Media(idMal:$id,type:ANIME){id}}`,
-                variables: { id: first.mal_id },
-              }),
-            });
+            const alRes = await anilistFetch(`query($id:Int){Media(idMal:$id,type:ANIME){id}}`, { id: first.mal_id });
             if (alRes.ok) {
               const aj = await alRes.json();
               anilistId = aj.data?.Media?.id ?? null;

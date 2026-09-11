@@ -4,6 +4,7 @@ import { GENRE_MAP, discoverByGenres, type TmdbResult, type TmdbItem, tmdbGet } 
 import { resolveUsername, resolveAuthUid } from "@/lib/auth-helper";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { persistentCache } from "@/lib/persistent-cache";
+import { anilistFetch } from "@/lib/anilist";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -42,11 +43,7 @@ query($id: Int) {
 async function fetchAnimeRecs(anilistId: number): Promise<TmdbResult[]> {
   return persistentCache("foryou", ["animeRecs", anilistId], 86400, async () => {
   try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: ANILIST_RECS_QUERY, variables: { id: anilistId } }),
-    });
+    const res = await anilistFetch(ANILIST_RECS_QUERY, { id: anilistId });
     if (!res.ok) return [];
     const json = await res.json();
     const nodes = json.data?.Media?.recommendations?.nodes || [];
@@ -110,11 +107,7 @@ async function tmdbDetailPersistent(tmdbId: number, mediaType: string): Promise<
 async function anilistGenresPersistent(anilistId: number): Promise<{ genres: string[]; title: string }> {
   return persistentCache("foryou", ["anilistGenres", anilistId], 86400, async () => {
     try {
-      const aRes = await fetch(ANILIST_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: `query($id:Int){Media(id:$id){title{romaji english}genres}}`, variables: { id: anilistId } }),
-      });
+      const aRes = await anilistFetch(`query($id:Int){Media(id:$id){title{romaji english}genres}}`, { id: anilistId });
       const aJson = await aRes.json();
       const m = aJson.data?.Media;
       return { genres: m?.genres || [], title: m?.title?.english || m?.title?.romaji || "" };

@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 import { tmdbGet } from "@/lib/tmdb";
 import { persistentCache } from "@/lib/persistent-cache";
-import { getAnimeDetailFromKitsu } from "@/lib/anilist";
+import { getAnimeDetailFromKitsu, anilistFetch } from "@/lib/anilist";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -86,14 +86,7 @@ const getTmdbInfo = async (tmdbId: number, mediaType: string): Promise<TmdbCache
 
 async function getAnimeInfo(anilistId: number): Promise<TmdbCache | null> {
   try {
-    const res = await fetch("https://graphql.anilist.co", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        query: `query($id:Int){Media(id:$id){title{romaji english}coverImage{extraLarge}genres duration seasonYear}}`,
-        variables: { id: anilistId },
-      }),
-    });
+    const res = await anilistFetch(`query($id:Int){Media(id:$id){title{romaji english}coverImage{extraLarge}genres duration seasonYear}}`, { id: anilistId });
     if (!res.ok) {
       // AniList down — fall back to Kitsu (AniList ID → Kitsu mapping)
       const kd = await getAnimeDetailFromKitsu(anilistId);
