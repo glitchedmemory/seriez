@@ -5,7 +5,7 @@ import { persistentCache } from "./persistent-cache";
 
 import type { TmdbResult } from "./tmdb";
 import { validateAndReplaceTrailers } from "./yt-validator";
-import { fetchAniZipByAnilistId, pickTitle, pickAniZipImage, anizipEpisodesToAnimeEpisodes, resolveKitsuIdToAnilist } from "./anidb";
+import { fetchAniZipByAnilistId, pickTitle, pickAniZipImage, anizipEpisodesToAnimeEpisodes, resolveKitsuIdToAnilist, resolveAnilistIdToKitsuId } from "./anidb";
 
 // ─── Retry wrapper ───
 
@@ -1394,17 +1394,20 @@ export const enrichAnimeRelations = async (
   currentYear: number,
 ): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null; isOriginal: boolean }[]> => {
   return persistentCache("enrichAnimeRelationsKitsu", [currentId, currentYear], 86400, async () => {
-    const startKitsuId = await resolveAnilistIdToKitsu(currentId);
+    // Resolve the current anime's Kitsu id via ani.zip (accurate 1-call mapping,
+    // more reliable than Kitsu's own two-step mappings table).
+    const startKitsuId = await resolveAnilistIdToKitsuId(currentId);
     if (!startKitsuId) {
       // Can't even resolve current id → return empty rather than a wrong chain.
       return [];
     }
+    const startKitsu = String(startKitsuId);
 
     const seenKitsu = new Set<string>();
     const result: { id: number; title: string; format: string; seasonYear: number | null }[] = [];
 
     // BFS over sequel + prequel edges, walking both directions from the current item.
-    const queue: { kitsuId: string; dir: "any" }[] = [{ kitsuId: startKitsuId, dir: "any" }];
+    const queue: { kitsuId: string; dir: "any" }[] = [{ kitsuId: startKitsu, dir: "any" }];
     // Track minimum year for "isOriginal" (earliest = original).
     let earliestYear = currentYear || Infinity;
     let earliestId = currentId;

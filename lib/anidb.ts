@@ -89,6 +89,17 @@ export async function resolveKitsuIdToAnilist(
   };
 }
 
+/**
+ * Resolve an AniList id → Kitsu id via ani.zip's mappings.
+ */
+export async function resolveAnilistIdToKitsuId(
+  anilistId: number
+): Promise<number | null> {
+  const d = await fetchAniZip(`anilist_id=${anilistId}`);
+  if (!d?.mappings?.kitsu_id) return null;
+  return d.mappings.kitsu_id;
+}
+
 async function fetchAniZip(qs: string): Promise<AniZipData | null> {
   try {
     const res = await fetch(`${ANIZIP_API}/mappings?${qs}`, {
