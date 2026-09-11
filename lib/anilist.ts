@@ -1399,7 +1399,7 @@ export const enrichAnimeRelations = async (
   _existingRelations: { id: number; title: string; type: string; format: string; seasonYear: number | null; status?: string }[],
   currentYear: number,
 ): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null; isOriginal: boolean }[]> => {
-  return persistentCache("enrichAnimeRelationsAniList", [currentId, currentYear], 86400, async () => {
+  return persistentCache("enrichAnimeRelationsAniList", [currentId, currentYear], 60, async () => {
     const seen = new Set<number>();
     const queued = new Set<number>([currentId]);
     const result: { id: number; title: string; format: string; seasonYear: number | null }[] = [];
