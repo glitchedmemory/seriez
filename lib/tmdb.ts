@@ -4,6 +4,7 @@ const API_KEY = process.env.TMDB_API_KEY!;
 import { validateAndReplaceTrailers } from "./yt-validator";
 import { getCustomPoster } from "./custom-posters";
 import { unstable_cache } from "next/cache";
+import { persistentCache } from "./persistent-cache";
 
 // Shared cache: tmdb_id 한 번만 조회, 모든 사용자 재사용 (프로세스 메모리)
 const tmdbCache = new Map<string, any>();
@@ -32,11 +33,31 @@ async function get(endpoint: string, params: Record<string, string> = {}, locale
   url.searchParams.set("language", locale);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   const cacheKey = url.toString();
+  // In-memory cache first (fastest path, dedupes concurrent requests in one process)
   if (tmdbCache.has(cacheKey)) return tmdbCache.get(cacheKey);
-  // Timeout so a slow/unresponsive TMDB request can never hang build-time prerender.
-  const res = await fetch(url, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(8000) });
-  if (!res.ok) throw new Error(`TMDB ${res.status}: ${endpoint}`);
-  const data = await res.json();
+
+  // Disk cache (persistentCache) — survives server restarts / redeploys.
+  const data = await persistentCache<any | null>(
+    "tmdbGet",
+    [endpoint, params, locale],
+    86400,
+    async () => {
+      // Timeout so a slow/unresponsive TMDB request can never hang build-time prerender.
+      const res = await fetch(url, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(8000) });
+      if (!res.ok) return null; // don't cache failures — retry live next time
+      return res.json();
+    }
+  );
+
+  if (data === null) {
+    // Cache miss (or failure) — hit TMDB live and this result wins for this request.
+    const res = await fetch(url, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error(`TMDB ${res.status}: ${endpoint}`);
+    const json = await res.json();
+    tmdbCache.set(cacheKey, json);
+    return json;
+  }
+
   tmdbCache.set(cacheKey, data);
   return data;
 }
