@@ -34,24 +34,10 @@ export default function AnimeSeasons({
     return true;
   });
 
-  // Collapse "Part N" splits (e.g. "Attack on Titan Final Season" + "Final Season
-  // Part 2", "Alicization - War of Underworld" + "... Part 2") into ONE entry, so
-  // the Season list matches the official season count. An entry is a "part" of the
-  // previous one when its title starts with the other's title + "Part".
-  const items: { id: number; title: string; seasonYear: number | null; isOriginal?: boolean }[] = [];
-  for (const item of uniqueItems) {
-    const prev = items[items.length - 1];
-    const isPart = prev && (
-      item.title.startsWith(prev.title + " Part") ||
-      item.title.startsWith(prev.title.split(" Part")[0] + " Part")
-    );
-    if (isPart) {
-      // Collapse into the previous entry (keep current if it's the current item).
-      if (item.id === currentId) items[items.length - 1] = { ...item };
-      continue;
-    }
-    items.push(item);
-  }
+  // (Part-N collapse now happens upstream in enrichAnimeRelations, so here we
+  // only sort by year and render.)
+
+  const items = uniqueItems;
 
   // Sort by airing year (ascending). enrichAnimeRelations walks the SEQUEL/
   // PREQUEL graph via BFS, so its return order is a traversal order (season 2's

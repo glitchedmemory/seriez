@@ -1478,7 +1478,37 @@ export const enrichAnimeRelations = async (
       deduped.push(r);
     }
 
-    return deduped.map(r => ({
+    // Collapse "Part N" splits into ONE season. AniList registers split-cour
+    // seasons as separate Media entries (e.g. "Season 2" + "Season 2 Part 2"),
+    // which would otherwise show up as two season buttons and shift all the
+    // S-numbers. We group by the title with any " Part N" suffix stripped, and
+    // keep a single representative per group (the one whose title has no " Part"
+    // suffix if present, otherwise the earliest).
+    const stripPart = (t: string) => t.replace(/\s+Part\s+\d+\s*$/i, "").trim();
+
+    // Group in insertion order, keyed by stripped base title.
+    const groups = new Map<string, { id: number; title: string; format: string; seasonYear: number | null }[]>();
+    const groupOrder: string[] = [];
+    for (const r of deduped) {
+      const base = stripPart(r.title);
+      if (!groups.has(base)) {
+        groups.set(base, []);
+        groupOrder.push(base);
+      }
+      groups.get(base)!.push(r);
+    }
+
+    const merged: { id: number; title: string; format: string; seasonYear: number | null }[] = [];
+    for (const base of groupOrder) {
+      const entries = groups.get(base)!;
+      // Prefer the entry WITHOUT a " Part N" suffix as the season representative
+      // (keeps the canonical title, e.g. "Season 2" over "Season 2 Part 2"). If
+      // none, fall back to the first entry.
+      const rep = entries.find(e => !/\s+Part\s+\d+\s*$/i.test(e.title)) || entries[0];
+      merged.push(rep);
+    }
+
+    return merged.map(r => ({
       id: r.id,
       title: r.title,
       type: "ANIME" as const,
