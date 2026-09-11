@@ -1384,55 +1384,51 @@ export const getAnimeEpisodes = unstable_cache(
 // ─── Deep relations enrichment ───
 
 /**
- * Collect ALL TV anime seasons (sequel/prequel chain) via MyAnimeList relations
- * BFS. MAL is the most accurate, currently-alive source for "which anime is the
- * sequel/prequel" relations (Kitsu links OVAs/movies into the chain and breaks
- * it; AniList is 403-down). MAL tags each relation with its format — "Sequel (TV)",
- * "Sequel (Special)", etc — so we can follow only the TV chain.
- * Each MAL node is resolved back to its AniList id via ani.zip.
+ * Collect ALL TV anime seasons (sequel/prequel chain) via AniList relations BFS.
+ * AniList's `relations` is the most accurate and complete source for "which anime
+ * is the sequel/prequel" and tags each edge with SEQUEL/PREQUEL + the target's
+ * format (TV/SPECIAL/MOVIE). We follow only TV-format SEQUEL/PREQUEL edges, which
+ * yields the clean season chain (e.g. SAO → SAO II directly, skipping the SPECIAL
+ * "Extra Edition" that Kitsu/MAL route through).
+ *
+ * AniList previously returned 403; that was a bot-block triggered by missing
+ * Origin/Referer headers. Sending `Origin: https://anilist.co` fixes it.
  */
 export const enrichAnimeRelations = async (
   currentId: number,
   _existingRelations: { id: number; title: string; type: string; format: string; seasonYear: number | null; status?: string }[],
   currentYear: number,
 ): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null; isOriginal: boolean }[]> => {
-  return persistentCache("enrichAnimeRelationsMAL", [currentId, currentYear], 86400, async () => {
-    // Resolve the current anime's mal id via ani.zip (accurate 1-call mapping).
-    const startMalId = await resolveAnilistIdToMalId(currentId);
-    if (!startMalId) {
-      return [];
-    }
-
+  return persistentCache("enrichAnimeRelationsAniList", [currentId, currentYear], 86400, async () => {
     const seen = new Set<number>();
-    const queued = new Set<number>([startMalId]);
+    const queued = new Set<number>([currentId]);
     const result: { id: number; title: string; format: string; seasonYear: number | null }[] = [];
 
-    const queue: number[] = [startMalId];
+    const queue: number[] = [currentId];
     let earliestYear = currentYear || Infinity;
     let earliestId = currentId;
 
     while (queue.length > 0) {
       const batch = queue.splice(0, 6);
       const neighbors = await Promise.all(
-        batch.map(async (malId): Promise<{ malId: number; title: string; year: number | null }[]> => {
-          return fetchMalSeasonNeighbors(malId);
-        })
+        batch.map((anilistId) => fetchAniListSeasonNeighbors(anilistId))
       );
 
       for (const items of neighbors) {
         for (const n of items) {
-          if (seen.has(n.malId)) continue;
-          seen.add(n.malId);
-          // Resolve MAL id → AniList id via ani.zip.
-          const ext = await resolveMalIdToAnilistEn(n.malId);
-          if (!ext.anilistId) continue;
-          if (ext.anilistId === currentId) continue;
-          const title = ext.titleEn || n.title;
-          result.push({ id: ext.anilistId, title, format: "TV", seasonYear: n.year });
-          if (n.year && n.year <= earliestYear) { earliestYear = n.year; earliestId = ext.anilistId; }
-          if (!queued.has(n.malId)) {
-            queued.add(n.malId);
-            queue.push(n.malId);
+          if (seen.has(n.id)) continue;
+          seen.add(n.id);
+          if (n.id === currentId) continue;
+          // Display only TV entries as seasons, but keep walking THROUGH
+          // intermediary movies/specials so the chain isn't broken (e.g.
+          // SAO II → Ordinal Scale (movie) → Alicization).
+          if (n.format === "TV") {
+            result.push({ id: n.id, title: n.title, format: "TV", seasonYear: n.seasonYear });
+            if (n.seasonYear && n.seasonYear <= earliestYear) { earliestYear = n.seasonYear; earliestId = n.id; }
+          }
+          if (!queued.has(n.id)) {
+            queued.add(n.id);
+            queue.push(n.id);
           }
         }
       }
@@ -1459,35 +1455,41 @@ export const enrichAnimeRelations = async (
 };
 
 /**
- * Fetch sequel/prequel TV neighbors for a MAL id by scraping the MAL anime page.
- * MAL marks each relation with its format — "Sequel (TV)", "Prequel (Special)",
- * etc. We keep only TV-format sequel/prequel links so the season chain stays
- * clean (OVAs/specials/movies are skipped).
+ * Fetch one level of sequel/prequel neighbors for an AniList id, returning BOTH
+ * TV and non-TV (SPECIAL/MOVIE/OVA) targets. The BFS uses this to keep walking
+ * the chain THROUGH intermediary movies/specials (e.g. SAO II → "Ordinal Scale"
+ * movie → Alicization) while still only displaying TV entries as seasons.
+ * Sends Origin/Referer so AniList doesn't 403.
  */
-async function fetchMalSeasonNeighbors(malId: number): Promise<{ malId: number; title: string; year: number | null }[]> {
+async function fetchAniListSeasonNeighbors(anilistId: number): Promise<{ id: number; title: string; format: string; seasonYear: number | null }[]> {
   try {
-    const res = await fetch(`https://myanimelist.net/anime/${malId}`, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+    const query = `query($id:Int){Media(id:$id){relations{edges{relationType node{id title{english romaji} format seasonYear}}}}}`;
+    const res = await fetch(ANILIST_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Origin": "https://anilist.co",
+        "Referer": "https://anilist.co/",
+      },
+      body: JSON.stringify({ query, variables: { id: anilistId } }),
       next: { revalidate: 86400 },
     });
     if (!res.ok) return [];
-    const html = await res.text();
-
-    const out: { malId: number; title: string; year: number | null }[] = [];
-    // MAL related-anime entries: <div class="relation">Sequel (TV)</div>
-    //   <div class="title"><a href=".../anime/ID/...">Title</a></div>
-    const entryRe = /<div class="relation">([\s\S]*?)<\/div>\s*<div class="title">\s*<a href="[^"]*?\/(\d+)\/[^"]*">\s*([^<]+?)\s*<\/a>/g;
-    let m;
-    while ((m = entryRe.exec(html)) !== null) {
-      const relType = m[1].replace(/\s+/g, " ").trim();
-      const destMalId = Number(m[2]);
-      const title = m[3].trim();
-      // Only sequel/prequel relations; only TV format (not "(Special)"/"(Movie)"/etc).
-      const isSequelOrPrequel = /\b(sequel|prequel)\b/i.test(relType);
-      const isTV = /\(\s*TV\s*\)/i.test(relType) || !/\(/.test(relType);
-      if (!isSequelOrPrequel) continue;
-      if (!isTV) continue;
-      out.push({ malId: destMalId, title, year: null });
+    const json = await res.json();
+    const edges = json.data?.Media?.relations?.edges || [];
+    const out: { id: number; title: string; format: string; seasonYear: number | null }[] = [];
+    for (const e of edges) {
+      const rel = e.relationType;
+      if (rel !== "SEQUEL" && rel !== "PREQUEL") continue;
+      const node = e.node;
+      if (!node) continue;
+      out.push({
+        id: node.id,
+        title: node.title?.english || node.title?.romaji || "Unknown",
+        format: node.format || "",
+        seasonYear: node.seasonYear || null,
+      });
     }
     return out;
   } catch {
