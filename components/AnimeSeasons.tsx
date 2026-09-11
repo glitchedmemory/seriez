@@ -34,10 +34,31 @@ export default function AnimeSeasons({
     return true;
   });
 
-  // (Part-N collapse now happens upstream in enrichAnimeRelations, so here we
-  // only sort by year and render.)
-
-  const items = uniqueItems;
+  // Collapse "Part N" splits into ONE season. This must happen HERE (on the full
+  // list including the current item) because enrichAnimeRelations excludes the
+  // currentId — so "Season 2" (current, on its own page) and "Season 2 Part 2"
+  // (a neighbor) only meet in this component. Group by title with any
+  // " Part N" suffix stripped, keep one representative per group (prefer the
+  // entry WITHOUT a Part suffix, then the current item, then the earliest).
+  const stripPart = (t: string) => t.replace(/\s+Part\s+\d+\s*$/i, "").trim();
+  const groups = new Map<string, { id: number; title: string; seasonYear: number | null; isOriginal?: boolean }[]>();
+  const groupOrder: string[] = [];
+  for (const item of uniqueItems) {
+    const base = stripPart(item.title);
+    if (!groups.has(base)) { groups.set(base, []); groupOrder.push(base); }
+    groups.get(base)!.push(item);
+  }
+  const items: { id: number; title: string; seasonYear: number | null; isOriginal?: boolean }[] = [];
+  for (const base of groupOrder) {
+    const entries = groups.get(base)!;
+    // Prefer the entry that is the current page; else the one without " Part N";
+    // else the first (BFS order).
+    const rep =
+      entries.find(e => e.id === currentId) ||
+      entries.find(e => !/\s+Part\s+\d+\s*$/i.test(e.title)) ||
+      entries[0];
+    items.push(rep);
+  }
 
   // Sort by airing year (ascending). enrichAnimeRelations walks the SEQUEL/
   // PREQUEL graph via BFS, so its return order is a traversal order (season 2's
