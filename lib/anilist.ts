@@ -1540,19 +1540,23 @@ async function getCachedField<T>(anilistId: number, column: "chain" | "detail" |
   }
 }
 
-// Generic Supabase write for a single JSONB column. Fire-and-forget by default.
+// Generic Supabase write for a single JSONB column.
 async function saveField(anilistId: number, column: "chain" | "detail" | "episodes", value: unknown): Promise<void> {
   try {
     const { createClient } = await import("@supabase/supabase-js");
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !key) return;
+    if (!url || !key) {
+      console.log(`[perf] saveField(${anilistId}, ${column}): url=${url ? "있음" : "없음"}, key=${key ? "있음" : "없음"}`);
+      return;
+    }
     const supabase = createClient(url, key);
-    await supabase
+    const r = await supabase
       .from("anime_season_cache")
       .upsert({ anilist_id: anilistId, [column]: value, updated_at: new Date().toISOString() }, { onConflict: "anilist_id" });
-  } catch {
-    // Failure to cache is non-fatal — the data still returns for this request.
+    console.log(`[perf] saveField(${anilistId}, ${column}): status=${r.status}${r.error ? " err=" + r.error.message : ""}`);
+  } catch (e) {
+    console.log(`[perf] saveField(${anilistId}, ${column}) error: ${(e as Error).message}`);
   }
 }
 
