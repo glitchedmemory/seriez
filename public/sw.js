@@ -1,15 +1,14 @@
 // Seriez Service Worker — hand-written because next-pwa fails with Next.js 16 Turbopack
-const CACHE_JS = "seriez-js-v9";
-const CACHE_CSS = "seriez-css-v9";
-const CACHE_STATIC = "seriez-static-v9";
-const CACHE_TMDB = "seriez-tmdb-v9";
-const CACHE_ANILIST = "seriez-anilist-v9";
-const CACHE_PAGES = "seriez-pages-v9";
-const CACHE_API = "seriez-api-v9";
+const CACHE_JS = "seriez-js-v10";
+const CACHE_CSS = "seriez-css-v10";
+const CACHE_STATIC = "seriez-static-v10";
+const CACHE_TMDB = "seriez-tmdb-v10";
+const CACHE_ANILIST = "seriez-anilist-v10";
+const CACHE_API = "seriez-api-v10";
 
 // All cache names currently in use (kept so activate can prune older versions)
 const CURRENT_CACHES = [
-  CACHE_JS, CACHE_CSS, CACHE_STATIC, CACHE_TMDB, CACHE_ANILIST, CACHE_PAGES, CACHE_API,
+  CACHE_JS, CACHE_CSS, CACHE_STATIC, CACHE_TMDB, CACHE_ANILIST, CACHE_API,
 ];
 
 // JS: NetworkFirst (must update on new deploys)
@@ -120,7 +119,11 @@ self.addEventListener("fetch", (event) => {
   } else if (isAPI(url)) {
     event.respondWith(networkFirst(request, CACHE_API, 3000));
   } else if (isPage(url)) {
-    event.respondWith(networkFirst(request, CACHE_PAGES, 3000));
+    // Do NOT cache page HTML. Title detail pages (anime/movie/tv) carry live
+    // season lists and posters server-side; caching them (even NetworkFirst)
+    // serves stale HTML after deploys, which is exactly the "seasons show only
+    // 2 buttons / poster missing" bug. Always hit the network for documents.
+    return;
   }
   // All other requests (including _next/ static chunks) pass through to network
 });
