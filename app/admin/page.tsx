@@ -6,50 +6,37 @@ import Link from "next/link";
 export default async function AdminDashboard() {
   const supabase = await createClient();
 
-  const { count: totalUsers } = await supabase
-    .from("users").select("*", { count: "exact", head: true });
-
-  const { count: premiumUsers } = await supabase
-    .from("users").select("*", { count: "exact", head: true })
-    .eq("is_premium", true);
-
-  const { count: openReports } = await supabase
-    .from("reports").select("*", { count: "exact", head: true });
-
-  const { count: sanctionedUsers } = await supabase
-    .from("users").select("*", { count: "exact", head: true })
-    .not("sanction_type", "is", null);
-
-  const { count: totalReviews } = await supabase
-    .from("reviews").select("*", { count: "exact", head: true });
-
-  const { count: totalTracked } = await supabase
-    .from("user_library").select("*", { count: "exact", head: true });
-
-  const { count: totalCollections } = await supabase
-    .from("user_lists").select("*", { count: "exact", head: true });
-
-  // Signup tracking
+  // Parallelize all stat queries — sequential awaits made the dashboard slow.
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
 
-  const { count: todaySignups } = await supabase
-    .from("users").select("*", { count: "exact", head: true })
-    .gte("created_at", today.toISOString());
-
-  const { count: weekSignups } = await supabase
-    .from("users").select("*", { count: "exact", head: true })
-    .gte("created_at", weekAgo.toISOString());
-
-  // Deletion tracking
-  const { count: totalDeleted } = await supabase
-    .from("deleted_users").select("*", { count: "exact", head: true });
-
-  const { count: deletedThisWeek } = await supabase
-    .from("deleted_users").select("*", { count: "exact", head: true })
-    .gte("deleted_at", weekAgo.toISOString());
+  const [
+    { count: totalUsers },
+    { count: premiumUsers },
+    { count: openReports },
+    { count: sanctionedUsers },
+    { count: totalReviews },
+    { count: totalTracked },
+    { count: totalCollections },
+    { count: todaySignups },
+    { count: weekSignups },
+    { count: totalDeleted },
+    { count: deletedThisWeek },
+  ] = await Promise.all([
+    supabase.from("users").select("*", { count: "exact", head: true }),
+    supabase.from("users").select("*", { count: "exact", head: true }).eq("is_premium", true),
+    supabase.from("reports").select("*", { count: "exact", head: true }),
+    supabase.from("users").select("*", { count: "exact", head: true }).not("sanction_type", "is", null),
+    supabase.from("reviews").select("*", { count: "exact", head: true }),
+    supabase.from("media_trackings").select("*", { count: "exact", head: true }),
+    supabase.from("user_lists").select("*", { count: "exact", head: true }),
+    supabase.from("users").select("*", { count: "exact", head: true }).gte("created_at", today.toISOString()),
+    supabase.from("users").select("*", { count: "exact", head: true }).gte("created_at", weekAgo.toISOString()),
+    supabase.from("deleted_users").select("*", { count: "exact", head: true }),
+    supabase.from("deleted_users").select("*", { count: "exact", head: true }).gte("deleted_at", weekAgo.toISOString()),
+  ]);
 
   const stats = [
     {

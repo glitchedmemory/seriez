@@ -16,40 +16,30 @@ export async function GET(req: NextRequest) {
       .from("users").select("role").eq("username", username).maybeSingle();
     if (!STAFF_ROLES.includes(userData?.role || "")) return NextResponse.json({ error: "Admin only" }, { status: 403 });
 
-    // Total users
-    const { count: totalUsers } = await supabaseAdmin
-      .from("users").select("*", { count: "exact", head: true });
-
-    // Today signups
+    // Parallelize all count queries — sequential awaits on the Supabase pool
+    // made the admin dashboard slow (each round-trip ~50-600ms adds up).
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const { count: todaySignups } = await supabaseAdmin
-      .from("users").select("*", { count: "exact", head: true })
-      .gte("created_at", today.toISOString());
-
-    // This week signups
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
-    const { count: weekSignups } = await supabaseAdmin
-      .from("users").select("*", { count: "exact", head: true })
-      .gte("created_at", weekAgo.toISOString());
 
-    // Premium users
-    const { count: premiumUsers } = await supabaseAdmin
-      .from("users").select("*", { count: "exact", head: true })
-      .eq("is_premium", true);
-
-    // Total reviews
-    const { count: totalReviews } = await supabaseAdmin
-      .from("reviews").select("*", { count: "exact", head: true });
-
-    // Total tracked items
-    const { count: totalTracked } = await supabaseAdmin
-      .from("user_library").select("*", { count: "exact", head: true });
-
-    // Total collections
-    const { count: totalCollections } = await supabaseAdmin
-      .from("user_lists").select("*", { count: "exact", head: true });
+    const [
+      { count: totalUsers },
+      { count: todaySignups },
+      { count: weekSignups },
+      { count: premiumUsers },
+      { count: totalReviews },
+      { count: totalTracked },
+      { count: totalCollections },
+    ] = await Promise.all([
+      supabaseAdmin.from("users").select("*", { count: "exact", head: true }),
+      supabaseAdmin.from("users").select("*", { count: "exact", head: true }).gte("created_at", today.toISOString()),
+      supabaseAdmin.from("users").select("*", { count: "exact", head: true }).gte("created_at", weekAgo.toISOString()),
+      supabaseAdmin.from("users").select("*", { count: "exact", head: true }).eq("is_premium", true),
+      supabaseAdmin.from("reviews").select("*", { count: "exact", head: true }),
+      supabaseAdmin.from("media_trackings").select("*", { count: "exact", head: true }),
+      supabaseAdmin.from("user_lists").select("*", { count: "exact", head: true }),
+    ]);
 
     return NextResponse.json({
       totalUsers: totalUsers || 0,
