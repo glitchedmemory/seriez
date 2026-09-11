@@ -169,7 +169,7 @@
   },
   "meta": {
     "title": "Seriez — 追踪电影、电视剧、动漫",
-    "description": "记录你观看的内容，Seriez会学习你的品味，从电影、电视剧、动漫中推荐最适合你的下一部作品。评分、评论，打造你的专属库。"
+    "description": "在一个地方追踪电影、电视剧和动漫。Seriez 是替代 Letterboxd 和 TV Time 的一体化平台。为你观看的内容评分并写评论，通过 CSV 导入 TV Time 观看历史，创建自定义收藏夹，并获取会学习你品味的人工智能 For You 推荐。"
   },
   "pro": {
     "title": "✨ Golden Ticket",

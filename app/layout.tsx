@@ -158,16 +158,24 @@ export default async function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              name: "Seriez",
-              url: "https://seriez.app",
-              logo: "https://seriez.app/icons/icon-192.png",
-              description: "Seriez is a tracking platform for movies, TV shows, and anime. Rate, review, and discover your next watch. Community-powered ratings and personalized recommendations.",
-              sameAs: ["https://seriez.app"],
-              knowsAbout: ["Movies", "TV Shows", "Anime", "Streaming", "Filmography", "Watch Tracking"],
-            }),
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                name: "Seriez",
+                url: "https://seriez.app",
+                logo: "https://seriez.app/icons/icon-192.png",
+                description: "Seriez is an all-in-one tracking platform for movies, TV shows, and anime. Rate, review, and discover your next watch with community-powered ratings and AI-powered For You recommendations that learn your taste.",
+                knowsAbout: ["Movies", "TV Shows", "Anime", "Streaming", "Watch Tracking", "Ratings", "Reviews", "Recommendations"],
+                sameAs: ["https://seriez.app"],
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                name: "Seriez",
+                url: "https://seriez.app",
+              },
+            ]),
           }}
         />
         <script src="/tracker.js" />

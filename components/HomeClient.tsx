@@ -262,6 +262,10 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
 
   return (
     <div className="max-w-lg md:max-w-none mx-auto min-h-screen">
+      {/* SEO: screen-reader-only H1 describing the site, so search engines and
+          assistive tech understand what the page is (currently the only visible
+          H1s are the "Seriez" brand logos). Uses the localized meta.title. */}
+      <h1 className="sr-only">{t("meta.title")}</h1>
       {/* ── Mobile header ── */}
       <header className="md:hidden sticky top-0 z-40 bg-bg-primary/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-border">
         {searchOpen ? (
