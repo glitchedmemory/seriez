@@ -595,9 +595,13 @@ async function fetchKitsuTrendingAnime(limit = 14): Promise<KitsuAnimeListResult
         const posterImg = a.posterImage || {};
         const coverImg = a.coverImage || {};
         const startYear = a.startDate ? Number(String(a.startDate).slice(0, 4)) || 0 : 0;
+        // Prefer the official English title from ani.zip (Kitsu's canonicalTitle is
+        // romaji like "Boku no Hero Academia", which we must NOT display).
+        const anizip = await resolveKitsuIdToAnilist(kitsuId);
+        const title = anizip?.titleEn || a.titles?.en || a.canonicalTitle || "Unknown";
         return {
           id: anilistId,
-          title: a.canonicalTitle || a.titles?.en || "Unknown",
+          title,
           poster: normalizeKitsuPoster(posterImg.large || posterImg.medium || posterImg.original, kitsuId),
           backdrop: coverImg.original || coverImg.large || null,
           rating: a.averageRating ? Math.round((a.averageRating / 10) * 10) / 10 : 0,
