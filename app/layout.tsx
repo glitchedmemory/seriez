@@ -113,7 +113,7 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const messages = await getMessages();
-  const bot = await isBot();
+  const bot = false; // TEMP TEST: isBot() reads headers(), suspected of forcing dynamic rendering
   const allMessages = { en, ko, ja, zh, fr, de, es, pt };
 
   // NOTE: we intentionally do NOT call supabase.auth.getUser() here. Reading the
