@@ -6,7 +6,6 @@ import SeasonCast from "@/components/SeasonCast";
 import SeasonRecommendations from "@/components/SeasonRecommendations";
 import SeasonInteractive from "@/components/SeasonInteractive";
 import { fetchKitsuThumbnails } from "@/lib/anilist";
-import { saveTmdbCache, readTmdbCache } from "@/lib/tmdb";
 import { validateAndReplaceTrailers } from "@/lib/yt-validator";
 import { TRAILER_OVERRIDES } from "@/lib/trailer-overrides";
 import { notFound } from "next/navigation";
@@ -215,9 +214,6 @@ const getSeasonData = unstable_cache(
       firstAirDate: seriesData.first_air_date || "",
     };
 
-    // Persist to DB so a TMDB outage can still serve this season page.
-    await saveTmdbCache("season", seriesId * 1000 + seasonNum, result);
-
     return result;
   },
   ["season-data"],
@@ -270,15 +266,7 @@ export default async function SeasonPage({ params }: Props) {
   if (isNaN(seriesId) || isNaN(seasonNum)) notFound();
 
   try {
-    let data;
-    try {
-      data = await getSeasonData(seriesId, seasonNum);
-    } catch {
-      // TMDB down — fall back to DB cache.
-      const cached = await readTmdbCache<any>("season", seriesId * 1000 + seasonNum);
-      if (!cached) throw new Error(`TMDB down and no cache for season ${seriesId}/${seasonNum}`);
-      data = cached;
-    }
+    const data = await getSeasonData(seriesId, seasonNum);
 
     // Compute daysUntil (dynamic — computed per request, but data is cached)
     if (data.firstAirDate) {

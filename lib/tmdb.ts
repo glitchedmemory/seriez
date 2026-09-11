@@ -4,42 +4,9 @@ const API_KEY = process.env.TMDB_API_KEY!;
 import { validateAndReplaceTrailers } from "./yt-validator";
 import { getCustomPoster } from "./custom-posters";
 import { unstable_cache } from "next/cache";
-import { createClient } from "@supabase/supabase-js";
 
-// Shared cache: tmdb_id 한 번만 조회, 모든 사용자 재사용
+// Shared cache: tmdb_id 한 번만 조회, 모든 사용자 재사용 (프로세스 메모리)
 const tmdbCache = new Map<string, any>();
-
-// ─── DB-backed TMDB cache (survives TMDB outages) ───
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-
-// Persist a fully-rendered payload to tmdb_cache. Best-effort — never throw.
-export async function saveTmdbCache(mediaType: "movie" | "tv" | "home" | "upcoming" | "season", tmdbId: number, data: unknown): Promise<void> {
-  try {
-    await supabaseAdmin.from("tmdb_cache").upsert({
-      tmdb_id: tmdbId,
-      media_type: mediaType,
-      data,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "tmdb_id,media_type" });
-  } catch {
-    // cache write failure is non-fatal
-  }
-}
-
-// Read a cached payload. Returns null on miss. Best-effort — never throw.
-export async function readTmdbCache<T>(mediaType: string, tmdbId: number): Promise<T | null> {
-  try {
-    const { data } = await supabaseAdmin.from("tmdb_cache")
-      .select("data")
-      .eq("tmdb_id", tmdbId)
-      .eq("media_type", mediaType)
-      .single();
-    return (data?.data as T | undefined) ?? null;
-  } catch {
-    return null;
-  }
-}
 
 const poster = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w780${path}` : null;
@@ -145,12 +112,9 @@ export async function getTrending(): Promise<TmdbResult[]> {
     const movies = (movieData.results as TmdbItem[]).filter((item: TmdbItem) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 14).map(format);
     const tvs = (tvData.results as TmdbItem[]).filter((item: TmdbItem) => !(item.genre_ids?.includes(16) && item.original_language === "ja")).slice(0, 14).map(format);
     const result = [...movies, ...tvs];
-    await saveTmdbCache("home", 0, result);
     return result;
   } catch {
-    const cached = await readTmdbCache<TmdbResult[]>("home", 0);
-    if (cached) return cached;
-    throw new Error("TMDB down and no cache for trending");
+    throw new Error("TMDB down for trending");
   }
 }
 
@@ -199,12 +163,9 @@ export async function getUpcoming(): Promise<TmdbResult[]> {
       .slice(0, 5);
 
     const result = [...movies.slice(0, 5), ...tvs];
-    await saveTmdbCache("upcoming", 0, result);
     return result;
   } catch {
-    const cached = await readTmdbCache<TmdbResult[]>("upcoming", 0);
-    if (cached) return cached;
-    throw new Error("TMDB down and no cache for upcoming");
+    throw new Error("TMDB down for upcoming");
   }
 }
 
@@ -715,9 +676,6 @@ export const getMovieDetail = unstable_cache(
     result.poster = await getCustomPoster(detail.id);
   }
 
-  // Persist to DB so a later TMDB outage can still serve this movie.
-  await saveTmdbCache("movie", detail.id, result);
-
   return result;
 },
   ["movie-detail"],
@@ -725,17 +683,11 @@ export const getMovieDetail = unstable_cache(
 );
 
 /**
- * Fetch a movie detail — falls back to the DB cache if TMDB is down.
- * This is the ONLY entry point pages should call (not getMovieDetail directly).
+ * Fetch a movie detail. TMDB outage is covered by Next.js unstable_cache
+ * (revalidate 86400) which persists to the server's .next disk cache.
  */
 export async function resolveMovieDetail(id: number): Promise<TmdbDetail> {
-  try {
-    return await getMovieDetail(id);
-  } catch {
-    const cached = await readTmdbCache<TmdbDetail>("movie", id);
-    if (cached) return cached;
-    throw new Error(`TMDB down and no cache for movie ${id}`);
-  }
+  return getMovieDetail(id);
 }
 
 export async function getTVDetail(id: number): Promise<TmdbDetail> {
@@ -812,23 +764,15 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
     resultTV.poster = await getCustomPoster(detail.id);
   }
 
-  // Persist to DB so a later TMDB outage can still serve this TV show.
-  await saveTmdbCache("tv", detail.id, resultTV);
-
   return resultTV;
 }
 
 /**
- * Fetch a TV detail — falls back to the DB cache if TMDB is down.
+ * Fetch a TV detail. TMDB outage is covered by Next.js unstable_cache
+ * (revalidate 86400) which persists to the server's .next disk cache.
  */
 export async function resolveTVDetail(id: number): Promise<TmdbDetail> {
-  try {
-    return await getTVDetail(id);
-  } catch {
-    const cached = await readTmdbCache<TmdbDetail>("tv", id);
-    if (cached) return cached;
-    throw new Error(`TMDB down and no cache for tv ${id}`);
-  }
+  return getTVDetail(id);
 }
 
 // ── TV Season types ──
