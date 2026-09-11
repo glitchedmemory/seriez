@@ -1524,7 +1524,10 @@ async function getCachedField<T>(anilistId: number, column: "chain" | "detail" |
     const { createClient } = await import("@supabase/supabase-js");
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !key) return null;
+    if (!url || !key) {
+      console.log(`[perf] getCachedField(${anilistId}, ${column}): url=${url ? "있음" : "없음"}, key=${key ? "있음" : "없음"}`);
+      return null;
+    }
     const supabase = createClient(url, key);
     const { data } = await supabase
       .from("anime_season_cache")
@@ -1532,7 +1535,8 @@ async function getCachedField<T>(anilistId: number, column: "chain" | "detail" |
       .eq("anilist_id", anilistId)
       .maybeSingle();
     return (data as Record<string, unknown> | null)?.[column] as T ?? null;
-  } catch {
+  } catch (e) {
+    console.log(`[perf] getCachedField(${anilistId}, ${column}) error: ${(e as Error).message}`);
     return null;
   }
 }
