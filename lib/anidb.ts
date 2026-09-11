@@ -71,8 +71,27 @@ export type AniZipData = {
 export async function fetchAniZipByAnilistId(
   anilistId: number
 ): Promise<AniZipData | null> {
+  return fetchAniZip(`anilist_id=${anilistId}`);
+}
+
+/**
+ * Resolve a Kitsu id → anilist id (and mal id) via ani.zip's mappings table.
+ * ani.zip accepts kitsu_id lookups and returns the full cross-DB mapping.
+ */
+export async function resolveKitsuIdToAnilist(
+  kitsuId: number | string
+): Promise<{ anilistId: number | null; malId: number | null }> {
+  const d = await fetchAniZip(`kitsu_id=${kitsuId}`);
+  if (!d?.mappings) return { anilistId: null, malId: null };
+  return {
+    anilistId: d.mappings.anilist_id ?? null,
+    malId: d.mappings.mal_id ?? null,
+  };
+}
+
+async function fetchAniZip(qs: string): Promise<AniZipData | null> {
   try {
-    const res = await fetch(`${ANIZIP_API}/mappings?anilist_id=${anilistId}`, {
+    const res = await fetch(`${ANIZIP_API}/mappings?${qs}`, {
       headers: { Accept: "application/json" },
       next: { revalidate: 86400 }, // ani.zip data is static; cache 24h to avoid 429
       signal: AbortSignal.timeout(8000),
