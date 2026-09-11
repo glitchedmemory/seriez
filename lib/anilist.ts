@@ -1548,7 +1548,7 @@ export async function getStaffDetail(id: number): Promise<StaffDetail | null> {
     `;
     const res = await fetch(ANILIST_API, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Origin": "https://anilist.co", "Referer": "https://anilist.co/" },
       body: JSON.stringify({ query }),
       next: { revalidate: 86400 },
     });
@@ -1627,7 +1627,7 @@ export async function getAnimeUpcoming(): Promise<{ id: number; title: string; p
   try {
     const res = await fetch(ANILIST_API, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Origin": "https://anilist.co", "Referer": "https://anilist.co/" },
       body: JSON.stringify({ query: UPCOMING_QUERY, variables: { page: 1, perPage: 4 } }),
       next: { revalidate: 3600 },
     });
@@ -1800,7 +1800,7 @@ export async function getAnimeTrending(): Promise<TmdbResult[]> {
   try {
     const res = await fetch(ANILIST_API, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Origin": "https://anilist.co", "Referer": "https://anilist.co/" },
       body: JSON.stringify({ query: TRENDING_QUERY, variables: { page: 1, perPage: 14 } }),
       next: { revalidate: 3600 },
     });
