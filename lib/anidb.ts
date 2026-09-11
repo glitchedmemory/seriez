@@ -75,17 +75,20 @@ export async function fetchAniZipByAnilistId(
 }
 
 /**
- * Resolve a Kitsu id → anilist id (and mal id) via ani.zip's mappings table.
- * ani.zip accepts kitsu_id lookups and returns the full cross-DB mapping.
+ * Resolve a Kitsu id → anilist id + English title via ani.zip's mappings table.
+ * ani.zip accepts kitsu_id lookups and returns the full cross-DB mapping plus
+ * titles (including the official English title — Kitsu's canonicalTitle is
+ * romaji, which we do NOT want for display).
  */
 export async function resolveKitsuIdToAnilist(
   kitsuId: number | string
-): Promise<{ anilistId: number | null; malId: number | null }> {
+): Promise<{ anilistId: number | null; malId: number | null; titleEn: string | null }> {
   const d = await fetchAniZip(`kitsu_id=${kitsuId}`);
-  if (!d?.mappings) return { anilistId: null, malId: null };
+  if (!d?.mappings) return { anilistId: null, malId: null, titleEn: null };
   return {
     anilistId: d.mappings.anilist_id ?? null,
     malId: d.mappings.mal_id ?? null,
+    titleEn: d.titles?.["en"] ?? null,
   };
 }
 
