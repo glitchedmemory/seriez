@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { tmdbGet } from "@/lib/tmdb";
+import { anilistFetch } from "@/lib/anilist";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -122,12 +123,7 @@ async function getThumbnails(items: { tmdb_id: number; media_type: string }[]): 
     try {
       const ids = animeItems.map((i) => i.tmdb_id);
       const query = `query($ids:[Int]){Page(perPage:50){media(id_in:$ids,type:ANIME){id coverImage{extraLarge}}}}`;
-      const res = await fetch(ANILIST_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, variables: { ids } }),
-        cache: "no-store",
-      });
+      const res = await anilistFetch(query, { ids }, { revalidate: 0 });
       if (res.ok) {
         const json = await res.json();
         for (const m of json.data?.Page?.media || []) {

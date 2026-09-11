@@ -1,5 +1,12 @@
 const ANILIST_API = "https://graphql.anilist.co";
 
+const ANILIST_HEADERS = {
+  "Content-Type": "application/json",
+  "Accept": "application/json",
+  "Origin": "https://anilist.co",
+  "Referer": "https://anilist.co/",
+};
+
 import { unstable_cache } from "next/cache";
 import { persistentCache } from "./persistent-cache";
 
@@ -26,6 +33,24 @@ async function withRetry<T>(
     }
   }
   throw lastError;
+}
+
+// ─── Shared AniList GraphQL fetch ───
+// Single entry point for every AniList call so the Origin/Referer headers (which
+// AniList requires to avoid 403) and cache policy live in ONE place instead of
+// being duplicated (and occasionally dropped) across the codebase.
+export async function anilistFetch(
+  query: string,
+  variables: Record<string, unknown> = {},
+  opts: { revalidate?: number; signal?: AbortSignal } = {}
+): Promise<Response> {
+  return fetch(ANILIST_API, {
+    method: "POST",
+    headers: ANILIST_HEADERS,
+    body: JSON.stringify({ query, variables }),
+    next: { revalidate: opts.revalidate ?? 3600 },
+    ...(opts.signal ? { signal: opts.signal } : {}),
+  });
 }
 
 // ─── Types ───
@@ -632,12 +657,7 @@ export const getAnimeIds = unstable_cache(
   const anizipMal = anizip?.mappings?.mal_id || 0;
 
   const query = `query($id:Int){Media(id:$id){idMal title{romaji english native} duration}}`;
-  const res = await fetch(ANILIST_API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Accept": "application/json", "Origin": "https://anilist.co", "Referer": "https://anilist.co/" },
-    body: JSON.stringify({ query, variables: { id } }),
-    next: { revalidate: 86400 },
-  });
+  const res = await anilistFetch(query, { id }, { revalidate: 86400 });
   if (!res.ok) {
     // AniList down — prefer ani.zip titles, else Kitsu fallback
     if (anizip) {
@@ -686,12 +706,7 @@ export const getAnimeDetail = unstable_cache(
     // Retry AniList fetch with backoff (handles 429 + network errors)
     let res: Response | undefined;
     for (let attempt = 1; attempt <= 3; attempt++) {
-      res = await fetch(ANILIST_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json", "Origin": "https://anilist.co", "Referer": "https://anilist.co/" },
-        body: JSON.stringify({ query: DETAIL_QUERY, variables: { id } }),
-        next: { revalidate: 3600 },
-      });
+      res = await anilistFetch(DETAIL_QUERY, { id }, { revalidate: 3600 });
       if (res.ok) break; // success
       if (res.status === 429 && attempt < 3) {
         await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
@@ -857,15 +872,7 @@ const _getAnilistIdCached = unstable_cache(
   // Parallel: try AniList direct + Supabase lookup simultaneously
   const results = await Promise.all([
     // AniList direct
-    fetch("https://graphql.anilist.co", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        query: `query($id:Int){Media(id:$id,type:ANIME){id}}`,
-        variables: { id: tmdbId },
-      }),
-      next: { revalidate: 86400 },
-    }).then(async (directRes) => {
+    anilistFetch(`query($id:Int){Media(id:$id,type:ANIME){id}}`, { id: tmdbId }, { revalidate: 86400 }).then(async (directRes) => {
       if (!directRes.ok) return null;
       const dj = await directRes.json();
       return dj.data?.Media?.id || null;
@@ -902,15 +909,7 @@ const _getAnilistIdCached = unstable_cache(
       const jd = await jikanRes.json();
       const malId = jd?.data?.[0]?.mal_id;
       if (malId) {
-        const anilistRes = await fetch("https://graphql.anilist.co", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify({
-            query: `query($idMal:Int){Media(idMal:$idMal,type:ANIME){id}}`,
-            variables: { idMal: malId },
-          }),
-          next: { revalidate: 86400 },
-        });
+        const anilistRes = await anilistFetch(`query($idMal:Int){Media(idMal:$idMal,type:ANIME){id}}`, { idMal: malId }, { revalidate: 86400 });
         if (anilistRes.ok) {
           const aj = await anilistRes.json();
           return aj.data?.Media?.id || null;
@@ -931,11 +930,7 @@ export async function getAnilistId(tmdbId: number): Promise<number | null> {
   if (cached !== null) return cached;
   // Null cached — one fresh retry
   try {
-    const res = await fetch("https://graphql.anilist.co", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({ query: "query($id:Int){Media(id:$id,type:ANIME){id}}", variables: { id: tmdbId } }),
-    });
+    const res = await anilistFetch(`query($id:Int){Media(id:$id,type:ANIME){id}}`, { id: tmdbId });
     if (!res.ok) return null;
     const json = await res.json();
     return json.data?.Media?.id ?? null;
@@ -1223,12 +1218,7 @@ async function fetchAniListStreamingThumbnails(title: string): Promise<Map<numbe
         }
       }
     }`;
-    const res = await fetch("https://graphql.anilist.co", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({ query, variables: { search: title } }),
-      next: { revalidate: 86400 },
-    });
+    const res = await anilistFetch(query, { search: title }, { revalidate: 86400 });
     if (!res.ok) return thumbs;
     const json = await res.json();
     const eps = json.data?.Media?.streamingEpisodes || [];
@@ -1464,17 +1454,7 @@ export const enrichAnimeRelations = async (
 async function fetchAniListSeasonNeighbors(anilistId: number): Promise<{ id: number; title: string; format: string; seasonYear: number | null }[]> {
   try {
     const query = `query($id:Int){Media(id:$id){relations{edges{relationType node{id title{english romaji} format seasonYear}}}}}`;
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Origin": "https://anilist.co",
-        "Referer": "https://anilist.co/",
-      },
-      body: JSON.stringify({ query, variables: { id: anilistId } }),
-      next: { revalidate: 86400 },
-    });
+    const res = await anilistFetch(query, { id: anilistId }, { revalidate: 86400 });
     if (!res.ok) return [];
     const json = await res.json();
     const edges = json.data?.Media?.relations?.edges || [];
@@ -1546,12 +1526,7 @@ export async function getStaffDetail(id: number): Promise<StaffDetail | null> {
         }
       }
     `;
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Origin": "https://anilist.co", "Referer": "https://anilist.co/" },
-      body: JSON.stringify({ query }),
-      next: { revalidate: 86400 },
-    });
+    const res = await anilistFetch(query, {}, { revalidate: 86400 });
     if (!res.ok) return null;
     const json = await res.json();
     const s = json?.data?.Staff;
@@ -1625,12 +1600,7 @@ query UpcomingAnime($page: Int, $perPage: Int) {
 
 export async function getAnimeUpcoming(): Promise<{ id: number; title: string; poster: string | null; rating: number; year: number; type: "anime"; genres: string[]; daysUntil: number | null; overview: string; backdrop: string | null }[]> {
   try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Origin": "https://anilist.co", "Referer": "https://anilist.co/" },
-      body: JSON.stringify({ query: UPCOMING_QUERY, variables: { page: 1, perPage: 4 } }),
-      next: { revalidate: 3600 },
-    });
+    const res = await anilistFetch(UPCOMING_QUERY, { page: 1, perPage: 4 }, { revalidate: 3600 });
     if (!res.ok) {
       // AniList down — fall back to Kitsu upcoming anime
       return fetchKitsuUpcomingAnime(4);
@@ -1798,12 +1768,7 @@ async function searchKitsuBackdrop(title: string, year: number): Promise<string 
 
 export async function getAnimeTrending(): Promise<TmdbResult[]> {
   try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Origin": "https://anilist.co", "Referer": "https://anilist.co/" },
-      body: JSON.stringify({ query: TRENDING_QUERY, variables: { page: 1, perPage: 14 } }),
-      next: { revalidate: 3600 },
-    });
+    const res = await anilistFetch(TRENDING_QUERY, { page: 1, perPage: 14 }, { revalidate: 3600 });
     if (!res.ok) {
       // AniList down — fall back to Kitsu trending
       return fetchKitsuTrendingAnime(14);

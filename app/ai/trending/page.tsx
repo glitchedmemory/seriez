@@ -1,4 +1,5 @@
 import { generateMovieJsonLd, StructuredDataScript } from "@/lib/structured-data";
+import { anilistFetch } from "@/lib/anilist";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const ANILIST_API = "https://graphql.anilist.co";
@@ -44,11 +45,7 @@ async function getTrendingTV() {
 
 async function getTrendingAnime() {
   try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        query: `query {
+    const res = await anilistFetch(`query {
           Page(perPage: 20) {
             media(sort: TRENDING_DESC, type: ANIME) {
               id
@@ -61,10 +58,7 @@ async function getTrendingAnime() {
               genres
             }
           }
-        }`,
-      }),
-      next: { revalidate: 3600 },
-    });
+        }`, {}, { revalidate: 3600 });
     if (!res.ok) {
       // AniList down — fall back to Kitsu trending
       return fetchKitsuTrendingFallback();

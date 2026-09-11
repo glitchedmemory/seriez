@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { checkSanction, getSanctionError } from "@/lib/sanction-utils";
 import { tmdbGet } from "@/lib/tmdb";
-import { getAnimeDetailFromKitsu } from "@/lib/anilist";
+import { getAnimeDetailFromKitsu, anilistFetch } from "@/lib/anilist";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -223,11 +223,7 @@ export async function POST(req: NextRequest) {
 async function fetchMetadata(tmdbId: number, mediaType: string): Promise<{poster: string|null, title: string|null, year: number|null, rating: number|null}> {
   try {
     if (mediaType === "anime") {
-      const res = await fetch("https://graphql.anilist.co", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({ query: `query($id:Int){Media(id:$id){title{romaji english}coverImage{extraLarge}startDate{year}averageScore}}`, variables: { id: tmdbId } }),
-      });
+      const res = await anilistFetch(`query($id:Int){Media(id:$id){title{romaji english}coverImage{extraLarge}startDate{year}averageScore}}`, { id: tmdbId });
       if (res.ok) {
         const j = await res.json();
         const m = j.data?.Media;

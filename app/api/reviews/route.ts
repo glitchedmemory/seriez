@@ -4,6 +4,7 @@ import { resolveUsername } from "@/lib/auth-helper";
 import { checkText } from "@/lib/moderation";
 import { checkSanction, getSanctionError } from "@/lib/sanction-utils";
 import { tmdbGet } from "@/lib/tmdb";
+import { anilistFetch } from "@/lib/anilist";
 
 // Handle CORS preflight
 export async function OPTIONS() {
@@ -269,11 +270,7 @@ export async function POST(req: NextRequest) {
 async function fetchPosterUrl(tmdbId: number, mediaType: string): Promise<string | null> {
   try {
     if (mediaType === "anime") {
-      const res = await fetch("https://graphql.anilist.co", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({ query: `query($id:Int){Media(id:$id){coverImage{extraLarge}}}`, variables: { id: tmdbId } }),
-      });
+      const res = await anilistFetch(`query($id:Int){Media(id:$id){coverImage{extraLarge}}}`, { id: tmdbId });
       if (res.ok) {
         const j = await res.json();
         return j.data?.Media?.coverImage?.extraLarge || null;

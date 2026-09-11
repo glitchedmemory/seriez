@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { anilistFetch } from "@/lib/anilist";
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE = "https://api.themoviedb.org/3";
@@ -30,16 +31,9 @@ async function fetchAniListByDecade(startYear: number, endYear: number) {
   }`;
 
   try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query,
-        variables: {
-          startGreater: startYear * 10000,
-          startLesser: (endYear + 1) * 10000,
-        },
-      }),
+    const res = await anilistFetch(query, {
+      startGreater: startYear * 10000,
+      startLesser: (endYear + 1) * 10000,
     });
     if (!res.ok) return [];
     const json = await res.json();

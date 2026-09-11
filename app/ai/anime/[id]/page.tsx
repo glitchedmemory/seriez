@@ -1,5 +1,6 @@
 import { generateMovieJsonLd, StructuredDataScript } from "@/lib/structured-data";
 import { notFound } from "next/navigation";
+import { anilistFetch } from "@/lib/anilist";
 
 const ANILIST_API = "https://graphql.anilist.co";
 
@@ -82,11 +83,7 @@ export default async function AIAnimePage({ params }: { params: Promise<{ id: st
 
   let anime: any = null;
   try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        query: `query($id:Int){
+    const res = await anilistFetch(`query($id:Int){
           Media(id:$id, type:ANIME) {
             id
             title { romaji english native }
@@ -106,11 +103,7 @@ export default async function AIAnimePage({ params }: { params: Promise<{ id: st
             startDate { year month day }
             endDate { year month day }
           }
-        }`,
-        variables: { id: animeId },
-      }),
-      next: { revalidate: 3600 },
-    });
+        }`, { id: animeId }, { revalidate: 3600 });
     const json = await res.json();
     anime = json.data?.Media;
     if (!anime) {

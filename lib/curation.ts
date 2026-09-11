@@ -2,6 +2,7 @@
 import type { TmdbResult } from "./tmdb";
 import { GENRE_MAP } from "./tmdb";
 import { unstable_cache } from "next/cache";
+import { anilistFetch } from "./anilist";
 
 const TMDB = "https://api.themoviedb.org/3";
 const KEY = process.env.TMDB_API_KEY!;
@@ -34,7 +35,7 @@ function toResult(item: any, type: "movie" | "tv"): TmdbResult {
 async function animePopular(): Promise<TmdbResult[]> {
   try {
     const q = `query{Page(perPage:15){media(sort:POPULARITY_DESC,type:ANIME,isAdult:false){id title{romaji english}coverImage{extraLarge}bannerImage averageScore seasonYear description genres}}}`;
-    const r = await fetch(ANILIST, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q }), next: { revalidate: 1800 } });
+    const r = await anilistFetch(q, {}, { revalidate: 1800 });
     if (!r.ok) {
       return fetchKitsuPopularFallback();
     }

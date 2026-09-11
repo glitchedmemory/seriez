@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { anilistFetch } from "@/lib/anilist";
 
 export const dynamic = "force-dynamic";
 
@@ -37,14 +38,7 @@ async function searchAnimeMetadata(tmdbId: number): Promise<{ title: string; pos
         const malId = entry.mal_id;
         if (malId) {
           // Use existing enrichAnime via anilistId derived from MAL
-          const anilistRes = await fetch(ANILIST_API, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Accept": "application/json" },
-            body: JSON.stringify({
-              query: `query($idMal:Int){Media(idMal:$idMal,type:ANIME){id title{romaji english}coverImage{extraLarge}seasonYear}}`,
-              variables: { idMal: malId },
-            }),
-          });
+          const anilistRes = await anilistFetch(`query($idMal:Int){Media(idMal:$idMal,type:ANIME){id title{romaji english}coverImage{extraLarge}seasonYear}}`, { idMal: malId });
           if (anilistRes.ok) {
             const aj = await anilistRes.json();
             const m = aj.data?.Media;
@@ -92,14 +86,7 @@ async function searchAnimeMetadata(tmdbId: number): Promise<{ title: string; pos
 
 async function enrichAnime(anilistId: number): Promise<{ title: string; poster: string | null; year: number | null } | null> {
   try {
-    const res = await fetch(ANILIST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        query: `query($id:Int){Media(id:$id){idMal title{romaji english}coverImage{extraLarge}seasonYear}}`,
-        variables: { id: anilistId },
-      }),
-    });
+    const res = await anilistFetch(`query($id:Int){Media(id:$id){idMal title{romaji english}coverImage{extraLarge}seasonYear}}`, { id: anilistId });
     if (!res.ok) return null;
     const json = await res.json();
     const m = json.data?.Media;
