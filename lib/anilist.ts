@@ -634,7 +634,7 @@ export const getAnimeIds = unstable_cache(
   const query = `query($id:Int){Media(id:$id){idMal title{romaji english native} duration}}`;
   const res = await fetch(ANILIST_API, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    headers: { "Content-Type": "application/json", "Accept": "application/json", "Origin": "https://anilist.co", "Referer": "https://anilist.co/" },
     body: JSON.stringify({ query, variables: { id } }),
     next: { revalidate: 86400 },
   });
@@ -688,7 +688,7 @@ export const getAnimeDetail = unstable_cache(
     for (let attempt = 1; attempt <= 3; attempt++) {
       res = await fetch(ANILIST_API, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        headers: { "Content-Type": "application/json", "Accept": "application/json", "Origin": "https://anilist.co", "Referer": "https://anilist.co/" },
         body: JSON.stringify({ query: DETAIL_QUERY, variables: { id } }),
         next: { revalidate: 3600 },
       });
