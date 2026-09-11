@@ -7,11 +7,41 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
-export default function TabBar({ user }: { user?: { username?: string | null; avatarUrl?: string | null } | null }) {
+export default function TabBar({ user: serverUser }: { user?: { username?: string | null; avatarUrl?: string | null } | null }) {
   const t = useTranslations();
   const pathname = usePathname();
+  const [clientUser, setClientUser] = useState<{ username?: string | null; avatarUrl?: string | null } | null>(serverUser || null);
 
+  // Merge server prop with client auth state, and react to auth changes in
+  // real time so logging in as an admin shows the Admin tab immediately.
+  const user = clientUser || serverUser;
 
+  useEffect(() => {
+    import("@/lib/supabase/client").then(({ createClient }) => {
+      const supabase = createClient();
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          const u = {
+            username: session.user.user_metadata?.username || null,
+            avatarUrl: session.user.user_metadata?.avatar_url || null,
+          };
+          if (u.username) setClientUser(u);
+        }
+      });
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          const u = {
+            username: session.user.user_metadata?.username || null,
+            avatarUrl: session.user.user_metadata?.avatar_url || null,
+          };
+          if (u.username) setClientUser(u);
+        } else {
+          setClientUser(null);
+        }
+      });
+      return () => subscription.unsubscribe();
+    });
+  }, []);
 
   const isStaff = user?.username === "Seriez";
 
