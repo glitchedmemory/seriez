@@ -12,7 +12,6 @@ import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/lib/theme";
 import { BotProvider } from "@/components/BotProvider";
 import HumanProof from "@/components/HumanProof";
-import { createClient } from "@/lib/supabase/server";
 import { isBot } from "@/lib/bot";
 import AdminAwareLayout from "@/components/AdminAwareLayout";
 import FeedbackWidget from "@/components/FeedbackWidget";
@@ -117,17 +116,13 @@ export default async function RootLayout({
   const bot = await isBot();
   const allMessages = { en, ko, ja, zh, fr, de, es, pt };
 
-  let layoutUser: { username?: string | null; avatarUrl?: string | null } | null = null;
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      layoutUser = {
-        username: user.user_metadata?.username || null,
-        avatarUrl: user.user_metadata?.avatar_url || null,
-      };
-    }
-  } catch {}
+  // NOTE: we intentionally do NOT call supabase.auth.getUser() here. Reading the
+  // session cookie in the root layout makes EVERY page cookie-dependent, which
+  // forces all routes to be dynamically rendered and blocks Cloudflare from
+  // caching public pages (cf-cache-status: DYNAMIC), causing 0.5–2.7s origin
+  // round-trips on every visit. Auth state (avatar, admin tab) is instead read
+  // client-side in <Sidebar> and <TabBar> via onAuthStateChange, which updates
+  // instantly on login/logout.
 
   return (
     <html
@@ -181,7 +176,7 @@ export default async function RootLayout({
         <BotProvider isBot={bot}>
         <LocaleProvider serverLocale={locale} serverMessages={messages} allMessages={allMessages}>
           <ThemeProvider>
-            <AdminAwareLayout user={layoutUser}>
+            <AdminAwareLayout>
                       {children}
             </AdminAwareLayout>
             <FeedbackWidget />
