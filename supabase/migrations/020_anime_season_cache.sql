@@ -1,9 +1,13 @@
--- Cache the full season chain for an anime (anilist_id) so the anime
--- detail page doesn't re-walk the AniList relations graph on every visit.
--- Populated lazily by enrichAnimeRelations; read-first, write on miss.
+-- Permanent page cache for anime detail pages. Keyed by anilist_id, stores the
+-- full getAnimeDetail result (detail), the getAnimeEpisodes result (episodes),
+-- and the enriched season chain (chain). These are effectively immutable, so once
+-- fetched they are served from here and the AniList/ani.zip/Kitsu/YouTube calls
+-- are skipped entirely on subsequent visits.
 CREATE TABLE IF NOT EXISTS anime_season_cache (
   anilist_id INTEGER PRIMARY KEY,
-  chain JSONB NOT NULL,
+  chain JSONB,
+  detail JSONB,
+  episodes JSONB,
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
