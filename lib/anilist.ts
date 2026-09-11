@@ -697,6 +697,12 @@ export const getAnimeIds = unstable_cache(
 export const getAnimeDetail = unstable_cache(
   async (id: number): Promise<AnimeDetail | null> => {
   try {
+    // Fast path: serve the cached detail from Supabase (permanent, survives
+    // restarts) so we skip the AniList/ani.zip/Kitsu/YouTube calls entirely
+    // for content we've already seen — detail data is effectively immutable.
+    const cachedDetail = await getCachedField<AnimeDetail>(id, "detail");
+    if (cachedDetail) return cachedDetail;
+
     // ani.zip (AniDB) is the primary source for titles, poster, backdrop and
     // episodes. Fetch it first (single call) so multi-language titles and the
     // richer AniDB dataset win when available, and the site survives AniList
@@ -855,6 +861,9 @@ export const getAnimeDetail = unstable_cache(
     if (!result.backdrop && result.trailer) {
       result.backdrop = `https://img.youtube.com/vi/${result.trailer.id}/maxresdefault.jpg`;
     }
+
+    // Persist to Supabase (fire-and-forget) so future visits serve from DB.
+    saveField(id, "detail", result);
 
     return result;
   } catch {
@@ -1280,6 +1289,13 @@ export const getAnimeEpisodes = unstable_cache(
   seriesDuration?: number,
   anilistId?: number
 ): Promise<AnimeEpisode[]> => {
+  // Fast path: serve cached episodes from Supabase (permanent, survives restarts)
+  // so we skip ani.zip/Kitsu/Jikan/AniDB + thumbnail calls for known anime.
+  if (anilistId && anilistId > 0) {
+    const cachedEpisodes = await getCachedField<AnimeEpisode[]>(anilistId, "episodes");
+    if (cachedEpisodes && cachedEpisodes.length > 0) return cachedEpisodes;
+  }
+
   let episodes: AnimeEpisode[] = [];
 
   // Track 0: ani.zip (AniDB) — primary and most accurate, fetched directly by
@@ -1363,6 +1379,11 @@ export const getAnimeEpisodes = unstable_cache(
     episodes = episodes.map(ep => 
       ep.duration > 0 ? ep : { ...ep, duration: seriesDuration }
     );
+  }
+
+  // Persist to Supabase (fire-and-forget) so future visits serve from DB.
+  if (anilistId && anilistId > 0 && episodes.length > 0) {
+    saveField(anilistId, "episodes", episodes);
   }
 
   return episodes;
@@ -1497,7 +1518,8 @@ export const enrichAnimeRelations = async (
 
 type SeasonChainEntry = { id: number; title: string; type: string; format: string; seasonYear: number | null; isOriginal: boolean };
 
-async function getCachedSeasonChain(anilistId: number): Promise<SeasonChainEntry[] | null> {
+// Generic Supabase read for a single JSONB column of anime_season_cache.
+async function getCachedField<T>(anilistId: number, column: "chain" | "detail" | "episodes"): Promise<T | null> {
   try {
     const { createClient } = await import("@supabase/supabase-js");
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -1506,16 +1528,17 @@ async function getCachedSeasonChain(anilistId: number): Promise<SeasonChainEntry
     const supabase = createClient(url, key);
     const { data } = await supabase
       .from("anime_season_cache")
-      .select("chain")
+      .select(column)
       .eq("anilist_id", anilistId)
       .maybeSingle();
-    return data?.chain as SeasonChainEntry[] | null;
+    return (data as Record<string, unknown> | null)?.[column] as T ?? null;
   } catch {
     return null;
   }
 }
 
-async function saveSeasonChain(anilistId: number, chain: SeasonChainEntry[]): Promise<void> {
+// Generic Supabase write for a single JSONB column. Fire-and-forget by default.
+async function saveField(anilistId: number, column: "chain" | "detail" | "episodes", value: unknown): Promise<void> {
   try {
     const { createClient } = await import("@supabase/supabase-js");
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -1524,10 +1547,18 @@ async function saveSeasonChain(anilistId: number, chain: SeasonChainEntry[]): Pr
     const supabase = createClient(url, key);
     await supabase
       .from("anime_season_cache")
-      .upsert({ anilist_id: anilistId, chain, updated_at: new Date().toISOString() }, { onConflict: "anilist_id" });
+      .upsert({ anilist_id: anilistId, [column]: value, updated_at: new Date().toISOString() }, { onConflict: "anilist_id" });
   } catch {
-    // Failure to cache is non-fatal — the chain still returns for this request.
+    // Failure to cache is non-fatal — the data still returns for this request.
   }
+}
+
+async function getCachedSeasonChain(anilistId: number): Promise<SeasonChainEntry[] | null> {
+  return getCachedField<SeasonChainEntry[]>(anilistId, "chain");
+}
+
+async function saveSeasonChain(anilistId: number, chain: SeasonChainEntry[]): Promise<void> {
+  await saveField(anilistId, "chain", chain);
 }
 
 /**
