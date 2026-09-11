@@ -9,27 +9,33 @@ type Relation = {
 };
 
 // Try to extract an explicit season number from the title, e.g.
-// "OSHI NO KO" -> 1, "... 2nd Season" -> 2, "Season 3" -> 3, "Final Season" -> Infinity
+// "OSHI NO KO" -> 1, "... 2nd Season" -> 2, "Season 3" -> 3.
+// Titles that carry no explicit number (subtitled seasons like "Sword Art Online:
+// Alicization", or roman-numeral "Sword Art Online II") return null so the sort
+// falls back to seasonYear ordering.
 function seasonNumberFromTitle(title: string): number | null {
   if (!title) return null;
   const t = title.replace(/[«»\[\]【】]/g, "").trim();
-  // "Season N" / "N Season" (e.g. "Season 2", "2nd Season")
+  // "Season N" / "Nth Season" (e.g. "Season 2", "2nd Season", "3rd Season")
   let m = t.match(/\b(?:season)\s+(\d+)\b/i);
   if (m) return parseInt(m[1], 10);
   m = t.match(/\b(\d+)(?:st|nd|rd|th)\s+season\b/i);
   if (m) return parseInt(m[1], 10);
-  // "Final Season", "Final Season Part 2", "Final Chapters", "Last Season"
-  // → treat as the last one (very large number, resolved by sorting).
+  // "Final Season", "Final Chapters", "Last Season" → sort to the very end.
   if (/\bfinal\b|\blast season\b/i.test(t)) return Number.MAX_SAFE_INTEGER;
-  // ordinal like "2nd", "3rd" at the end (e.g. "Something 3rd")
+  // trailing ordinal ("Something 3rd") or plain number ("... Academia 2")
   m = t.match(/(\d+)(?:st|nd|rd|th)\s*$/);
   if (m) return parseInt(m[1], 10);
-  // plain trailing number (e.g. "Boku no Hero Academia 2", "Naruto Shippuden 2")
-  // → treat as that season number.
   m = t.match(/\s(\d+)\s*$/);
   if (m) return parseInt(m[1], 10);
-  // base title with no marker → season 1
-  return 1;
+  // roman numeral suffix ("Sword Art Online II", "... III") → 2, 3, ...
+  m = t.match(/\b(II|III|IV|V|VI|VII|VIII|IX|X)\s*$/i);
+  if (m) {
+    const roman: Record<string, number> = { II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8, IX: 9, X: 10 };
+    return roman[m[1].toUpperCase()] ?? null;
+  }
+  // no marker → fall back to year ordering (return null, not 1).
+  return null;
 }
 
 export default function AnimeSeasons({
@@ -57,36 +63,32 @@ export default function AnimeSeasons({
     return true;
   });
 
-  // Resolve a sort key: explicit season number from title > seasonYear > Infinity.
-  // Also collapse multiple "parts" of the same season (e.g. "Season 3" + "Season 3
-  // Part 2", or "Final Season" + "Final Season Part 2") into ONE entry so the
-  // Season list matches the official season count instead of every broadcast part.
-  // When collapsing, always prefer the CURRENT item so the active highlight works.
-  const bySeason = new Map<number, { id: number; title: string; seasonYear: number | null }>();
-  const order: number[] = [];
+  // Collapse "Part N" splits (e.g. "Attack on Titan Final Season" + "Final Season
+  // Part 2", "Alicization - War of Underworld" + "... Part 2") into ONE entry, so
+  // the Season list matches the official season count. An entry is a "part" of the
+  // previous one when its title starts with the other's title + "Part".
+  const items: { id: number; title: string; seasonYear: number | null }[] = [];
   for (const item of uniqueItems) {
-    const season = seasonNumberFromTitle(item.title);
-    const key = season ?? Number.MAX_SAFE_INTEGER;
-    const existing = bySeason.get(key);
-    if (!existing) {
-      bySeason.set(key, { id: item.id, title: item.title, seasonYear: item.seasonYear });
-      order.push(key);
-    } else if (item.id === currentId) {
-      // The current item always wins its season slot so it stays highlighted.
-      const before = order.indexOf(key);
-      bySeason.set(key, { id: item.id, title: item.title, seasonYear: item.seasonYear });
-      // keep original order position
-      order[before] = key;
+    const prev = items[items.length - 1];
+    const isPart = prev && (
+      item.title.startsWith(prev.title + " Part") ||
+      item.title.startsWith(prev.title.split(" Part")[0] + " Part")
+    );
+    if (isPart) {
+      // Collapse into the previous entry (keep current if it's the current item).
+      if (item.id === currentId) items[items.length - 1] = { ...item };
+      continue;
     }
+    items.push(item);
   }
 
-  const items = order
-    .map(key => bySeason.get(key)!)
-    .sort((a, b) => {
-      const as = seasonNumberFromTitle(a.title) ?? (a.seasonYear || Number.MAX_SAFE_INTEGER);
-      const bs = seasonNumberFromTitle(b.title) ?? (b.seasonYear || Number.MAX_SAFE_INTEGER);
-      return as - bs;
-    });
+  // Sort by explicit season number (title) when available, else by seasonYear.
+  const sortKey = (it: { title: string; seasonYear: number | null }) => {
+    const s = seasonNumberFromTitle(it.title);
+    if (s !== null) return s;
+    return it.seasonYear || Number.MAX_SAFE_INTEGER;
+  };
+  items.sort((a, b) => sortKey(a) - sortKey(b));
 
   if (items.length <= 1) return null;
 
