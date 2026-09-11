@@ -8,36 +8,6 @@ type Relation = {
   isOriginal?: boolean;
 };
 
-// Try to extract an explicit season number from the title, e.g.
-// "OSHI NO KO" -> 1, "... 2nd Season" -> 2, "Season 3" -> 3.
-// Titles that carry no explicit number (subtitled seasons like "Sword Art Online:
-// Alicization", or roman-numeral "Sword Art Online II") return null so the sort
-// falls back to seasonYear ordering.
-function seasonNumberFromTitle(title: string): number | null {
-  if (!title) return null;
-  const t = title.replace(/[«»\[\]【】]/g, "").trim();
-  // "Season N" / "Nth Season" (e.g. "Season 2", "2nd Season", "3rd Season")
-  let m = t.match(/\b(?:season)\s+(\d+)\b/i);
-  if (m) return parseInt(m[1], 10);
-  m = t.match(/\b(\d+)(?:st|nd|rd|th)\s+season\b/i);
-  if (m) return parseInt(m[1], 10);
-  // "Final Season", "Final Chapters", "Last Season" → sort to the very end.
-  if (/\bfinal\b|\blast season\b/i.test(t)) return Number.MAX_SAFE_INTEGER;
-  // trailing ordinal ("Something 3rd") or plain number ("... Academia 2")
-  m = t.match(/(\d+)(?:st|nd|rd|th)\s*$/);
-  if (m) return parseInt(m[1], 10);
-  m = t.match(/\s(\d+)\s*$/);
-  if (m) return parseInt(m[1], 10);
-  // roman numeral suffix ("Sword Art Online II", "... III") → 2, 3, ...
-  m = t.match(/\b(II|III|IV|V|VI|VII|VIII|IX|X)\s*$/i);
-  if (m) {
-    const roman: Record<string, number> = { II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8, IX: 9, X: 10 };
-    return roman[m[1].toUpperCase()] ?? null;
-  }
-  // no marker → fall back to year ordering (return null, not 1).
-  return null;
-}
-
 export default function AnimeSeasons({
   relations,
   currentId,
@@ -49,10 +19,11 @@ export default function AnimeSeasons({
   currentTitle: string;
   currentYear: number;
 }) {
-  // Combine relations + current item.
-  const allItems: { id: number; title: string; seasonYear: number | null }[] = [
-    ...relations.map(r => ({ id: r.id, title: r.title, seasonYear: r.seasonYear })),
-    { id: currentId, title: currentTitle, seasonYear: currentYear || null },
+  // Combine relations + current item. Preserve isOriginal so the sort below can
+  // pin the earliest season (season 1) to the front.
+  const allItems: { id: number; title: string; seasonYear: number | null; isOriginal?: boolean }[] = [
+    ...relations.map(r => ({ id: r.id, title: r.title, seasonYear: r.seasonYear, isOriginal: r.isOriginal })),
+    { id: currentId, title: currentTitle, seasonYear: currentYear || null, isOriginal: true },
   ];
 
   // Deduplicate by id
@@ -67,7 +38,7 @@ export default function AnimeSeasons({
   // Part 2", "Alicization - War of Underworld" + "... Part 2") into ONE entry, so
   // the Season list matches the official season count. An entry is a "part" of the
   // previous one when its title starts with the other's title + "Part".
-  const items: { id: number; title: string; seasonYear: number | null }[] = [];
+  const items: { id: number; title: string; seasonYear: number | null; isOriginal?: boolean }[] = [];
   for (const item of uniqueItems) {
     const prev = items[items.length - 1];
     const isPart = prev && (
@@ -82,13 +53,14 @@ export default function AnimeSeasons({
     items.push(item);
   }
 
-  // Sort by explicit season number (title) when available, else by seasonYear.
-  const sortKey = (it: { title: string; seasonYear: number | null }) => {
-    const s = seasonNumberFromTitle(it.title);
-    if (s !== null) return s;
-    return it.seasonYear || Number.MAX_SAFE_INTEGER;
-  };
-  items.sort((a, b) => sortKey(a) - sortKey(b));
+  // Sort: the "original" entry (earliest season / season 1) always goes first;
+  // all other seasons keep the BFS season-chain order that enrichAnimeRelations
+  // already produced (S2 → S3 → ...). This avoids re-sorting by title, which
+  // broke when season 1's title carried no numeric suffix (e.g. "My Hero
+  // Academia" vs "My Hero Academia 2") and got pushed to the end.
+  const originalFirst = (a: { isOriginal?: boolean }, b: { isOriginal?: boolean }) =>
+    (a.isOriginal ? 0 : 1) - (b.isOriginal ? 0 : 1);
+  items.sort(originalFirst);
 
   if (items.length <= 1) return null;
 
