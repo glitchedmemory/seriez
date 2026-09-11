@@ -134,14 +134,19 @@ export default async function AnimePage({ params }: Props) {
   // No TMDB→AniList resolution needed — and getAnilistId would return null
   // when AniList is down, breaking the page before the Kitsu fallback runs.
   const anilistId = numId;
+  const t0 = Date.now();
   const ids = await getAnimeIds(anilistId);
+  const t1 = Date.now();
   const [detail, episodes] = await Promise.all([
     getAnimeDetail(anilistId),
     getAnimeEpisodes(ids.title, ids.titleRomaji, ids.idMal, ids.titleNative, ids.duration, anilistId),
   ]);
+  const t2 = Date.now();
   if (!detail) notFound();
 
   detail.relations = await enrichAnimeRelations(anilistId, detail.relations, detail.year);
+  const t3 = Date.now();
+  console.log(`[perf] anime/${anilistId}: ids=${t1 - t0}ms, detail+ep=${t2 - t1}ms, enrich=${t3 - t2}ms, total=${t3 - t0}ms`);
   const isAnimeMovie = detail.format === "MOVIE";
   const animeJsonLd = isAnimeMovie
     ? generateMovieJsonLd({
