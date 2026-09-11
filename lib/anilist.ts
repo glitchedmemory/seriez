@@ -1539,7 +1539,9 @@ async function saveSeasonChain(anilistId: number, chain: SeasonChainEntry[]): Pr
 async function fetchAniListSeasonNeighbors(anilistId: number): Promise<{ id: number; title: string; format: string; seasonYear: number | null }[]> {
   try {
     const query = `query($id:Int){Media(id:$id){relations{edges{relationType node{id title{english romaji} format seasonYear}}}}}`;
+    const t = Date.now();
     const res = await anilistFetch(query, { id: anilistId }, { revalidate: 86400 });
+    console.log(`[perf] fetchAniListSeasonNeighbors(${anilistId}): ${Date.now() - t}ms`);
     if (!res.ok) return [];
     const json = await res.json();
     const edges = json.data?.Media?.relations?.edges || [];
