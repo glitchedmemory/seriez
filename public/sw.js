@@ -1,81 +1,10 @@
-// Seriez Service Worker — hand-written because next-pwa fails with Next.js 16 Turbopack
-const CACHE_JS = "seriez-js-v10";
-const CACHE_CSS = "seriez-css-v10";
-const CACHE_STATIC = "seriez-static-v10";
-const CACHE_TMDB = "seriez-tmdb-v10";
-const CACHE_ANILIST = "seriez-anilist-v10";
-const CACHE_API = "seriez-api-v10";
-
-// All cache names currently in use (kept so activate can prune older versions)
-const CURRENT_CACHES = [
-  CACHE_JS, CACHE_CSS, CACHE_STATIC, CACHE_TMDB, CACHE_ANILIST, CACHE_API,
-];
-
-// JS: NetworkFirst (must update on new deploys)
-const JS_PATTERN = /\.js(\?.*)?$/;
-// CSS: NetworkFirst
-const CSS_PATTERN = /\.css(\?.*)?$/;
-// Static fonts/icons: CacheFirst
-const STATIC_PATTERN = /\.(?:woff2?|ttf|otf|png|svg|ico)$/;
-// TMDB images
-const TMDB_PATTERN = /^https:\/\/image\.tmdb\.org\/.*/;
-// AniList images
-const ANILIST_PATTERN = /^https:\/\/s4\.anilist\.co\/.*/;
-
-function isPage(url) {
-  return url.origin === self.location.origin &&
-    !url.pathname.startsWith("/api/") &&
-    !url.pathname.startsWith("/_next/");
-}
-
-function isAPI(url) {
-  return url.origin === self.location.origin &&
-    url.pathname.startsWith("/api/");
-}
-
-// NetworkFirst helper
-async function networkFirst(request, cacheName, timeoutMs = 3000) {
-  const cache = await caches.open(cacheName);
-  try {
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("timeout")), timeoutMs)
-    );
-    const response = await Promise.race([fetch(request), timeoutPromise]);
-    if (response.ok) {
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch (e) {
-    const cached = await cache.match(request);
-    if (cached) return cached;
-    throw e;
-  }
-}
-
-// CacheFirst helper
-async function cacheFirst(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
-  if (cached) return cached;
-  const response = await fetch(request);
-  if (response.ok) {
-    cache.put(request, response.clone());
-  }
-  return response;
-}
-
-// StaleWhileRevalidate helper
-async function staleWhileRevalidate(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
-  const fetchPromise = fetch(request).then(response => {
-    if (response.ok) {
-      cache.put(request, response.clone());
-    }
-    return response;
-  }).catch(() => cached);
-  return cached || fetchPromise;
-}
+// Seriez Service Worker — passthrough only (no caching).
+//
+// Previous versions cached page HTML and static assets, which caused stale
+// season lists and missing posters to persist in users' browsers after every
+// deploy. To permanently fix that, this worker no longer caches ANYTHING:
+// it just tears down every old cache and lets all requests hit the network.
+const CACHE_VERSION = "seriez-v11";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -84,46 +13,14 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
-      // Prune any cache from older versions (e.g. seriez-*-v4, seriez-api-v3)
+      // Delete every cache this origin ever created, from any older version.
       const keys = await caches.keys();
-      await Promise.all(
-        keys
-          .filter((k) => k.startsWith("seriez-") && !CURRENT_CACHES.includes(k))
-          .map((k) => caches.delete(k))
-      );
+      await Promise.all(keys.map((k) => caches.delete(k)));
       await clients.claim();
     })()
   );
 });
 
-self.addEventListener("fetch", (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
-
-  // Only handle GET requests
-  if (request.method !== "GET") return;
-
-  // NEVER cache sw.js itself (would deadlock updates)
-  if (url.pathname === "/sw.js") return;
-
-  if (JS_PATTERN.test(url.pathname)) {
-    event.respondWith(networkFirst(request, CACHE_JS));
-  } else if (CSS_PATTERN.test(url.pathname)) {
-    event.respondWith(networkFirst(request, CACHE_CSS));
-  } else if (STATIC_PATTERN.test(url.pathname)) {
-    event.respondWith(cacheFirst(request, CACHE_STATIC));
-  } else if (TMDB_PATTERN.test(url.href)) {
-    event.respondWith(staleWhileRevalidate(request, CACHE_TMDB));
-  } else if (ANILIST_PATTERN.test(url.href)) {
-    event.respondWith(staleWhileRevalidate(request, CACHE_ANILIST));
-  } else if (isAPI(url)) {
-    event.respondWith(networkFirst(request, CACHE_API, 3000));
-  } else if (isPage(url)) {
-    // Do NOT cache page HTML. Title detail pages (anime/movie/tv) carry live
-    // season lists and posters server-side; caching them (even NetworkFirst)
-    // serves stale HTML after deploys, which is exactly the "seasons show only
-    // 2 buttons / poster missing" bug. Always hit the network for documents.
-    return;
-  }
-  // All other requests (including _next/ static chunks) pass through to network
+self.addEventListener("fetch", () => {
+  // Do nothing — let all requests go straight to the network.
 });
