@@ -1480,8 +1480,9 @@ export const enrichAnimeRelations = async (
 
     // 2. Persist the computed chain to Supabase so the next visit (any process,
     //    any restart) is a single fast DB read instead of an AniList graph walk.
+    //    Fire-and-forget: don't block this response on the DB write (~500ms).
     if (chain.length > 0) {
-      await saveSeasonChain(currentId, chain);
+      saveSeasonChain(currentId, chain);
     }
 
     return chain;
@@ -1539,9 +1540,7 @@ async function saveSeasonChain(anilistId: number, chain: SeasonChainEntry[]): Pr
 async function fetchAniListSeasonNeighbors(anilistId: number): Promise<{ id: number; title: string; format: string; seasonYear: number | null }[]> {
   try {
     const query = `query($id:Int){Media(id:$id){relations{edges{relationType node{id title{english romaji} format seasonYear}}}}}`;
-    const t = Date.now();
     const res = await anilistFetch(query, { id: anilistId }, { revalidate: 86400 });
-    console.log(`[perf] fetchAniListSeasonNeighbors(${anilistId}): ${Date.now() - t}ms`);
     if (!res.ok) return [];
     const json = await res.json();
     const edges = json.data?.Media?.relations?.edges || [];
