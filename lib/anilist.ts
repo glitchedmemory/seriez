@@ -1546,17 +1546,13 @@ async function saveField(anilistId: number, column: "chain" | "detail" | "episod
     const { createClient } = await import("@supabase/supabase-js");
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !key) {
-      console.log(`[perf] saveField(${anilistId}, ${column}): url=${url ? "있음" : "없음"}, key=${key ? "있음" : "없음"}`);
-      return;
-    }
+    if (!url || !key) return;
     const supabase = createClient(url, key);
-    const r = await supabase
+    await supabase
       .from("anime_season_cache")
       .upsert({ anilist_id: anilistId, [column]: value, updated_at: new Date().toISOString() }, { onConflict: "anilist_id" });
-    console.log(`[perf] saveField(${anilistId}, ${column}): status=${r.status}${r.error ? " err=" + r.error.message : ""}`);
-  } catch (e) {
-    console.log(`[perf] saveField(${anilistId}, ${column}) error: ${(e as Error).message}`);
+  } catch {
+    // Failure to cache is non-fatal — the data still returns for this request.
   }
 }
 
