@@ -1390,6 +1390,12 @@ export const enrichAnimeRelations = async (
   currentYear: number,
 ): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null; isOriginal: boolean }[]> => {
   return persistentCache("enrichAnimeRelationsAniList", [currentId, currentYear], 60, async () => {
+    // 1. Read the cached season chain from Supabase first — this is the fast
+    //    path that avoids re-walking the AniList graph (which can take 30s+ on
+    //    complex franchises like Slime). Only used when we already computed it.
+    const cached = await getCachedSeasonChain(currentId);
+    if (cached && cached.length > 0) return cached;
+
     const seen = new Set<number>();
     const queued = new Set<number>([currentId]);
     const result: { id: number; title: string; format: string; seasonYear: number | null }[] = [];
@@ -1463,7 +1469,7 @@ export const enrichAnimeRelations = async (
       merged.push(rep);
     }
 
-    return merged.map(r => ({
+    const chain = merged.map(r => ({
       id: r.id,
       title: r.title,
       type: "ANIME" as const,
@@ -1471,8 +1477,57 @@ export const enrichAnimeRelations = async (
       seasonYear: r.seasonYear,
       isOriginal: r.id === earliestId,
     }));
+
+    // 2. Persist the computed chain to Supabase so the next visit (any process,
+    //    any restart) is a single fast DB read instead of an AniList graph walk.
+    if (chain.length > 0) {
+      await saveSeasonChain(currentId, chain);
+    }
+
+    return chain;
   });
 };
+
+// ─── Season chain persistence (Supabase) ───
+// The BFS above can take 30s+ on complex franchises (e.g. Slime, where the
+// TV-season chain is split across many Media entries connected through OVA/
+// movie intermediaries). We cache the computed chain in Supabase so subsequent
+// visits are a single fast DB read instead of a full AniList graph walk.
+
+type SeasonChainEntry = { id: number; title: string; type: string; format: string; seasonYear: number | null; isOriginal: boolean };
+
+async function getCachedSeasonChain(anilistId: number): Promise<SeasonChainEntry[] | null> {
+  try {
+    const { createClient } = await import("@supabase/supabase-js");
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) return null;
+    const supabase = createClient(url, key);
+    const { data } = await supabase
+      .from("anime_season_cache")
+      .select("chain")
+      .eq("anilist_id", anilistId)
+      .maybeSingle();
+    return data?.chain as SeasonChainEntry[] | null;
+  } catch {
+    return null;
+  }
+}
+
+async function saveSeasonChain(anilistId: number, chain: SeasonChainEntry[]): Promise<void> {
+  try {
+    const { createClient } = await import("@supabase/supabase-js");
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) return;
+    const supabase = createClient(url, key);
+    await supabase
+      .from("anime_season_cache")
+      .upsert({ anilist_id: anilistId, chain, updated_at: new Date().toISOString() }, { onConflict: "anilist_id" });
+  } catch {
+    // Failure to cache is non-fatal — the chain still returns for this request.
+  }
+}
 
 /**
  * Fetch one level of sequel/prequel neighbors for an AniList id, returning BOTH
