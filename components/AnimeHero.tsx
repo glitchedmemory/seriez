@@ -8,9 +8,13 @@ function seasonLabel(detail: AnimeDetail): string | null {
   return `${detail.season} ${detail.year}`;
 }
 
-export default function AnimeHero({ detail, children, shareUrl }: { detail: AnimeDetail; children?: React.ReactNode; shareUrl?: string }) {
+export default function AnimeHero({ detail, displayTitle, children, shareUrl }: { detail: AnimeDetail; displayTitle?: string; children?: React.ReactNode; shareUrl?: string }) {
   const label = seasonLabel(detail);
   const hasBackdrop = !!(detail.backdrop || detail.poster);
+  // Use the locale-matched title when provided; otherwise fall back to detail.title.
+  const shownTitle = displayTitle || detail.title;
+  // Show the romaji/alternate title only when it differs from the main title.
+  const romaji = detail.titleRomaji && detail.titleRomaji !== shownTitle ? detail.titleRomaji : null;
 
   return (
     <>
@@ -19,7 +23,7 @@ export default function AnimeHero({ detail, children, shareUrl }: { detail: Anim
         <div className="relative w-full h-48 md:h-72 overflow-hidden">
           <PosterImage src={detail.backdrop || detail.poster} alt="" fill priority unoptimized className={!detail.backdrop ? "blur-2xl scale-125 opacity-50" : ""} />
           <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
-          {shareUrl && <ShareButton title={detail.title} url={shareUrl} variant="backdrop" />}
+          {shareUrl && <ShareButton title={shownTitle} url={shareUrl} variant="backdrop" />}
         </div>
       )}
 
@@ -28,17 +32,17 @@ export default function AnimeHero({ detail, children, shareUrl }: { detail: Anim
           {/* Poster */}
           <div className="flex-shrink-0 w-36 md:w-48 mx-auto md:mx-0">
             <div className="aspect-[2/3] rounded-xl overflow-hidden bg-bg-card shadow-2xl relative">
-              <PosterImage src={detail.poster} alt={detail.title} fill priority className="rounded-xl" sizes="(max-width: 768px) 144px, 192px" />
+              <PosterImage src={detail.poster} alt={shownTitle} fill priority className="rounded-xl" sizes="(max-width: 768px) 144px, 192px" />
             </div>
           </div>
 
           {/* Info */}
           <div className="flex-1 min-w-0 text-center md:text-left">
             <h1 className="text-2xl md:text-3xl font-bold text-text-primary leading-tight">
-              {detail.title}
+              {shownTitle}
             </h1>
-            {detail.titleRomaji && detail.titleRomaji !== detail.title && (
-              <p className="text-sm text-text-secondary mt-0.5">{detail.titleRomaji}</p>
+            {romaji && (
+              <p className="text-sm text-text-secondary mt-0.5">{romaji}</p>
             )}
 
             {/* Meta row */}
