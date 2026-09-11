@@ -1,5 +1,7 @@
 "use client";
+import { useState, useEffect } from "react";
 import type { AnimeDetail } from "@/lib/anilist";
+import { pickTitle } from "@/lib/anidb";
 import PosterImage from "@/components/PosterImage";
 import ShareButton from "@/components/ShareButton";
 
@@ -8,11 +10,19 @@ function seasonLabel(detail: AnimeDetail): string | null {
   return `${detail.season} ${detail.year}`;
 }
 
-export default function AnimeHero({ detail, displayTitle, children, shareUrl }: { detail: AnimeDetail; displayTitle?: string; children?: React.ReactNode; shareUrl?: string }) {
+export default function AnimeHero({ detail, children, shareUrl }: { detail: AnimeDetail; children?: React.ReactNode; shareUrl?: string }) {
   const label = seasonLabel(detail);
   const hasBackdrop = !!(detail.backdrop || detail.poster);
-  // Use the locale-matched title when provided; otherwise fall back to detail.title.
-  const shownTitle = displayTitle || detail.title;
+
+  // The site language is client-driven via the SERIEZ_LOCALE cookie. Pick the
+  // matching title on the client to avoid SSR/client hydration mismatch.
+  const [locale, setLocale] = useState<string>("en");
+  useEffect(() => {
+    const match = document.cookie.match(/(?:^|;\s*)SERIEZ_LOCALE=([^;]+)/);
+    if (match?.[1]) setLocale(match[1]);
+  }, []);
+
+  const shownTitle = pickTitle(detail.titles, locale) || detail.title;
   // Show the romaji/alternate title only when it differs from the main title.
   const romaji = detail.titleRomaji && detail.titleRomaji !== shownTitle ? detail.titleRomaji : null;
 

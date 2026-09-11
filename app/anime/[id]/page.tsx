@@ -5,8 +5,6 @@ export const revalidate = 86400;
 export const dynamic = "force-dynamic";
 
 import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations } from "@/lib/anilist";
-import { pickTitle } from "@/lib/anidb";
-import { getLocale } from "next-intl/server";
 import AnimeHero from "@/components/AnimeHero";
 import AnimeOverview from "@/components/AnimeOverview";
 import AnimeSeasons from "@/components/AnimeSeasons";
@@ -173,20 +171,15 @@ export default async function AnimePage({ params }: Props) {
   if (!detail) notFound();
 
   detail.relations = await enrichAnimeRelations(anilistId, detail.relations, detail.year);
-
-  // Pick the title for the user's locale (ko/en/ja/...), falling back to
-  // English → romaji → native when the locale title is missing.
-  const locale = await getLocale();
-  const displayTitle = pickTitle(detail.titles, locale) || detail.title;
   const isAnimeMovie = detail.format === "MOVIE";
   const animeJsonLd = isAnimeMovie
     ? generateMovieJsonLd({
-        title: displayTitle, description: detail.overview || "", posterUrl: detail.poster,
+        title: detail.title, description: detail.overview || "", posterUrl: detail.poster,
         rating: detail.rating, ratingCount: detail.popularity, releaseYear: detail.year,
         genres: detail.genres, url: `/anime/${numId}`,
       })
     : generateTVJsonLd({
-        title: displayTitle, description: detail.overview || "", posterUrl: detail.poster,
+        title: detail.title, description: detail.overview || "", posterUrl: detail.poster,
         rating: detail.rating, ratingCount: detail.popularity, releaseYear: detail.year,
         genres: detail.genres, url: `/anime/${numId}`,
         totalSeasons: 1, status: detail.status, networks: [],
@@ -196,7 +189,7 @@ export default async function AnimePage({ params }: Props) {
       <StructuredDataScript data={animeJsonLd} />
       <VisitTracker tmdbId={numId} mediaType="anime" />
       <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
-        <AnimeHero detail={detail} displayTitle={displayTitle} shareUrl={`${SITE_URL}/anime/${numId}`}>
+        <AnimeHero detail={detail} shareUrl={`${SITE_URL}/anime/${numId}`}>
           <AnimeInteractive mode="buttons-only" detail={detail} episodes={episodes} />
         </AnimeHero>
         <AnimeSeasons relations={detail.relations} currentId={detail.id} currentTitle={detail.title} currentYear={detail.year} />
