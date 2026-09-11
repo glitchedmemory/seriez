@@ -697,6 +697,7 @@ export const getAnimeIds = unstable_cache(
 export const getAnimeDetail = unstable_cache(
   async (id: number): Promise<AnimeDetail | null> => {
   try {
+    console.log(`[perf] getAnimeDetail(${id}) CALLED`);
     // Fast path: serve the cached detail from Supabase (permanent, survives
     // restarts) so we skip the AniList/ani.zip/Kitsu/YouTube calls entirely
     // for content we've already seen — detail data is effectively immutable.
