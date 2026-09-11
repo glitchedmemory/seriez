@@ -5,7 +5,7 @@ import { persistentCache } from "./persistent-cache";
 
 import type { TmdbResult } from "./tmdb";
 import { validateAndReplaceTrailers } from "./yt-validator";
-import { fetchAniZipByAnilistId, pickTitle, pickAniZipImage, anizipEpisodesToAnimeEpisodes, resolveKitsuIdToAnilist, resolveAnilistIdToKitsuId } from "./anidb";
+import { fetchAniZipByAnilistId, pickTitle, pickAniZipImage, anizipEpisodesToAnimeEpisodes, resolveKitsuIdToAnilist, resolveAnilistIdToKitsuId, resolveAnilistIdToMalId, resolveMalIdToAnilistEn } from "./anidb";
 
 // ─── Retry wrapper ───
 
@@ -1384,65 +1384,55 @@ export const getAnimeEpisodes = unstable_cache(
 // ─── Deep relations enrichment ───
 
 /**
- * Collect ALL TV anime seasons (sequel/prequel chain) via Kitsu media-relationships
- * BFS. Kitsu is now the SOLE source for season relationships (ani.zip has none, and
- * AniList is frequently down). Each Kitsu node is resolved back to its AniList id via
- * ani.zip mappings so /anime/{id} links keep working.
- *
- * Only `subtype=TV` entries are kept — OVAs/specials that Kitsu links as "sequel"
- * (e.g. My Hero Academia's "No.170+1: More", "I am a hero too") are excluded.
+ * Collect ALL TV anime seasons (sequel/prequel chain) via MyAnimeList relations
+ * BFS. MAL is the most accurate, currently-alive source for "which anime is the
+ * sequel/prequel" relations (Kitsu links OVAs/movies into the chain and breaks
+ * it; AniList is 403-down). MAL tags each relation with its format — "Sequel (TV)",
+ * "Sequel (Special)", etc — so we can follow only the TV chain.
+ * Each MAL node is resolved back to its AniList id via ani.zip.
  */
 export const enrichAnimeRelations = async (
   currentId: number,
   _existingRelations: { id: number; title: string; type: string; format: string; seasonYear: number | null; status?: string }[],
   currentYear: number,
 ): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null; isOriginal: boolean }[]> => {
-  return persistentCache("enrichAnimeRelationsKitsu", [currentId, currentYear], 86400, async () => {
-    // Resolve the current anime's Kitsu id via ani.zip (accurate 1-call mapping,
-    // more reliable than Kitsu's own two-step mappings table).
-    const startKitsuId = await resolveAnilistIdToKitsuId(currentId);
-    if (!startKitsuId) {
-      // Can't even resolve current id → return empty rather than a wrong chain.
+  return persistentCache("enrichAnimeRelationsMAL", [currentId, currentYear], 86400, async () => {
+    // Resolve the current anime's mal id via ani.zip (accurate 1-call mapping).
+    const startMalId = await resolveAnilistIdToMalId(currentId);
+    if (!startMalId) {
       return [];
     }
-    const startKitsu = String(startKitsuId);
 
-    const seen = new Set<string>();
-    const queued = new Set<string>([startKitsu]);
+    const seen = new Set<number>();
+    const queued = new Set<number>([startMalId]);
     const result: { id: number; title: string; format: string; seasonYear: number | null }[] = [];
 
-    // BFS over sequel + prequel edges, walking both directions from the current item.
-    const queue: { kitsuId: string; dir: "any" }[] = [{ kitsuId: startKitsu, dir: "any" }];
-    // Track minimum year for "isOriginal" (earliest = original).
+    const queue: number[] = [startMalId];
     let earliestYear = currentYear || Infinity;
     let earliestId = currentId;
 
     while (queue.length > 0) {
-      const batch = queue.splice(0, 8);
+      const batch = queue.splice(0, 6);
       const neighbors = await Promise.all(
-        batch.map(async ({ kitsuId }: { kitsuId: string }): Promise<{ kitsuId: string; title: string; year: number | null }[]> => {
-          // Always fetch neighbors for the node being visited (do NOT skip:
-          // a node that was already discovered still needs its own neighbors
-          // walked so the chain continues past it).
-          return fetchKitsuSeasonNeighbors(kitsuId);
+        batch.map(async (malId): Promise<{ malId: number; title: string; year: number | null }[]> => {
+          return fetchMalSeasonNeighbors(malId);
         })
       );
 
       for (const items of neighbors) {
         for (const n of items) {
-          if (seen.has(n.kitsuId)) continue;
-          seen.add(n.kitsuId);
-          // Resolve Kitsu id → AniList id via ani.zip (accurate, no AniList dep).
-          const ext = await resolveKitsuIdToAnilist(n.kitsuId);
+          if (seen.has(n.malId)) continue;
+          seen.add(n.malId);
+          // Resolve MAL id → AniList id via ani.zip.
+          const ext = await resolveMalIdToAnilistEn(n.malId);
           if (!ext.anilistId) continue;
           if (ext.anilistId === currentId) continue;
-          // Prefer the official English title from ani.zip over Kitsu's romaji.
           const title = ext.titleEn || n.title;
           result.push({ id: ext.anilistId, title, format: "TV", seasonYear: n.year });
           if (n.year && n.year <= earliestYear) { earliestYear = n.year; earliestId = ext.anilistId; }
-          if (!queued.has(n.kitsuId)) {
-            queued.add(n.kitsuId);
-            queue.push({ kitsuId: n.kitsuId, dir: "any" });
+          if (!queued.has(n.malId)) {
+            queued.add(n.malId);
+            queue.push(n.malId);
           }
         }
       }
@@ -1468,37 +1458,36 @@ export const enrichAnimeRelations = async (
   });
 };
 
-/** Fetch one level of sequel/prequel TV neighbors for a Kitsu anime id. */
-async function fetchKitsuSeasonNeighbors(kitsuId: string): Promise<{ kitsuId: string; title: string; year: number | null }[]> {
+/**
+ * Fetch sequel/prequel TV neighbors for a MAL id by scraping the MAL anime page.
+ * MAL marks each relation with its format — "Sequel (TV)", "Prequel (Special)",
+ * etc. We keep only TV-format sequel/prequel links so the season chain stays
+ * clean (OVAs/specials/movies are skipped).
+ */
+async function fetchMalSeasonNeighbors(malId: number): Promise<{ malId: number; title: string; year: number | null }[]> {
   try {
-    const res = await fetch(
-      `${KITSU_ANIME_API}/${kitsuId}/media-relationships?page%5Blimit%5D=20&include=destination`,
-      { headers: { "Accept": "application/vnd.api+json" }, next: { revalidate: 86400 } }
-    );
+    const res = await fetch(`https://myanimelist.net/anime/${malId}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+      next: { revalidate: 86400 },
+    });
     if (!res.ok) return [];
-    const json = await res.json();
+    const html = await res.text();
 
-    const destMeta = new Map<string, { title: string; subtype: string; year: number | null }>();
-    for (const inc of json.included || []) {
-      if (inc.type !== "anime") continue;
-      const a = inc.attributes || {};
-      destMeta.set(inc.id, {
-        title: a.canonicalTitle || a.titles?.en || "Unknown",
-        subtype: a.subtype || "",
-        year: a.startDate ? Number(String(a.startDate).slice(0, 4)) || null : null,
-      });
-    }
-
-    const out: { kitsuId: string; title: string; year: number | null }[] = [];
-    for (const rel of json.data || []) {
-      const role = (rel.attributes?.role || "").toUpperCase();
-      if (role !== "SEQUEL" && role !== "PREQUEL") continue;
-      const destId = rel.relationships?.destination?.data?.id;
-      const meta = destId ? destMeta.get(destId) : null;
-      if (!destId || !meta) continue;
-      // TV only — skip OVA/ONA/special/movie entries Kitsu links as sequel/prequel.
-      if (meta.subtype !== "TV") continue;
-      out.push({ kitsuId: destId, title: meta.title, year: meta.year });
+    const out: { malId: number; title: string; year: number | null }[] = [];
+    // MAL related-anime entries: <div class="relation">Sequel (TV)</div>
+    //   <div class="title"><a href=".../anime/ID/...">Title</a></div>
+    const entryRe = /<div class="relation">([\s\S]*?)<\/div>\s*<div class="title">\s*<a href="[^"]*?\/(\d+)\/[^"]*">\s*([^<]+?)\s*<\/a>/g;
+    let m;
+    while ((m = entryRe.exec(html)) !== null) {
+      const relType = m[1].replace(/\s+/g, " ").trim();
+      const destMalId = Number(m[2]);
+      const title = m[3].trim();
+      // Only sequel/prequel relations; only TV format (not "(Special)"/"(Movie)"/etc).
+      const isSequelOrPrequel = /\b(sequel|prequel)\b/i.test(relType);
+      const isTV = /\(\s*TV\s*\)/i.test(relType) || !/\(/.test(relType);
+      if (!isSequelOrPrequel) continue;
+      if (!isTV) continue;
+      out.push({ malId: destMalId, title, year: null });
     }
     return out;
   } catch {

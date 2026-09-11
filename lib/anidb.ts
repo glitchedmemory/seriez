@@ -103,6 +103,31 @@ export async function resolveAnilistIdToKitsuId(
   return d.mappings.kitsu_id;
 }
 
+/**
+ * Resolve an AniList id → mal id via ani.zip's mappings.
+ */
+export async function resolveAnilistIdToMalId(
+  anilistId: number
+): Promise<number | null> {
+  const d = await fetchAniZip(`anilist_id=${anilistId}`);
+  if (!d?.mappings?.mal_id) return null;
+  return d.mappings.mal_id;
+}
+
+/**
+ * Resolve a MAL id → anilist id + English title via ani.zip's mappings.
+ */
+export async function resolveMalIdToAnilistEn(
+  malId: number | string
+): Promise<{ anilistId: number | null; titleEn: string | null }> {
+  const d = await fetchAniZip(`mal_id=${malId}`);
+  if (!d?.mappings) return { anilistId: null, titleEn: null };
+  return {
+    anilistId: d.mappings.anilist_id ?? null,
+    titleEn: d.titles?.["en"] ?? null,
+  };
+}
+
 async function fetchAniZip(qs: string): Promise<AniZipData | null> {
   try {
     const res = await fetch(`${ANIZIP_API}/mappings?${qs}`, {
