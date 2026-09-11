@@ -53,14 +53,14 @@ export default function AnimeSeasons({
     items.push(item);
   }
 
-  // Sort: the "original" entry (earliest season / season 1) always goes first;
-  // all other seasons keep the BFS season-chain order that enrichAnimeRelations
-  // already produced (S2 → S3 → ...). This avoids re-sorting by title, which
-  // broke when season 1's title carried no numeric suffix (e.g. "My Hero
-  // Academia" vs "My Hero Academia 2") and got pushed to the end.
-  const originalFirst = (a: { isOriginal?: boolean }, b: { isOriginal?: boolean }) =>
-    (a.isOriginal ? 0 : 1) - (b.isOriginal ? 0 : 1);
-  items.sort(originalFirst);
+  // Sort by airing year (ascending). enrichAnimeRelations walks the SEQUEL/
+  // PREQUEL graph via BFS, so its return order is a traversal order (season 2's
+  // neighbors, etc.) — NOT a chronological season order. Sorting by seasonYear
+  // yields the correct S1 → S2 → ... → Final order regardless of which season
+  // is the current one. Items with no year (null) go last.
+  const byYear = (a: { seasonYear: number | null }, b: { seasonYear: number | null }) =>
+    (a.seasonYear ?? Number.MAX_SAFE_INTEGER) - (b.seasonYear ?? Number.MAX_SAFE_INTEGER);
+  items.sort(byYear);
 
   if (items.length <= 1) return null;
 
