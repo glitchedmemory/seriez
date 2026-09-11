@@ -39,16 +39,61 @@ async function withRetry<T>(
 // Single entry point for every AniList call so the Origin/Referer headers (which
 // AniList requires to avoid 403) and cache policy live in ONE place instead of
 // being duplicated (and occasionally dropped) across the codebase.
+//
+// B: also caches successful responses to disk (via persistentCache) keyed by
+// query+variables, so repeated calls for the same anime don't re-hit AniList.
 export async function anilistFetch(
   query: string,
   variables: Record<string, unknown> = {},
   opts: { revalidate?: number; signal?: AbortSignal } = {}
 ): Promise<Response> {
+  const ttl = opts.revalidate ?? 3600;
+
+  // Cacheable path (no per-call timeout): cache successful responses only.
+  if (!opts.signal) {
+    const cached = await persistentCache<{ ok: boolean; status: number; body: string } | null>(
+      "anilistFetch",
+      [query, variables],
+      ttl,
+      async () => {
+        try {
+          const res = await fetch(ANILIST_API, {
+            method: "POST",
+            headers: ANILIST_HEADERS,
+            body: JSON.stringify({ query, variables }),
+            next: { revalidate: ttl },
+          });
+          if (!res.ok) return null; // don't cache failures — retry live next time
+          const body = await res.text();
+          return { ok: true, status: res.status, body };
+        } catch {
+          return null; // network error — don't cache
+        }
+      }
+    );
+
+    if (cached !== null) {
+      // Cache hit — reconstruct a Response so callers (res.ok / res.json()) work.
+      const headers = new Headers({ "Content-Type": "application/json" });
+      return new Response(cached.body, { status: cached.status, headers });
+    }
+
+    // Cache miss (or uncacheable) — hit AniList live.
+    const res = await fetch(ANILIST_API, {
+      method: "POST",
+      headers: ANILIST_HEADERS,
+      body: JSON.stringify({ query, variables }),
+      next: { revalidate: ttl },
+    });
+    return res;
+  }
+
+  // Non-cacheable (signal timeout): hit AniList directly.
   return fetch(ANILIST_API, {
     method: "POST",
     headers: ANILIST_HEADERS,
     body: JSON.stringify({ query, variables }),
-    next: { revalidate: opts.revalidate ?? 3600 },
+    next: { revalidate: ttl },
     ...(opts.signal ? { signal: opts.signal } : {}),
   });
 }
