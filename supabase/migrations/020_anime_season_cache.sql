@@ -7,7 +7,14 @@ CREATE TABLE IF NOT EXISTS anime_season_cache (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Service role writes; public reads only need this if we exposed it, but it's
--- read via SUPABASE_SERVICE_ROLE_KEY on the server, so no RLS policy needed for
--- anon. Keep RLS off to avoid auth complications in server-side reads.
+-- Security: RLS ON, service_role-only access. anon/authenticated get nothing
+-- (read returns 0 rows, write is rejected with 401). Reads/writes happen
+-- server-side via SUPABASE_SERVICE_ROLE_KEY, never exposed to the client.
 ALTER TABLE anime_season_cache ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "service_role_all" ON anime_season_cache;
+CREATE POLICY "service_role_all" ON anime_season_cache
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
