@@ -19,11 +19,20 @@ const tmdbCache = new Map<string, any>();
 // 않는다. 이렇게 해야 과거 1.52GB 폭증 사고를 재발시키지 않는다.
 // 포스터/배경은 URL 문자열만 저장(이미지는 CDN에서 로드). 영화 1개 = 수 KB.
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+// Lazy-initialize the admin client so build-time prerendering (which renders
+// thousands of pages) doesn't hold a Supabase connection per module instance,
+// which caused OOM during `next build` on the 3.7GB VPS.
+let _supabaseAdmin: any = null;
+function getSupabaseAdmin(): any {
+  if (!_supabaseAdmin) {
+    _supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  }
+  return _supabaseAdmin;
+}
 
 async function saveTmdbCache(mediaType: "movie" | "tv" | "season", tmdbId: number, data: unknown): Promise<void> {
   try {
-    await supabaseAdmin.from("tmdb_cache").upsert(
+    await getSupabaseAdmin().from("tmdb_cache").upsert(
       { tmdb_id: tmdbId, media_type: mediaType, data, updated_at: new Date().toISOString() },
       { onConflict: "tmdb_id,media_type" },
     );
@@ -34,7 +43,7 @@ async function saveTmdbCache(mediaType: "movie" | "tv" | "season", tmdbId: numbe
 
 async function readTmdbCache<T>(mediaType: "movie" | "tv" | "season", tmdbId: number): Promise<T | null> {
   try {
-    const { data } = await supabaseAdmin
+    const { data } = await getSupabaseAdmin()
       .from("tmdb_cache")
       .select("data")
       .eq("tmdb_id", tmdbId)
