@@ -81,7 +81,7 @@ export type AnimeDetail = {
   recommendations: AnimeRecItem[];
   trailer: { id: string; site: string } | null;
   trailers: { key: string; name: string }[];  // multiple trailers (matches movie/tv detail pages)
-  relations: { id: number; title: string; type: string; format: string; seasonYear: number | null; status?: string; isOriginal?: boolean }[];
+  relations: { id: number; title: string; type: string; format: string; seasonYear: number | null; season?: string | null; startDate?: { year: number | null; month: number | null; day: number | null } | null; status?: string; isOriginal?: boolean }[];
   daysUntil?: number | null;  // days until release (upcoming items only)
 };
 
@@ -165,7 +165,9 @@ query($id: Int) {
           title { romaji english }
           type
           format
+          season
           seasonYear
+          startDate { year month day }
           status
         }
       }
@@ -1412,7 +1414,7 @@ export const enrichAnimeRelations = async (
   currentId: number,
   _existingRelations: { id: number; title: string; type: string; format: string; seasonYear: number | null; status?: string }[],
   currentYear: number,
-): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null; isOriginal: boolean }[]> => {
+): Promise<{ id: number; title: string; type: string; format: string; seasonYear: number | null; season?: string | null; startDate?: { year: number | null; month: number | null; day: number | null } | null; isOriginal: boolean }[]> => {
   return persistentCache("enrichAnimeRelationsAniList", [currentId, currentYear], 60, async () => {
     // 1. Read the cached season chain from Supabase first — this is the fast
     //    path that avoids re-walking the AniList graph (which can take 30s+ on
@@ -1422,7 +1424,7 @@ export const enrichAnimeRelations = async (
 
     const seen = new Set<number>();
     const queued = new Set<number>([currentId]);
-    const result: { id: number; title: string; format: string; seasonYear: number | null }[] = [];
+    const result: { id: number; title: string; format: string; seasonYear: number | null; season: string | null; startDate: { year: number | null; month: number | null; day: number | null } | null }[] = [];
 
     const queue: number[] = [currentId];
     let earliestYear = currentYear || Infinity;
@@ -1443,7 +1445,7 @@ export const enrichAnimeRelations = async (
           // intermediary movies/specials so the chain isn't broken (e.g.
           // SAO II → Ordinal Scale (movie) → Alicization).
           if (n.format === "TV") {
-            result.push({ id: n.id, title: n.title, format: "TV", seasonYear: n.seasonYear });
+            result.push({ id: n.id, title: n.title, format: "TV", seasonYear: n.seasonYear, season: n.season, startDate: n.startDate });
             if (n.seasonYear && n.seasonYear <= earliestYear) { earliestYear = n.seasonYear; earliestId = n.id; }
           }
           if (!queued.has(n.id)) {
@@ -1456,7 +1458,7 @@ export const enrichAnimeRelations = async (
 
     // Dedupe by anilist id (preserve insertion order).
     const seenId = new Set<number>();
-    const deduped: { id: number; title: string; format: string; seasonYear: number | null }[] = [];
+    const deduped: { id: number; title: string; format: string; seasonYear: number | null; season: string | null; startDate: { year: number | null; month: number | null; day: number | null } | null }[] = [];
     for (const r of result) {
       if (seenId.has(r.id)) continue;
       seenId.add(r.id);
@@ -1472,7 +1474,7 @@ export const enrichAnimeRelations = async (
     const stripPart = (t: string) => t.replace(/\s+Part\s+\d+\s*$/i, "").trim();
 
     // Group in insertion order, keyed by stripped base title.
-    const groups = new Map<string, { id: number; title: string; format: string; seasonYear: number | null }[]>();
+    const groups = new Map<string, { id: number; title: string; format: string; seasonYear: number | null; season: string | null; startDate: { year: number | null; month: number | null; day: number | null } | null }[]>();
     const groupOrder: string[] = [];
     for (const r of deduped) {
       const base = stripPart(r.title);
@@ -1483,7 +1485,7 @@ export const enrichAnimeRelations = async (
       groups.get(base)!.push(r);
     }
 
-    const merged: { id: number; title: string; format: string; seasonYear: number | null }[] = [];
+    const merged: { id: number; title: string; format: string; seasonYear: number | null; season: string | null; startDate: { year: number | null; month: number | null; day: number | null } | null }[] = [];
     for (const base of groupOrder) {
       const entries = groups.get(base)!;
       // Prefer the entry WITHOUT a " Part N" suffix as the season representative
@@ -1499,6 +1501,8 @@ export const enrichAnimeRelations = async (
       type: "ANIME" as const,
       format: r.format,
       seasonYear: r.seasonYear,
+      season: r.season,
+      startDate: r.startDate,
       isOriginal: r.id === earliestId,
     }));
 
@@ -1519,7 +1523,7 @@ export const enrichAnimeRelations = async (
 // movie intermediaries). We cache the computed chain in Supabase so subsequent
 // visits are a single fast DB read instead of a full AniList graph walk.
 
-type SeasonChainEntry = { id: number; title: string; type: string; format: string; seasonYear: number | null; isOriginal: boolean };
+type SeasonChainEntry = { id: number; title: string; type: string; format: string; seasonYear: number | null; season: string | null; startDate: { year: number | null; month: number | null; day: number | null } | null; isOriginal: boolean };
 
 // Generic Supabase read for a single JSONB column of anime_season_cache.
 async function getCachedField<T>(anilistId: number, column: "chain" | "detail" | "episodes"): Promise<T | null> {
@@ -1571,14 +1575,14 @@ async function saveSeasonChain(anilistId: number, chain: SeasonChainEntry[]): Pr
  * movie → Alicization) while still only displaying TV entries as seasons.
  * Sends Origin/Referer so AniList doesn't 403.
  */
-async function fetchAniListSeasonNeighbors(anilistId: number): Promise<{ id: number; title: string; format: string; seasonYear: number | null }[]> {
+async function fetchAniListSeasonNeighbors(anilistId: number): Promise<{ id: number; title: string; format: string; seasonYear: number | null; season: string | null; startDate: { year: number | null; month: number | null; day: number | null } | null }[]> {
   try {
-    const query = `query($id:Int){Media(id:$id){relations{edges{relationType node{id title{english romaji} format seasonYear}}}}}`;
+    const query = `query($id:Int){Media(id:$id){relations{edges{relationType node{id title{english romaji} format season seasonYear startDate{year month day}}}}}}`;
     const res = await anilistFetch(query, { id: anilistId }, { revalidate: 86400 });
     if (!res.ok) return [];
     const json = await res.json();
     const edges = json.data?.Media?.relations?.edges || [];
-    const out: { id: number; title: string; format: string; seasonYear: number | null }[] = [];
+    const out: { id: number; title: string; format: string; seasonYear: number | null; season: string | null; startDate: { year: number | null; month: number | null; day: number | null } | null }[] = [];
     for (const e of edges) {
       const rel = e.relationType;
       if (rel !== "SEQUEL" && rel !== "PREQUEL") continue;
@@ -1589,6 +1593,8 @@ async function fetchAniListSeasonNeighbors(anilistId: number): Promise<{ id: num
         title: node.title?.english || node.title?.romaji || "Unknown",
         format: node.format || "",
         seasonYear: node.seasonYear || null,
+        season: node.season || null,
+        startDate: node.startDate ? { year: node.startDate.year || null, month: node.startDate.month || null, day: node.startDate.day || null } : null,
       });
     }
     return out;
