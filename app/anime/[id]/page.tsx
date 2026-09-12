@@ -159,7 +159,7 @@ export default async function AnimePage({ params }: Props) {
         <AnimeHero detail={detail} shareUrl={`${SITE_URL}/anime/${numId}`}>
           <AnimeInteractive mode="buttons-only" detail={detail} episodes={episodes} />
         </AnimeHero>
-        <AnimeSeasons relations={detail.relations} currentId={detail.id} currentTitle={detail.title} currentYear={detail.year} />
+        <AnimeSeasons relations={detail.relations} currentId={detail.id} currentTitle={detail.title} currentYear={detail.year} currentSeason={detail.season} />
         <AnimeOverview overview={detail.overview} />
         <AnimeInteractive mode="reviews-only" detail={detail} episodes={episodes} />
         <AnimeInteractive mode="episodes-only" detail={detail} episodes={episodes} />

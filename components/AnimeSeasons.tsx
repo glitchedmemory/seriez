@@ -15,17 +15,19 @@ export default function AnimeSeasons({
   currentId,
   currentTitle,
   currentYear,
+  currentSeason,
 }: {
   relations: Relation[];
   currentId: number;
   currentTitle: string;
   currentYear: number;
+  currentSeason?: string | null;
 }) {
   // Combine relations + current item. Preserve isOriginal so the sort below can
   // pin the earliest season (season 1) to the front.
   const allItems: { id: number; title: string; seasonYear: number | null; season?: string | null; startDate?: { year: number | null; month: number | null; day: number | null } | null; isOriginal?: boolean }[] = [
     ...relations.map(r => ({ id: r.id, title: r.title, seasonYear: r.seasonYear, season: r.season, startDate: r.startDate, isOriginal: r.isOriginal })),
-    { id: currentId, title: currentTitle, seasonYear: currentYear || null, isOriginal: true },
+    { id: currentId, title: currentTitle, seasonYear: currentYear || null, season: currentSeason || null, isOriginal: true },
   ];
 
   // Deduplicate by id
