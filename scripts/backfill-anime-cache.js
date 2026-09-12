@@ -29,11 +29,13 @@ const ANILIST_HEADERS = {
 };
 
 const TARGET = parseInt(process.argv[2] || "1000", 10);
-const DELAY_MS = 450; // ~2.2 req/s
+// AniList 무료 API 한도는 분당 ~30개(정상 시 최대 90개). 2000ms 간격 = 분당 30개로
+// 안전선에 맞춤. 429가 반복되면 아래 백오프에서 60초까지 쉼.
+const DELAY_MS = 2000; // ~0.5 req/s = 30 req/min
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function anilistQuery(query, variables, retries = 4) {
+async function anilistQuery(query, variables, retries = 5) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const res = await fetch("https://graphql.anilist.co", {
@@ -43,19 +45,20 @@ async function anilistQuery(query, variables, retries = 4) {
         signal: AbortSignal.timeout(15000),
       });
       if (res.status === 429) {
-        const wait = Math.min(60000, 2000 * Math.pow(2, attempt - 1));
-        console.log(`  [429 rate-limitted] 대기 ${wait / 1000}s (시도 ${attempt}/${retries})`);
+        // AniList가 rate limit를 걸면 최소 30초, 최대 90초 쉬기 (누적)
+        const wait = Math.min(90000, 5000 * Math.pow(2, attempt - 1));
+        console.log(`  [429] 대기 ${wait / 1000}s (시도 ${attempt}/${retries})`);
         await sleep(wait);
         continue;
       }
       if (!res.ok) {
-        await sleep(500 * attempt);
+        await sleep(1000 * attempt);
         continue;
       }
       return await res.json();
     } catch (e) {
       console.log(`  [error] ${e.message} (시도 ${attempt})`);
-      await sleep(1000 * attempt);
+      await sleep(1500 * attempt);
     }
   }
   return null;
