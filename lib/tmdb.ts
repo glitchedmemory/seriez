@@ -6,11 +6,47 @@ import { getCustomPoster } from "./custom-posters";
 import { unstable_cache } from "next/cache";
 import { persistentCache } from "./persistent-cache";
 import { GENRE_MAP } from "./genres";
+import { createClient } from "@supabase/supabase-js";
 
 export { GENRE_MAP };
 
 // Shared cache: tmdb_id 한 번만 조회, 모든 사용자 재사용 (프로세스 메모리)
 const tmdbCache = new Map<string, any>();
+
+// ─── DB-backed TMDB cache (TMDB outage fallback) ───
+// 영구 저장은 "가공된 최종 결과"(페이지가 실제 쓰는 객체)만 저장하고,
+// 원본 get() 응답(detail+credits+similar+videos 합쳐진 거대 JSON)은 저장하지
+// 않는다. 이렇게 해야 과거 1.52GB 폭증 사고를 재발시키지 않는다.
+// 포스터/배경은 URL 문자열만 저장(이미지는 CDN에서 로드). 영화 1개 = 수 KB.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+async function saveTmdbCache(mediaType: "movie" | "tv" | "season", tmdbId: number, data: unknown): Promise<void> {
+  try {
+    await supabaseAdmin.from("tmdb_cache").upsert(
+      { tmdb_id: tmdbId, media_type: mediaType, data, updated_at: new Date().toISOString() },
+      { onConflict: "tmdb_id,media_type" },
+    );
+  } catch {
+    // cache write failure is non-fatal — the page still renders this request.
+  }
+}
+
+async function readTmdbCache<T>(mediaType: "movie" | "tv" | "season", tmdbId: number): Promise<T | null> {
+  try {
+    const { data } = await supabaseAdmin
+      .from("tmdb_cache")
+      .select("data")
+      .eq("tmdb_id", tmdbId)
+      .eq("media_type", mediaType)
+      .single();
+    return (data?.data as T | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export { saveTmdbCache, readTmdbCache };
 
 const poster = (path: string | null) =>
   path ? `https://image.tmdb.org/t/p/w780${path}` : null;
@@ -688,6 +724,11 @@ export const getMovieDetail = unstable_cache(
     result.poster = await getCustomPoster(detail.id);
   }
 
+  // Persist the FINAL rendered movie detail to DB (TMDB outage fallback).
+  // Store only the processed object the page actually renders — not the raw
+  // get() responses — so size stays ~a few KB per movie. Best-effort.
+  await saveTmdbCache("movie", detail.id, result);
+
   return result;
 },
   ["movie-detail"],
@@ -699,7 +740,14 @@ export const getMovieDetail = unstable_cache(
  * (revalidate 86400) which persists to the server's .next disk cache.
  */
 export async function resolveMovieDetail(id: number): Promise<TmdbDetail> {
-  return getMovieDetail(id);
+  try {
+    return await getMovieDetail(id);
+  } catch {
+    // TMDB down — fall back to the persisted DB snapshot.
+    const cached = await readTmdbCache<TmdbDetail>("movie", id);
+    if (cached) return cached;
+    throw new Error(`TMDB down and no cached detail for movie ${id}`);
+  }
 }
 
 export async function getTVDetail(id: number): Promise<TmdbDetail> {
@@ -776,6 +824,9 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
     resultTV.poster = await getCustomPoster(detail.id);
   }
 
+  // Persist the FINAL rendered TV detail to DB (TMDB outage fallback).
+  await saveTmdbCache("tv", detail.id, resultTV);
+
   return resultTV;
 }
 
@@ -784,7 +835,14 @@ export async function getTVDetail(id: number): Promise<TmdbDetail> {
  * (revalidate 86400) which persists to the server's .next disk cache.
  */
 export async function resolveTVDetail(id: number): Promise<TmdbDetail> {
-  return getTVDetail(id);
+  try {
+    return await getTVDetail(id);
+  } catch {
+    // TMDB down — fall back to the persisted DB snapshot.
+    const cached = await readTmdbCache<TmdbDetail>("tv", id);
+    if (cached) return cached;
+    throw new Error(`TMDB down and no cached detail for tv ${id}`);
+  }
 }
 
 // ── TV Season types ──
@@ -817,12 +875,13 @@ export async function getTVSeason(
   seriesId: number,
   seasonNumber: number,
 ): Promise<TvSeasonDetail | null> {
+  const seasonCacheKey = seriesId * 1000 + seasonNumber;
   try {
     const [seasonData, seriesData] = await Promise.all([
       get(`/tv/${seriesId}/season/${seasonNumber}`),
       get(`/tv/${seriesId}`),
     ]);
-    return {
+    const result: TvSeasonDetail = {
       id: seasonData.id,
       seriesId,
       seriesTitle: seriesData.name || "Unknown",
@@ -854,8 +913,13 @@ export async function getTVSeason(
         runtime: ep.runtime || 0,
       })),
     };
+    // Persist the FINAL rendered season detail to DB (TMDB outage fallback).
+    await saveTmdbCache("season", seasonCacheKey, result);
+    return result;
   } catch {
-    return null;
+    // TMDB down — fall back to the persisted DB snapshot.
+    const cached = await readTmdbCache<TvSeasonDetail>("season", seasonCacheKey);
+    return cached ?? null;
   }
 }
 

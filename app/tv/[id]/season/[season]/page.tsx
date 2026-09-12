@@ -13,6 +13,7 @@ import type { Metadata } from "next";
 import { generateTVJsonLd, StructuredDataScript } from "@/lib/structured-data";
 import { unstable_cache } from "next/cache";
 import VisitTracker from "@/components/VisitTracker";
+import { saveTmdbCache, readTmdbCache } from "@/lib/tmdb";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const ANILIST_API = "https://graphql.anilist.co";
@@ -206,6 +207,9 @@ const getSeasonData = unstable_cache(
       firstAirDate: seriesData.first_air_date || "",
     };
 
+    // Persist the FINAL rendered season data to DB (TMDB outage fallback).
+    await saveTmdbCache("season", seriesId * 1000 + seasonNum, result);
+
     return result;
   },
   ["season-data"],
@@ -257,61 +261,67 @@ export default async function SeasonPage({ params }: Props) {
   const seasonNum = parseInt(season);
   if (isNaN(seriesId) || isNaN(seasonNum)) notFound();
 
+  let data: any;
   try {
-    const data = await getSeasonData(seriesId, seasonNum);
-
-    // Compute daysUntil (dynamic — computed per request, but data is cached)
-    if (data.firstAirDate) {
-      const diff = Math.ceil((new Date(data.firstAirDate).getTime() - Date.now()) / 86400000);
-      if (diff > 0) (data as any).daysUntil = diff;
+    data = await getSeasonData(seriesId, seasonNum);
+  } catch (e) {
+    // TMDB down — fall back to the persisted DB snapshot.
+    const cached = await readTmdbCache<any>("season", seriesId * 1000 + seasonNum);
+    if (!cached) {
+      console.error("Season page error (no DB fallback):", (e as Error).message);
+      notFound();
     }
+    data = cached;
+  }
 
-    const jsonLd = generateTVJsonLd({
-      title: data.title, description: data.overview, posterUrl: data.posterPath,
-      rating: data.rating, ratingCount: data.voteCount, releaseYear: data.year,
-      genres: data.genres, url: `/tv/${seriesId}/season/${seasonNum}`,
-      totalSeasons: data.totalSeasons, status: data.status, networks: data.networks,
-    });
+  // Compute daysUntil (dynamic — computed per request, but data is cached)
+  if (data.firstAirDate) {
+    const diff = Math.ceil((new Date(data.firstAirDate).getTime() - Date.now()) / 86400000);
+    if (diff > 0) (data as any).daysUntil = diff;
+  }
 
-    return (
-      <>
-        <StructuredDataScript data={jsonLd} />
-        <VisitTracker tmdbId={seriesId} mediaType="tv" />
-        <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
-          <SeasonHero data={data} shareUrl={`${SITE_URL}/tv/${seriesId}/season/${seasonNum}`}>
-            <SeasonInteractive mode="buttons-only" data={{
-              id: data.id, title: data.title, seasonNumber: data.seasonNumber,
-              seasonName: data.seasonName, seasonPoster: data.seasonPoster,
-              daysUntil: (data as any).daysUntil, episodes: data.episodes,
-            }} />
-          </SeasonHero>
-          <div className="px-4 md:px-0">
-            <SeasonTabs totalSeasons={data.totalSeasons} currentSeason={data.seasonNumber} seriesId={data.id} />
-            <SeasonOverview overview={data.overview} seasonOverview={data.seasonOverview} />
-            <SeasonInteractive mode="episodes-only" data={{
-              id: data.id, title: data.title, seasonNumber: data.seasonNumber,
-              seasonName: data.seasonName, seasonPoster: data.seasonPoster,
-              daysUntil: (data as any).daysUntil, episodes: data.episodes,
-            }} />
-            <SeasonInteractive mode="reviews-only" data={{
-              id: data.id, title: data.title, seasonNumber: data.seasonNumber,
-              seasonName: data.seasonName, seasonPoster: data.seasonPoster,
-              daysUntil: (data as any).daysUntil, episodes: data.episodes,
-            }} />
-            <SeasonTrailers trailers={data.trailers} />
-            <SeasonCast cast={data.cast} />
-            <SeasonRecommendations items={data.similar} />
-            <div className="mt-8 pt-4 border-t border-white/5 text-center">
-              <p className="text-[10px] text-text-secondary">
-                <a href="https://seriez.app" className="text-accent hover:underline font-medium">Seriez</a> — Track Movies, TV Shows &amp; Anime in One Place
-              </p>
-            </div>
+  const jsonLd = generateTVJsonLd({
+    title: data.title, description: data.overview, posterUrl: data.posterPath,
+    rating: data.rating, ratingCount: data.voteCount, releaseYear: data.year,
+    genres: data.genres, url: `/tv/${seriesId}/season/${seasonNum}`,
+    totalSeasons: data.totalSeasons, status: data.status, networks: data.networks,
+  });
+
+  return (
+    <>
+      <StructuredDataScript data={jsonLd} />
+      <VisitTracker tmdbId={seriesId} mediaType="tv" />
+      <div className="max-w-lg md:max-w-4xl mx-auto min-h-screen pb-24">
+        <SeasonHero data={data} shareUrl={`${SITE_URL}/tv/${seriesId}/season/${seasonNum}`}>
+          <SeasonInteractive mode="buttons-only" data={{
+            id: data.id, title: data.title, seasonNumber: data.seasonNumber,
+            seasonName: data.seasonName, seasonPoster: data.seasonPoster,
+            daysUntil: (data as any).daysUntil, episodes: data.episodes,
+          }} />
+        </SeasonHero>
+        <div className="px-4 md:px-0">
+          <SeasonTabs totalSeasons={data.totalSeasons} currentSeason={data.seasonNumber} seriesId={data.id} />
+          <SeasonOverview overview={data.overview} seasonOverview={data.seasonOverview} />
+          <SeasonInteractive mode="episodes-only" data={{
+            id: data.id, title: data.title, seasonNumber: data.seasonNumber,
+            seasonName: data.seasonName, seasonPoster: data.seasonPoster,
+            daysUntil: (data as any).daysUntil, episodes: data.episodes,
+          }} />
+          <SeasonInteractive mode="reviews-only" data={{
+            id: data.id, title: data.title, seasonNumber: data.seasonNumber,
+            seasonName: data.seasonName, seasonPoster: data.seasonPoster,
+            daysUntil: (data as any).daysUntil, episodes: data.episodes,
+          }} />
+          <SeasonTrailers trailers={data.trailers} />
+          <SeasonCast cast={data.cast} />
+          <SeasonRecommendations items={data.similar} />
+          <div className="mt-8 pt-4 border-t border-white/5 text-center">
+            <p className="text-[10px] text-text-secondary">
+              <a href="https://seriez.app" className="text-accent hover:underline font-medium">Seriez</a> — Track Movies, TV Shows &amp; Anime in One Place
+            </p>
           </div>
         </div>
-      </>
-    );
-  } catch (e: any) {
-    console.error("Season page error:", e.message);
-    notFound();
-  }
+      </div>
+    </>
+  );
 }
