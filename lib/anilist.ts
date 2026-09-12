@@ -737,11 +737,20 @@ export const getAnimeDetail = unstable_cache(
         if (anizip.episodeCount) kd.episodes = anizip.episodeCount;
         if (anizip.mappings?.mal_id) kd.idMal = anizip.mappings.mal_id;
       }
+      // Persist the fallback detail too, so the next visit (even while AniList
+      // is still down) serves from DB instead of re-hitting Kitsu. Kitsu data
+      // (title/poster/rating) is a valid stand-in and gets refreshed once
+      // AniList recovers and the normal path overwrites it.
+      if (kd) await saveField(id, "detail", kd);
       return kd;
     }
     const json = await res!.json();
     const m = json.data?.Media;
-    if (!m) return getAnimeDetailFromKitsu(id);
+    if (!m) {
+      const kd = await getAnimeDetailFromKitsu(id);
+      if (kd) await saveField(id, "detail", kd);
+      return kd;
+    }
 
     // Characters with voice actors
     const characters = (m.characters?.edges || []).map((e: any) => ({
