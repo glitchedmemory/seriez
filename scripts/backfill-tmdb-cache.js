@@ -84,7 +84,7 @@ async function main() {
   console.log("[3/4] 영화 백필 중...");
   let mOk = 0, mFail = 0;
   for (let i = 0; i < movieIds.length; i++) {
-    const code = await warmPage(`http://localhost:3000/movie/${movieIds[i]}`);
+    const code = await warmPage(`http://127.0.0.1:3000/movie/${movieIds[i]}`);
     if (code === 200) mOk++; else mFail++;
     if ((i + 1) % 200 === 0) {
       const el = ((Date.now() - start) / 1000 / 60).toFixed(1);
@@ -97,7 +97,7 @@ async function main() {
   console.log("[4/4] TV 백필 중...");
   let tOk = 0, tFail = 0;
   for (let i = 0; i < tvIds.length; i++) {
-    const code = await warmPage(`http://localhost:3000/tv/${tvIds[i]}/season/1`);
+    const code = await warmPage(`http://127.0.0.1:3000/tv/${tvIds[i]}/season/1`);
     if (code === 200) tOk++; else tFail++;
     if ((i + 1) % 200 === 0) {
       const el = ((Date.now() - start) / 1000 / 60).toFixed(1);
