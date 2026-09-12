@@ -15,7 +15,9 @@
 
 const TARGET_MOVIE = parseInt(process.argv[2] || "2500", 10);
 const TARGET_TV = parseInt(process.argv[3] || "2500", 10);
-const DELAY_MS = 120; // 페이지 접속 간격 (서버 부하 방지)
+// proxy.ts의 rate limit: 페이지 요청 IP당 60초에 100회. 이를 지키려면 요청 간
+// 최소 600ms 필요. 안전하게 700ms → 분당 ~85회 (한도 100 미만).
+const DELAY_MS = 700;
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const API_KEY = process.env.TMDB_API_KEY;
@@ -58,12 +60,20 @@ async function collectPopular(mediaType, target) {
 }
 
 async function warmPage(url) {
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(30000) });
-    return res.status;
-  } catch {
-    return 0;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(30000) });
+      if (res.status === 429) {
+        // rate limit에 걸리면 30초 대기 후 재시도
+        await sleep(30000);
+        continue;
+      }
+      return res.status;
+    } catch {
+      return 0;
+    }
   }
+  return 429; // 재시도 후에도 429면 실패로 기록
 }
 
 async function main() {
