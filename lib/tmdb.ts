@@ -6,7 +6,6 @@ import { getCustomPoster } from "./custom-posters";
 import { unstable_cache } from "next/cache";
 import { persistentCache } from "./persistent-cache";
 import { GENRE_MAP } from "./genres";
-import { createClient } from "@supabase/supabase-js";
 
 export { GENRE_MAP };
 
@@ -23,8 +22,11 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 // thousands of pages) doesn't hold a Supabase connection per module instance,
 // which caused OOM during `next build` on the 3.7GB VPS.
 let _supabaseAdmin: any = null;
-function getSupabaseAdmin(): any {
+async function getSupabaseAdmin(): Promise<any> {
   if (!_supabaseAdmin) {
+    // Dynamic import so @supabase/supabase-js isn't hoisted into every server
+    // bundle at build time (which contributed to build OOM on the 3.7GB VPS).
+    const { createClient } = await import("@supabase/supabase-js");
     _supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
   }
   return _supabaseAdmin;
@@ -32,7 +34,7 @@ function getSupabaseAdmin(): any {
 
 async function saveTmdbCache(mediaType: "movie" | "tv" | "season", tmdbId: number, data: unknown): Promise<void> {
   try {
-    await getSupabaseAdmin().from("tmdb_cache").upsert(
+    await (await getSupabaseAdmin()).from("tmdb_cache").upsert(
       { tmdb_id: tmdbId, media_type: mediaType, data, updated_at: new Date().toISOString() },
       { onConflict: "tmdb_id,media_type" },
     );
@@ -43,7 +45,7 @@ async function saveTmdbCache(mediaType: "movie" | "tv" | "season", tmdbId: numbe
 
 async function readTmdbCache<T>(mediaType: "movie" | "tv" | "season", tmdbId: number): Promise<T | null> {
   try {
-    const { data } = await getSupabaseAdmin()
+    const { data } = await (await getSupabaseAdmin())
       .from("tmdb_cache")
       .select("data")
       .eq("tmdb_id", tmdbId)
