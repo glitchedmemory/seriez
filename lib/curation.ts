@@ -13,7 +13,7 @@ async function tmdb(p: string, q: Record<string, string> = {}) {
   const u = new URL(`${TMDB}${p}`);
   u.searchParams.set("api_key", KEY);
   Object.entries(q).forEach(([k, v]) => u.searchParams.set(k, v));
-  const r = await fetch(u, { next: { revalidate: 1800 } });
+  const r = await fetch(u, { cache: "no-store" });
   return r.ok ? r.json() : { results: [] };
 }
 

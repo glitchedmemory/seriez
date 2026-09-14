@@ -8,7 +8,7 @@ export type TitleInfo = { exists: boolean; voteCount: number };
 export async function getMovieInfo(id: number): Promise<TitleInfo | null> {
   try {
     const res = await fetch(`${TMDB_BASE}/movie/${id}?api_key=${API_KEY}&language=en-US`, {
-      next: { revalidate: 86400 },
+      cache: "no-store",
     });
     if (!res.ok) return null;
     const d = await res.json();
@@ -22,7 +22,7 @@ export async function getMovieInfo(id: number): Promise<TitleInfo | null> {
 export async function getTVInfo(id: number): Promise<TitleInfo | null> {
   try {
     const res = await fetch(`${TMDB_BASE}/tv/${id}?api_key=${API_KEY}&language=en-US`, {
-      next: { revalidate: 86400 },
+      cache: "no-store",
     });
     if (!res.ok) return null;
     const d = await res.json();

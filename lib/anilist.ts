@@ -48,7 +48,7 @@ export async function anilistFetch(
     method: "POST",
     headers: ANILIST_HEADERS,
     body: JSON.stringify({ query, variables }),
-    next: { revalidate: opts.revalidate ?? 3600 },
+    cache: "no-store",
     ...(opts.signal ? { signal: opts.signal } : {}),
   });
 }

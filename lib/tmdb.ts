@@ -81,7 +81,7 @@ async function get(endpoint: string, params: Record<string, string> = {}, locale
     86400,
     async () => {
       // Timeout so a slow/unresponsive TMDB request can never hang build-time prerender.
-      const res = await fetch(url, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(8000) });
+      const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
       if (!res.ok) return null; // don't cache failures — retry live next time
       return res.json();
     }
@@ -89,7 +89,7 @@ async function get(endpoint: string, params: Record<string, string> = {}, locale
 
   if (data === null) {
     // Cache miss (or failure) — hit TMDB live and this result wins for this request.
-    const res = await fetch(url, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(8000) });
+    const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
     if (!res.ok) throw new Error(`TMDB ${res.status}: ${endpoint}`);
     const json = await res.json();
     tmdbCache.set(cacheKey, json);
