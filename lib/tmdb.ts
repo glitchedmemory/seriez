@@ -34,6 +34,28 @@ async function getSupabaseAdmin(): Promise<any> {
 
 async function saveTmdbCache(mediaType: "movie" | "tv" | "season", tmdbId: number, data: unknown): Promise<void> {
   try {
+    // 재발 방지: 무한 upsert로 인한 tmdb_cache 폭증 차단.
+    // 1) 직렬화 크기 제한 — 원본급 거대 객체(과거 1.52GB 사고 원인)는 저장하지 않는다.
+    //    실제 페이지가 쓰는 가공 객체는 수 KB 수준이므로 20KB면 충분하다.
+    const serialized = JSON.stringify(data);
+    const kb = Buffer.byteLength(serialized, "utf8") / 1024;
+    if (kb > 20) {
+      return; // oversized — 페이지 렌더는 계속, DB 저장만 생략.
+    }
+
+    // 2) 중복 저장 방지 — 이미 같은 (tmdb_id, media_type) 행이 있으면
+    //    갱신하지 않는다. TMDB 폴백 목적이므로 최초 1회 저장이면 충분하고,
+    //    방문/프리렌더링 때마다 계속 upsert해 행을 갱신하는 낭비를 없앤다.
+    const existing = await (await getSupabaseAdmin())
+      .from("tmdb_cache")
+      .select("tmdb_id")
+      .eq("tmdb_id", tmdbId)
+      .eq("media_type", mediaType)
+      .maybeSingle();
+    if (existing.data) {
+      return; // already cached — skip rewrite.
+    }
+
     await (await getSupabaseAdmin()).from("tmdb_cache").upsert(
       { tmdb_id: tmdbId, media_type: mediaType, data, updated_at: new Date().toISOString() },
       { onConflict: "tmdb_id,media_type" },
