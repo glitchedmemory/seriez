@@ -12,71 +12,19 @@ export { GENRE_MAP };
 // Shared cache: tmdb_id 한 번만 조회, 모든 사용자 재사용 (프로세스 메모리)
 const tmdbCache = new Map<string, any>();
 
-// ─── DB-backed TMDB cache (TMDB outage fallback) ───
-// 영구 저장은 "가공된 최종 결과"(페이지가 실제 쓰는 객체)만 저장하고,
-// 원본 get() 응답(detail+credits+similar+videos 합쳐진 거대 JSON)은 저장하지
-// 않는다. 이렇게 해야 과거 1.52GB 폭증 사고를 재발시키지 않는다.
-// 포스터/배경은 URL 문자열만 저장(이미지는 CDN에서 로드). 영화 1개 = 수 KB.
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-// Lazy-initialize the admin client so build-time prerendering (which renders
-// thousands of pages) doesn't hold a Supabase connection per module instance,
-// which caused OOM during `next build` on the 3.7GB VPS.
-let _supabaseAdmin: any = null;
-async function getSupabaseAdmin(): Promise<any> {
-  if (!_supabaseAdmin) {
-    // Dynamic import so @supabase/supabase-js isn't hoisted into every server
-    // bundle at build time (which contributed to build OOM on the 3.7GB VPS).
-    const { createClient } = await import("@supabase/supabase-js");
-    _supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-  }
-  return _supabaseAdmin;
+// ─── DB-backed TMDB cache — REMOVED (영구 해결, 2026-09-14) ───
+// tmdb_cache DB 저장은 Supabase 무료 용량(500MB)을 반복적으로 초과시켰다
+// (1.52GB → 1.25GB 재발). TMDB outage 폴백은 Next.js unstable_cache
+// (revalidate 86400)가 .next 디스크 캐시에서 이미 담당하므로, DB 저장은
+// 중복일 뿐이다. saveTmdbCache/readTmdbCache는 no-op으로 비활성화했다.
+
+async function saveTmdbCache(mediaType: string, tmdbId: number, data: unknown): Promise<void> {
+  // Intentionally disabled (2026-09-14): DB-backed TMDB cache is off.
 }
 
-async function saveTmdbCache(mediaType: "movie" | "tv" | "season", tmdbId: number, data: unknown): Promise<void> {
-  try {
-    // 재발 방지: 무한 upsert로 인한 tmdb_cache 폭증 차단.
-    // 1) 직렬화 크기 제한 — 원본급 거대 객체(과거 1.52GB 사고 원인)는 저장하지 않는다.
-    //    실제 페이지가 쓰는 가공 객체는 수 KB 수준이므로 20KB면 충분하다.
-    const serialized = JSON.stringify(data);
-    const kb = Buffer.byteLength(serialized, "utf8") / 1024;
-    if (kb > 20) {
-      return; // oversized — 페이지 렌더는 계속, DB 저장만 생략.
-    }
-
-    // 2) 중복 저장 방지 — 이미 같은 (tmdb_id, media_type) 행이 있으면
-    //    갱신하지 않는다. TMDB 폴백 목적이므로 최초 1회 저장이면 충분하고,
-    //    방문/프리렌더링 때마다 계속 upsert해 행을 갱신하는 낭비를 없앤다.
-    const existing = await (await getSupabaseAdmin())
-      .from("tmdb_cache")
-      .select("tmdb_id")
-      .eq("tmdb_id", tmdbId)
-      .eq("media_type", mediaType)
-      .maybeSingle();
-    if (existing.data) {
-      return; // already cached — skip rewrite.
-    }
-
-    await (await getSupabaseAdmin()).from("tmdb_cache").upsert(
-      { tmdb_id: tmdbId, media_type: mediaType, data, updated_at: new Date().toISOString() },
-      { onConflict: "tmdb_id,media_type" },
-    );
-  } catch {
-    // cache write failure is non-fatal — the page still renders this request.
-  }
-}
-
-async function readTmdbCache<T>(mediaType: "movie" | "tv" | "season", tmdbId: number): Promise<T | null> {
-  try {
-    const { data } = await (await getSupabaseAdmin())
-      .from("tmdb_cache")
-      .select("data")
-      .eq("tmdb_id", tmdbId)
-      .eq("media_type", mediaType)
-      .single();
-    return (data?.data as T | undefined) ?? null;
-  } catch {
-    return null;
-  }
+async function readTmdbCache<T>(mediaType: string, tmdbId: number): Promise<T | null> {
+  // Intentionally disabled (2026-09-14): DB-backed TMDB cache is off.
+  return null;
 }
 
 export { saveTmdbCache, readTmdbCache };
