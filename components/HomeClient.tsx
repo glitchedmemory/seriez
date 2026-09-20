@@ -219,27 +219,12 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
     }).catch(() => {});
   }, [fetchForYou]);
 
-  // hero + right-now: initial value from the server (renders immediately, no
-  // skeleton/flash), then replaced immediately by a fresh random pick fetched
-  // from /api/home-hero on mount. The API is no-store so every reload gets a
-  // new random pick while the homepage HTML itself stays CDN-cached.
-  const [hero, setHero] = useState<TmdbResult>(() => trending[heroIndex] || trending[0]);
-  const [nextHero, setNextHero] = useState<TmdbResult | undefined>(() =>
-    nextPool[nextIndex] || curatedNextHero || (trending.filter((_, i) => i !== heroIndex)[0] || trending[0])
-  );
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/home-hero", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((data) => {
-        if (cancelled) return;
-        if (data.hero) setHero(data.hero);
-        if (data.nextHero) setNextHero(data.nextHero);
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
+  // hero + right-now: determined once on the server (page.tsx picks heroIndex /
+  // nextIndex randomly per request). The client just renders those server values
+  // verbatim — no client-side re-roll, so no flash and the pick stays stable for
+  // the lifetime of the server-rendered HTML (CDN-cached).
+  const hero = curatedHero || trending[heroIndex] || trending[0];
+  const nextHero = curatedNextHero || nextPool[nextIndex] || (trending.filter((_, i) => i !== heroIndex)[0] || trending[0]);
 
   // Shared search results dropdown
   const searchDropdown = searchOpen && searchQuery.trim() ? (
