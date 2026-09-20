@@ -220,11 +220,12 @@ export default function HomeClient({ trending, upcoming, animeUpcoming, boxOffic
   }, [fetchForYou]);
 
   // hero + right-now: determined once on the server (page.tsx picks heroIndex /
-  // nextIndex randomly per request). The client just renders those server values
-  // verbatim — no client-side re-roll, so no flash and the pick stays stable for
-  // the lifetime of the server-rendered HTML (CDN-cached).
-  const hero = curatedHero || trending[heroIndex] || trending[0];
-  const nextHero = curatedNextHero || nextPool[nextIndex] || (trending.filter((_, i) => i !== heroIndex)[0] || trending[0]);
+  // nextIndex randomly per request). The client renders those server values
+  // verbatim — no client-side re-roll, so no flash. curatedHero/curatedNextHero
+  // (Tonight's Pick) are intentionally NOT used here: TRENDING NOW is a random
+  // pick from the trending pool, separate from Tonight's Pick.
+  const hero = trending[heroIndex] || trending[0];
+  const nextHero = nextPool[nextIndex] || (trending.filter((_, i) => i !== heroIndex)[0] || trending[0]);
 
   // Shared search results dropdown
   const searchDropdown = searchOpen && searchQuery.trim() ? (
