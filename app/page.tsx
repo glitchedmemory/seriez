@@ -136,6 +136,7 @@ export default async function Home() {
   const heroIndex = trending.length > 0 ? Math.floor(Math.random() * trending.length) : 0;
   const nextPool = trending.filter((_, i) => i !== heroIndex);
   const nextIndex = nextPool.length > 0 ? Math.floor(Math.random() * nextPool.length) : 0;
+  console.log(`[HERO-DEBUG] length=${trending.length} heroIndex=${heroIndex} nextIndex=${nextIndex} hero=${trending[heroIndex]?.title} next=${nextPool[nextIndex]?.title}`);
 
   return <HomeClient trending={trending} upcoming={allUpcoming} animeUpcoming={[]} boxOffice={boxOffice} region={region} heroIndex={heroIndex} nextIndex={nextIndex} nextPool={nextPool} curatedHero={curated?.hero} curatedNextHero={curated?.nextHero} />;
 }
