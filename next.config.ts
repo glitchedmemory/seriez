@@ -119,6 +119,7 @@ const pwaOptions: any = {
     {
       urlPattern: ({ url }: { url: URL }) =>
         url.origin === self.location.origin &&
+        url.pathname !== "/" &&
         !url.pathname.startsWith("/api/") &&
         !url.pathname.startsWith("/_next/"),
       handler: "NetworkFirst",
