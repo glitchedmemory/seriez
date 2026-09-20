@@ -111,11 +111,13 @@ export async function proxy(request: NextRequest) {
   const intlRes = handleI18n(request);
   const sessionRes = await updateSession(request);
 
-  // Homepage: short Cloudflare cache to avoid stale box office
+  // Homepage: no-store so each request re-renders server-side. The hero/Right Now
+  // picks are random per request (page.tsx), so this keeps them fresh on every
+  // reload without client-side rerolling (which caused the flash).
   if (path === "/") {
     sessionRes.headers.set(
       "Cache-Control",
-      "public, max-age=0, s-maxage=120, stale-while-revalidate=60"
+      "private, no-cache, no-store, must-revalidate, max-age=0"
     );
   }
 
