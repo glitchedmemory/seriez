@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
       {
         source: "/",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=0, s-maxage=120, stale-while-revalidate=60" },
+          { key: "Cache-Control", value: "private, no-cache, no-store, must-revalidate, max-age=0" },
         ],
       },
       {
