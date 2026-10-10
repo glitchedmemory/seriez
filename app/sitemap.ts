@@ -1,7 +1,6 @@
 import { MetadataRoute } from "next";
 import fs from "fs";
 import path from "path";
-import { anilistFetch } from "@/lib/anilist";
 
 const BASE_URL = "https://seriez.app";
 const LOCALES = ["en", "ko", "ja", "zh", "fr", "de", "es", "pt"] as const;
@@ -11,6 +10,16 @@ const PAGES = 25;
 const PRIORITY_CUTOFF = 100;
 
 // Anime pages (/anime/[id]) use AniList IDs — see app/anime/[id]/page.tsx.
+// NOTE: lib/anilist.ts's anilistFetch() forces cache:"no-store", which makes Next
+// throw DynamicServerError while statically generating /sitemap.xml. So the sitemap
+// issues its own POST with the same headers AniList requires instead.
+const ANILIST_URL = "https://graphql.anilist.co";
+const ANILIST_HEADERS = {
+  "Content-Type": "application/json",
+  Accept: "application/json",
+  Origin: "https://anilist.co",
+  Referer: "https://anilist.co/",
+};
 const ANILIST_PAGES = 20; // 20 x 50 = top 1,000 anime by popularity
 const ANILIST_PER_PAGE = 50;
 const ANILIST_MIN_IDS = 100; // fewer than this means the API failed: keep the previous list
@@ -59,11 +68,14 @@ async function fetchAniListIds(): Promise<number[]> {
   const ids = new Set<number>();
   for (let page = 1; page <= ANILIST_PAGES; page++) {
     try {
-      const res = await anilistFetch(
-        `query { Page(page: ${page}, perPage: ${ANILIST_PER_PAGE}) { media(sort: POPULARITY_DESC, type: ANIME) { id } } }`,
-        {},
-        { signal: AbortSignal.timeout(8000) }
-      );
+      const res = await fetch(ANILIST_URL, {
+        method: "POST",
+        headers: ANILIST_HEADERS,
+        body: JSON.stringify({
+          query: `query { Page(page: ${page}, perPage: ${ANILIST_PER_PAGE}) { media(sort: POPULARITY_DESC, type: ANIME) { id } } }`,
+        }),
+        signal: AbortSignal.timeout(8000),
+      });
       if (!res.ok) {
         console.error(`[sitemap] AniList page ${page}: ${res.status}`);
         continue;
