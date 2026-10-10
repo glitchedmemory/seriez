@@ -78,7 +78,14 @@ export async function proxy(request: NextRequest) {
       return new NextResponse("Too many login attempts.", { status: 429 });
     }
   } else if (path.startsWith("/api/")) {
-    if (!rateLimit(ip + ":api", 60, 60000)) {
+    // 한도 분리: 시즌 페이지 한 장이 조회를 10여 회 보내므로 조회(GET)는 넉넉히,
+    // 저장(POST/DELETE)은 별도 버킷으로 두어 조회 폭주가 저장을 막지 않게 한다.
+    const isWrite = request.method !== "GET" && request.method !== "HEAD";
+    if (isWrite) {
+      if (!rateLimit(ip + ":api-write", 60, 60000)) {
+        return new NextResponse("Too many requests.", { status: 429 });
+      }
+    } else if (!rateLimit(ip + ":api", 180, 60000)) {
       return new NextResponse("Too many requests.", { status: 429 });
     }
   } else {
