@@ -5,6 +5,57 @@ import { useRouter } from "next/navigation";
 import { ReviewSection } from "@/components/ReviewSection";
 import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
+
+// ─── Shared request helpers ────────────────────────────────────────────────
+// The API is rate limited per IP, so a user's own write can come back as
+// 429/5xx. Retry with backoff and report the real outcome, so the button state
+// on screen never claims a save that did not happen.
+async function sendJsonData(
+  method: "POST" | "DELETE",
+  url: string,
+  body: unknown,
+  attempts = 3
+): Promise<{ ok: boolean; data: any }> {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        let data: any = null;
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
+        return { ok: true, data };
+      }
+      if (res.status !== 429 && res.status < 500) return { ok: false, data: null };
+    } catch {
+      // network hiccup — retry
+    }
+    if (i < attempts - 1) await new Promise((r) => setTimeout(r, 1200 * (i + 1)));
+  }
+  return { ok: false, data: null };
+}
+
+async function getJsonRetry(url: string, attempts = 2): Promise<any> {
+  let lastErr: unknown = null;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(url, { cache: "no-cache" });
+      if (res.ok) return res.json();
+      lastErr = new Error(String(res.status));
+      if (res.status !== 429 && res.status < 500) break;
+    } catch (e) {
+      lastErr = e;
+    }
+    if (i < attempts - 1) await new Promise((r) => setTimeout(r, 1200));
+  }
+  throw lastErr;
+}
 import { useTranslations } from "next-intl";
 
 function HeartIcon({ active }: { active: boolean }) {
@@ -55,6 +106,7 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
   // creating a duplicate with season 0 (the upsert key includes
   // season_number, so a missing seasonNumber silently diverges rows).
   const [trackedSeason, setTrackedSeason] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [authUser, setAuthUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
   const supabase = createClient();
@@ -77,8 +129,7 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
       if (!uname) return;
       const username = uname;
 
-    fetch(`/api/track?username=${encodeURIComponent(username)}`, { cache: "no-cache" })
-      .then((r) => r.json())
+    getJsonRetry(`/api/track?username=${encodeURIComponent(username)}`)
       .then((data) => {
         if (Array.isArray(data)) {
           const match = data.find(
@@ -114,6 +165,12 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
     return () => document.removeEventListener("mousedown", handleClick);
   }, [showCollDropdown]);
 
+  useEffect(() => {
+    if (!saveError) return;
+    const timer = setTimeout(() => setSaveError(false), 7000);
+    return () => clearTimeout(timer);
+  }, [saveError]);
+
   async function handleTrack(status: string, ratingOverride?: number) {
     if (!authUser) { router.push("/signup"); return; }
     const username = authUser.user_metadata?.username || "";
@@ -122,45 +179,45 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
     const newStatus = isResubmit ? "completed" : (trackStatus === status ? null : status);
 
     setTrackLoading(true);
-    try {
-      if (newStatus) {
-        const body: Record<string, unknown> = {
-          username,
-          tmdbId: detail.id,
-          mediaType: detail.type,
-          status: newStatus,
-          // Keep the same season_number as the existing row so the upsert
-          // updates it in place instead of creating a season-0 duplicate.
-          ...(trackedSeason != null ? { seasonNumber: trackedSeason } : {}),
-        };
-        if (status === "completed" && effectiveRating > 0) {
-          body.rating = effectiveRating;
-        }
-        const res = await fetch("/api/track", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-        const json = await res.json();
-        setTrackedAt(json.updatedAt || new Date().toISOString());
-      } else {
-        await fetch("/api/track", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username,
-            tmdbId: detail.id,
-            mediaType: detail.type,
-            // Match the existing row's season_number so the delete removes
-            // the right row instead of a season-0 miss.
-            ...(trackedSeason != null ? { seasonNumber: trackedSeason } : {}),
-          }),
-        });
-        setTrackedAt(null);
+    if (newStatus) {
+      const body: Record<string, unknown> = {
+        username,
+        tmdbId: detail.id,
+        mediaType: detail.type,
+        status: newStatus,
+        // Keep the same season_number as the existing row so the upsert
+        // updates it in place instead of creating a season-0 duplicate.
+        ...(trackedSeason != null ? { seasonNumber: trackedSeason } : {}),
+      };
+      if (status === "completed" && effectiveRating > 0) {
+        body.rating = effectiveRating;
       }
-      setTrackStatus(newStatus);
-      setTrackVersion(v => v + 1);
-    } catch {}
+      const save = await sendJsonData("POST", "/api/track", body);
+      if (!save.ok) {
+        // 저장이 확인되지 않았으므로 버튼 상태를 바꾸지 않고 알린다
+        setSaveError(true);
+        setTrackLoading(false);
+        return;
+      }
+      setTrackedAt(save.data?.updatedAt || new Date().toISOString());
+    } else {
+      const removed = await sendJsonData("DELETE", "/api/track", {
+        username,
+        tmdbId: detail.id,
+        mediaType: detail.type,
+        // Match the existing row's season_number so the delete removes
+        // the right row instead of a season-0 miss.
+        ...(trackedSeason != null ? { seasonNumber: trackedSeason } : {}),
+      });
+      if (!removed.ok) {
+        setSaveError(true);
+        setTrackLoading(false);
+        return;
+      }
+      setTrackedAt(null);
+    }
+    setTrackStatus(newStatus);
+    setTrackVersion(v => v + 1);
     setTrackLoading(false);
   }
 
@@ -217,6 +274,12 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
       )}
 
       {mounted && (
+      <>
+      {saveError && (
+        <div className="mt-4 rounded-md bg-red-500/15 px-3 py-2 text-xs text-red-400">
+          Couldn&apos;t save that change — it wasn&apos;t stored. Please try again.
+        </div>
+      )}
       <div className="flex gap-2 mt-4 justify-center md:justify-start">
         <button
           onClick={() => handleTrack("plan_to_watch")}
@@ -255,6 +318,7 @@ export default function DetailInteractive({ detail, mode }: { detail: DetailData
           WATCHED
         </button>
       </div>
+      </>
       )}
 
       {mounted && (

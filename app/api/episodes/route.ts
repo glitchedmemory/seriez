@@ -44,6 +44,29 @@ export async function GET(req: NextRequest) {
   });
 }
 
+// ─── progress 재계산 ───
+// "몇 화 봤는지" 숫자(progress)는 항상 실제 episode_watches 기록 수와 같아야 한다.
+// 체크를 해제했을 때 이 숫자를 다시 계산하지 않아, 실제 기록(14건)보다 큰 값(15)이
+// 남는 문제가 있었다. 저장·해제 양쪽에서 같은 함수로 맞춘다.
+async function recalcTvProgress(userId: string, tmdbId: number) {
+  const { count } = await supabaseAdmin
+    .from("episode_watches")
+    .select("id", { count: "exact", head: true })
+    .eq("username", userId)
+    .eq("tmdb_id", tmdbId);
+
+  const progress = count ?? 0;
+
+  await supabaseAdmin
+    .from("media_trackings")
+    .update({ progress })
+    .eq("username", userId)
+    .eq("tmdb_id", tmdbId)
+    .eq("media_type", "tv");
+
+  return progress;
+}
+
 // ─── POST: toggle episode watch ───
 export async function POST(req: NextRequest) {
   try {
@@ -88,7 +111,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: delErr.message }, { status: 500 });
       }
 
-      return NextResponse.json({ action: "unwatched", seasonNumber, episodeNumber });
+      // 해제 후에도 "몇 화 봤는지" 숫자를 실제 기록 수에 맞춘다.
+      const progress = await recalcTvProgress(userId, tmdbId);
+
+      return NextResponse.json({ action: "unwatched", seasonNumber, episodeNumber, progress });
     }
 
     // Not watched → watch (insert)
@@ -106,13 +132,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update progress count on media_trackings
-    const { count } = await supabaseAdmin
-      .from("episode_watches")
-      .select("id", { count: "exact", head: true })
-      .eq("username", userId)
-      .eq("tmdb_id", tmdbId);
-
-    const progress = count ?? null;
+    const progress = await recalcTvProgress(userId, tmdbId);
 
     // Auto-set tracking status to "watching" only when this title has NO
     // tracking row at all. Matching by season_number alone would treat an

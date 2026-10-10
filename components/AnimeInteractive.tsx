@@ -8,6 +8,74 @@ import { StarInput } from "@/components/StarInput";
 import { createClient } from "@/lib/supabase/client";
 import { stripHtml } from "@/lib/strip-html";
 
+// ─── Shared request helpers ────────────────────────────────────────────────
+// The anime page renders three AnimeInteractive instances (buttons-only /
+// episodes-only / reviews-only) and each one loads the same data on mount, so a
+// single page view used to fire the same GET three times. Collapse identical
+// in-flight GETs into one request (retrying a 429/5xx once).
+const inflightGets = new Map<string, Promise<any>>();
+
+function getJsonOnce(url: string): Promise<any> {
+  const existing = inflightGets.get(url);
+  if (existing) return existing;
+  const p = (async () => {
+    let res = await fetch(url, { cache: "no-cache" });
+    if (!res.ok && (res.status === 429 || res.status >= 500)) {
+      await new Promise((r) => setTimeout(r, 1200));
+      res = await fetch(url, { cache: "no-cache" });
+    }
+    if (!res.ok) throw new Error("GET " + url + " -> " + res.status);
+    return res.json();
+  })().finally(() => {
+    inflightGets.delete(url);
+  });
+  inflightGets.set(url, p);
+  return p;
+}
+
+// A user's own write must never be lost to a transient 429/5xx (the API is rate
+// limited per IP). Retry with backoff and return the real outcome so the UI can
+// revert the optimistic change instead of showing a save that never happened.
+async function sendJsonData(
+  method: "POST" | "DELETE",
+  url: string,
+  body: unknown,
+  attempts = 3
+): Promise<{ ok: boolean; data: any }> {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        let data: any = null;
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
+        return { ok: true, data };
+      }
+      if (res.status !== 429 && res.status < 500) return { ok: false, data: null };
+    } catch {
+      // network hiccup — retry
+    }
+    if (i < attempts - 1) await new Promise((r) => setTimeout(r, 1200 * (i + 1)));
+  }
+  return { ok: false, data: null };
+}
+
+async function sendJson(
+  method: "POST" | "DELETE",
+  url: string,
+  body: unknown,
+  attempts = 3
+): Promise<boolean> {
+  return (await sendJsonData(method, url, body, attempts)).ok;
+}
+
 function HeartIcon({ active }: { active: boolean }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={active ? "#14b8a6" : "none"} stroke={active ? "#14b8a6" : "var(--color-text-secondary)"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -49,6 +117,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
   const [authUser, setAuthUser] = useState<{ email?: string; user_metadata?: { username?: string } } | null>(null);
   const [watchedEpisodes, setWatchedEpisodes] = useState<Set<string>>(new Set());
   const [epToggleLoading, setEpToggleLoading] = useState<string | null>(null);
+  const [epSaveError, setEpSaveError] = useState(false);
   const [collections, setCollections] = useState<{ id: string; name: string; itemCount: number }[]>([]);
   const [showCollDropdown, setShowCollDropdown] = useState(false);
   const [addingCollId, setAddingCollId] = useState<string | null>(null);
@@ -87,16 +156,14 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
       const uname = session?.user?.user_metadata?.username || localStorage.getItem("seriez-username");
       if (!uname) return;
       const username = uname;
-      fetch(`/api/track?username=${encodeURIComponent(username)}`, { cache: "no-cache" })
-        .then((r) => r.json())
+      getJsonOnce(`/api/track?username=${encodeURIComponent(username)}`)
         .then((data) => {
           if (Array.isArray(data)) {
             const match = data.find((t: any) => t.tmdbId === detail.id && t.mediaType === "anime");
             if (match) { setTrackStatus(match.status); setRating(match.rating || 0); setTrackedAt(match.updatedAt || null); }
           }
         }).catch(() => {});
-      fetch(`/api/episodes?username=${encodeURIComponent(username)}&tmdbId=${detail.id}`)
-        .then((r) => r.json())
+      getJsonOnce(`/api/episodes?username=${encodeURIComponent(username)}&tmdbId=${detail.id}`)
         .then((epData) => {
           if (epData.episodes) {
             const set = new Set<string>();
@@ -104,11 +171,16 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
             setWatchedEpisodes(set);
           }
         }).catch(() => {});
-      fetch(`/api/collections?username=${encodeURIComponent(username)}`)
-        .then((r) => r.json())
+      getJsonOnce(`/api/collections?username=${encodeURIComponent(username)}`)
         .then((data) => { if (data.collections) setCollections(data.collections); }).catch(() => {});
     }).catch(() => {});
   }, [detail.id]);
+
+  useEffect(() => {
+    if (!epSaveError) return;
+    const timer = setTimeout(() => setEpSaveError(false), 7000);
+    return () => clearTimeout(timer);
+  }, [epSaveError]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -163,23 +235,66 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
           tmdbRating: detail.rating || undefined,
         };
         if (status === "completed" && effectiveRating > 0) body.rating = effectiveRating;
-        const res = await fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-        json = await res.json();
-        setTrackedAt(json.updatedAt || new Date().toISOString());
+        const save = await sendJsonData("POST", "/api/track", body);
+        if (!save.ok) {
+          // 작품 상태 저장 실패: 화면 상태를 바꾸지 않고 알린다
+          setEpSaveError(true);
+          setTrackLoading(false);
+          return;
+        }
+        json = save.data;
+        setTrackedAt(json?.updatedAt || new Date().toISOString());
         if (newStatus === "completed" && trackStatus !== "completed" && episodes.length > 0) {
-          setWatchedEpisodes((prev) => { const all = new Set(prev); episodes.forEach((ep) => all.add(`1-${ep.number}`)); return all; });
-          episodes.forEach((ep) => fetch("/api/episodes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, seasonNumber: 1, episodeNumber: ep.number }) }).catch(() => {}));
+          // 에피소드 저장이 실제로 성공한 것만 체크로 표시한다.
+          // (한 번에 수백 건을 보내면 요청 한도에 걸리므로 8건씩 나눠 보낸다)
+          const saved: number[] = [];
+          for (let i = 0; i < episodes.length; i += 8) {
+            const chunk = episodes.slice(i, i + 8);
+            const results = await Promise.all(
+              chunk.map((ep) =>
+                sendJson("POST", "/api/episodes", {
+                  username,
+                  tmdbId: detail.id,
+                  seasonNumber: 1,
+                  episodeNumber: ep.number,
+                })
+              )
+            );
+            chunk.forEach((ep, idx) => {
+              if (results[idx]) saved.push(ep.number);
+            });
+          }
+          setWatchedEpisodes((prev) => {
+            const next = new Set(prev);
+            saved.forEach((n) => next.add(`1-${n}`));
+            return next;
+          });
+          if (saved.length !== episodes.length) setEpSaveError(true);
         }
         if (newStatus === "watching" && !watchedEpisodes.has("1-1")) {
-          setWatchedEpisodes((prev) => { const next = new Set(prev); next.add("1-1"); return next; });
-          fetch("/api/episodes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, seasonNumber: 1, episodeNumber: 1 }) }).catch(() => {});
+          const epSaved = await sendJson("POST", "/api/episodes", {
+            username,
+            tmdbId: detail.id,
+            seasonNumber: 1,
+            episodeNumber: 1,
+          });
+          if (epSaved) {
+            setWatchedEpisodes((prev) => { const next = new Set(prev); next.add("1-1"); return next; });
+          } else {
+            setEpSaveError(true);
+          }
         }
       } else {
-        await fetch("/api/track", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime" }) });
+        const removed = await sendJson("DELETE", "/api/track", { username, tmdbId: detail.id, mediaType: "anime" });
+        if (!removed) {
+          setEpSaveError(true);
+          setTrackLoading(false);
+          return;
+        }
         setTrackedAt(null);
         if ((trackStatus === "watching" || trackStatus === "completed") && watchedEpisodes.size > 0) {
           setWatchedEpisodes(new Set());
-          for (const key of watchedEpisodes) { const [, en] = key.split("-").map(Number); fetch("/api/episodes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, seasonNumber: 1, episodeNumber: en }) }).catch(() => {}); }
+          for (const key of watchedEpisodes) { const [, en] = key.split("-").map(Number); void sendJson("POST", "/api/episodes", { username, tmdbId: detail.id, seasonNumber: 1, episodeNumber: en }); }
         }
       }
       syncTrackState(newStatus, { trackedAt: newStatus ? (json?.updatedAt || new Date().toISOString()) : null });
@@ -193,26 +308,40 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
     const key = `1-${episodeNumber}`;
     const username = authUser.user_metadata?.username || "";
     const wasWatched = watchedEpisodes.has(key);
-    setWatchedEpisodes((prev) => { const next = new Set(prev); if (next.has(key)) next.delete(key); else next.add(key); return next; });
     setEpToggleLoading(key);
+
+    // 1) 에피소드 기록을 먼저 저장하고 결과를 확인한다.
+    //    저장이 안 됐는데 체크만 켜두면 새로고침 후 사라지므로, 실패하면 체크를 켜지 않고 알린다.
+    const epSaved = await sendJson("POST", "/api/episodes", {
+      username,
+      tmdbId: detail.id,
+      seasonNumber: 1,
+      episodeNumber,
+    });
+    if (!epSaved) {
+      setEpToggleLoading(null);
+      setEpSaveError(true);
+      return;
+    }
+    setWatchedEpisodes((prev) => { const next = new Set(prev); if (wasWatched) next.delete(key); else next.add(key); return next; });
+
     const willHaveWatched = !wasWatched || watchedEpisodes.size > 1;
     if (willHaveWatched && (!trackStatus || trackStatus === "plan_to_watch" || trackStatus === "completed")) {
-      syncTrackState("watching");
-      await fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined }) });
+      const ok = await sendJson("POST", "/api/track", { username, tmdbId: detail.id, mediaType: "anime", status: "watching", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined });
+      if (ok) syncTrackState("watching"); else setEpSaveError(true);
     } else if (!willHaveWatched && trackStatus === "watching") {
-      syncTrackState(null);
-      await fetch("/api/track", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime" }) });
+      const ok = await sendJson("DELETE", "/api/track", { username, tmdbId: detail.id, mediaType: "anime" });
+      if (ok) syncTrackState(null); else setEpSaveError(true);
     }
-    try { await fetch("/api/episodes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, seasonNumber: 1, episodeNumber }) }); } catch {}
     setEpToggleLoading(null);
     if (trackStatus === "completed" && wasWatched && watchedEpisodes.size - 1 < episodes.length) {
-      syncTrackState("watching");
-      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "watching", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined }) }).catch(() => {});
+      const ok = await sendJson("POST", "/api/track", { username, tmdbId: detail.id, mediaType: "anime", status: "watching", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined });
+      if (ok) syncTrackState("watching"); else setEpSaveError(true);
     }
     const nowAllWatched = !wasWatched && watchedEpisodes.size + 1 >= episodes.length;
     if (nowAllWatched && trackStatus !== "completed") {
-      syncTrackState("completed", { trackedAt: new Date().toISOString() });
-      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", status: "completed" }) }).catch(() => {});
+      const ok = await sendJson("POST", "/api/track", { username, tmdbId: detail.id, mediaType: "anime", status: "completed" });
+      if (ok) syncTrackState("completed", { trackedAt: new Date().toISOString() }); else setEpSaveError(true);
     }
   }
 
@@ -254,6 +383,12 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
 
         {/* Tracking buttons */}
         {mounted && (
+          <>
+          {epSaveError && mode === "buttons-only" && (
+            <div className="mb-3 rounded-md bg-red-500/15 px-3 py-2 text-xs text-red-400">
+              Couldn&apos;t save that change — it wasn&apos;t stored. Please try again.
+            </div>
+          )}
           <div className="flex gap-2 justify-center md:justify-start">
             <button onClick={() => handleTrack("plan_to_watch")} disabled={trackLoading}
               className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold transition-all border ${isWanted ? "text-[#14b8a6] border-[#14b8a640] bg-[#14b8a610]" : "text-text-secondary border-border bg-bg-card hover:text-text-primary hover:border-accent"}`}>
@@ -268,6 +403,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
               <CheckIcon active={isWatched} />WATCHED
             </button>
           </div>
+          </>
         )}
       </div>
 
@@ -314,6 +450,11 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
       {/* Episode list with tracking */}
       {mode !== "buttons-only" && mode !== "reviews-only" && episodes.length > 0 && (
         <div className="mt-6">
+          {epSaveError && (
+            <div className="mb-3 rounded-md bg-red-500/15 px-3 py-2 text-xs text-red-400">
+              Couldn&apos;t save that change — it wasn&apos;t stored. Please tap the circle again.
+            </div>
+          )}
           {/* Saga tabs */}
           {sagas && (
             <div className="flex gap-1.5 mb-3 overflow-x-auto md:overflow-visible md:flex-wrap">
