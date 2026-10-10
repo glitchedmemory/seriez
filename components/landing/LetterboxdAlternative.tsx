@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useLocale } from "next-intl";
 import { LETTERBOXD_COPY, landingCopy } from "@/lib/landing/copy";
+import { useLandingLocale } from "@/lib/landing/useLandingLocale";
 
 const SITE_URL = "https://seriez.app";
 
 export default function LetterboxdAlternative() {
-  const locale = useLocale();
+  const locale = useLandingLocale();
   const c = landingCopy(LETTERBOXD_COPY, locale);
 
   const faqJsonLd = {
