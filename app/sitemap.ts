@@ -174,5 +174,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     )
   );
 
-  return [...staticEntries, ...movieEntries, ...tvEntries, ...animeEntries];
+  // Language-specific landing URLs (/es/tv-time-alternative and the rest) are real pages now,
+  // so they are listed with the same alternate set as their base URL.
+  const landingKinds = ["tv-time-alternative", "letterboxd-alternative"] as const;
+  const landingLanguageEntries: MetadataRoute.Sitemap = landingKinds.flatMap((kind) =>
+    LOCALES.filter((l) => l !== "en").map((l) => ({
+      url: `${BASE_URL}/${l}/${kind}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.9,
+      alternates: {
+        languages: Object.fromEntries(
+          LOCALES.map((code) => [code, code === "en" ? `${BASE_URL}/${kind}` : `${BASE_URL}/${code}/${kind}`])
+        ),
+      },
+    }))
+  );
+
+  return [...staticEntries, ...landingLanguageEntries, ...movieEntries, ...tvEntries, ...animeEntries];
 }

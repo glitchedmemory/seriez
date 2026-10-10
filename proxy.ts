@@ -121,8 +121,14 @@ export async function proxy(request: NextRequest) {
     request.headers.set("accept-language", cookieLocale);
   }
 
+  // Real per-language landing URLs (/es/tv-time-alternative) carry the locale in the path itself,
+  // so next-intl must not treat the prefix as a locale and bounce the request away from the page.
+  // Only these two paths are affected; every other route keeps the existing prefix behaviour.
+  const localizedLandingMatch = path.match(/^\/([a-z]{2})\/(tv-time-alternative|letterboxd-alternative)$/);
+  const isLocalizedLanding = !!localizedLandingMatch && VALID_LOCALES.includes(localizedLandingMatch[1]);
+
   // Apply i18n and updateSession, merge headers
-  const intlRes = handleI18n(request);
+  const intlRes = isLocalizedLanding ? NextResponse.next() : handleI18n(request);
   const sessionRes = await updateSession(request);
 
   // Homepage: no-store so each request re-renders server-side. The hero/Right Now
