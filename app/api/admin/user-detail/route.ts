@@ -38,13 +38,27 @@ export async function GET(req: NextRequest) {
       .limit(50);
 
     // Tracking (media_trackings) — the column stores the user's UUID (users.id),
-    // not the username string, so resolve the id first.
+    // not the username string, so resolve the id first. Every row carries its
+    // work type, so anime / TV / movies are kept separate.
     const { data: library } = await supabaseAdmin
       .from("media_trackings")
       .select("tmdb_id, media_type, status, rating, season_number, updated_at, title")
       .eq("username", user.id)
       .order("updated_at", { ascending: false })
-      .limit(50);
+      .limit(500);
+
+    const libRows = library || [];
+    const libraryCounts = {
+      anime: libRows.filter((r: any) => r.media_type === "anime").length,
+      tv: libRows.filter((r: any) => r.media_type === "tv").length,
+      movie: libRows.filter((r: any) => r.media_type === "movie").length,
+      total: libRows.length,
+    };
+
+    const titleByKey: Record<string, string> = {};
+    for (const r of libRows) {
+      if (r.title) titleByKey[`${r.tmdb_id}|${r.media_type}`] = r.title;
+    }
 
     // Comments
     const { data: comments } = await supabaseAdmin
@@ -54,16 +68,38 @@ export async function GET(req: NextRequest) {
       .order("created_at", { ascending: false })
       .limit(50);
 
-    // Watched episodes count
-    const { count: episodeCount } = await supabaseAdmin
-      .from("episode_watches")
-      .select("*", { count: "exact", head: true })
-      .eq("username", target);
+    // Watched episodes — the column stores the user's UUID, and every record
+    // carries its work type, so count and list them per type.
+    const [animeEpisodes, tvEpisodes, recentEpisodes] = await Promise.all([
+      supabaseAdmin.from("episode_watches").select("*", { count: "exact", head: true })
+        .eq("username", user.id).eq("media_type", "anime"),
+      supabaseAdmin.from("episode_watches").select("*", { count: "exact", head: true })
+        .eq("username", user.id).eq("media_type", "tv"),
+      supabaseAdmin.from("episode_watches")
+        .select("tmdb_id, media_type, season_number, episode_number, watched_at")
+        .eq("username", user.id)
+        .order("watched_at", { ascending: false })
+        .limit(50),
+    ]);
+
+    const episodeCounts = {
+      anime: animeEpisodes.count || 0,
+      tv: tvEpisodes.count || 0,
+      total: (animeEpisodes.count || 0) + (tvEpisodes.count || 0),
+    };
+
+    const episodes = (recentEpisodes.data || []).map((e: any) => ({
+      ...e,
+      title: titleByKey[`${e.tmdb_id}|${e.media_type}`] || `#${e.tmdb_id}`,
+    }));
 
     return NextResponse.json({
-      user: { ...user, episode_watch_count: episodeCount || 0 },
+      user: { ...user, episode_watch_count: episodeCounts.total },
       reviews: reviews || [],
-      library: library || [],
+      library: libRows,
+      library_counts: libraryCounts,
+      episodes,
+      episode_watch_counts: episodeCounts,
       comments: comments || [],
     });
   } catch (err: any) {
