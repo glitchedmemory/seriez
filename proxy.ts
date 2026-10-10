@@ -102,7 +102,14 @@ export async function proxy(request: NextRequest) {
       { cookies: { getAll: () => request.cookies.getAll(), setAll: () => {} } }
     );
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user || user.user_metadata?.username !== "Seriez") {
+    const viewer = user?.user_metadata?.username as string | undefined;
+    if (!user || !viewer) {
+      return NextResponse.rewrite(new URL("/404", request.url));
+    }
+    // 계정 이름 하나가 아니라 역할로 판단한다 (두 번째 관리자·운영자도 들어올 수 있게).
+    const { data: viewerRow } = await supabase
+      .from("users").select("role").eq("username", viewer).maybeSingle();
+    if (!["admin", "moderator"].includes(viewerRow?.role || "")) {
       return NextResponse.rewrite(new URL("/404", request.url));
     }
   }

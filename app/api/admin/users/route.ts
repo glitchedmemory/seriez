@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername, STAFF_ROLES } from "@/lib/auth-helper";
+import { deleteUserData } from "@/lib/delete-user-data";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -76,35 +77,11 @@ export async function DELETE(req: NextRequest) {
 
     const userId = targetData.id;
 
-    // Cascade delete all user data
-    const tablesToCleanUser = ["notifications", "search_logs"];
-    const tablesToCleanUsername = ["media_trackings", "episode_watches"];
-    const tablesToCleanBoth = ["reviews", "review_likes", "collection_comments", "collection_likes"];
-
-    for (const table of tablesToCleanUser) {
-      await supabaseAdmin.from(table).delete().eq("user_id", userId);
+    // 표마다 사용자를 가리키는 칸이 달라서 공용 정리 함수로 지운다.
+    const cleanup = await deleteUserData(userId, targetUser);
+    if (cleanup.failures.length > 0) {
+      console.error("[admin delete-user] cleanup failures:", cleanup.failures);
     }
-    for (const table of tablesToCleanUsername) {
-      await supabaseAdmin.from(table).delete().eq("username", targetUser);
-    }
-    for (const table of tablesToCleanBoth) {
-      await supabaseAdmin.from(table).delete().eq("user_id", userId);
-      await supabaseAdmin.from(table).delete().eq("username", targetUser);
-    }
-
-    await supabaseAdmin.from("review_comments").delete().eq("user_id", userId);
-    await supabaseAdmin.from("comment_likes").delete().eq("user_id", userId);
-    await supabaseAdmin.from("reports").delete().eq("reporter_username", targetUser);
-    await supabaseAdmin.from("follows").delete().eq("follower_id", userId);
-    await supabaseAdmin.from("follows").delete().eq("following_id", userId);
-
-    const { data: lists } = await supabaseAdmin.from("user_lists").select("id").eq("user_id", userId);
-    if (lists) {
-      for (const list of lists) {
-        await supabaseAdmin.from("list_items").delete().eq("list_id", list.id);
-      }
-    }
-    await supabaseAdmin.from("user_lists").delete().eq("user_id", userId);
 
     // Delete from users table
     await supabaseAdmin.from("users").delete().eq("username", targetUser);
@@ -112,11 +89,14 @@ export async function DELETE(req: NextRequest) {
     // Delete from Auth
     await supabaseAdmin.auth.admin.deleteUser(userId);
 
+    // 삭제 기록 (대시보드 집계에 쓰인다)
+    await supabaseAdmin.from("deleted_users").insert({ username: targetUser });
+
     // Audit log
     const { logAdminAction } = await import("@/lib/audit-log");
     logAdminAction(adminUser, "delete_user", "user", targetUser, {});
 
-    return NextResponse.json({ ok: true, deleted: targetUser });
+    return NextResponse.json({ ok: true, deleted: targetUser, cleanup });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
