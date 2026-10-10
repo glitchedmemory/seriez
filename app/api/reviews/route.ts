@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { deleteReportsForContent } from "@/lib/report-cleanup";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername } from "@/lib/auth-helper";
 import { checkText } from "@/lib/moderation";
@@ -341,10 +342,15 @@ export async function DELETE(req: NextRequest) {
 
     // Delete associated likes + comments first
     await supabaseAdmin.from("review_likes").delete().eq("review_id", reviewId);
+    const { data: commentRows } = await supabaseAdmin
+      .from("review_comments").select("id").eq("review_id", reviewId);
     await supabaseAdmin.from("review_comments").delete().eq("review_id", reviewId);
     const { error } = await supabaseAdmin.from("reviews").delete().eq("id", reviewId);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // 리뷰와 그 댓글을 가리키던 신고도 함께 정리한다.
+    await deleteReportsForContent([reviewId, ...(commentRows || []).map((r: any) => r.id)]);
 
     // Invalidate cached stats for the review author
     void supabaseAdmin

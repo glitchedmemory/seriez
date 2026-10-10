@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { deleteReportsForContent } from "@/lib/report-cleanup";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername, STAFF_ROLES } from "@/lib/auth-helper";
 import { logAdminAction } from "@/lib/audit-log";
@@ -49,6 +50,8 @@ export async function GET(req: NextRequest) {
         const { error } = await supabaseAdmin.from(table).delete().eq("id", id);
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+        await deleteReportsForContent([id]);
+
         logAdminAction(username, "delete_content", "collection", id, {
           collection_name: itemData?.name || "unknown",
           collection_owner: itemData?.user_id || "unknown",
@@ -79,6 +82,8 @@ export async function GET(req: NextRequest) {
 
       const { error } = await supabaseAdmin.from(table).delete().eq("id", id);
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+      await deleteReportsForContent([id]);
 
       logAdminAction(username, "delete_content", type as "review" | "comment", id, {
         content_author: itemData?.username || "unknown",

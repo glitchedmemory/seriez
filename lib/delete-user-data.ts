@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { deleteReportsForContent } from "@/lib/report-cleanup";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,6 +37,10 @@ export async function deleteUserData(userId: string, username: string): Promise<
       steps.push({ table, filter, deleted: null, error: e?.message || "unknown" });
     }
   };
+
+  // 이 계정이 쓴 글을 지우기 전에 번호를 모아 둔다 (그 글을 가리키는 신고를 함께 정리하기 위해)
+  const { data: writtenReviews } = await supabaseAdmin.from("reviews").select("id").eq("username", username);
+  const { data: writtenComments } = await supabaseAdmin.from("review_comments").select("id").eq("username", username);
 
   // 계정 아이디(users.id)를 담는 칸
   await run("media_trackings", "username = id", () =>
@@ -89,6 +94,15 @@ export async function deleteUserData(userId: string, username: string): Promise<
     steps.push({ table: "user_lists", filter: "user_id", deleted: lists?.length ?? 0, ...(error ? { error: error.message } : {}) });
   } catch (e: any) {
     steps.push({ table: "user_lists", filter: "user_id", deleted: null, error: e?.message || "unknown" });
+  }
+
+  // 이 계정이 쓴 글을 가리키던 신고도 함께 정리한다 (남으면 없는 글을 가리키는 신고가 쌓인다)
+  const removedReports = await deleteReportsForContent([
+    ...(writtenReviews || []).map((r: any) => r.id),
+    ...(writtenComments || []).map((r: any) => r.id),
+  ]);
+  if (removedReports > 0) {
+    steps.push({ table: "reports", filter: "target_id (작성한 글)", deleted: removedReports });
   }
 
   return { steps, failures: steps.filter(s => s.error) };
