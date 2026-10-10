@@ -5,23 +5,25 @@ const SITE_URL = "https://seriez.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "TV Time Alternative: Import Your Watch History | Seriez",
+  title: "TV Time Alternative: Import Your Watch History",
   description:
     "TV Time shut down on July 15, 2026. Bring your watch history to Seriez with a CSV import from your TV Time export, and track movies, TV shows, and anime in one place.",
   alternates: { canonical: `${SITE_URL}/tv-time-alternative` },
   openGraph: {
-    title: "TV Time Alternative: Import Your Watch History | Seriez",
+    title: "TV Time Alternative: Import Your Watch History",
     description:
       "TV Time is gone. Your watch history does not have to be. Import your TV Time CSV export and keep tracking movies, TV shows, and anime in one place.",
     url: `${SITE_URL}/tv-time-alternative`,
     siteName: "Seriez",
     type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Seriez, track movies, TV shows and anime" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "TV Time Alternative: Import Your Watch History | Seriez",
+    title: "TV Time Alternative: Import Your Watch History",
     description:
       "TV Time is gone. Your watch history does not have to be. Import your TV Time CSV export and keep tracking movies, TV shows, and anime in one place.",
+    images: ["/og-image.png"],
   },
 };
 
