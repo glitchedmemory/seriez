@@ -131,10 +131,15 @@ export async function proxy(request: NextRequest) {
   // the root layout renders <html lang> from it and the page reads the same value.
   if (localizedLandingMatch && isLocalizedLanding) {
     request.headers.set("accept-language", localizedLandingMatch[1]);
+    // next-intl v4 passes the request locale through this header, so the layout's <html lang>,
+    // server translations and the page itself all agree with the URL.
+    request.headers.set("X-NEXT-INTL-LOCALE", localizedLandingMatch[1]);
   }
 
   // Apply i18n and updateSession, merge headers
-  const intlRes = isLocalizedLanding ? NextResponse.next() : handleI18n(request);
+  const intlRes = isLocalizedLanding
+    ? NextResponse.next({ request: { headers: request.headers } })
+    : handleI18n(request);
   const sessionRes = await updateSession(request);
 
   // Homepage: no-store so each request re-renders server-side. The hero/Right Now
