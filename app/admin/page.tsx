@@ -1,10 +1,34 @@
 export const dynamic = "force-dynamic";
 
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import Link from "next/link";
 
+const STAFF_ROLES = ["admin", "moderator"];
+
+// 관리자 통계는 공개 키가 아니라 서버 키로 조회한다. 공개 키 조회는 읽기 권한에
+// 좌우되어 숫자가 조용히 0으로 보일 수 있다.
+const supabaseAdmin = createAdminClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 export default async function AdminDashboard() {
+  // 권한을 서버에서 먼저 확인한다 (화면 이동 보호만으로는 부족하다).
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const viewer = user?.user_metadata?.username as string | undefined;
+  if (!user || !viewer) redirect("/login");
+
+  const { data: viewerRow } = await supabaseAdmin
+    .from("users")
+    .select("role")
+    .eq("username", viewer)
+    .maybeSingle();
+  if (!STAFF_ROLES.includes(viewerRow?.role || "")) redirect("/");
 
   // Parallelize all stat queries — sequential awaits made the dashboard slow.
   const today = new Date();
@@ -25,17 +49,17 @@ export default async function AdminDashboard() {
     { count: totalDeleted },
     { count: deletedThisWeek },
   ] = await Promise.all([
-    supabase.from("users").select("*", { count: "exact", head: true }),
-    supabase.from("users").select("*", { count: "exact", head: true }).eq("is_premium", true),
-    supabase.from("reports").select("*", { count: "exact", head: true }),
-    supabase.from("users").select("*", { count: "exact", head: true }).not("sanction_type", "is", null),
-    supabase.from("reviews").select("*", { count: "exact", head: true }),
-    supabase.from("media_trackings").select("*", { count: "exact", head: true }),
-    supabase.from("user_lists").select("*", { count: "exact", head: true }),
-    supabase.from("users").select("*", { count: "exact", head: true }).gte("created_at", today.toISOString()),
-    supabase.from("users").select("*", { count: "exact", head: true }).gte("created_at", weekAgo.toISOString()),
-    supabase.from("deleted_users").select("*", { count: "exact", head: true }),
-    supabase.from("deleted_users").select("*", { count: "exact", head: true }).gte("deleted_at", weekAgo.toISOString()),
+    supabaseAdmin.from("users").select("id", { count: "exact", head: true }),
+    supabaseAdmin.from("users").select("id", { count: "exact", head: true }).eq("is_premium", true),
+    supabaseAdmin.from("reports").select("id", { count: "exact", head: true }),
+    supabaseAdmin.from("users").select("id", { count: "exact", head: true }).not("sanction_type", "is", null),
+    supabaseAdmin.from("reviews").select("id", { count: "exact", head: true }),
+    supabaseAdmin.from("media_trackings").select("id", { count: "exact", head: true }),
+    supabaseAdmin.from("user_lists").select("id", { count: "exact", head: true }),
+    supabaseAdmin.from("users").select("id", { count: "exact", head: true }).gte("created_at", today.toISOString()),
+    supabaseAdmin.from("users").select("id", { count: "exact", head: true }).gte("created_at", weekAgo.toISOString()),
+    supabaseAdmin.from("deleted_users").select("id", { count: "exact", head: true }),
+    supabaseAdmin.from("deleted_users").select("id", { count: "exact", head: true }).gte("deleted_at", weekAgo.toISOString()),
   ]);
 
   const stats = [
@@ -96,7 +120,7 @@ export default async function AdminDashboard() {
       border: "border-[#f97316]/20",
     },
     {
-      label: "Open Reports",
+      label: "Reports",
       value: openReports ?? 0,
       href: "/admin/reports",
       accent: "#f59e0b",

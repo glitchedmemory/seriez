@@ -36,17 +36,12 @@ export default function ModerationPage() {
       const res = await fetch("/api/admin/reports");
       if (res.ok) {
         const data = await res.json();
-        let all: HiddenItem[] = [
+        // 숨김 처리된 항목만 온다 (리뷰·댓글·컬렉션). 전체 목록을 따로 불러오지 않는다.
+        const all: HiddenItem[] = [
           ...(data.reviews||[]).map((r:any)=>({...r,type:"review" as const})),
           ...(data.comments||[]).map((c:any)=>({...c,type:"comment" as const})),
+          ...(data.collections||[]).map((c:any)=>({...c,type:"collection" as const})),
         ];
-        try {
-          const cr = await fetch("/api/admin/content?type=collection&limit=100");
-          if (cr.ok) {
-            const cd = await cr.json();
-            if (cd.results) all.push(...cd.results.map((c:any)=>({...c,type:"collection" as const,id:c.id})));
-          }
-        } catch {}
         all.sort((a,b)=>new Date(b.created_at).getTime()-new Date(a.created_at).getTime());
         setItems(all);
       }
@@ -57,7 +52,12 @@ export default function ModerationPage() {
   useEffect(()=>{load();},[load]);
 
   async function handleAction(item:HiddenItem,action:"restore"|"delete") {
-    const res = await fetch(`/api/admin/reports?action=${action}&target_type=${item.type}&target_id=${item.id}`);
+    // 상태를 바꾸는 요청은 POST로 보낸다 (주소만으로 삭제되지 않게).
+    const res = await fetch("/api/admin/reports", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, target_type: item.type, target_id: item.id }),
+    });
     if (res.ok) setItems(prev=>prev.filter(i=>i.id!==item.id||i.type!==item.type));
   }
 

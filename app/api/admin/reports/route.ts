@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername, STAFF_ROLES } from "@/lib/auth-helper";
+import { logAdminAction } from "@/lib/audit-log";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,29 +23,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
 
-    const { searchParams } = new URL(req.url);
-    const action = searchParams.get("action");
-    const targetType = searchParams.get("target_type");
-    const targetId = searchParams.get("target_id");
-
-    // Handle restore/delete actions
-    if (action && targetType && targetId) {
-      const tableMap: Record<string, string> = {
-        review: "reviews",
-        comment: "review_comments",
-        collection: "user_lists",
-      };
-      const table = tableMap[targetType];
-      if (!table) return NextResponse.json({ error: "Invalid target_type" }, { status: 400 });
-
-      if (action === "restore") {
-        await supabaseAdmin.from(table).update({ is_hidden: false }).eq("id", targetId);
-      } else if (action === "delete") {
-        await supabaseAdmin.from(table).delete().eq("id", targetId);
-      }
-      return NextResponse.json({ ok: true });
-    }
-
+    // 상태를 바꾸는 일(복구·삭제)은 GET으로 처리하지 않는다 — POST /api/admin/reports 참고.
     // Fetch hidden reviews
     const { data: hiddenReviews, error: reviewErr } = await supabaseAdmin
       .from("reviews")
@@ -66,14 +45,27 @@ export async function GET(req: NextRequest) {
     if (commentErr) return NextResponse.json({ error: commentErr.message }, { status: 500 });
 
     // Fetch hidden collections
-    const { data: hiddenCollections, error: colErr } = await supabaseAdmin
+    const { data: hiddenCollectionsRaw, error: colErr } = await supabaseAdmin
       .from("user_lists")
-      .select("id, username, name, created_at, is_public, is_published")
+      .select("id, user_id, name, created_at, is_public, is_published")
       .eq("is_hidden", true)
       .order("created_at", { ascending: false })
       .limit(50);
 
     if (colErr) return NextResponse.json({ error: colErr.message }, { status: 500 });
+
+    // user_lists는 소유자를 user_id로만 가지고 있어서 이름을 따로 붙인다.
+    const ownerIds = [...new Set((hiddenCollectionsRaw || []).map((l: any) => l.user_id))];
+    const ownerNames: Record<string, string> = {};
+    if (ownerIds.length > 0) {
+      const { data: owners } = await supabaseAdmin
+        .from("users").select("id, username").in("id", ownerIds);
+      for (const u of owners || []) ownerNames[u.id] = u.username;
+    }
+    const hiddenCollections = (hiddenCollectionsRaw || []).map((l: any) => ({
+      ...l,
+      username: ownerNames[l.user_id] || "unknown",
+    }));
 
     // Fetch report details for all hidden items
     const allTargets = [
@@ -148,6 +140,59 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({ reviews, comments, collections });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+// POST — 복구/삭제 (운영자 이상, 감사 기록 남김). 상태 변경은 반드시 POST로만 한다.
+export async function POST(req: NextRequest) {
+  try {
+    const username = await resolveUsername(req);
+    if (!username) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+
+    const { data: userData } = await supabaseAdmin
+      .from("users").select("role").eq("username", username).maybeSingle();
+    if (!STAFF_ROLES.includes(userData?.role || "")) {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    }
+
+    const body = await req.json();
+    const action = body?.action;
+    const targetType = body?.target_type;
+    const targetId = body?.target_id;
+
+    if (action !== "restore" && action !== "delete") {
+      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    }
+    if (!targetId) return NextResponse.json({ error: "target_id required" }, { status: 400 });
+
+    const tableMap: Record<string, string> = {
+      review: "reviews",
+      comment: "review_comments",
+      collection: "user_lists",
+    };
+    const table = tableMap[targetType];
+    if (!table) return NextResponse.json({ error: "Invalid target_type" }, { status: 400 });
+
+    if (action === "restore") {
+      const { error } = await supabaseAdmin.from(table).update({ is_hidden: false }).eq("id", targetId);
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      logAdminAction(username, "restore_content", targetType, String(targetId), {});
+      return NextResponse.json({ ok: true, action: "restore" });
+    }
+
+    const { data: item } = await supabaseAdmin.from(table).select("id").eq("id", targetId).maybeSingle();
+    if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    if (targetType === "collection") {
+      await supabaseAdmin.from("list_items").delete().eq("list_id", targetId);
+    }
+    const { error } = await supabaseAdmin.from(table).delete().eq("id", targetId);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    logAdminAction(username, "delete_content", targetType, String(targetId), {});
+    return NextResponse.json({ ok: true, action: "delete" });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
