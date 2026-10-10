@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { deleteReportsForContent } from "@/lib/report-cleanup";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUserId } from "@/lib/user-utils";
 import { resolveUsername } from "@/lib/auth-helper";
@@ -84,6 +85,9 @@ export async function DELETE(req: NextRequest) {
     const { error } = await supabase.from("user_lists").delete().eq("id", listId).eq("user_id", userId);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // 컬렉션을 가리키던 신고도 함께 정리한다.
+    await deleteReportsForContent([listId]);
 
     return NextResponse.json({ success: true });
   } catch {

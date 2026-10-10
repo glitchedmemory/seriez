@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { deleteReportsForContent } from "@/lib/report-cleanup";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername, STAFF_ROLES } from "@/lib/auth-helper";
 import { logAdminAction } from "@/lib/audit-log";
@@ -191,7 +192,10 @@ export async function POST(req: NextRequest) {
     const { error } = await supabaseAdmin.from(table).delete().eq("id", targetId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    logAdminAction(username, "delete_content", targetType, String(targetId), {});
+    // 콘텐츠가 사라지면 그 콘텐츠를 가리키는 신고도 함께 정리한다.
+    const removedReports = await deleteReportsForContent([targetId]);
+
+    logAdminAction(username, "delete_content", targetType, String(targetId), { removed_reports: removedReports });
     return NextResponse.json({ ok: true, action: "delete" });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
