@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername } from "@/lib/auth-helper";
+import { logAdminAction } from "@/lib/audit-log";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -45,6 +46,11 @@ export async function POST(req: NextRequest) {
       .eq("username", username);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    logAdminAction(adminUser, "change_role", "user", username, {
+      previous_role: targetData.role || "user",
+      new_role: role,
+    });
 
     return NextResponse.json({ ok: true, username, role });
   } catch (err: any) {

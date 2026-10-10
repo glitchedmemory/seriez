@@ -5,7 +5,15 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-type AuditAction = "sanction" | "unsanction" | "hide_content" | "restore_content" | "delete_content" | "delete_user";
+type AuditAction =
+  | "sanction"
+  | "unsanction"
+  | "hide_content"
+  | "restore_content"
+  | "delete_content"
+  | "delete_user"
+  | "change_role"
+  | "premium_change";
 type TargetType = "user" | "review" | "comment" | "collection";
 
 interface AuditEntry {

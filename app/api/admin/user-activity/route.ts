@@ -28,6 +28,13 @@ export async function GET(req: NextRequest) {
       supabaseAdmin.from("review_comments").select("username, created_at").gte("created_at", thirtyDaysAgo),
     ]);
 
+    // media_trackings는 계정 아이디를, 리뷰·댓글은 계정 이름을 담는다. 먼저 이름으로
+    // 맞춰 두지 않으면 같은 사람이 아이디와 이름으로 두 번 세어진다.
+    const { data: allUsersForDau } = await supabaseAdmin.from("users").select("id, username");
+    const idToNameForDau: Record<string, string> = {};
+    for (const u of allUsersForDau || []) idToNameForDau[u.id] = u.username;
+    const normUser = (u: string) => idToNameForDau[u] || u;
+
     const dayUsers: Record<string, Set<string>> = {};
     const addDay = (day: string, user: string) => {
       if (!dayUsers[day]) dayUsers[day] = new Set();
@@ -37,13 +44,13 @@ export async function GET(req: NextRequest) {
     // Note: these tables don't store date separately. We approximate by using the first 10 chars of timestamp.
     // For more accuracy we'd need to query with date_part. This gives admin a reasonable estimate.
     for (const row of dauTracked || []) {
-      if (row.updated_at) addDay(row.updated_at.slice(0, 10), row.username);
+      if (row.updated_at) addDay(row.updated_at.slice(0, 10), normUser(row.username));
     }
     for (const row of dauReviews || []) {
-      if (row.created_at) addDay(row.created_at.slice(0, 10), row.username);
+      if (row.created_at) addDay(row.created_at.slice(0, 10), normUser(row.username));
     }
     for (const row of dauComments || []) {
-      if (row.created_at) addDay(row.created_at.slice(0, 10), row.username);
+      if (row.created_at) addDay(row.created_at.slice(0, 10), normUser(row.username));
     }
 
     const dau = Object.entries(dayUsers)
