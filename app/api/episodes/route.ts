@@ -48,7 +48,8 @@ export async function GET(req: NextRequest) {
 // "몇 화 봤는지" 숫자(progress)는 항상 실제 episode_watches 기록 수와 같아야 한다.
 // 체크를 해제했을 때 이 숫자를 다시 계산하지 않아, 실제 기록(14건)보다 큰 값(15)이
 // 남는 문제가 있었다. 저장·해제 양쪽에서 같은 함수로 맞춘다.
-async function recalcTvProgress(userId: string, tmdbId: number) {
+// 종류(mediaType)별로 계산해 애니 행과 TV 행의 숫자가 서로 섞이지 않게 한다.
+async function recalcProgress(userId: string, tmdbId: number, mediaType: string) {
   const { count } = await supabaseAdmin
     .from("episode_watches")
     .select("id", { count: "exact", head: true })
@@ -62,7 +63,7 @@ async function recalcTvProgress(userId: string, tmdbId: number) {
     .update({ progress })
     .eq("username", userId)
     .eq("tmdb_id", tmdbId)
-    .eq("media_type", "tv");
+    .eq("media_type", mediaType);
 
   return progress;
 }
@@ -77,6 +78,10 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const { tmdbId, seasonNumber, episodeNumber } = body;
+
+    // 작품 종류: 애니 페이지는 "anime", TV 시즌 페이지는 "tv"를 보낸다.
+    // 종류를 보내지 않는 옛 클라이언트(캐시된 이전 JS)만 tv로 간주한다.
+    const mediaType: string = body.mediaType === "anime" ? "anime" : "tv";
 
     if (tmdbId == null || seasonNumber == null || episodeNumber == null) {
       return NextResponse.json(
@@ -112,7 +117,7 @@ export async function POST(req: NextRequest) {
       }
 
       // 해제 후에도 "몇 화 봤는지" 숫자를 실제 기록 수에 맞춘다.
-      const progress = await recalcTvProgress(userId, tmdbId);
+      const progress = await recalcProgress(userId, tmdbId, mediaType);
 
       return NextResponse.json({ action: "unwatched", seasonNumber, episodeNumber, progress });
     }
@@ -132,45 +137,40 @@ export async function POST(req: NextRequest) {
     }
 
     // Update progress count on media_trackings
-    const progress = await recalcTvProgress(userId, tmdbId);
+    const progress = await recalcProgress(userId, tmdbId, mediaType);
 
     // Auto-set tracking status to "watching" only when this title has NO
-    // tracking row at all. Matching by season_number alone would treat an
-    // existing row (e.g. completed season 0) as "not tracked" and create a
-    // season-1 watching duplicate that never disappears from the Watching tab.
-    const { data: trackData } = await supabaseAdmin
+    // tracking row of the same type. Matching by season_number alone would
+    // treat an existing row (e.g. completed season 0) as "not tracked" and
+    // create a season-1 watching duplicate that never disappears.
+    // 애니는 여기서 행을 만들지 않는다. 애니 작품 행은 애니 페이지가 AniList
+    // 정보로 직접 저장하므로, 여기서 만들면 TMDB 번호 체계의 'tv' 행이 생겨
+    // 같은 작품이 목록에 애니와 TV 두 줄로 나타난다.
+    const { data: trackRows } = await supabaseAdmin
       .from("media_trackings")
       .select("id")
       .eq("username", userId)
       .eq("tmdb_id", tmdbId)
-      .eq("media_type", "tv")
-      .limit(1)
-      .maybeSingle();
+      .eq("media_type", mediaType)
+      .limit(1);
 
-    if (!trackData) {
-      // No tracking yet → create with "watching" status
-      await supabaseAdmin
-        .from("media_trackings")
-        .upsert(
-          {
-            username: userId,
-            tmdb_id: tmdbId,
-            media_type: "tv",
-            season_number: seasonNumber,
-            status: "watching",
-            progress,
-          },
-          { onConflict: "username,tmdb_id,media_type,season_number" }
-        );
-    } else {
-      // Already tracking this title (any season) → update progress only,
-      // never change status or create a duplicate row.
-      await supabaseAdmin
-        .from("media_trackings")
-        .update({ progress })
-        .eq("username", userId)
-        .eq("tmdb_id", tmdbId)
-        .eq("media_type", "tv");
+    if (!trackRows || trackRows.length === 0) {
+      if (mediaType !== "anime") {
+        // No tracking yet → create with "watching" status
+        await supabaseAdmin
+          .from("media_trackings")
+          .upsert(
+            {
+              username: userId,
+              tmdb_id: tmdbId,
+              media_type: mediaType,
+              season_number: seasonNumber,
+              status: "watching",
+              progress,
+            },
+            { onConflict: "username,tmdb_id,media_type,season_number" }
+          );
+      }
     }
 
     return NextResponse.json({ action: "watched", seasonNumber, episodeNumber, progress });

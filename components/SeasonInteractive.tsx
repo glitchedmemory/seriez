@@ -262,6 +262,7 @@ export default function SeasonInteractive({ data, mode }: { data: SeasonData; mo
     const episodeSaved = await sendJson("POST", "/api/episodes", {
       username,
       tmdbId: data.id,
+      mediaType: "tv",
       seasonNumber,
       episodeNumber,
     });
@@ -361,6 +362,7 @@ export default function SeasonInteractive({ data, mode }: { data: SeasonData; mo
               sendJson("POST", "/api/episodes", {
                 username,
                 tmdbId: data.id,
+                mediaType: "tv",
                 seasonNumber: data.seasonNumber,
                 episodeNumber: ep.number,
               })
@@ -381,6 +383,7 @@ export default function SeasonInteractive({ data, mode }: { data: SeasonData; mo
           const epSaved = await sendJson("POST", "/api/episodes", {
             username,
             tmdbId: data.id,
+            mediaType: "tv",
             seasonNumber: data.seasonNumber,
             episodeNumber: 1,
           });
@@ -414,6 +417,7 @@ export default function SeasonInteractive({ data, mode }: { data: SeasonData; mo
             void sendJson("POST", "/api/episodes", {
               username,
               tmdbId: data.id,
+              mediaType: "tv",
               seasonNumber: sn,
               episodeNumber: en,
             });

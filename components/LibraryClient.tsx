@@ -115,7 +115,9 @@ function TrackingGrid({ activeTab }: { activeTab: string }) {
 
       <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
         {sortedItems.map(item => {
-        const isSeason = item.seasonNumber > 0;
+        // 시즌 표기는 TV에만 붙인다. 애니는 시즌이 항목 자체로 나뉘어 있고(AniList),
+        // 작품 행의 시즌 라벨은 1로 통일되어 있어 그대로 두면 카드에 'S1'이 표시된다.
+        const isSeason = item.mediaType === "tv" && item.seasonNumber > 0;
         const displayPoster = isSeason && item.seasonPoster ? item.seasonPoster : item.poster;
         const displayTitle = isSeason && item.seasonName
           ? `${item.title} — ${item.seasonName}`
@@ -261,7 +263,7 @@ function CollectionsView() {
         : items.length === 0 ? <EmptyState icon="noitems" title="No items yet" description="Add movies and shows to this collection." action={{ label: "Browse titles", href: "/" }} />
         : <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {items.map(item => {
-          const isItemSeason = item.seasonNumber > 0;
+          const isItemSeason = item.mediaType === "tv" && item.seasonNumber > 0;
           const itemKey = `${item.mediaType}-${item.tmdbId}-${item.seasonNumber}`;
           const itemHref = isItemSeason && item.mediaType === "tv"
             ? `/tv/${item.tmdbId}/season/${item.seasonNumber}`
