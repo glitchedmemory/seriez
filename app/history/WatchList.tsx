@@ -42,7 +42,7 @@ export default function WatchList({ items, monthlyView }: WatchListProps) {
       <div className="divide-y divide-[#1a1a2e]">
         {displayItems.map((item) => (
           <Link
-            key={item.tmdbId}
+            key={`${item.tmdbId}-${item.mediaType}`}
             href={titleHref(item.tmdbId, item.mediaType)}
             className="flex gap-3 py-3 items-center hover:bg-bg-card/50 transition-colors -mx-1 px-1 rounded-lg"
           >
