@@ -41,6 +41,12 @@ export default function AboutPage() {
             >
               Import your TV Time data →
             </a>
+            <a
+              href="/tv-time-alternative"
+              className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent-light transition-colors"
+            >
+              Full TV Time migration guide →
+            </a>
           </div>
         </section>
       </div>

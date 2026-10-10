@@ -134,6 +134,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/terms", priority: 0.5, freq: "monthly" as const },
     { path: "/privacy", priority: 0.5, freq: "monthly" as const },
     { path: "/search", priority: 0.6, freq: "weekly" as const },
+    { path: "/tv-time-alternative", priority: 0.9, freq: "monthly" as const },
+    { path: "/letterboxd-alternative", priority: 0.9, freq: "monthly" as const },
   ];
 
   const staticEntries: MetadataRoute.Sitemap = staticPaths.map((s) =>
