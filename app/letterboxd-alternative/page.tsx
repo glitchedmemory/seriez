@@ -5,23 +5,25 @@ const SITE_URL = "https://seriez.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Letterboxd Alternative for TV Shows and Anime | Seriez",
+  title: "Letterboxd Alternative for TV Shows and Anime",
   description:
     "Letterboxd is films only. Seriez tracks films, TV shows, and anime in one library, with episode progress, ratings, reviews, collections, and a yearly recap.",
   alternates: { canonical: `${SITE_URL}/letterboxd-alternative` },
   openGraph: {
-    title: "Letterboxd Alternative for TV Shows and Anime | Seriez",
+    title: "Letterboxd Alternative for TV Shows and Anime",
     description:
       "Keep the film diary habit and add the rest of what you watch. Films, TV shows, and anime in one library, with episode level progress.",
     url: `${SITE_URL}/letterboxd-alternative`,
     siteName: "Seriez",
     type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Seriez, track movies, TV shows and anime" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Letterboxd Alternative for TV Shows and Anime | Seriez",
+    title: "Letterboxd Alternative for TV Shows and Anime",
     description:
       "Keep the film diary habit and add the rest of what you watch. Films, TV shows, and anime in one library, with episode level progress.",
+    images: ["/og-image.png"],
   },
 };
 
