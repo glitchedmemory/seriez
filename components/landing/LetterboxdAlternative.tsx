@@ -6,8 +6,9 @@ import { useLandingLocale } from "@/lib/landing/useLandingLocale";
 
 const SITE_URL = "https://seriez.app";
 
-export default function LetterboxdAlternative() {
-  const locale = useLandingLocale();
+export default function LetterboxdAlternative({ locale: forcedLocale }: { locale?: string }) {
+  const detectedLocale = useLandingLocale();
+  const locale = forcedLocale ?? detectedLocale;
   const c = landingCopy(LETTERBOXD_COPY, locale);
 
   const faqJsonLd = {

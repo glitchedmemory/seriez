@@ -6,8 +6,9 @@ import { useLandingLocale } from "@/lib/landing/useLandingLocale";
 
 const SITE_URL = "https://seriez.app";
 
-export default function TvTimeAlternative() {
-  const locale = useLandingLocale();
+export default function TvTimeAlternative({ locale: forcedLocale }: { locale?: string }) {
+  const detectedLocale = useLandingLocale();
+  const locale = forcedLocale ?? detectedLocale;
   const c = landingCopy(TV_TIME_COPY, locale);
 
   const faqJsonLd = {
