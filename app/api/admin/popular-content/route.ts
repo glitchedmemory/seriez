@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resolveUsername, STAFF_ROLES } from "@/lib/auth-helper";
 import { tmdbGet } from "@/lib/tmdb";
+import { anilistFetch, getAnimeDetailFromKitsu } from "@/lib/anilist";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,6 +10,41 @@ const supabaseAdmin = createClient(
 );
 
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w185";
+
+// 애니가 저장하는 번호는 AniList 번호라서 TMDB로 조회하면 404가 나고, 그 작품이
+// 관리자 인기 목록에서 통째로 빠진다. 애니는 AniList에서 가져온다.
+async function getAnimeMeta(anilistId: number): Promise<{ title: string; poster: string | null } | null> {
+  try {
+    const res = await anilistFetch(
+      `query($id:Int){Media(id:$id){title{english romaji}coverImage{extraLarge}}}`,
+      { id: anilistId }
+    );
+    if (res.ok) {
+      const json = await res.json();
+      const m = json.data?.Media;
+      if (m) {
+        return {
+          title: m.title?.english || m.title?.romaji || "Unknown",
+          poster: m.coverImage?.extraLarge || null,
+        };
+      }
+    }
+  } catch {}
+  try {
+    const kd = await getAnimeDetailFromKitsu(anilistId);
+    if (kd) return { title: kd.title, poster: kd.poster };
+  } catch {}
+  return null;
+}
+
+async function getTmdbMeta(mediaType: string, tmdbId: number): Promise<{ title: string; poster: string | null } | null> {
+  const d = await tmdbGet(`/${mediaType}/${tmdbId}`);
+  if (!d) return null;
+  return {
+    title: d.title || d.name || "Unknown",
+    poster: d.poster_path ? `${TMDB_IMAGE}${d.poster_path}` : null,
+  };
+}
 
 async function enrichTitles(
   rows: { tmdb_id: number; media_type: string; count?: number; c?: number; avg_rating?: number; r?: number }[]
@@ -21,10 +57,13 @@ async function enrichTitles(
       continue;
     }
     try {
-      const d = await tmdbGet(`/${row.media_type}/${row.tmdb_id}`);
+      const meta = row.media_type === "anime"
+        ? await getAnimeMeta(row.tmdb_id)
+        : await getTmdbMeta(row.media_type, row.tmdb_id);
+      if (!meta) continue;
       cache[key] = {
-        title: d.title || d.name || "Unknown",
-        poster: d.poster_path ? `${TMDB_IMAGE}${d.poster_path}` : null,
+        title: meta.title,
+        poster: meta.poster,
         count: row.count || row.c || 0,
         avg_rating: row.avg_rating ?? row.r ?? null,
       };

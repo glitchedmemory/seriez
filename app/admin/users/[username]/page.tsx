@@ -20,6 +20,9 @@ interface UserDetail {
   };
   reviews: any[];
   library: any[];
+  library_counts?: { anime: number; tv: number; movie: number; total: number };
+  episodes?: any[];
+  episode_watch_counts?: { anime: number; tv: number; total: number };
   comments: any[];
 }
 
@@ -72,6 +75,9 @@ export default function AdminUserDetailPage() {
   if (error || !data) return <div className="p-8"><p className="text-sm text-[#ef4444]">{error || "Not found"}</p></div>;
 
   const { user, reviews, library, comments } = data;
+  const lc = data.library_counts || { anime: 0, tv: 0, movie: 0, total: library.length };
+  const ec = data.episode_watch_counts || { anime: 0, tv: 0, total: 0 };
+  const episodes = data.episodes || [];
 
   return (
     <div className="p-8">
@@ -84,7 +90,13 @@ export default function AdminUserDetailPage() {
           <div>
             <h1 className="text-xl font-bold text-white">{user.username}</h1>
             <p className="text-sm text-[#71717a] mt-1">
-              Joined {new Date(user.created_at).toLocaleDateString()} · {reviews.length} reviews · {library.length} tracked · {comments.length} comments
+              Joined {new Date(user.created_at).toLocaleDateString()} · {reviews.length} reviews · {comments.length} comments
+            </p>
+            <p className="text-sm text-[#71717a] mt-1">
+              Tracks — Anime {lc.anime} · TV {lc.tv} · Movies {lc.movie}
+            </p>
+            <p className="text-sm text-[#71717a] mt-1">
+              Episodes watched — Anime {ec.anime} · TV {ec.tv}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -151,17 +163,48 @@ export default function AdminUserDetailPage() {
         </div>
       )}
 
+      {episodes.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-white mb-3">Watched Episodes by type</h2>
+          {[
+            { key: "anime", label: "Anime", total: ec.anime, rows: episodes.filter((e: any) => e.media_type === "anime") },
+            { key: "tv", label: "TV", total: ec.tv, rows: episodes.filter((e: any) => e.media_type !== "anime") },
+          ].filter((g: any) => g.rows.length > 0).map((g: any) => (
+            <div key={g.key} className="mb-4">
+              <p className="text-xs text-[#71717a] mb-2">{g.label} · {g.total} watched in total (showing {g.rows.length})</p>
+              <div className="rounded-2xl border border-[#1a1a2e] bg-[#0a0a14] divide-y divide-[#1a1a2e]/50">
+                {g.rows.map((e: any, i: number) => (
+                  <div key={`${e.tmdb_id}-${e.media_type}-${e.season_number}-${e.episode_number}-${i}`} className="px-4 py-2.5 flex items-center justify-between">
+                    <span className="text-sm text-[#a1a1aa]">{e.title} <span className="text-xs text-[#52525b]">S{e.season_number}E{e.episode_number}</span></span>
+                    <span className="text-xs text-[#52525b]">{new Date(e.watched_at).toLocaleDateString()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {library.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-white mb-3">Recent Trackings</h2>
-          <div className="rounded-2xl border border-[#1a1a2e] bg-[#0a0a14] divide-y divide-[#1a1a2e]/50">
-            {library.slice(0, 10).map((t: any, i: number) => (
-              <div key={i} className="px-4 py-2.5 flex items-center justify-between">
-                <span className="text-sm text-[#a1a1aa]">{t.title || `TMDB ${t.tmdb_id}`} <span className="text-xs text-[#52525b]">· {t.media_type}</span></span>
-                <span className="text-xs text-[#52525b]">{t.status} {t.rating ? `· ★${t.rating}` : ""}</span>
+          <h2 className="text-sm font-semibold text-white mb-3">Library by type</h2>
+          {[
+            { key: "anime", label: "Anime", total: lc.anime, rows: library.filter((t: any) => t.media_type === "anime") },
+            { key: "tv", label: "TV", total: lc.tv, rows: library.filter((t: any) => t.media_type === "tv") },
+            { key: "movie", label: "Movies", total: lc.movie, rows: library.filter((t: any) => t.media_type === "movie") },
+          ].filter((g: any) => g.rows.length > 0).map((g: any) => (
+            <div key={g.key} className="mb-4">
+              <p className="text-xs text-[#71717a] mb-2">{g.label} · {g.total} tracked (showing {Math.min(g.rows.length, 10)})</p>
+              <div className="rounded-2xl border border-[#1a1a2e] bg-[#0a0a14] divide-y divide-[#1a1a2e]/50">
+                {g.rows.slice(0, 10).map((t: any) => (
+                  <div key={`${t.tmdb_id}-${t.media_type}`} className="px-4 py-2.5 flex items-center justify-between">
+                    <span className="text-sm text-[#a1a1aa]">{t.title || `TMDB ${t.tmdb_id}`}</span>
+                    <span className="text-xs text-[#52525b]">{t.status} {t.rating ? `· ★${t.rating}` : ""}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       )}
 
