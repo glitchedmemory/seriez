@@ -186,7 +186,7 @@ export default function SeasonInteractive({ data, mode }: { data: SeasonData; mo
         }
       })
       .catch(() => {});
-    getJsonOnce(`/api/episodes?username=${encodeURIComponent(username)}&tmdbId=${data.id}`)
+    getJsonOnce(`/api/episodes?username=${encodeURIComponent(username)}&tmdbId=${data.id}&mediaType=tv`)
       .then((epData) => {
         if (epData.episodes) {
           const set = new Set<string>();

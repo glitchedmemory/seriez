@@ -163,7 +163,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
             if (match) { setTrackStatus(match.status); setRating(match.rating || 0); setTrackedAt(match.updatedAt || null); }
           }
         }).catch(() => {});
-      getJsonOnce(`/api/episodes?username=${encodeURIComponent(username)}&tmdbId=${detail.id}`)
+      getJsonOnce(`/api/episodes?username=${encodeURIComponent(username)}&tmdbId=${detail.id}&mediaType=anime`)
         .then((epData) => {
           if (epData.episodes) {
             const set = new Set<string>();
