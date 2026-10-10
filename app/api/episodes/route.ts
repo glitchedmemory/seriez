@@ -8,11 +8,38 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
+// ─── 기록 종류 판별 ───
+// 에피소드 기록에는 작품 종류(anime/tv)가 함께 저장된다. 애니는 AniList 번호,
+// TV·영화는 TMDB 번호를 쓰기 때문에 번호만으로는 구분할 수 없어서, 저장할 때
+// 어느 페이지에서 왔는지를 반드시 함께 기록한다.
+// 요청이 종류를 보내지 않은 경우(캐시에 남은 이전 스크립트)에는 그 사용자의
+// 작품 행을 보고 판단한다. 그래도 하나로 정해지지 않으면 null을 돌려준다.
+async function resolveEpisodeType(
+  userId: string,
+  tmdbId: number,
+  requested?: string | null
+): Promise<string | null> {
+  if (requested === "anime") return "anime";
+  if (requested === "tv" || requested === "movie") return "tv";
+
+  const { data } = await supabaseAdmin
+    .from("media_trackings")
+    .select("media_type")
+    .eq("username", userId)
+    .eq("tmdb_id", tmdbId);
+
+  const types = new Set((data || []).map((r: { media_type: string }) => r.media_type));
+  if (types.has("anime") && !types.has("tv")) return "anime";
+  if (types.has("tv") && !types.has("anime")) return "tv";
+  return null;
+}
+
 // ─── GET: fetch watched episodes for a show ───
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const username = await resolveUsername(req);
   const tmdbId = searchParams.get("tmdbId");
+  const requestedType = searchParams.get("mediaType");
 
   if (!username || !tmdbId) {
     return NextResponse.json({ error: "Missing username or tmdbId" }, { status: 400 });
@@ -23,11 +50,20 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ episodes: [] });
   }
 
-  const { data, error } = await supabaseAdmin
+  // 종류를 알 수 있으면 그 종류의 기록만 돌려준다 (번호가 겹치는 애니/TV 분리).
+  const type = await resolveEpisodeType(userId, parseInt(tmdbId), requestedType);
+
+  let query = supabaseAdmin
     .from("episode_watches")
-    .select("season_number, episode_number")
+    .select("season_number, episode_number, media_type")
     .eq("username", userId)
-    .eq("tmdb_id", parseInt(tmdbId))
+    .eq("tmdb_id", parseInt(tmdbId));
+
+  if (type) {
+    query = query.eq("media_type", type);
+  }
+
+  const { data, error } = await query
     .order("season_number", { ascending: true })
     .order("episode_number", { ascending: true });
 
@@ -80,8 +116,8 @@ export async function POST(req: NextRequest) {
     const { tmdbId, seasonNumber, episodeNumber } = body;
 
     // 작품 종류: 애니 페이지는 "anime", TV 시즌 페이지는 "tv"를 보낸다.
-    // 종류를 보내지 않는 옛 클라이언트(캐시된 이전 JS)만 tv로 간주한다.
-    const mediaType: string = body.mediaType === "anime" ? "anime" : "tv";
+    // 종류를 보내지 않은 요청은 사용자의 작품 행을 보고 판별한다.
+    const requestedType: string | null = body.mediaType ?? null;
 
     if (tmdbId == null || seasonNumber == null || episodeNumber == null) {
       return NextResponse.json(
@@ -95,12 +131,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to resolve user" }, { status: 500 });
     }
 
-    // Check if already watched
+    // 기록에 새길 작품 종류를 확정한다. 확정하지 못하면(어느 쪽인지 알 수 없으면)
+    // 잘못된 종류로 기록을 만들지 않고 거절한다.
+    const mediaType = await resolveEpisodeType(userId, tmdbId, requestedType);
+    if (!mediaType) {
+      return NextResponse.json(
+        {
+          error:
+            "Could not tell whether this is an anime or a TV episode. Please reload the page and try again.",
+        },
+        { status: 422 }
+      );
+    }
+
+    // Check if already watched (같은 종류의 기록만 본다)
     const { data: existing } = await supabaseAdmin
       .from("episode_watches")
       .select("id")
       .eq("username", userId)
       .eq("tmdb_id", tmdbId)
+      .eq("media_type", mediaType)
       .eq("season_number", seasonNumber)
       .eq("episode_number", episodeNumber)
       .maybeSingle();
@@ -128,6 +178,7 @@ export async function POST(req: NextRequest) {
       .insert({
         username: userId,
         tmdb_id: tmdbId,
+        media_type: mediaType,
         season_number: seasonNumber,
         episode_number: episodeNumber,
       });
