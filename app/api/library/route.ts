@@ -45,8 +45,9 @@ export async function GET(req: NextRequest) {
       tmdbId: t.tmdb_id,
       mediaType: t.media_type,
       seasonNumber: t.season_number,
-      seasonName: t.season_number > 0 ? `Season ${t.season_number}` : null,
-      seasonPoster: t.season_poster || null,
+      // 시즌 이름·시즌 포스터는 TV 행에만 붙인다 (애니는 시즌이 항목 자체로 나뉜다).
+      seasonName: t.media_type === "tv" && t.season_number > 0 ? `Season ${t.season_number}` : null,
+      seasonPoster: t.media_type === "tv" ? t.season_poster || null : null,
       status: t.status,
       rating: t.rating,
       progress: t.progress,

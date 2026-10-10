@@ -228,6 +228,9 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
           username,
           tmdbId: detail.id,
           mediaType: "anime",
+          // 애니 작품 행의 시즌 라벨은 1로 통일한다 (에피소드 기록과 같은 값).
+          // 라벨을 안 보내면 DB 기본값 0으로 저장되어 행이 두 개로 갈린다.
+          seasonNumber: 1,
           status: newStatus,
           title: detail.title || undefined,
           posterUrl: detail.poster || undefined,
@@ -255,6 +258,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
                 sendJson("POST", "/api/episodes", {
                   username,
                   tmdbId: detail.id,
+                  mediaType: "anime",
                   seasonNumber: 1,
                   episodeNumber: ep.number,
                 })
@@ -275,6 +279,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
           const epSaved = await sendJson("POST", "/api/episodes", {
             username,
             tmdbId: detail.id,
+            mediaType: "anime",
             seasonNumber: 1,
             episodeNumber: 1,
           });
@@ -285,7 +290,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
           }
         }
       } else {
-        const removed = await sendJson("DELETE", "/api/track", { username, tmdbId: detail.id, mediaType: "anime" });
+        const removed = await sendJson("DELETE", "/api/track", { username, tmdbId: detail.id, mediaType: "anime", seasonNumber: 1 });
         if (!removed) {
           setEpSaveError(true);
           setTrackLoading(false);
@@ -294,7 +299,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
         setTrackedAt(null);
         if ((trackStatus === "watching" || trackStatus === "completed") && watchedEpisodes.size > 0) {
           setWatchedEpisodes(new Set());
-          for (const key of watchedEpisodes) { const [, en] = key.split("-").map(Number); void sendJson("POST", "/api/episodes", { username, tmdbId: detail.id, seasonNumber: 1, episodeNumber: en }); }
+          for (const key of watchedEpisodes) { const [, en] = key.split("-").map(Number); void sendJson("POST", "/api/episodes", { username, tmdbId: detail.id, mediaType: "anime", seasonNumber: 1, episodeNumber: en }); }
         }
       }
       syncTrackState(newStatus, { trackedAt: newStatus ? (json?.updatedAt || new Date().toISOString()) : null });
@@ -315,6 +320,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
     const epSaved = await sendJson("POST", "/api/episodes", {
       username,
       tmdbId: detail.id,
+      mediaType: "anime",
       seasonNumber: 1,
       episodeNumber,
     });
@@ -327,7 +333,7 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
 
     const willHaveWatched = !wasWatched || watchedEpisodes.size > 1;
     if (willHaveWatched && (!trackStatus || trackStatus === "plan_to_watch" || trackStatus === "completed")) {
-      const ok = await sendJson("POST", "/api/track", { username, tmdbId: detail.id, mediaType: "anime", status: "watching", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined });
+      const ok = await sendJson("POST", "/api/track", { username, tmdbId: detail.id, mediaType: "anime", seasonNumber: 1, status: "watching", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined });
       if (ok) syncTrackState("watching"); else setEpSaveError(true);
     } else if (!willHaveWatched && trackStatus === "watching") {
       const ok = await sendJson("DELETE", "/api/track", { username, tmdbId: detail.id, mediaType: "anime" });
@@ -335,12 +341,12 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
     }
     setEpToggleLoading(null);
     if (trackStatus === "completed" && wasWatched && watchedEpisodes.size - 1 < episodes.length) {
-      const ok = await sendJson("POST", "/api/track", { username, tmdbId: detail.id, mediaType: "anime", status: "watching", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined });
+      const ok = await sendJson("POST", "/api/track", { username, tmdbId: detail.id, mediaType: "anime", seasonNumber: 1, status: "watching", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined });
       if (ok) syncTrackState("watching"); else setEpSaveError(true);
     }
     const nowAllWatched = !wasWatched && watchedEpisodes.size + 1 >= episodes.length;
     if (nowAllWatched && trackStatus !== "completed") {
-      const ok = await sendJson("POST", "/api/track", { username, tmdbId: detail.id, mediaType: "anime", status: "completed" });
+      const ok = await sendJson("POST", "/api/track", { username, tmdbId: detail.id, mediaType: "anime", seasonNumber: 1, status: "completed" });
       if (ok) syncTrackState("completed", { trackedAt: new Date().toISOString() }); else setEpSaveError(true);
     }
   }
