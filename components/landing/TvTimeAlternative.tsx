@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useLocale } from "next-intl";
 import { TV_TIME_COPY, landingCopy } from "@/lib/landing/copy";
+import { useLandingLocale } from "@/lib/landing/useLandingLocale";
 
 const SITE_URL = "https://seriez.app";
 
 export default function TvTimeAlternative() {
-  const locale = useLocale();
+  const locale = useLandingLocale();
   const c = landingCopy(TV_TIME_COPY, locale);
 
   const faqJsonLd = {
