@@ -12,6 +12,11 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 const TMDB_API_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
+// 번호가 같아도 작품 종류가 다르면 다른 작품이다 (애니 155783 천국대마경 ≠ TMDB 155783 Queen Lau).
+// 기록·달력·통계를 종류별로 나누기 위해 번호와 종류를 함께 식별자로 쓴다.
+const mediaKey = (tmdbId: number, mediaType: string | null | undefined) =>
+  `${tmdbId}|${mediaType || "movie"}`;
+
 async function resolveUserIdByUsername(username: string): Promise<string | null> {
   const trimmed = username.trim().slice(0, 20);
   if (!trimmed) return null;
@@ -230,7 +235,7 @@ async function buildHistory(
 
   const [watchesRes, trackingRes, userRes] = await Promise.all([
     supabaseAdmin.from("episode_watches")
-      .select("tmdb_id, season_number, episode_number, watched_at")
+      .select("tmdb_id, season_number, episode_number, watched_at, media_type")
       .eq("username", userId).gte("watched_at", graphStart).order("watched_at", { ascending: false }),
     supabaseAdmin.from("media_trackings")
       .select("tmdb_id, media_type, status, rating, updated_at, watched_at")
@@ -243,15 +248,15 @@ async function buildHistory(
   const watches = watchesRes.data;
   const tracking = trackingRes.data;
 
-  const ratingMap = new Map<number, { rating: number; status: string; mediaType: string; updatedAt: string }>();
-  if (tracking) for (const t of tracking) ratingMap.set(t.tmdb_id, {
+  const ratingMap = new Map<string, { rating: number; status: string; mediaType: string; updatedAt: string }>();
+  if (tracking) for (const t of tracking) ratingMap.set(mediaKey(t.tmdb_id, t.media_type), {
     rating: t.rating ?? 0, status: t.status, mediaType: t.media_type, updatedAt: t.updated_at,
   });
 
   // ─── Collect unique tmdbIds for target month ───
   const targetPrefix = `${targetYear}-${String(targetMonth).padStart(2, "0")}`;
   const monthEpisodeCounts: Record<string, number> = {};
-  const dayGroups: Record<string, { tmdbId: number; episodes: number }[]> = {};
+  const dayGroups: Record<string, { tmdbId: number; mediaType: string; episodes: number }[]> = {};
 
   for (const w of watches || []) {
     const dateKey = new Date(w.watched_at).toISOString().split("T")[0];
@@ -259,9 +264,10 @@ async function buildHistory(
     monthEpisodeCounts[monthKey] = (monthEpisodeCounts[monthKey] || 0) + 1;
     if (!dateKey.startsWith(targetPrefix)) continue;
     if (!dayGroups[dateKey]) dayGroups[dateKey] = [];
-    const existing = dayGroups[dateKey].find(e => e.tmdbId === w.tmdb_id);
+    const wType = w.media_type === "anime" ? "anime" : "tv";
+    const existing = dayGroups[dateKey].find(e => e.tmdbId === w.tmdb_id && e.mediaType === wType);
     if (existing) { existing.episodes++; continue; }
-    dayGroups[dateKey].push({ tmdbId: w.tmdb_id, episodes: 1 });
+    dayGroups[dateKey].push({ tmdbId: w.tmdb_id, mediaType: wType, episodes: 1 });
   }
 
   // Merge completed media_trackings (movies/TV/anime with watched_at) into calendar
@@ -272,35 +278,34 @@ async function buildHistory(
     monthEpisodeCounts[monthKey] = (monthEpisodeCounts[monthKey] || 0) + 1;
     if (!dateKey.startsWith(targetPrefix)) continue;
     if (!dayGroups[dateKey]) dayGroups[dateKey] = [];
-    const existing = dayGroups[dateKey].find(e => e.tmdbId === t.tmdb_id);
+    const existing = dayGroups[dateKey].find(e => e.tmdbId === t.tmdb_id && e.mediaType === t.media_type);
     if (existing) continue; // already counted via episode_watches
-    dayGroups[dateKey].push({ tmdbId: t.tmdb_id, episodes: 1 });
+    dayGroups[dateKey].push({ tmdbId: t.tmdb_id, mediaType: t.media_type, episodes: 1 });
   }
 
   // ─── Sequential TMDB fetch with rate-limit delay ───
-  const uniqueTmdbIds = new Set<number>();
-  for (const entries of Object.values(dayGroups)) for (const e of entries) uniqueTmdbIds.add(e.tmdbId);
-  // Also include watchlist tmdb_ids
-  if (tracking) for (const t of tracking) uniqueTmdbIds.add(t.tmdb_id);
+  const uniqueTmdbIds = new Map<string, { tmdbId: number; mediaType: string }>();
+  for (const entries of Object.values(dayGroups)) for (const e of entries) uniqueTmdbIds.set(mediaKey(e.tmdbId, e.mediaType), { tmdbId: e.tmdbId, mediaType: e.mediaType });
+  // Also include watchlist entries
+  if (tracking) for (const t of tracking) uniqueTmdbIds.set(mediaKey(t.tmdb_id, t.media_type), { tmdbId: t.tmdb_id, mediaType: t.media_type });
   const tmdbResults = [];
   // Fetch metadata in parallel batches. Once each (tmdbId, mediaType) is in the
   // disk cache this runs at fs speed; only cold misses hit TMDB/AniList, and
   // batching (not all-at-once) keeps those external calls rate-limit friendly.
-  const ids = Array.from(uniqueTmdbIds);
+  const ids = Array.from(uniqueTmdbIds.values());
   const BATCH = 8;
   for (let i = 0; i < ids.length; i += BATCH) {
     const batchIds = ids.slice(i, i + BATCH);
-    const batchResults = await Promise.all(batchIds.map(async (tmdbId) => {
-      const info = ratingMap.get(tmdbId);
-      const mediaType = info?.mediaType || "movie";
+    const batchResults = await Promise.all(batchIds.map(async ({ tmdbId, mediaType }) => {
+      const info = ratingMap.get(mediaKey(tmdbId, mediaType));
       const tmdbInfo = await getTmdbInfo(tmdbId, mediaType);
       return { tmdbId, tmdbInfo, mediaType, rating: info?.rating || 0 };
     }));
     tmdbResults.push(...batchResults);
   }
 
-  const tmdbMap = new Map<number, { tmdbInfo: TmdbCache | null; mediaType: string; rating: number }>();
-  for (const r of tmdbResults) tmdbMap.set(r.tmdbId, { tmdbInfo: r.tmdbInfo, mediaType: r.mediaType, rating: r.rating });
+  const tmdbMap = new Map<string, { tmdbInfo: TmdbCache | null; mediaType: string; rating: number }>();
+  for (const r of tmdbResults) tmdbMap.set(mediaKey(r.tmdbId, r.mediaType), { tmdbInfo: r.tmdbInfo, mediaType: r.mediaType, rating: r.rating });
 
   // ─── Build calendar ───
   type DayEntry = { tmdbId: number; title: string; posterPath: string | null; mediaType: string; rating: number; runtime: number | null; episodeCount: number };
@@ -310,11 +315,11 @@ async function buildHistory(
   for (const [dateKey, entries] of Object.entries(dayGroups)) {
     calendar[dateKey] = [];
     for (const e of entries) {
-      const tmdb = tmdbMap.get(e.tmdbId);
+      const tmdb = tmdbMap.get(mediaKey(e.tmdbId, e.mediaType));
       const title = tmdb?.tmdbInfo?.title || `Title #${e.tmdbId}`;
       const posterPath = tmdb?.tmdbInfo?.posterPath || null;
       const runtime = tmdb?.tmdbInfo?.runtime || null;
-      calendar[dateKey].push({ tmdbId: e.tmdbId, title, posterPath, mediaType: tmdb?.mediaType || "movie", rating: tmdb?.rating || 0, runtime, episodeCount: e.episodes });
+      calendar[dateKey].push({ tmdbId: e.tmdbId, title, posterPath, mediaType: e.mediaType, rating: tmdb?.rating || 0, runtime, episodeCount: e.episodes });
 
       if (tmdb?.tmdbInfo && tmdb.rating > 0) {
         for (const genre of tmdb.tmdbInfo.genres) {
@@ -328,9 +333,9 @@ async function buildHistory(
 
   // ─── Stats ───
   let totalMin = 0, totalEps = 0;
-  const titles = new Set<number>();
+  const titles = new Set<string>();
   for (const entries of Object.values(calendar)) for (const e of entries) {
-    titles.add(e.tmdbId);
+    titles.add(mediaKey(e.tmdbId, e.mediaType));
     if (e.runtime) totalMin += e.runtime * e.episodeCount;
     totalEps += e.episodeCount;
   }
@@ -348,7 +353,7 @@ async function buildHistory(
   const weekEnd = sunday.toISOString().split("T")[0];
   let weeklyMin = 0, allTimeMin = 0;
   for (const w of (watches || [])) {
-    const tmdb = tmdbMap.get(w.tmdb_id);
+    const tmdb = tmdbMap.get(mediaKey(w.tmdb_id, w.media_type === "anime" ? "anime" : "tv"));
     const rt = tmdb?.tmdbInfo?.runtime;
     if (!rt) continue;
     allTimeMin += rt;
@@ -373,11 +378,12 @@ async function buildHistory(
 
   // ─── Watch list (reuse tmdbMap) ───
   const watchList = [];
-  const seen = new Set<number>();
+  const seen = new Set<string>();
   if (tracking) for (const t of tracking) {
-    if (seen.has(t.tmdb_id) || (t.status !== "completed" && t.status !== "watching")) continue;
-    seen.add(t.tmdb_id);
-    const tmdb = tmdbMap.get(t.tmdb_id);
+    const tKey = mediaKey(t.tmdb_id, t.media_type);
+    if (seen.has(tKey) || (t.status !== "completed" && t.status !== "watching")) continue;
+    seen.add(tKey);
+    const tmdb = tmdbMap.get(tKey);
     watchList.push({
       tmdbId: t.tmdb_id, mediaType: t.media_type,
       title: tmdb?.tmdbInfo?.title || `Title #${t.tmdb_id}`,

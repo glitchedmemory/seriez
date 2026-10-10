@@ -93,7 +93,7 @@ export default function DayPopup({ date, entries, onClose }: DayPopupProps) {
           <div className="grid grid-cols-4 gap-3 justify-center">
             {entries.slice(0, 8).map((entry) => (
               <Link
-                key={entry.tmdbId}
+                key={`${entry.tmdbId}-${entry.mediaType}`}
                 href={titleHref(entry.tmdbId, entry.mediaType)}
                 className="flex flex-col items-center gap-2 group w-[88px]"
               >
