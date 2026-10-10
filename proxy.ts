@@ -127,6 +127,12 @@ export async function proxy(request: NextRequest) {
   const localizedLandingMatch = path.match(/^\/([a-z]{2})\/(tv-time-alternative|letterboxd-alternative)$/);
   const isLocalizedLanding = !!localizedLandingMatch && VALID_LOCALES.includes(localizedLandingMatch[1]);
 
+  // The language of these pages comes from the URL, so make it the request language as well:
+  // the root layout renders <html lang> from it and the page reads the same value.
+  if (localizedLandingMatch && isLocalizedLanding) {
+    request.headers.set("accept-language", localizedLandingMatch[1]);
+  }
+
   // Apply i18n and updateSession, merge headers
   const intlRes = isLocalizedLanding ? NextResponse.next() : handleI18n(request);
   const sessionRes = await updateSession(request);
