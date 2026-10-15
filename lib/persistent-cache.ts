@@ -27,19 +27,52 @@ function hashKey(key: string): string {
 }
 
 // Evict oldest files in `namespace` until it drops to `max` entries.
-// Runs probabilistically on write (1% of the time) so we don't stat/readdir
-// the (up to 10k-file) directory on every single cache write. Worst case the
-// namespace overshoots briefly before the next eviction pass trims it.
-let evictionNonce = 0;
+// Runs every EVICT_INTERVAL writes (deterministic, not probabilistic) so we
+// don't stat/readdir the directory on every single cache write while still
+// guaranteeing the namespace is trimmed regularly. The old 1-in-100 dice roll
+// let namespaces sit permanently above their cap.
+//
+// Additionally a global sweep (SWEEP_EVERY writes) drops files whose TTL has
+// elapsed but which are never looked up again - those were the real runaway
+// source, since TTL deletion only happened on a cache hit.
+const EVICT_INTERVAL = 500;
+const SWEEP_EVERY = EVICT_INTERVAL * 12;
+let writesSinceEvict = 0;
+let writesSinceSweep = 0;
 async function maybeEvict(namespace: string, max: number): Promise<void> {
-  evictionNonce++;
-  if (evictionNonce % 100 !== 0) return;
+  writesSinceEvict++;
+  writesSinceSweep++;
+  const doSweep = writesSinceSweep >= SWEEP_EVERY;
+  if (writesSinceEvict < EVICT_INTERVAL && !doSweep) return;
+  if (writesSinceEvict >= EVICT_INTERVAL) writesSinceEvict = 0;
+  if (doSweep) writesSinceSweep = 0;
 
   try {
     const entries = await fs.readdir(CACHE_DIR);
     const files = entries
       .filter((f) => f.startsWith(`${namespace}_`) && f.endsWith(".json"))
       .map((f) => path.join(CACHE_DIR, f));
+
+    // Global sweep: remove any cached file whose own TTL has long elapsed and
+    // which is never requested again (the unbounded-growth path).
+    if (doSweep) {
+      const now = Date.now();
+      await Promise.all(
+        entries
+          .filter((f) => f.endsWith(".json"))
+          .map(async (f) => {
+            const full = path.join(CACHE_DIR, f);
+            try {
+              const st = await fs.stat(full);
+              // 7 days is a safe ceiling: no cache entry in this app has a TTL
+              // anywhere near that, so anything older is dead weight.
+              if (now - st.mtimeMs > 7 * 86400000) await fs.unlink(full);
+            } catch {
+              /* best effort */
+            }
+          })
+      );
+    }
 
     if (files.length <= max) return;
 

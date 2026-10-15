@@ -12,8 +12,10 @@ module.exports = {
     wait_ready: true,
     listen_timeout: 30000,
     kill_timeout: 10000,
+    max_memory_restart: "1600M",
     env: {
       NODE_ENV: "production",
+      NODE_OPTIONS: "--max-old-space-size=1408",
     },
     error_file: "/root/seriez/logs/err.log",
     out_file: "/root/seriez/logs/out.log",

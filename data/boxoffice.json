@@ -1,0 +1,1183 @@
+{
+  "generatedAt": "2026-10-15T12:30:57.828Z",
+  "week": "2026W40",
+  "countries": {
+    "US": [
+      {
+        "id": 1283515,
+        "title": "Verity",
+        "poster": "https://image.tmdb.org/t/p/w780/zPHfsaiMZT1HNz1ZS55iyLKZkFG.jpg",
+        "year": 2026,
+        "rating": 6.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$32,031,011"
+        }
+      },
+      {
+        "id": 1423191,
+        "title": "Resident Evil",
+        "poster": "https://image.tmdb.org/t/p/w780/i7UyjfPio0VFHB9rBUZSFyhOoM8.jpg",
+        "year": 2026,
+        "rating": 7.3,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$12,618,839"
+        }
+      },
+      {
+        "id": 1263337,
+        "title": "Heart of the Beast",
+        "poster": "https://image.tmdb.org/t/p/w780/1ApfSA8JTqeha3GTFEY8syV4auq.jpg",
+        "year": 2026,
+        "rating": 7.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$10,876,713"
+        }
+      },
+      {
+        "id": 1248832,
+        "title": "Digger",
+        "poster": "https://image.tmdb.org/t/p/w780/1ATXKrIPJyKNwnJ6lcG088Sa6zi.jpg",
+        "year": 2026,
+        "rating": 7.5,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$8,001,856"
+        }
+      },
+      {
+        "id": 1375441,
+        "title": "Primetime",
+        "poster": "https://image.tmdb.org/t/p/w780/lmrulvLbmaejTix1YaMxo1oGhH1.jpg",
+        "year": 2026,
+        "rating": 6.9,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$7,748,406"
+        }
+      },
+      {
+        "id": 1465063,
+        "title": "Forgotten Island",
+        "poster": "https://image.tmdb.org/t/p/w780/myd1K3gefdNAWFsGNRDdMeiK9Qg.jpg",
+        "year": 2026,
+        "rating": 8.1,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$7,201,655"
+        }
+      },
+      {
+        "id": 299534,
+        "title": "Avengers: Endgame",
+        "poster": "https://image.tmdb.org/t/p/w780/bR8ISy1O9XQxqiy0fQFw2BX72RQ.jpg",
+        "year": 2019,
+        "rating": 8.2,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$4,471,524"
+        }
+      }
+    ],
+    "GB": [
+      {
+        "id": 1283515,
+        "title": "Verity",
+        "poster": "https://image.tmdb.org/t/p/w780/zPHfsaiMZT1HNz1ZS55iyLKZkFG.jpg",
+        "year": 2026,
+        "rating": 6.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$32,031,011"
+        }
+      },
+      {
+        "id": 1423191,
+        "title": "Resident Evil",
+        "poster": "https://image.tmdb.org/t/p/w780/i7UyjfPio0VFHB9rBUZSFyhOoM8.jpg",
+        "year": 2026,
+        "rating": 7.3,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$12,618,839"
+        }
+      },
+      {
+        "id": 1263337,
+        "title": "Heart of the Beast",
+        "poster": "https://image.tmdb.org/t/p/w780/1ApfSA8JTqeha3GTFEY8syV4auq.jpg",
+        "year": 2026,
+        "rating": 7.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$10,876,713"
+        }
+      },
+      {
+        "id": 1248832,
+        "title": "Digger",
+        "poster": "https://image.tmdb.org/t/p/w780/1ATXKrIPJyKNwnJ6lcG088Sa6zi.jpg",
+        "year": 2026,
+        "rating": 7.5,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$8,001,856"
+        }
+      },
+      {
+        "id": 1375441,
+        "title": "Primetime",
+        "poster": "https://image.tmdb.org/t/p/w780/lmrulvLbmaejTix1YaMxo1oGhH1.jpg",
+        "year": 2026,
+        "rating": 6.9,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$7,748,406"
+        }
+      },
+      {
+        "id": 1465063,
+        "title": "Forgotten Island",
+        "poster": "https://image.tmdb.org/t/p/w780/myd1K3gefdNAWFsGNRDdMeiK9Qg.jpg",
+        "year": 2026,
+        "rating": 8.1,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$7,201,655"
+        }
+      },
+      {
+        "id": 299534,
+        "title": "Avengers: Endgame",
+        "poster": "https://image.tmdb.org/t/p/w780/bR8ISy1O9XQxqiy0fQFw2BX72RQ.jpg",
+        "year": 2019,
+        "rating": 8.2,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$4,471,524"
+        }
+      }
+    ],
+    "AU": [
+      {
+        "id": 1283515,
+        "title": "Verity",
+        "poster": "https://image.tmdb.org/t/p/w780/zPHfsaiMZT1HNz1ZS55iyLKZkFG.jpg",
+        "year": 2026,
+        "rating": 6.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$3,062,943"
+        }
+      },
+      {
+        "id": 1423191,
+        "title": "Resident Evil",
+        "poster": "https://image.tmdb.org/t/p/w780/i7UyjfPio0VFHB9rBUZSFyhOoM8.jpg",
+        "year": 2026,
+        "rating": 7.3,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$1,091,708"
+        }
+      },
+      {
+        "id": 1263337,
+        "title": "Heart of the Beast",
+        "poster": "https://image.tmdb.org/t/p/w780/1ApfSA8JTqeha3GTFEY8syV4auq.jpg",
+        "year": 2026,
+        "rating": 7.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$1,051,443"
+        }
+      },
+      {
+        "id": 1465063,
+        "title": "Forgotten Island",
+        "poster": "https://image.tmdb.org/t/p/w780/myd1K3gefdNAWFsGNRDdMeiK9Qg.jpg",
+        "year": 2026,
+        "rating": 8.1,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$993,628"
+        }
+      },
+      {
+        "id": 1269325,
+        "title": "Drishyam: The Conclusion",
+        "poster": "https://image.tmdb.org/t/p/w780/67FsF2kpgEZ1T5Qos4adgqm9dLf.jpg",
+        "year": 2026,
+        "rating": 7.7,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$727,232"
+        }
+      },
+      {
+        "id": 1185806,
+        "title": "PAW Patrol: The Dino Movie",
+        "poster": "https://image.tmdb.org/t/p/w780/qnin56Syy5rbG7KCaxWY7SPuy6p.jpg",
+        "year": 2026,
+        "rating": 8.3,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$703,547"
+        }
+      },
+      {
+        "id": 1204680,
+        "title": "Coyote vs. Acme",
+        "poster": "https://image.tmdb.org/t/p/w780/kYDCl2y0VPvhT5eYWbMRInPoB03.jpg",
+        "year": 2026,
+        "rating": 7.5,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$589,650"
+        }
+      }
+    ],
+    "MX": [
+      {
+        "id": 1423191,
+        "title": "Resident Evil",
+        "poster": "https://image.tmdb.org/t/p/w780/i7UyjfPio0VFHB9rBUZSFyhOoM8.jpg",
+        "year": 2026,
+        "rating": 7.3,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$2,145,240"
+        }
+      },
+      {
+        "id": 1263337,
+        "title": "Heart of the Beast",
+        "poster": "https://image.tmdb.org/t/p/w780/1ApfSA8JTqeha3GTFEY8syV4auq.jpg",
+        "year": 2026,
+        "rating": 7.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$2,000,000"
+        }
+      },
+      {
+        "id": 1283515,
+        "title": "Verity",
+        "poster": "https://image.tmdb.org/t/p/w780/zPHfsaiMZT1HNz1ZS55iyLKZkFG.jpg",
+        "year": 2026,
+        "rating": 6.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$1,522,656"
+        }
+      },
+      {
+        "id": 1003596,
+        "title": "Avengers: Doomsday",
+        "poster": "https://image.tmdb.org/t/p/w780/sLYCyO58UvBuBtbHTQjPCCgJ4dG.jpg",
+        "year": 2026,
+        "rating": 0,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$1,108,000"
+        }
+      },
+      {
+        "id": 1204680,
+        "title": "Coyote vs. Acme",
+        "poster": "https://image.tmdb.org/t/p/w780/kYDCl2y0VPvhT5eYWbMRInPoB03.jpg",
+        "year": 2026,
+        "rating": 7.5,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$948,867"
+        }
+      },
+      {
+        "id": 1101412,
+        "title": "Fall 2: Deadpoint",
+        "poster": "https://image.tmdb.org/t/p/w780/fgSm5ylwiXbIHn8UbUXDjk9RRu4.jpg",
+        "year": 2026,
+        "rating": 7.3,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$597,909"
+        }
+      },
+      {
+        "id": 0,
+        "title": "Coraline2026 Re-release",
+        "poster": null,
+        "year": 0,
+        "rating": 0,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$434,944"
+        }
+      }
+    ],
+    "KR": [
+      {
+        "id": 1283515,
+        "title": "Verity",
+        "poster": "https://image.tmdb.org/t/p/w780/zPHfsaiMZT1HNz1ZS55iyLKZkFG.jpg",
+        "year": 2026,
+        "rating": 6.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$32,031,011"
+        }
+      },
+      {
+        "id": 1423191,
+        "title": "Resident Evil",
+        "poster": "https://image.tmdb.org/t/p/w780/i7UyjfPio0VFHB9rBUZSFyhOoM8.jpg",
+        "year": 2026,
+        "rating": 7.3,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$12,618,839"
+        }
+      },
+      {
+        "id": 1263337,
+        "title": "Heart of the Beast",
+        "poster": "https://image.tmdb.org/t/p/w780/1ApfSA8JTqeha3GTFEY8syV4auq.jpg",
+        "year": 2026,
+        "rating": 7.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$10,876,713"
+        }
+      },
+      {
+        "id": 1248832,
+        "title": "Digger",
+        "poster": "https://image.tmdb.org/t/p/w780/1ATXKrIPJyKNwnJ6lcG088Sa6zi.jpg",
+        "year": 2026,
+        "rating": 7.5,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$8,001,856"
+        }
+      },
+      {
+        "id": 1375441,
+        "title": "Primetime",
+        "poster": "https://image.tmdb.org/t/p/w780/lmrulvLbmaejTix1YaMxo1oGhH1.jpg",
+        "year": 2026,
+        "rating": 6.9,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$7,748,406"
+        }
+      },
+      {
+        "id": 1465063,
+        "title": "Forgotten Island",
+        "poster": "https://image.tmdb.org/t/p/w780/myd1K3gefdNAWFsGNRDdMeiK9Qg.jpg",
+        "year": 2026,
+        "rating": 8.1,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$7,201,655"
+        }
+      },
+      {
+        "id": 299534,
+        "title": "Avengers: Endgame",
+        "poster": "https://image.tmdb.org/t/p/w780/bR8ISy1O9XQxqiy0fQFw2BX72RQ.jpg",
+        "year": 2019,
+        "rating": 8.2,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$4,471,524"
+        }
+      }
+    ],
+    "JP": [
+      {
+        "id": 0,
+        "title": "Mama ga mo Kono Sekai ni Inakute mo: Watashi no Inochi no Nikki",
+        "poster": null,
+        "year": 0,
+        "rating": 0,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$2,792,228"
+        }
+      },
+      {
+        "id": 1275779,
+        "title": "Disclosure Day",
+        "poster": "https://image.tmdb.org/t/p/w780/AnJ8IQJI23hNpYXVNaythu061Ru.jpg",
+        "year": 2026,
+        "rating": 7.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$1,759,501"
+        }
+      },
+      {
+        "id": 1491083,
+        "title": "Bayside Shakedown N.E.W.",
+        "poster": "https://image.tmdb.org/t/p/w780/zxpus1lIDG7wqAuzsD0zgM6mXwM.jpg",
+        "year": 2026,
+        "rating": 0,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$1,409,140"
+        }
+      },
+      {
+        "id": 1586876,
+        "title": "Chiikawa the Movie: The Secret of the Mermaid Island",
+        "poster": "https://image.tmdb.org/t/p/w780/2sapvk8OG1rmaS2PquLnfyoMvOS.jpg",
+        "year": 2026,
+        "rating": 7.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$1,130,320"
+        }
+      },
+      {
+        "id": 1003596,
+        "title": "Avengers: Doomsday",
+        "poster": "https://image.tmdb.org/t/p/w780/sLYCyO58UvBuBtbHTQjPCCgJ4dG.jpg",
+        "year": 2026,
+        "rating": 0,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$980,000"
+        }
+      },
+      {
+        "id": 822653,
+        "title": "Puella Magi Madoka Magica the Movie -Walpurgisnacht: Rising-",
+        "poster": "https://image.tmdb.org/t/p/w780/g4kCd4rMuN7G3VQQDUT6mLbrBqQ.jpg",
+        "year": 2026,
+        "rating": 8.7,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$858,387"
+        }
+      },
+      {
+        "id": 1368337,
+        "title": "The Odyssey",
+        "poster": "https://image.tmdb.org/t/p/w780/5rhTDKUhPYvpdQIijFIs5VoWsON.jpg",
+        "year": 2026,
+        "rating": 8,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$767,641"
+        }
+      }
+    ],
+    "FR": [
+      {
+        "id": 1283515,
+        "title": "Verity",
+        "poster": "https://image.tmdb.org/t/p/w780/zPHfsaiMZT1HNz1ZS55iyLKZkFG.jpg",
+        "year": 2026,
+        "rating": 6.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$32,031,011"
+        }
+      },
+      {
+        "id": 1423191,
+        "title": "Resident Evil",
+        "poster": "https://image.tmdb.org/t/p/w780/i7UyjfPio0VFHB9rBUZSFyhOoM8.jpg",
+        "year": 2026,
+        "rating": 7.3,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$12,618,839"
+        }
+      },
+      {
+        "id": 1263337,
+        "title": "Heart of the Beast",
+        "poster": "https://image.tmdb.org/t/p/w780/1ApfSA8JTqeha3GTFEY8syV4auq.jpg",
+        "year": 2026,
+        "rating": 7.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$10,876,713"
+        }
+      },
+      {
+        "id": 1248832,
+        "title": "Digger",
+        "poster": "https://image.tmdb.org/t/p/w780/1ATXKrIPJyKNwnJ6lcG088Sa6zi.jpg",
+        "year": 2026,
+        "rating": 7.5,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$8,001,856"
+        }
+      },
+      {
+        "id": 1375441,
+        "title": "Primetime",
+        "poster": "https://image.tmdb.org/t/p/w780/lmrulvLbmaejTix1YaMxo1oGhH1.jpg",
+        "year": 2026,
+        "rating": 6.9,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$7,748,406"
+        }
+      },
+      {
+        "id": 1465063,
+        "title": "Forgotten Island",
+        "poster": "https://image.tmdb.org/t/p/w780/myd1K3gefdNAWFsGNRDdMeiK9Qg.jpg",
+        "year": 2026,
+        "rating": 8.1,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$7,201,655"
+        }
+      },
+      {
+        "id": 299534,
+        "title": "Avengers: Endgame",
+        "poster": "https://image.tmdb.org/t/p/w780/bR8ISy1O9XQxqiy0fQFw2BX72RQ.jpg",
+        "year": 2019,
+        "rating": 8.2,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$4,471,524"
+        }
+      }
+    ],
+    "DE": [
+      {
+        "id": 1283515,
+        "title": "Verity",
+        "poster": "https://image.tmdb.org/t/p/w780/zPHfsaiMZT1HNz1ZS55iyLKZkFG.jpg",
+        "year": 2026,
+        "rating": 6.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$3,078,485"
+        }
+      },
+      {
+        "id": 1423191,
+        "title": "Resident Evil",
+        "poster": "https://image.tmdb.org/t/p/w780/i7UyjfPio0VFHB9rBUZSFyhOoM8.jpg",
+        "year": 2026,
+        "rating": 7.3,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$1,221,873"
+        }
+      },
+      {
+        "id": 1263337,
+        "title": "Heart of the Beast",
+        "poster": "https://image.tmdb.org/t/p/w780/1ApfSA8JTqeha3GTFEY8syV4auq.jpg",
+        "year": 2026,
+        "rating": 7.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$942,402"
+        }
+      },
+      {
+        "id": 1477104,
+        "title": "Shaun the Sheep: The Beast of Mossy Bottom",
+        "poster": "https://image.tmdb.org/t/p/w780/mMOptSPBVGUA9GHgnpsC35GzZ7e.jpg",
+        "year": 2026,
+        "rating": 7.1,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$940,027"
+        }
+      },
+      {
+        "id": 1702722,
+        "title": "Kontra K: Orchestrated - Live from Channel Aid 2026",
+        "poster": "https://image.tmdb.org/t/p/w780/ctiOWddJwgGIDgc2Z2310c35t6C.jpg",
+        "year": 2026,
+        "rating": 0,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$647,006"
+        }
+      },
+      {
+        "id": 1368337,
+        "title": "The Odyssey",
+        "poster": "https://image.tmdb.org/t/p/w780/5rhTDKUhPYvpdQIijFIs5VoWsON.jpg",
+        "year": 2026,
+        "rating": 8,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$615,223"
+        }
+      },
+      {
+        "id": 969681,
+        "title": "Spider-Man: Brand New Day",
+        "poster": "https://image.tmdb.org/t/p/w780/bjiS5ipwxb9JFy3XRRN4OAilSeX.jpg",
+        "year": 2026,
+        "rating": 8.5,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$600,807"
+        }
+      }
+    ],
+    "ES": [
+      {
+        "id": 1422041,
+        "title": "La bola negra",
+        "poster": "https://image.tmdb.org/t/p/w780/jT5SR5qc9KvVg7HUEmjMWEUYMce.jpg",
+        "year": 2026,
+        "rating": 8.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$6,740,173"
+        }
+      },
+      {
+        "id": 1263337,
+        "title": "Heart of the Beast",
+        "poster": "https://image.tmdb.org/t/p/w780/1ApfSA8JTqeha3GTFEY8syV4auq.jpg",
+        "year": 2026,
+        "rating": 7.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$1,187,683"
+        }
+      },
+      {
+        "id": 1423191,
+        "title": "Resident Evil",
+        "poster": "https://image.tmdb.org/t/p/w780/i7UyjfPio0VFHB9rBUZSFyhOoM8.jpg",
+        "year": 2026,
+        "rating": 7.3,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$838,221"
+        }
+      },
+      {
+        "id": 1283515,
+        "title": "Verity",
+        "poster": "https://image.tmdb.org/t/p/w780/zPHfsaiMZT1HNz1ZS55iyLKZkFG.jpg",
+        "year": 2026,
+        "rating": 6.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$823,092"
+        }
+      },
+      {
+        "id": 1465063,
+        "title": "Forgotten Island",
+        "poster": "https://image.tmdb.org/t/p/w780/myd1K3gefdNAWFsGNRDdMeiK9Qg.jpg",
+        "year": 2026,
+        "rating": 8.1,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$399,873"
+        }
+      },
+      {
+        "id": 1204680,
+        "title": "Coyote vs. Acme",
+        "poster": "https://image.tmdb.org/t/p/w780/kYDCl2y0VPvhT5eYWbMRInPoB03.jpg",
+        "year": 2026,
+        "rating": 7.5,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$302,273"
+        }
+      },
+      {
+        "id": 1187326,
+        "title": "Tad and The Magic Lamp",
+        "poster": "https://image.tmdb.org/t/p/w780/AdDxZgNmRYgDuweY8899buyVqlr.jpg",
+        "year": 2026,
+        "rating": 7.2,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$299,630"
+        }
+      }
+    ],
+    "CN": [
+      {
+        "id": 1439171,
+        "title": "Traces of Justice",
+        "poster": "https://image.tmdb.org/t/p/w780/jfDFyAb9DW6QczgNeieSzPOz1cT.jpg",
+        "year": 2026,
+        "rating": 7.5,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$31,200,000"
+        }
+      },
+      {
+        "id": 1563608,
+        "title": "Mr. & Mrs. Pardon",
+        "poster": "https://image.tmdb.org/t/p/w780/uofN38bDaG3qYeLoerXynlVRHRt.jpg",
+        "year": 2026,
+        "rating": 0,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$17,300,000"
+        }
+      },
+      {
+        "id": 1391021,
+        "title": "Once Upon a Time in the Middle East",
+        "poster": "https://image.tmdb.org/t/p/w780/wAuGgXjA7GV8NrKfmUKl2AP8vqG.jpg",
+        "year": 2026,
+        "rating": 8.8,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$4,400,000"
+        }
+      },
+      {
+        "id": 1633056,
+        "title": "All Wishes Come True!",
+        "poster": "https://image.tmdb.org/t/p/w780/wJ9FLxq3Q6D4ve8TUepYsr0PL3p.jpg",
+        "year": 2026,
+        "rating": 8,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$4,300,000"
+        }
+      },
+      {
+        "id": 1503023,
+        "title": "Go for Broke 2",
+        "poster": "https://image.tmdb.org/t/p/w780/b64Qih8RALtpxQcuFnsJOOSoIBT.jpg",
+        "year": 2026,
+        "rating": 0,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$4,200,000"
+        }
+      },
+      {
+        "id": 1003596,
+        "title": "Avengers: Doomsday",
+        "poster": "https://image.tmdb.org/t/p/w780/sLYCyO58UvBuBtbHTQjPCCgJ4dG.jpg",
+        "year": 2026,
+        "rating": 0,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$3,276,000"
+        }
+      },
+      {
+        "id": 1263337,
+        "title": "Heart of the Beast",
+        "poster": "https://image.tmdb.org/t/p/w780/1ApfSA8JTqeha3GTFEY8syV4auq.jpg",
+        "year": 2026,
+        "rating": 7.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$2,100,000"
+        }
+      }
+    ],
+    "BR": [
+      {
+        "id": 1283515,
+        "title": "Verity",
+        "poster": "https://image.tmdb.org/t/p/w780/zPHfsaiMZT1HNz1ZS55iyLKZkFG.jpg",
+        "year": 2026,
+        "rating": 6.4,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$3,863,090"
+        }
+      },
+      {
+        "id": 1003596,
+        "title": "Avengers: Doomsday",
+        "poster": "https://image.tmdb.org/t/p/w780/sLYCyO58UvBuBtbHTQjPCCgJ4dG.jpg",
+        "year": 2026,
+        "rating": 0,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$427,000"
+        }
+      },
+      {
+        "id": 1465063,
+        "title": "Forgotten Island",
+        "poster": "https://image.tmdb.org/t/p/w780/myd1K3gefdNAWFsGNRDdMeiK9Qg.jpg",
+        "year": 2026,
+        "rating": 8.1,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$58,110"
+        }
+      },
+      {
+        "id": 1368337,
+        "title": "The Odyssey",
+        "poster": "https://image.tmdb.org/t/p/w780/5rhTDKUhPYvpdQIijFIs5VoWsON.jpg",
+        "year": 2026,
+        "rating": 8,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$27,904"
+        }
+      },
+      {
+        "id": 1084244,
+        "title": "Toy Story 5",
+        "poster": "https://image.tmdb.org/t/p/w780/sfQtVlIHljToOwYjhe21KPGzZWK.jpg",
+        "year": 2026,
+        "rating": 8.3,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$9,000"
+        }
+      },
+      {
+        "id": 950028,
+        "title": "The Invite",
+        "poster": "https://image.tmdb.org/t/p/w780/b7Dr8Chzse8VagexAporUu2RtLx.jpg",
+        "year": 2026,
+        "rating": 7.2,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$1,728"
+        }
+      },
+      {
+        "id": 1315772,
+        "title": "Minions & Monsters",
+        "poster": "https://image.tmdb.org/t/p/w780/4LwvU9SZc8QQzW1X1FAPhNbXnEU.jpg",
+        "year": 2026,
+        "rating": 7.6,
+        "type": "movie",
+        "backdrop": null,
+        "overview": "",
+        "genres": [],
+        "daysUntil": null,
+        "boxOffice": {
+          "gross": "$753"
+        }
+      }
+    ]
+  }
+}
