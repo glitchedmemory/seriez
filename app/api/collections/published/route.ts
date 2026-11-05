@@ -9,6 +9,12 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w500";
 
+// AniList is rate-limited by IP (30 req/min). We share one VPS IP across every
+// route, so anime thumbnail lookups used to get 429'd and blank out the cards.
+// Keep the batch result in-process for 6h and fall back to stale data on 429.
+const THUMB_TTL_MS = 6 * 60 * 60 * 1000;
+const thumbCache = new Map<string, { at: number; map: Map<string, string | null> }>();
+
 // How many collections to pick randomly
 const PICK_COUNT = 8;
 // No minimum likes — any published collection qualifies
@@ -123,14 +129,42 @@ async function getThumbnails(items: { tmdb_id: number; media_type: string }[]): 
     try {
       const ids = animeItems.map((i) => i.tmdb_id);
       const query = `query($ids:[Int]){Page(perPage:50){media(id_in:$ids,type:ANIME){id coverImage{extraLarge}}}}`;
-      const res = await anilistFetch(query, { ids }, { revalidate: 0 });
-      if (res.ok) {
-        const json = await res.json();
-        for (const m of json.data?.Page?.media || []) {
-          posterMap.set(`anime:${m.id}`, m.coverImage?.extraLarge || null);
-        }
+
+      // AniList rate-limits by IP (30 req/min). The VPS shares one IP across all
+      // routes, so a 429 here used to blank out every anime thumbnail. Cache the
+      // batch result for 6h, then retry with backoff before giving up.
+      const batchKey = `anilist-thumbs:${ids.slice().sort((a, b) => a - b).join(",")}`;
+      const cached = thumbCache.get(batchKey);
+      if (cached && Date.now() - cached.at < THUMB_TTL_MS) {
+        for (const [k, v] of cached.map) posterMap.set(k, v);
       } else {
-        console.error("[getThumbnails] AniList fetch failed:", res.status, await res.text());
+        let res: Response | null = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          res = await anilistFetch(query, { ids }, { revalidate: 21600 });
+          if (res.ok) break;
+          // 429 → wait out the rate-limit window (AniList resets per minute)
+          if (res.status === 429) {
+            console.warn(`[getThumbnails] AniList 429, retry ${attempt + 1}/3`);
+            await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+            continue;
+          }
+          break;
+        }
+
+        if (res?.ok) {
+          const json = await res.json();
+          const collected = new Map<string, string | null>();
+          for (const m of json.data?.Page?.media || []) {
+            collected.set(`anime:${m.id}`, m.coverImage?.extraLarge || null);
+          }
+          for (const [k, v] of collected) posterMap.set(k, v);
+          thumbCache.set(batchKey, { at: Date.now(), map: collected });
+        } else if (cached) {
+          // Rate-limited or failed → serve the stale copy rather than nothing
+          for (const [k, v] of cached.map) posterMap.set(k, v);
+        } else {
+          console.error("[getThumbnails] AniList unavailable:", res?.status);
+        }
       }
     } catch (e) {
       console.error("[getThumbnails] AniList error:", e);
