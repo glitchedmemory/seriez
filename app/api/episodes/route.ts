@@ -188,7 +188,20 @@ export async function POST(req: NextRequest) {
     }
 
     // Update progress count on media_trackings
-    const progress = await recalcProgress(userId, tmdbId, mediaType);
+    // ⑥⑦(진행률 재계산)과 ⑧(트래킹 행 존재 확인)은 서로의 결과를 쓰지 않으므로
+    // 순서를 기다릴 이유가 없다. 동시에 보내 왕복 시간을 줄인다.
+    // 바뀌는 것은 실행 순서뿐이고, 만들어지는 데이터는 완전히 동일하다.
+    const [progress, trackRows] = await Promise.all([
+      recalcProgress(userId, tmdbId, mediaType),
+      supabaseAdmin
+        .from("media_trackings")
+        .select("id")
+        .eq("username", userId)
+        .eq("tmdb_id", tmdbId)
+        .eq("media_type", mediaType)
+        .limit(1)
+        .then((r) => r.data),
+    ]);
 
     // Auto-set tracking status to "watching" only when this title has NO
     // tracking row of the same type. Matching by season_number alone would
@@ -197,13 +210,7 @@ export async function POST(req: NextRequest) {
     // 애니는 여기서 행을 만들지 않는다. 애니 작품 행은 애니 페이지가 AniList
     // 정보로 직접 저장하므로, 여기서 만들면 TMDB 번호 체계의 'tv' 행이 생겨
     // 같은 작품이 목록에 애니와 TV 두 줄로 나타난다.
-    const { data: trackRows } = await supabaseAdmin
-      .from("media_trackings")
-      .select("id")
-      .eq("username", userId)
-      .eq("tmdb_id", tmdbId)
-      .eq("media_type", mediaType)
-      .limit(1);
+    // (⑧ 조회는 위 Promise.all로 옮겼다 — trackRows는 그 결과를 쓴다.)
 
     if (!trackRows || trackRows.length === 0) {
       if (mediaType !== "anime") {
