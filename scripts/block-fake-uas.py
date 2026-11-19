@@ -7,7 +7,9 @@ import os
 
 ACCESS_LOG = "/var/log/nginx/access.log"
 BLOCKED_FILE = "/etc/iptables/blocked_ips.txt"
-TOKEN = "REDACTED"
+TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+if not TOKEN:
+    raise SystemExit('TELEGRAM_BOT_TOKEN environment variable is not set')
 CHAT_ID = "893313394"
 
 # Load already blocked IPs

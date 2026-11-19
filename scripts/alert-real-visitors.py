@@ -8,7 +8,9 @@ from datetime import datetime, timedelta, timezone
 
 ACCESS_LOG = "/var/log/nginx/access.log"
 SEEN_FILE = "/tmp/recent_visitors.txt"
-TOKEN = "REDACTED"
+TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+if not TOKEN:
+    raise SystemExit('TELEGRAM_BOT_TOKEN environment variable is not set')
 CHAT_ID = "893313394"
 
 # Bot patterns to exclude
