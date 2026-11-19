@@ -35,10 +35,38 @@ PLATFORM_MAP = {
     "disney-plus":        {"key": "disney",  "pkg": "dnp"},
     "amazon-prime-video": {"key": "amazon",  "pkg": "amp"},
 }
-OUTPUT_PATH = "/home/ava/workspace/seriez-2026-06-09/data/streaming-top10.json"
+OUTPUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "streaming-top10.json")
 MAX_RETRIES = 3
 BASE_DELAY = 10
-TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "")
+
+
+def _load_tmdb_key():
+    """TMDB_API_KEY 로딩: 환경변수 → seriez .env.local → seriez .env 순.
+    크론 실행 시 환경변수가 비어 있어도 프로젝트 .env에 키가 있으면 동작한다."""
+    key = os.environ.get("TMDB_API_KEY", "").strip()
+    if key:
+        return key
+    here = os.path.dirname(os.path.abspath(__file__))
+    proj = os.path.dirname(here)  # seriez-2026-06-09
+    for name in (".env.local", ".env", ".env.production"):
+        p = os.path.join(proj, name)
+        if not os.path.exists(p):
+            continue
+        try:
+            with open(p, encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("TMDB_API_KEY") and "=" in line:
+                        v = line.split("=", 1)[1].strip().strip('"').strip("'")
+                        if v:
+                            os.environ["TMDB_API_KEY"] = v
+                            return v
+        except Exception:
+            continue
+    return ""
+
+
+TMDB_API_KEY = _load_tmdb_key()
 
 JW_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
 

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { join } from "node:path";
 import { tmdbGet } from "@/lib/tmdb";
 import { anilistFetch } from "@/lib/anilist";
 
@@ -14,6 +16,28 @@ const TMDB_IMAGE = "https://image.tmdb.org/t/p/w500";
 // Keep the batch result in-process for 6h and fall back to stale data on 429.
 const THUMB_TTL_MS = 6 * 60 * 60 * 1000;
 const thumbCache = new Map<string, { at: number; map: Map<string, string | null> }>();
+
+// In-process cache dies on every deploy/restart, which is exactly when AniList
+// is most likely to be rate-limited (cold start = real request). Mirror the last
+// good covers to disk so a restart can still paint posters offline.
+const COVER_STORE = join(process.cwd(), ".next", "anilist-covers.json");
+
+async function loadCoverStore(): Promise<Record<string, string>> {
+  try {
+    return JSON.parse(await readFile(COVER_STORE, "utf-8"));
+  } catch {
+    return {};
+  }
+}
+
+async function saveCoverStore(store: Record<string, string>) {
+  try {
+    await mkdir(join(process.cwd(), ".next"), { recursive: true });
+    await writeFile(COVER_STORE, JSON.stringify(store), "utf-8");
+  } catch (e) {
+    console.error("[getThumbnails] cover store write failed:", e);
+  }
+}
 
 // How many collections to pick randomly
 const PICK_COUNT = 8;
@@ -159,11 +183,33 @@ async function getThumbnails(items: { tmdb_id: number; media_type: string }[]): 
           }
           for (const [k, v] of collected) posterMap.set(k, v);
           thumbCache.set(batchKey, { at: Date.now(), map: collected });
+          // Persist only real URLs so a restart never resurrects nulls
+          const store = await loadCoverStore();
+          let dirty = false;
+          for (const [k, v] of collected) {
+            if (v && store[k] !== v) {
+              store[k] = v;
+              dirty = true;
+            }
+          }
+          if (dirty) await saveCoverStore(store);
         } else if (cached) {
           // Rate-limited or failed → serve the stale copy rather than nothing
           for (const [k, v] of cached.map) posterMap.set(k, v);
         } else {
-          console.error("[getThumbnails] AniList unavailable:", res?.status);
+          // Cold start + AniList down → fall back to the last covers we saved
+          const store = await loadCoverStore();
+          let hit = 0;
+          for (const item of animeItems) {
+            const saved = store[`anime:${item.tmdb_id}`];
+            if (saved) {
+              posterMap.set(`anime:${item.tmdb_id}`, saved);
+              hit++;
+            }
+          }
+          console.error(
+            `[getThumbnails] AniList unavailable (${res?.status}), disk fallback ${hit}/${animeItems.length}`
+          );
         }
       }
     } catch (e) {

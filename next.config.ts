@@ -29,6 +29,16 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // /search shuffles collections per request and pulls live anime covers
+        // from AniList. If the edge caches a render that happened during an
+        // AniList 429, every visitor sees blank posters for the whole s-maxage
+        // window — that is exactly how the Anime Gateway card went empty.
+        source: "/search",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=0, s-maxage=0, must-revalidate" },
+        ],
+      },
+      {
         source: "/api/:path*",
         headers: [
           { key: "Cache-Control", value: "private, no-cache, no-store, max-age=0" },

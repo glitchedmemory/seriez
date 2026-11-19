@@ -31,14 +31,14 @@ export default function SeasonHero({ data, children, shareUrl }: { data: SeasonD
     <>
       {/* Backdrop */}
       {hasBackdrop && (
-        <div className="relative w-full h-48 md:h-72 overflow-hidden">
+        <div className="relative w-full h-64 md:h-96 overflow-hidden">
           <Image
             src={data.backdropPath?.replace("w342", "w1280") || data.youtubeBackdrop || data.anilistBanner || data.posterPath?.replace("w342", "w1280") || ""}
             alt=""
             fill
             priority
             unoptimized
-            className={(!data.backdropPath && !data.youtubeBackdrop && !data.anilistBanner) ? "object-cover blur-2xl scale-125 opacity-50" : "object-cover"}
+            className={(!data.backdropPath && !data.youtubeBackdrop && !data.anilistBanner) ? "object-cover blur-2xl scale-125 opacity-50" : "object-cover object-top"}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
           {shareUrl && <ShareButton title={data.title} url={shareUrl} variant="backdrop" />}
