@@ -164,7 +164,7 @@ export async function GET(
 
     // Look up anilist_ids from media_trackings for anime entries
     const animeIds = uniquePairs.filter(p => p.media_type === "anime");
-    let animeIdMap: Record<number, number> = {}; // tmdb_id → anilist_id
+    const animeIdMap: Record<number, number> = {}; // tmdb_id → anilist_id
     if (animeIds.length > 0) {
       const { data: tracks } = await supabase
         .from("media_trackings")
