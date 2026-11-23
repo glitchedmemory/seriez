@@ -696,20 +696,67 @@ export const getAnimeIds = unstable_cache(
   { revalidate: 86400 }
 );
 
+/**
+ * [2026-11-22] Is a cached detail row too stale/anemic to trust?
+ *
+ * Detail rows are cached permanently in Supabase on the assumption that they
+ * never change. That holds for finished shows but breaks for a season that is
+ * airing right now: Black Clover S2 was cached at week 4 and stayed stuck at
+ * "4 Ep / UPCOMING" with a placeholder poster and a one-line overview long
+ * after AniList/Kitsu reported 26 episodes, a real poster and a full synopsis.
+ *
+ * Two cheap signals catch those snapshots without an extra network call:
+ *  - currently airing, or
+ *  - obviously anemic: no poster/backdrop, or an overview that is just a
+ *    "The Nth season of X." stub written by a fallback path.
+ * Returning true simply forces a refresh on this visit.
+ */
+function isStaleDetail(d: AnimeDetail): boolean {
+  const status = (d.status || "").toUpperCase();
+  if (status === "RELEASING" || status === "CURRENT") return true;
+
+  // [2026-11-22] "UPCOMING" with episodes already out means the snapshot was
+  // taken before release and never refreshed (Black Clover S2 showed
+  // "4 Ep | UPCOMING" while 8 episodes had aired). Treat it as stale so the
+  // status gets re-derived from AniList/Kitsu.
+  if ((status === "UPCOMING" || status === "NOT_YET_RELEASED") && (d.episodes || 0) > 0) {
+    return true;
+  }
+
+  if (!d.poster || !d.backdrop) return true;
+
+  const overview = (d.overview || "").replace(/<[^>]*>/g, "").trim();
+  if (overview.length < 120 && /^the\s+.*\bseason\s+of\b/i.test(overview)) return true;
+
+  return false;
+}
+
 export const getAnimeDetail = unstable_cache(
   async (id: number): Promise<AnimeDetail | null> => {
   try {
     // Fast path: serve the cached detail from Supabase (permanent, survives
     // restarts) so we skip the AniList/ani.zip/Kitsu/YouTube calls entirely
     // for content we've already seen — detail data is effectively immutable.
+    //
+    // [2026-11-22] Exception: NOT immutable for currently-airing shows. A
+    // season airing right now gains episodes weekly, so a cached detail from
+    // week 4 froze the page at "4 Ep / UPCOMING" with a missing poster and a
+    // one-line overview while the real data had moved on. We also distrust
+    // cached rows whose episode count is implausibly low or whose overview is
+    // a bare "The Nth season of X." stub — those are stale/anemic snapshots
+    // written by an older fallback path and must be refreshed once.
     const cachedDetail = await getCachedField<AnimeDetail>(id, "detail");
-    if (cachedDetail) return cachedDetail;
+    if (cachedDetail && !isStaleDetail(cachedDetail)) return cachedDetail;
 
-    // ani.zip (AniDB) is the primary source for titles, poster, backdrop and
-    // episodes. Fetch it first (single call) so multi-language titles and the
-    // richer AniDB dataset win when available, and the site survives AniList
-    // outages for title/poster/episode data.
+    // ani.zip (AniDB) is the primary source for titles and multi-language data.
+    // NOTE [2026-11-22]: episode count / poster / backdrop now prefer Kitsu
+    // because Kitsu tracks airing shows more accurately than ani.zip
+    // (ani.zip said 12 eps while Kitsu and AniList said 26; ani.zip lags behind
+    // on currently-airing seasons).
     const anizip = await fetchAniZipByAnilistId(id);
+    // Kitsu detail is fetched up-front so it can win for episodeCount/synopsis/
+    // poster/backdrop. Non-fatal: null if Kitsu has no mapping or is down.
+    const kitsuPrimary = await getAnimeDetailFromKitsu(id).catch(() => null);
 
     // Retry AniList fetch with backoff (handles 429 + network errors)
     let res: Response | undefined;
@@ -822,16 +869,26 @@ export const getAnimeDetail = unstable_cache(
       titleRomaji: anizip?.titles?.["x-jat"] || m.title?.romaji || "",
       titleNative: anizip?.titles?.["ja"] || m.title?.native || "",
       titles: anizip?.titles || {},
-      overview: (m.description || "").replace(/<br\s*\/?>/gi, " ").replace(/ {2,}/g, " ").trim(),
-      poster: pickAniZipImage(anizip?.images, "Poster") || m.coverImage?.extraLarge || m.coverImage?.large || "",
-      backdrop: pickAniZipImage(anizip?.images, "Banner") || m.bannerImage || "",
+      // [2026-11-22] Priority: Kitsu → ani.zip → AniList.
+      // Kitsu tracks airing seasons accurately (26 eps) while ani.zip lags
+      // (12 eps) and AniList often returns null for ongoing shows.
+      // Prevents "4 Ep / UPCOMING" style regressions on currently-airing anime.
+      overview: (kitsuPrimary?.overview || m.description || "").replace(/<br\s*\/?>/gi, " ").replace(/ {2,}/g, " ").trim(),
+      poster: kitsuPrimary?.poster || pickAniZipImage(anizip?.images, "Poster") || m.coverImage?.extraLarge || m.coverImage?.large || "",
+      // Backdrop deliberately does NOT use Kitsu. The hero is a fixed
+      // h-64/h-96 band with object-cover, so the source aspect ratio decides how
+      // much width survives: TVDB banners (what every other page uses) are
+      // ~5.4:1, AniList banners ~4.75:1, Kitsu cover_image only 2.81:1 — which
+      // is why this page's hero looked visibly narrower than the rest.
+      // Order: TVDB (ani.zip) → AniList banner → Kitsu (last resort only).
+      backdrop: pickAniZipImage(anizip?.images, "Banner") || m.bannerImage || kitsuPrimary?.backdrop || "",
       rating: Math.round(((m.averageScore || 0) / 10) * 10) / 10,
       popularity: m.popularity || 0,
       year: m.seasonYear || 0,
       season: formatSeason(m.season),
       format: m.format || anizip?.mappings?.type || "TV",
       status: formatStatus(m.status),
-      episodes: anizip?.episodeCount || m.episodes || 0,
+      episodes: kitsuPrimary?.episodes || anizip?.episodeCount || m.episodes || 0,
       duration: m.duration || 0,
       genres: m.genres || [],
       tags,
@@ -883,8 +940,8 @@ export const getAnimeDetail = unstable_cache(
     return null;
   }
 },
-  ["anime-detail-v2"],
-  { revalidate: 86400 }
+  ["anime-detail-v3"],
+  { revalidate: 3600 }
 );
 
 // ─── TMDB ID → AniList ID resolution (cached 24h) ───
@@ -1311,10 +1368,24 @@ export const getAnimeEpisodes = unstable_cache(
 
   let episodes: AnimeEpisode[] = [];
 
-  // Track 0: ani.zip (AniDB) — primary and most accurate, fetched directly by
-  // AniList id (no fuzzy title search). Provides episode titles in multiple
-  // languages, air dates, runtimes and TVDB thumbnails in a single call.
-  if (anilistId && anilistId > 0) {
+  // Track 0: Kitsu FIRST. [2026-11-22] ani.zip used to lead here and it lags
+  // on currently-airing seasons: it reported 12 episodes for Black Clover S2
+  // while Kitsu and AniList both had 26. The header could read "26 Ep" (from
+  // Kitsu detail) while the episode list showed only 12 — the two sources are
+  // fetched by different code paths. Kitsu is authoritative for airing shows;
+  // ani.zip stays as the fallback because it carries TVDB thumbnails.
+  if (title || titleRomaji) {
+    const searchTitle = titleRomaji || title;
+    let kitsuEps = await fetchKitsuEpisodes(searchTitle);
+    if (kitsuEps.length === 0 && title && title !== searchTitle) {
+      kitsuEps = await fetchKitsuEpisodes(title);
+    }
+    if (kitsuEps.length > 0) episodes = kitsuEps;
+  }
+
+  // Track 0b: ani.zip (AniDB) — fallback for episode titles/air dates/runtimes
+  // and TVDB thumbnails when Kitsu has no episode list at all.
+  if (episodes.length === 0 && anilistId && anilistId > 0) {
     const anizip = await fetchAniZipByAnilistId(anilistId);
     const anizipEps = anizipEpisodesToAnimeEpisodes(anizip?.episodes);
     if (anizipEps.length > 0) {
@@ -1322,8 +1393,9 @@ export const getAnimeEpisodes = unstable_cache(
     }
   }
 
-  // Track A: Kitsu (primary — has episode numbers, most complete for airing shows
-  // where Jikan/MAL data lags behind. Avoid Jikan's missing/empty episode lists.)
+  // Track A: Kitsu (secondary pass — only used when Track 0 above was skipped
+  // because the caller passed no title). Kept so behaviour is unchanged for
+  // callers that rely on the title-less path.
   if (episodes.length === 0) {
     const searchTitle = titleRomaji || title;
     let kitsuEps = await fetchKitsuEpisodes(searchTitle);
@@ -1402,8 +1474,8 @@ export const getAnimeEpisodes = unstable_cache(
 
   return episodes;
   },
-  ["anime-episodes"],
-  { revalidate: 86400 }
+  ["anime-episodes-v3"],
+  { revalidate: 3600 }
 );
 
 // ─── Deep relations enrichment ───

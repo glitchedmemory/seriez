@@ -29,6 +29,21 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // [2026-11-22] Anime detail pages must NOT be edge-cached for a day.
+        // NOTE ON ORDER: in Next.js `headers()` a LATER rule wins, so this
+        // must come AFTER the catch-all /:path* above. Placing it before had no
+        // effect and Cloudflare kept serving a 24h-old render: Black Clover S2
+        // showed "4 Ep / UPCOMING" with a placeholder poster for ~49 min
+        // (Age: 2959, cf-cache-status: HIT) while the origin already returned
+        // 26 Ep / Airing with a TVDB banner. Airing seasons change weekly, so
+        // revalidate every 5 min at the edge and let the origin's own 1h data
+        // cache absorb the load.
+        source: "/anime/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=0, s-maxage=300, stale-while-revalidate=600" },
+        ],
+      },
+      {
         // /search shuffles collections per request and pulls live anime covers
         // from AniList. If the edge caches a render that happened during an
         // AniList 429, every visitor sees blank posters for the whole s-maxage
