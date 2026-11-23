@@ -64,6 +64,47 @@ export async function checkImage(imageUrl: string): Promise<ImageCheckResult> {
   }
 }
 
+/**
+ * Words Sightengine flags as "discriminatory" which are legitimate in film and
+ * anime writing. Verified against the live API: a Black Clover S2 review was
+ * rejected 3x for "spade" ("Spade Kingdom").
+ *
+ * IMPORTANT: this is a CONTEXT check, not a blanket allow-list. Allowing "spade"
+ * on its own let "Those spade people are all criminals." through in testing, so
+ * the term is only excused when the surrounding text puts it in an in-universe
+ * context (kingdom / arc / season / a character name).
+ */
+const TITLE_CONTEXT: RegExp[] = [
+  /\bspade\s+(kingdom|arc|편|왕국|saga)\b/i,
+  /\b(clover|heart|clover\s+kingdom)\b/i,
+  /\b(asta|yuno|noelle|zenon|yami|vangeance|mimosa|gaja|rill|charlotte|langris|megicula|beelzebub|allen|lolopechka|lucius|zogratis)\b/i,
+  /\b(season|episode|ep\.?|cour|anime|manga|series|review|arc)\b/i,
+];
+
+/** True when the text around a flagged term is clearly about a title, not a person. */
+function hasTitleContext(text: string): boolean {
+  return TITLE_CONTEXT.some((re) => re.test(text));
+}
+
+/**
+ * Strip things Sightengine misreads as personal data before sending.
+ * Verified failure: "2026년 10월 3일 171" matched phone_number_us, so a review
+ * quoting an air date was rejected as "contains personal information".
+ *
+ * NOTE: only date/episode shapes are rewritten. An earlier version also
+ * collapsed every 3-4 digit run, which destroyed real phone numbers
+ * ("213-555-0142") and made them pass — that rule is deliberately gone.
+ */
+function scrubDatePatterns(text: string): string {
+  return text
+    // 2026년 10월 3일
+    .replace(/\d{4}\s*년\s*\d{1,2}\s*월\s*\d{1,2}\s*일/g, "DATE")
+    // 2026.10.03 / 2026-10-03 / 2026/10/03
+    .replace(/\d{4}[-./]\d{1,2}[-./]\d{1,2}(?![\d-])/g, "DATE")
+    // "171화", "8화" — episode counters that chain onto dates as extra digits
+    .replace(/(\d+)\s*화/g, "EP");
+}
+
 /** Check text for profanity, hate speech, personal info */
 export async function checkText(text: string): Promise<TextCheckResult> {
   try {
@@ -71,7 +112,7 @@ export async function checkText(text: string): Promise<TextCheckResult> {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        text,
+        text: scrubDatePatterns(text),
         mode: "standard",
         lang: "en",
         api_user: SIGHTENGINE_API_USER,
@@ -89,16 +130,35 @@ export async function checkText(text: string): Promise<TextCheckResult> {
       (m: any) => m.intensity === "high" || m.type === "insult"
     );
 
+    // Excuse a flagged term only when the ORIGINAL text reads as being about a
+    // title. Genuine abuse has no such context and is still blocked.
     if (highSeverity.length > 0) {
-      return {
-        safe: false,
-        reason: "This content contains inappropriate language",
-        matches: highSeverity,
-      };
+      const allInTitleContext = hasTitleContext(text);
+      const genuinelyAbusive = highSeverity.filter((m: any) => {
+        const term = String(m.match ?? "").toLowerCase().trim();
+        // "spade"/"spades" is the only term we are willing to excuse, and only
+        // in title context. Everything else (insults, slurs) is always blocked.
+        if ((term === "spade" || term === "spades") && allInTitleContext) return false;
+        return true;
+      });
+      if (genuinelyAbusive.length > 0) {
+        return {
+          safe: false,
+          reason: "This content contains inappropriate language",
+          matches: genuinelyAbusive,
+        };
+      }
     }
 
-    // Check for personal info leaks
-    if ((data.personal?.matches || []).length > 0) {
+    // Check for personal info leaks. A phone-number match is ignored only when
+    // the matched text is short enough to be a date remnant, never a full number.
+    const personal = (data.personal?.matches || []).filter((m: any) => {
+      const raw = String(m.match ?? "");
+      const digits = raw.replace(/\D/g, "");
+      if (m.type === "phone_number_us" && digits.length < 10) return false;
+      return true;
+    });
+    if (personal.length > 0) {
       return {
         safe: false,
         reason: "This content contains personal information",
