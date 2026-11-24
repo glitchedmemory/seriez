@@ -63,3 +63,7 @@ backfill-tmdb.sh
 
 # scripts that previously held hardcoded credentials
 setup-env.sh
+
+# 런타임 로그는 커밋하지 않는다 (배포 시마다 변경되어 갈래를 만든다)
+logs/*.log
+*.log
