@@ -1,3 +1,0 @@
-module.exports=[434935,e=>{"use strict";let t=(0,e.i(224389).createClient)("https://zntyjtjodyzizoafxord.supabase.co",process.env.SUPABASE_SERVICE_ROLE_KEY);async function r(e,r,o,s,a){try{let{error:i}=await t.from("admin_actions").insert({action:r,target_type:o,target_id:s,details:a||{},admin_username:e});i&&console.error("[audit-log] Insert failed:",i.message)}catch(e){console.error("[audit-log] Unexpected error:",e.message)}}e.s(["logAdminAction",0,r])}];
-
-//# sourceMappingURL=lib_audit-log_ts_1xoay64._.js.map
