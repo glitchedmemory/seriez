@@ -1077,6 +1077,173 @@ async function fetchJikanEpisodes(malId: number): Promise<AnimeEpisode[]> {
 
 const KITSU_API = "https://kitsu.io/api/edge";
 
+// ─── TVmaze Thumbnails ───
+// 애니 에피소드 스틸컷이 Kitsu/AniList/Crunchyroll 에서 모두 비어 있을 때의 마지막
+// 소스. TVmaze 는 실제 방영 스틸컷을 갖고 있어 애니 페이지에서도 쓸 수 있다.
+//
+// 주의: TMDB 는 애니에 절대 쓰지 않는다(실사판 썸네일이 섞이는 사고 방지).
+// TVmaze 도 '애니가 아닌 작품'이 잡히면 안 되므로, 검색 결과의 첫 항목을 그대로
+// 쓰지 않고 아래 조건을 모두 만족할 때만 채택한다.
+//   1) 검색어(영문/로마자)와 제목이 정규화 후 일치하거나 포함 관계
+//   2) 시즌 번호가 원제목과 맞을 것 (Season 2 → TVmaze 시즌 2)
+//   3) 에피소드 수가 우리 목록과 크게 어긋나지 않을 것 (오프셋 밀림 방지)
+const TVMAZE_API = "https://api.tvmaze.com";
+
+const TVMAZE_SEASON_MARKERS = new RegExp(
+  "(\\bseason\\s*\\d+\\b|\\b\\d+(st|nd|rd|th)\\s+season\\b|\\bpart\\s*\\d+\\b|" +
+  "\\bfinal\\s+season\\b|\\bthe\\s+movie\\b|\\bmovie\\b|\\bova\\b|\\bona\\b|" +
+  "\\bspecials?\\b|\\bsecond\\s+season\\b|\\bthird\\s+season\\b|\\bfourth\\s+season\\b|\\bfinal\\b)",
+  "i"
+);
+
+/** 시즌/극장판 표기를 제거한 기본 제목 */
+function tvmazeBaseTitle(t: string): string {
+  return t
+    .replace(TVMAZE_SEASON_MARKERS, " ")
+    .replace(/[-–:]\s*$/, " ")
+    .replace(/\s*[-–:]\s*(the\s+)?movie.*$/i, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** 제목에서 시즌 번호를 뽑는다. 없으면 1 */
+function tvmazeSeasonNumber(t: string): number {
+  const m1 = t.match(/season\s*(\d+)/i);
+  if (m1) return parseInt(m1[1], 10);
+  if (/\b(2nd|second)\s+season\b/i.test(t)) return 2;
+  if (/\b(3rd|third)\s+season\b/i.test(t)) return 3;
+  if (/\b(4th|fourth)\s+season\b/i.test(t)) return 4;
+  const m2 = t.match(/\bpart\s*(\d+)\b/i);
+  if (m2) return parseInt(m2[1], 10);
+  return 1;
+}
+
+/** 비교용 정규화: 소문자, 영숫자/공백만 */
+function tvmazeNorm(s: string): string {
+  return (s || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+async function tvmazeSearchShows(q: string): Promise<{ id: number; name: string }[]> {
+  try {
+    const res = await fetch(`${TVMAZE_API}/search/shows?q=${encodeURIComponent(q)}`, {
+      headers: { Accept: "application/json" },
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (Array.isArray(data) ? data : [])
+      .map((x: { show?: { id?: number; name?: string } }) => ({
+        id: x?.show?.id as number,
+        name: x?.show?.name as string,
+      }))
+      .filter((x) => typeof x.id === "number" && !!x.name);
+  } catch {
+    return [];
+  }
+}
+
+async function tvmazeEpisodes(showId: number): Promise<{ number: number; image: string | null }[]> {
+  try {
+    const res = await fetch(`${TVMAZE_API}/shows/${showId}/episodes`, {
+      headers: { Accept: "application/json" },
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (Array.isArray(data) ? data : []).map(
+      (e: { number?: number; image?: { medium?: string; original?: string } | null }) => ({
+        number: e?.number ?? 0,
+        image: e?.image?.original || e?.image?.medium || null,
+      })
+    );
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * TVmaze 에서 에피소드 썸네일을 가져온다.
+ * expectedCount 를 주면 에피소드 수가 어긋나는 매칭을 버려 오프셋 밀림을 막는다.
+ */
+export async function fetchTvmazeThumbnails(
+  titles: string[],
+  expectedCount?: number
+): Promise<Map<number, string>> {
+  const thumbs = new Map<number, string>();
+
+  for (const rawTitle of titles) {
+    if (!rawTitle) continue;
+
+    // 1차: 원제목 그대로 검색
+    let cands = await tvmazeSearchShows(rawTitle);
+    let seasonNum = tvmazeSeasonNumber(rawTitle);
+    let usedBase = false;
+
+    // 2차: 시즌 표기가 붙은 제목이면 기본 제목으로 재검색
+    if (cands.length === 0) {
+      const base = tvmazeBaseTitle(rawTitle);
+      if (base && tvmazeNorm(base) !== tvmazeNorm(rawTitle)) {
+        cands = await tvmazeSearchShows(base);
+        usedBase = true;
+      }
+    }
+    if (cands.length === 0) continue;
+
+    // 후보 선별: 시즌 번호가 맞는 것을 우선한다.
+    const normTarget = tvmazeNorm(rawTitle);
+    const baseNorm = tvmazeNorm(tvmazeBaseTitle(rawTitle));
+    const ranked = cands
+      .filter((c) => {
+        const cn = tvmazeNorm(c.name);
+        // 제목이 정확히 같아야 한다. 접두사 허용은
+        // "Bubble"(영화) → "Bubble Guppies"(유아용) 같은 오매칭을 만든다.
+        if (cn !== baseNorm) return false;
+        // 시즌 번호가 명시된 후보는 우리 시즌과 일치해야 한다
+        const cSn = tvmazeSeasonNumber(c.name);
+        if (cSn !== seasonNum && /\bseason\b|\bpart\b|\d(st|nd|rd|th)\s+season\b/i.test(c.name)) return false;
+        return true;
+      })
+      .map((c) => {
+        const cn = tvmazeNorm(c.name);
+        let score = 0;
+        if (cn === normTarget) score += 3;
+        if (tvmazeSeasonNumber(c.name) === seasonNum) score += 2;
+        if (!usedBase) score += 1;
+        return { c, score };
+      })
+      .sort((a, b) => b.score - a.score);
+
+    for (const { c } of ranked.slice(0, 3)) {
+      const eps = await tvmazeEpisodes(c.id);
+      if (eps.length === 0) continue;
+
+      // ★ 핵심 안전장치: 에피소드 수가 거의 같아야만 같은 시즌으로 본다.
+      // 시즌이 통합된 작품(예: 180화 통합 vs 우리 26화)은 번호가 밀리므로
+      // 반드시 걸러야 한다. 어긋나면 채우지 않고 No preview 로 남긴다.
+      // 예외: 우리 목록이 TVmaze 목록의 앞부분 부분집합이면 안전하다
+      //   (방영 중이라 우리 쪽 화수가 적은 경우).
+      if (typeof expectedCount === "number" && expectedCount > 0) {
+        const tvMax = eps.reduce((m, e) => Math.max(m, e.number), 0);
+        const isPrefix = tvMax >= expectedCount && eps.length >= expectedCount * 0.9;
+        const ratio = eps.length / expectedCount;
+        if (!isPrefix && (ratio > 1.25 || ratio < 0.8)) continue;
+      }
+
+      let filled = 0;
+      for (const e of eps) {
+        if (e.image) {
+          thumbs.set(e.number, e.image);
+          filled++;
+        }
+      }
+      if (filled > 0) return thumbs; // 첫 성공 소스에서 종료
+    }
+  }
+
+  return thumbs;
+}
+
+
 // ─── Kitsu Anime ID lookup (cached per title) ───
 
 async function findKitsuAnimeId(title: string): Promise<number | null> {
@@ -1457,6 +1624,23 @@ export const getAnimeEpisodes = unstable_cache(
         return thumb ? { ...ep, thumbnail: thumb } : ep;
       });
     }
+
+    // Apply TVmaze thumbnails — 마지막 소스.
+    // Kitsu/AniList/Crunchyroll 이 모두 비었을 때만 호출한다.
+    // TMDB 는 애니에 쓰지 않는다(실사 썸네일 혼입 방지).
+    if (episodes.filter(ep => !ep.thumbnail).length > 0) {
+      const tvTitles = [title, titleRomaji].filter(Boolean) as string[];
+      const tvThumbs = await fetchTvmazeThumbnails(tvTitles, episodes.length).catch(
+        () => new Map<number, string>()
+      );
+      if (tvThumbs.size > 0) {
+        episodes = episodes.map(ep => {
+          if (ep.thumbnail) return ep;
+          const thumb = tvThumbs.get(ep.number);
+          return thumb ? { ...ep, thumbnail: thumb } : ep;
+        });
+      }
+    }
   }
 
   // Apply seriesDuration as fallback for episodes with missing duration
@@ -1474,7 +1658,7 @@ export const getAnimeEpisodes = unstable_cache(
 
   return episodes;
   },
-  ["anime-episodes-v3"],
+  ["anime-episodes-v4"],
   { revalidate: 3600 }
 );
 
