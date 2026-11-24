@@ -14,8 +14,20 @@
  * only ever *reads* the JSON this script produces, so a traffic spike or a
  * Box Office Mojo slowdown can no longer take the site down.
  *
+ * COUNTRY TIMING
+ * --------------
+ * Box office is a WEEKLY metric and each country publishes on its own delay.
+ * Measured on 2026-11-23: for the current week the US already had 105 rows
+ * while GB/AU/MX/KR/JP/FR/DE/ES/CN/BR all had 0. FR was still empty for the
+ * PREVIOUS week. A single run therefore cannot fill every country.
+ *
+ * A country that returns nothing keeps its previous data instead of being
+ * overwritten with the US list. Showing the US chart under a "France" header
+ * was wrong; a one-week-old French chart is not.
+ *
  * USAGE
  *   node scripts/scrape-boxoffice.mjs
+ *   node scripts/scrape-boxoffice.mjs --week 2026W46   (force a specific week)
  * Output: data/boxoffice.json
  */
 
@@ -35,10 +47,10 @@ if (!TMDB_KEY) {
 
 // ─── Dynamic week calculation (mirrors the in-app logic) ───
 
-function getBOMWeek() {
+function getBOMWeek(offsetDays = 7) {
   const now = new Date();
   // Current weekend's data isn't published until Saturday, so use last week.
-  const lastWeek = new Date(now.getTime() - 7 * 86400000);
+  const lastWeek = new Date(now.getTime() - offsetDays * 86400000);
   const year = lastWeek.getFullYear();
   const jan1 = new Date(year, 0, 1);
   const dayOfWeek = (jan1.getDay() + 6) % 7;
@@ -58,14 +70,12 @@ async function tmdbSearch(title) {
   const strategies = [
     { query: cleanTitle, year },
     { query: cleanTitle, year: 0 },
-    { query: cleanTitle.split(":")[0].trim(), year },
   ];
 
   for (const { query, year: y } of strategies) {
+    const params = new URLSearchParams({ api_key: TMDB_KEY, query, language: "en-US" });
+    if (y > 0) params.set("primary_release_year", String(y));
     try {
-      const params = new URLSearchParams({ api_key: TMDB_KEY, query, language: "en-US" });
-      if (y > 0) params.set("primary_release_year", String(y));
-
       const res = await fetch(`${TMDB_BASE}/search/movie?${params}`);
       if (!res.ok) continue;
       const data = await res.json();
@@ -84,181 +94,143 @@ async function tmdbSearch(title) {
       continue;
     }
   }
-  return null;
+  return {
+    id: 0,
+    title,
+    poster: null,
+    year: 0,
+    rating: 0,
+    type: "movie",
+  };
 }
 
-async function resolvePoster(title) {
-  const match = await tmdbSearch(title);
-  return match || { id: 0, title, poster: null, year: 0, rating: 0, type: "movie" };
-}
+// ─── Box Office Mojo (shared for every area) ───
 
-// ─── Playwright scrapers (only chromium path needs it) ───
-
-async function fetchBOMTable(url) {
+async function fetchBOM(area, week) {
   const { chromium } = await import("playwright");
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
-    return await page.evaluate(() => {
-      const rows = [];
+    const url = `https://www.boxofficemojo.com/weekend/${week}/` + (area ? `?area=${area}` : "");
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
+
+    const rows = await page.evaluate(() => {
+      const out = [];
       document.querySelectorAll("table.mojo-body-table tr").forEach((row) => {
-        const titleCell = row.querySelector(".mojo-field-type-release");
-        const grossCell = row.querySelector(".mojo-field-type-money");
-        if (titleCell && grossCell) {
-          const title = (titleCell.textContent || "").trim();
-          const gross = (grossCell.textContent || "").trim();
-          if (title && gross && title !== "Release") rows.push({ title, gross });
-        }
+        const t = row.querySelector(".mojo-field-type-release");
+        const g = row.querySelector(".mojo-field-type-money");
+        if (!t || !g) return;
+        const title = (t.textContent || "").trim();
+        const gross = (g.textContent || "").trim();
+        // Skip the header rows, which also carry these class names.
+        if (!title || !gross || title === "Release" || /^\$?[\d,]+$/.test(title)) return;
+        out.push({ title, gross });
       });
-      return rows.slice(0, 10);
+      return out.slice(0, 10);
     });
-  } catch (e) {
-    console.error("[scrape-boxoffice] fetchBOMTable error:", e?.message || String(e));
-    return [];
+    return rows;
   } finally {
     await browser.close();
   }
 }
 
-async function fetchBOMTableArea(url) {
-  return fetchBOMTable(url);
+
+// ─── France: AlloCiné ───
+//
+// Box Office Mojo publishes French data late and sometimes not at all
+// (measured 2026-11-23: FR was empty for the previous week). AlloCiné has the
+// live French chart, so France uses it instead of falling back to the US list.
+// The page no longer exposes admission counts, so only titles are read.
+
+async function fetchAllocine() {
+  const res = await fetch("https://www.allocine.fr/boxoffice/france/", {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+    },
+  });
+  if (!res.ok) return [];
+  const html = await res.text();
+  const marks = [...html.matchAll(/class="meta-title-link"[^>]*>([^<]+)<\/a>/g)];
+  return marks.slice(0, 10).map((m) => ({
+    title: m[1].replace(/&#0?39;/g, "'").replace(/&amp;/g, "&").trim(),
+    gross: "",
+  }));
 }
 
-// ─── Generic HTML-table scrapers (no browser) ───
+// ─── Read whatever is already on disk (for the carry-forward rule) ───
 
-async function scrapeHtmlList(url, titleRe, grossRe) {
+async function readExisting() {
   try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
-    });
-    if (!res.ok) return [];
-    const html = await res.text();
-    const titles = [];
-    const grosses = [];
-    let m;
-    while ((m = titleRe.exec(html)) !== null) titles.push(m[1].trim());
-    while ((m = grossRe.exec(html)) !== null) grosses.push(m[0].trim());
-    const items = [];
-    for (let i = 0; i < Math.min(titles.length, grosses.length, 10); i++) {
-      items.push({ title: titles[i], gross: grosses[i] });
-    }
-    return items;
+    const raw = await fs.readFile(OUT_FILE, "utf-8");
+    return JSON.parse(raw);
   } catch {
-    return [];
+    return null;
   }
 }
-
-async function toResults(items) {
-  const results = [];
-  for (const item of items) {
-    const match = await resolvePoster(item.title);
-    results.push({
-      ...match,
-      backdrop: null,
-      overview: "",
-      genres: [],
-      daysUntil: null,
-      boxOffice: { gross: item.gross },
-    });
-  }
-  return results;
-}
-
-// ─── Per-country scrapers ───
-
-async function scrapeUS() {
-  return toResults(await fetchBOMTable(`https://www.boxofficemojo.com/weekend/${getBOMWeek()}/`));
-}
-
-async function scrapeBOMArea(area) {
-  return toResults(
-    await fetchBOMTableArea(`https://www.boxofficemojo.com/weekend/${getBOMWeek()}/?area=${area}`)
-  );
-}
-
-async function scrapeGB() {
-  return toResults(
-    await scrapeHtmlList(
-      "https://filmdistributorsassociation.com/",
-      /<h3[^>]*>([^<]+)<\/h3>/g,
-      /£[\d,]+/g
-    )
-  );
-}
-
-async function scrapeKR() {
-  return toResults(
-    await scrapeHtmlList(
-      "https://www.kobis.or.kr/kobis/business/stat/boxoffice/findWeekendBoxOfficeList.do",
-      /<td[^>]*>\s*<span[^>]*>([^<]+)<\/span>/g,
-      /[\d,]+원/g
-    )
-  );
-}
-
-async function scrapeFR() {
-  return toResults(
-    await scrapeHtmlList(
-      "https://www.allocine.fr/boxoffice/france/",
-      /class="meta-title-link"[^>]*>([^<]+)<\/a>/g,
-      /[\d\s]+entrées/g
-    )
-  );
-}
-
-const SCRAPERS = {
-  US: scrapeUS,
-  GB: scrapeGB,
-  KR: scrapeKR,
-  FR: scrapeFR,
-  AU: () => scrapeBOMArea("AU"),
-  MX: () => scrapeBOMArea("MX"),
-  ES: () => scrapeBOMArea("ES"),
-  JP: () => scrapeBOMArea("JP"),
-  DE: () => scrapeBOMArea("DE"),
-  CN: () => scrapeBOMArea("CN"),
-  BR: () => scrapeBOMArea("BR"),
-};
 
 // ─── Main ───
 
 async function main() {
   const started = Date.now();
-  console.log(`[scrape-boxoffice] week=${getBOMWeek()} countries=${COUNTRIES.length}`);
+  const argWeek = process.argv.find((a) => a.startsWith("--week="));
+  const week = argWeek ? argWeek.split("=")[1] : getBOMWeek(7);
+  const existing = await readExisting();
+
+  console.log(`[scrape-boxoffice] week=${week} countries=${COUNTRIES.length}`);
 
   const out = {
     generatedAt: new Date().toISOString(),
-    week: getBOMWeek(),
+    week,
     countries: {},
   };
-
-  let usFallback = null;
 
   for (const country of COUNTRIES) {
     let results = [];
     try {
-      const scraper = SCRAPERS[country];
-      results = scraper ? await scraper() : [];
+      // France has its own source: BOM rarely carries FR rows in time.
+      const raw =
+        country === "FR"
+          ? await fetchAllocine()
+          : await fetchBOM(country === "US" ? "" : country, week);
+      for (const item of raw) {
+        const m = await tmdbSearch(item.title);
+        results.push({
+          ...m,
+          backdrop: null,
+          overview: "",
+          genres: [],
+          daysUntil: null,
+          boxOffice: { gross: item.gross },
+        });
+      }
     } catch (e) {
       console.error(`[scrape-boxoffice] ${country} failed:`, e?.message || String(e));
     }
 
-    if (country === "US") usFallback = results.slice(0, PER_COUNTRY);
-
-    if (results.length === 0 && country !== "US") {
-      // Mirror the in-app fallback so the UI never shows an empty section.
-      if (usFallback) results = usFallback;
+    if (results.length === 0) {
+      // This country has not published this week yet. Keep the last good list
+      // rather than replacing it with another country's chart.
+      const prev = existing?.countries?.[country];
+      if (prev && prev.length > 0) {
+        results = prev;
+        console.log(`[scrape-boxoffice] ${country}: 0 new - kept ${prev.length} from ${existing.generatedAt}`);
+      } else {
+        console.log(`[scrape-boxoffice] ${country}: 0 new - nothing to keep`);
+      }
+    } else {
+      console.log(`[scrape-boxoffice] ${country}: ${results.length}`);
     }
 
     out.countries[country] = results.slice(0, PER_COUNTRY);
-    console.log(`[scrape-boxoffice] ${country}: ${out.countries[country].length}`);
   }
 
   await fs.mkdir(path.dirname(OUT_FILE), { recursive: true });
   await fs.writeFile(OUT_FILE, JSON.stringify(out, null, 2));
 
+  const filled = Object.values(out.countries).filter((v) => v.length > 0).length;
   const secs = ((Date.now() - started) / 1000).toFixed(1);
+  console.log(`[scrape-boxoffice] ${filled}/${COUNTRIES.length} countries have data`);
   console.log(`[scrape-boxoffice] wrote ${OUT_FILE} in ${secs}s`);
 }
 

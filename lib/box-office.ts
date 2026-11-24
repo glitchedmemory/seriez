@@ -60,13 +60,6 @@ const SNAPSHOT = path.join(process.cwd(), "data", "boxoffice.json");
 
 async function readSnapshot(): Promise<BoxOfficeFile | null> {
   try {
-    const raw = await fs.readFile(SNAPSHOT, "utf-8");
-    return JSON.parse(raw) as BoxOfficeFile;
-  } catch {
-    return null;
-  }
-}
-
 export async function getBoxOffice(country: string): Promise<BoxOfficeResult[]> {
   const snapshot = await readSnapshot();
   if (!snapshot) {
@@ -77,7 +70,26 @@ export async function getBoxOffice(country: string): Promise<BoxOfficeResult[]> 
   const forCountry = snapshot.countries?.[country];
   if (forCountry && forCountry.length > 0) return forCountry.slice(0, 7);
 
-  // Fall back to US, matching the previous in-app behaviour.
-  const us = snapshot.countries?.US ?? [];
-  return us.slice(0, 7);
+  // No data for this country yet.
+  //
+  // This used to fall back to the US chart, which meant a visitor in France,
+  // Korea or Japan was shown American films under their own country's header.
+  // Box office is weekly and every country publishes on its own delay, so an
+  // empty entry is normal and expected -- not a reason to substitute another
+  // country's numbers. The UI shows an empty state instead.
+  if (country !== "US") {
+    console.warn(
+      `[box-office] no data for ${country} (week ${snapshot.week}) - serving empty list`
+    );
+  }
+  return [];
+}
+
+/** Age of the snapshot in hours, or null when it cannot be read. */
+export async function getBoxOfficeAgeHours(): Promise<number | null> {
+  const snapshot = await readSnapshot();
+  if (!snapshot?.generatedAt) return null;
+  const t = Date.parse(snapshot.generatedAt);
+  if (Number.isNaN(t)) return null;
+  return (Date.now() - t) / 3600000;
 }

@@ -180,7 +180,13 @@ export async function getUpcoming(): Promise<TmdbResult[]> {
       .filter((item) => {
         if (!item.daysUntil) return item.year === 0;
         return item.daysUntil > 0;
-      });
+      })
+      // Drop poster-less entries BEFORE slicing. Slicing first and filtering
+      // later silently loses a slot: TMDB returns titles with no poster, and
+      // the page-level `.filter(item => item.poster)` then removed them,
+      // leaving Coming Soon one card short (10 -> 9, 14 -> 13).
+      .filter((item) => item.poster)
+      .slice(0, 5);
 
     const tvs = (tvData.results as TmdbItem[])
       .filter(filterAnime)
@@ -189,9 +195,11 @@ export async function getUpcoming(): Promise<TmdbResult[]> {
         if (!item.daysUntil) return item.year === 0;
         return item.daysUntil > 0;
       })
+      // Same reason as above: filter on poster before taking the first 5.
+      .filter((item) => item.poster)
       .slice(0, 5);
 
-    const result = [...movies.slice(0, 5), ...tvs];
+    const result = [...movies, ...tvs];
     return result;
   } catch {
     throw new Error("TMDB down for upcoming");
