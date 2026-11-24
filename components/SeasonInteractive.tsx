@@ -279,8 +279,12 @@ export default function SeasonInteractive({ data, mode }: { data: SeasonData; mo
       return;
     }
 
-    const willHaveWatched = !wasWatched || watchedEpisodes.size > 1;
-    if (willHaveWatched && (!trackStatus || trackStatus === "plan_to_watch" || trackStatus === "completed")) {
+    // 이 시즌의 에피소드를 전부 해제하면 이 시즌의 'watching'도 함께 풀린다.
+    // 이전 조건(watchedEpisodes.size > 1)은 마지막 1개를 해제할 때만 걸려서,
+    // 시즌을 다 해제해도 watching이 남아 리스트에 계속 표시됐다.
+    const remainingWatched = wasWatched ? Math.max(0, watchedEpisodes.size - 1) : watchedEpisodes.size + 1;
+
+    if (remainingWatched > 0 && (!trackStatus || trackStatus === "plan_to_watch" || trackStatus === "completed")) {
       syncTrackState("watching");
       await sendJson("POST", "/api/track", {
         username,
@@ -289,7 +293,8 @@ export default function SeasonInteractive({ data, mode }: { data: SeasonData; mo
         seasonNumber: data.seasonNumber,
         status: "watching",
       });
-    } else if (!willHaveWatched && trackStatus === "watching") {
+    } else if (remainingWatched === 0 && (trackStatus === "watching" || trackStatus === "completed")) {
+      // 시청 기록이 하나도 남지 않았으면 목록에서 사라져야 한다.
       syncTrackState(null);
       await sendJson("DELETE", "/api/track", {
         username,

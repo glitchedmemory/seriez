@@ -11,7 +11,9 @@ export default async function SearchPage() {
   try {
     const [trendingRes, collectionsRes] = await Promise.all([
       fetch(`${BASE_URL}/api/trending-searches`, { next: { revalidate: 3600 } }),
-      fetch(`${BASE_URL}/api/collections/published`, { next: { revalidate: 1800 } }),
+      // no-store: Next.js would otherwise memoize this result for 30 min, so a
+      // single AniList 429 render pinned null posters on every request after it.
+      fetch(`${BASE_URL}/api/collections/published`, { cache: "no-store" }),
     ]);
 
     if (trendingRes.ok) {

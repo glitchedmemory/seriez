@@ -199,19 +199,30 @@ export default function AnimeDetailClient({ detail, episodes }: { detail: AnimeD
         const json = await res.json();
         setTrackedAt(json.updatedAt || new Date().toISOString());
         // Marking as Watched → check all episodes
+        // 중요: 여기서는 toggle이 아니라 action:"watch"를 보낸다.
+        // toggle로 보내면 이미 체크되어 있던 화가 '해제'되어, 하나만 체크해둔 뒤
+        // 전체 시청을 누르면 그 한 화가 지워지고 1/12만 남는 버그가 생겼다.
         if (newStatus === "completed" && trackStatus !== "completed" && episodes.length > 0) {
           setWatchedEpisodes((prev) => {
             const all = new Set(prev);
             episodes.forEach((ep) => all.add(`1-${ep.number}`));
             return all;
           });
-          episodes.forEach((ep) => {
-            fetch("/api/episodes", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ username, tmdbId: detail.id, seasonNumber: 1, episodeNumber: ep.number }),
-            }).catch(() => {});
-          });
+          const results = await Promise.all(
+            episodes.map((ep) =>
+              fetch("/api/episodes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, tmdbId: detail.id, mediaType: "anime", seasonNumber: 1, episodeNumber: ep.number, action: "watch" }),
+              })
+                .then((r) => r.ok)
+                .catch(() => false)
+            )
+          );
+          const failed = results.filter((ok) => !ok).length;
+          if (failed > 0) {
+            console.error(`[watched-all] ${failed}/${episodes.length} episode saves failed`);
+          }
         }
         // Auto-check Episode 1 when starting Watching from idle
         if (newStatus === "watching" && !watchedEpisodes.has("1-1")) {

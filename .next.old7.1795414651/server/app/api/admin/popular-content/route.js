@@ -1,0 +1,12 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/admin/popular-content/route.js")
+R.c("server/chunks/[root-of-the-server]__0emmz6k._.js")
+R.c("server/chunks/lib_tmdb_ts_13r6jea._.js")
+R.c("server/chunks/lib_anilist_ts_1u9vfhn._.js")
+R.c("server/chunks/node_modules_1uirbd8._.js")
+R.c("server/chunks/[root-of-the-server]__1r01cl_._.js")
+R.c("server/chunks/node_modules_next_dist_1_lpwll._.js")
+R.c("server/chunks/node_modules_@supabase_supabase-js_dist_index_mjs_0u-n9p7._.js")
+R.c("server/chunks/_00ctdea._.js")
+R.c("server/chunks/_next-internal_server_app_api_admin_popular-content_route_actions_0l_a8ur.js")
+R.m(310738)
+module.exports=R.m(310738).exports

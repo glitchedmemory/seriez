@@ -119,6 +119,14 @@ export async function POST(req: NextRequest) {
     // 종류를 보내지 않은 요청은 사용자의 작품 행을 보고 판별한다.
     const requestedType: string | null = body.mediaType ?? null;
 
+    // 동작 모드.
+    //   (기본) toggle   — 개별 체크 버튼. 이미 기록이 있으면 해제한다.
+    //   "watch"        — 반드시 시청 처리. 이미 기록이 있으면 그대로 둔다(해제 금지).
+    //   "unwatch"      — 반드시 해제 처리.
+    // '전체 시청 완료'는 toggle을 쓰면 이미 체크된 화를 오히려 지워버리므로
+    // 반드시 watch 모드를 써야 한다.
+    const action: string = body.action ?? "toggle";
+
     if (tmdbId == null || seasonNumber == null || episodeNumber == null) {
       return NextResponse.json(
         { error: "Missing required fields: username, tmdbId, seasonNumber, episodeNumber" },
@@ -156,6 +164,13 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     if (existing) {
+      // watch 모드: 이미 시청 기록이 있으면 그대로 둔다(해제하지 않는다).
+      // '전체 시청 완료'가 체크된 화를 지워버리던 문제의 수정 지점이다.
+      if (action === "watch") {
+        const progress = await recalcProgress(userId, tmdbId, mediaType);
+        return NextResponse.json({ action: "watched", seasonNumber, episodeNumber, progress });
+      }
+
       // Already watched → unwatch (delete)
       const { error: delErr } = await supabaseAdmin
         .from("episode_watches")
@@ -169,6 +184,14 @@ export async function POST(req: NextRequest) {
       // 해제 후에도 "몇 화 봤는지" 숫자를 실제 기록 수에 맞춘다.
       const progress = await recalcProgress(userId, tmdbId, mediaType);
 
+      return NextResponse.json({ action: "unwatched", seasonNumber, episodeNumber, progress });
+    }
+
+    // 여기까지 왔다는 것은 시청 기록이 없다는 뜻이다.
+    // watch / toggle / unwatch 모두 '기록 없음'은 생성을 의미하지 않는다.
+    // unwatch는 이미 없으므로 아무것도 하지 않고 그대로 돌려준다.
+    if (action === "unwatch") {
+      const progress = await recalcProgress(userId, tmdbId, mediaType);
       return NextResponse.json({ action: "unwatched", seasonNumber, episodeNumber, progress });
     }
 
@@ -188,7 +211,20 @@ export async function POST(req: NextRequest) {
     }
 
     // Update progress count on media_trackings
-    const progress = await recalcProgress(userId, tmdbId, mediaType);
+    // ⑥⑦(진행률 재계산)과 ⑧(트래킹 행 존재 확인)은 서로의 결과를 쓰지 않으므로
+    // 순서를 기다릴 이유가 없다. 동시에 보내 왕복 시간을 줄인다.
+    // 바뀌는 것은 실행 순서뿐이고, 만들어지는 데이터는 완전히 동일하다.
+    const [progress, trackRows] = await Promise.all([
+      recalcProgress(userId, tmdbId, mediaType),
+      supabaseAdmin
+        .from("media_trackings")
+        .select("id")
+        .eq("username", userId)
+        .eq("tmdb_id", tmdbId)
+        .eq("media_type", mediaType)
+        .limit(1)
+        .then((r) => r.data),
+    ]);
 
     // Auto-set tracking status to "watching" only when this title has NO
     // tracking row of the same type. Matching by season_number alone would
@@ -197,13 +233,7 @@ export async function POST(req: NextRequest) {
     // 애니는 여기서 행을 만들지 않는다. 애니 작품 행은 애니 페이지가 AniList
     // 정보로 직접 저장하므로, 여기서 만들면 TMDB 번호 체계의 'tv' 행이 생겨
     // 같은 작품이 목록에 애니와 TV 두 줄로 나타난다.
-    const { data: trackRows } = await supabaseAdmin
-      .from("media_trackings")
-      .select("id")
-      .eq("username", userId)
-      .eq("tmdb_id", tmdbId)
-      .eq("media_type", mediaType)
-      .limit(1);
+    // (⑧ 조회는 위 Promise.all로 옮겼다 — trackRows는 그 결과를 쓴다.)
 
     if (!trackRows || trackRows.length === 0) {
       if (mediaType !== "anime") {

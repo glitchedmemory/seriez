@@ -56,3 +56,10 @@ next-env.d.ts
 /app/generated/prisma
 supabase/config.toml
 backfill-tmdb.sh
+
+# local backups (contain secrets)
+*.bak-*
+*.bak
+
+# scripts that previously held hardcoded credentials
+setup-env.sh

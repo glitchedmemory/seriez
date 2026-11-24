@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { join } from "node:path";
 import { tmdbGet } from "@/lib/tmdb";
 import { anilistFetch } from "@/lib/anilist";
 
@@ -8,6 +10,34 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w500";
+
+// AniList is rate-limited by IP (30 req/min). We share one VPS IP across every
+// route, so anime thumbnail lookups used to get 429'd and blank out the cards.
+// Keep the batch result in-process for 6h and fall back to stale data on 429.
+const THUMB_TTL_MS = 6 * 60 * 60 * 1000;
+const thumbCache = new Map<string, { at: number; map: Map<string, string | null> }>();
+
+// In-process cache dies on every deploy/restart, which is exactly when AniList
+// is most likely to be rate-limited (cold start = real request). Mirror the last
+// good covers to disk so a restart can still paint posters offline.
+const COVER_STORE = join(process.cwd(), ".next", "anilist-covers.json");
+
+async function loadCoverStore(): Promise<Record<string, string>> {
+  try {
+    return JSON.parse(await readFile(COVER_STORE, "utf-8"));
+  } catch {
+    return {};
+  }
+}
+
+async function saveCoverStore(store: Record<string, string>) {
+  try {
+    await mkdir(join(process.cwd(), ".next"), { recursive: true });
+    await writeFile(COVER_STORE, JSON.stringify(store), "utf-8");
+  } catch (e) {
+    console.error("[getThumbnails] cover store write failed:", e);
+  }
+}
 
 // How many collections to pick randomly
 const PICK_COUNT = 8;
@@ -123,14 +153,64 @@ async function getThumbnails(items: { tmdb_id: number; media_type: string }[]): 
     try {
       const ids = animeItems.map((i) => i.tmdb_id);
       const query = `query($ids:[Int]){Page(perPage:50){media(id_in:$ids,type:ANIME){id coverImage{extraLarge}}}}`;
-      const res = await anilistFetch(query, { ids }, { revalidate: 0 });
-      if (res.ok) {
-        const json = await res.json();
-        for (const m of json.data?.Page?.media || []) {
-          posterMap.set(`anime:${m.id}`, m.coverImage?.extraLarge || null);
-        }
+
+      // AniList rate-limits by IP (30 req/min). The VPS shares one IP across all
+      // routes, so a 429 here used to blank out every anime thumbnail. Cache the
+      // batch result for 6h, then retry with backoff before giving up.
+      const batchKey = `anilist-thumbs:${ids.slice().sort((a, b) => a - b).join(",")}`;
+      const cached = thumbCache.get(batchKey);
+      if (cached && Date.now() - cached.at < THUMB_TTL_MS) {
+        for (const [k, v] of cached.map) posterMap.set(k, v);
       } else {
-        console.error("[getThumbnails] AniList fetch failed:", res.status, await res.text());
+        let res: Response | null = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          res = await anilistFetch(query, { ids }, { revalidate: 21600 });
+          if (res.ok) break;
+          // 429 → wait out the rate-limit window (AniList resets per minute)
+          if (res.status === 429) {
+            console.warn(`[getThumbnails] AniList 429, retry ${attempt + 1}/3`);
+            await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+            continue;
+          }
+          break;
+        }
+
+        if (res?.ok) {
+          const json = await res.json();
+          const collected = new Map<string, string | null>();
+          for (const m of json.data?.Page?.media || []) {
+            collected.set(`anime:${m.id}`, m.coverImage?.extraLarge || null);
+          }
+          for (const [k, v] of collected) posterMap.set(k, v);
+          thumbCache.set(batchKey, { at: Date.now(), map: collected });
+          // Persist only real URLs so a restart never resurrects nulls
+          const store = await loadCoverStore();
+          let dirty = false;
+          for (const [k, v] of collected) {
+            if (v && store[k] !== v) {
+              store[k] = v;
+              dirty = true;
+            }
+          }
+          if (dirty) await saveCoverStore(store);
+        } else if (cached) {
+          // Rate-limited or failed → serve the stale copy rather than nothing
+          for (const [k, v] of cached.map) posterMap.set(k, v);
+        } else {
+          // Cold start + AniList down → fall back to the last covers we saved
+          const store = await loadCoverStore();
+          let hit = 0;
+          for (const item of animeItems) {
+            const saved = store[`anime:${item.tmdb_id}`];
+            if (saved) {
+              posterMap.set(`anime:${item.tmdb_id}`, saved);
+              hit++;
+            }
+          }
+          console.error(
+            `[getThumbnails] AniList unavailable (${res?.status}), disk fallback ${hit}/${animeItems.length}`
+          );
+        }
       }
     } catch (e) {
       console.error("[getThumbnails] AniList error:", e);

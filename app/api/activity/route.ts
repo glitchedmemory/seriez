@@ -15,7 +15,7 @@ const ANILIST_API = "https://graphql.anilist.co";
 
 export async function GET(req: NextRequest) {
   const username = await resolveUsername(req);
-  let activities: Activity[] = [];
+  const activities: Activity[] = [];
   let userId: string | null = null;
 
   if (username) {

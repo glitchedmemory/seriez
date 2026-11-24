@@ -60,6 +60,19 @@ const SNAPSHOT = path.join(process.cwd(), "data", "boxoffice.json");
 
 async function readSnapshot(): Promise<BoxOfficeFile | null> {
   try {
+    const raw = await fs.readFile(SNAPSHOT, "utf-8");
+    const parsed = JSON.parse(raw) as BoxOfficeFile;
+    if (!parsed || typeof parsed !== "object") return null;
+    if (!parsed.countries || typeof parsed.countries !== "object") return null;
+    return parsed;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+      console.warn("[box-office] snapshot unreadable:", (err as Error).message);
+    }
+    return null;
+  }
+}
+
 export async function getBoxOffice(country: string): Promise<BoxOfficeResult[]> {
   const snapshot = await readSnapshot();
   if (!snapshot) {

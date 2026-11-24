@@ -1,0 +1,994 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    },
+    {
+      "source": "/auth/confirm.html",
+      "destination": "/auth/confirm",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/auth/confirm\\.html(?:/)?$"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-cache, no-store, must-revalidate, max-age=0"
+        }
+      ],
+      "regex": "^/(?:/)?$"
+    },
+    {
+      "source": "/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400"
+        }
+      ],
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    },
+    {
+      "source": "/anime/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=300, stale-while-revalidate=600"
+        }
+      ],
+      "regex": "^/anime(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    },
+    {
+      "source": "/search",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=0, must-revalidate"
+        }
+      ],
+      "regex": "^/search(?:/)?$"
+    },
+    {
+      "source": "/api/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-cache, no-store, max-age=0"
+        }
+      ],
+      "regex": "^/api(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    },
+    {
+      "source": "/library",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ],
+      "regex": "^/library(?:/)?$"
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ],
+      "regex": "^/sw\\.js(?:/)?$"
+    }
+  ],
+  "onMatchHeaders": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/admin/users/[username]",
+      "regex": "^/admin/users/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPusername": "nxtPusername"
+      },
+      "namedRegex": "^/admin/users/(?<nxtPusername>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/ai/anime/[id]",
+      "regex": "^/ai/anime/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/ai/anime/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/ai/movie/[id]",
+      "regex": "^/ai/movie/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/ai/movie/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/ai/tv/[id]",
+      "regex": "^/ai/tv/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/ai/tv/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/anime/[id]",
+      "regex": "^/anime/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/anime/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/collections/[id]/comments",
+      "regex": "^/api/collections/([^/]+?)/comments(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/collections/(?<nxtPid>[^/]+?)/comments(?:/)?$"
+    },
+    {
+      "page": "/api/collections/[id]/comments/report",
+      "regex": "^/api/collections/([^/]+?)/comments/report(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/collections/(?<nxtPid>[^/]+?)/comments/report(?:/)?$"
+    },
+    {
+      "page": "/api/collections/[id]/items",
+      "regex": "^/api/collections/([^/]+?)/items(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/collections/(?<nxtPid>[^/]+?)/items(?:/)?$"
+    },
+    {
+      "page": "/api/collections/[id]/like",
+      "regex": "^/api/collections/([^/]+?)/like(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/collections/(?<nxtPid>[^/]+?)/like(?:/)?$"
+    },
+    {
+      "page": "/api/collections/[id]/publish",
+      "regex": "^/api/collections/([^/]+?)/publish(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/collections/(?<nxtPid>[^/]+?)/publish(?:/)?$"
+    },
+    {
+      "page": "/api/users/[username]/compare",
+      "regex": "^/api/users/([^/]+?)/compare(?:/)?$",
+      "routeKeys": {
+        "nxtPusername": "nxtPusername"
+      },
+      "namedRegex": "^/api/users/(?<nxtPusername>[^/]+?)/compare(?:/)?$"
+    },
+    {
+      "page": "/api/users/[username]/reviews",
+      "regex": "^/api/users/([^/]+?)/reviews(?:/)?$",
+      "routeKeys": {
+        "nxtPusername": "nxtPusername"
+      },
+      "namedRegex": "^/api/users/(?<nxtPusername>[^/]+?)/reviews(?:/)?$"
+    },
+    {
+      "page": "/api/users/[username]/stats",
+      "regex": "^/api/users/([^/]+?)/stats(?:/)?$",
+      "routeKeys": {
+        "nxtPusername": "nxtPusername"
+      },
+      "namedRegex": "^/api/users/(?<nxtPusername>[^/]+?)/stats(?:/)?$"
+    },
+    {
+      "page": "/collections/[id]",
+      "regex": "^/collections/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/collections/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/info/[id]",
+      "regex": "^/info/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/info/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/movie/[id]",
+      "regex": "^/movie/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/movie/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/person/anilist/[id]",
+      "regex": "^/person/anilist/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/person/anilist/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/person/[id]",
+      "regex": "^/person/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/person/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/title/[id]",
+      "regex": "^/title/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/title/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/tv/[id]",
+      "regex": "^/tv/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/tv/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/tv/[id]/season/[season]",
+      "regex": "^/tv/([^/]+?)/season/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid",
+        "nxtPseason": "nxtPseason"
+      },
+      "namedRegex": "^/tv/(?<nxtPid>[^/]+?)/season/(?<nxtPseason>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/about",
+      "regex": "^/about(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/about(?:/)?$"
+    },
+    {
+      "page": "/admin",
+      "regex": "^/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin(?:/)?$"
+    },
+    {
+      "page": "/admin/analytics",
+      "regex": "^/admin/analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/analytics(?:/)?$"
+    },
+    {
+      "page": "/admin/audit",
+      "regex": "^/admin/audit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/audit(?:/)?$"
+    },
+    {
+      "page": "/admin/feedback",
+      "regex": "^/admin/feedback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/feedback(?:/)?$"
+    },
+    {
+      "page": "/admin/moderation",
+      "regex": "^/admin/moderation(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/moderation(?:/)?$"
+    },
+    {
+      "page": "/admin/polls",
+      "regex": "^/admin/polls(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/polls(?:/)?$"
+    },
+    {
+      "page": "/admin/reports",
+      "regex": "^/admin/reports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/reports(?:/)?$"
+    },
+    {
+      "page": "/admin/sanctions",
+      "regex": "^/admin/sanctions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/sanctions(?:/)?$"
+    },
+    {
+      "page": "/admin/users",
+      "regex": "^/admin/users(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/users(?:/)?$"
+    },
+    {
+      "page": "/ai/trending",
+      "regex": "^/ai/trending(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ai/trending(?:/)?$"
+    },
+    {
+      "page": "/api/activity",
+      "regex": "^/api/activity(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/activity(?:/)?$"
+    },
+    {
+      "page": "/api/admin/analyze",
+      "regex": "^/api/admin/analyze(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/analyze(?:/)?$"
+    },
+    {
+      "page": "/api/admin/announce",
+      "regex": "^/api/admin/announce(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/announce(?:/)?$"
+    },
+    {
+      "page": "/api/admin/audit-log",
+      "regex": "^/api/admin/audit\\-log(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/audit\\-log(?:/)?$"
+    },
+    {
+      "page": "/api/admin/content",
+      "regex": "^/api/admin/content(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/content(?:/)?$"
+    },
+    {
+      "page": "/api/admin/content-action",
+      "regex": "^/api/admin/content\\-action(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/content\\-action(?:/)?$"
+    },
+    {
+      "page": "/api/admin/popular-content",
+      "regex": "^/api/admin/popular\\-content(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/popular\\-content(?:/)?$"
+    },
+    {
+      "page": "/api/admin/poster",
+      "regex": "^/api/admin/poster(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/poster(?:/)?$"
+    },
+    {
+      "page": "/api/admin/reports",
+      "regex": "^/api/admin/reports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/reports(?:/)?$"
+    },
+    {
+      "page": "/api/admin/sanction",
+      "regex": "^/api/admin/sanction(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/sanction(?:/)?$"
+    },
+    {
+      "page": "/api/admin/search-analytics",
+      "regex": "^/api/admin/search\\-analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/search\\-analytics(?:/)?$"
+    },
+    {
+      "page": "/api/admin/stats",
+      "regex": "^/api/admin/stats(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/stats(?:/)?$"
+    },
+    {
+      "page": "/api/admin/user-activity",
+      "regex": "^/api/admin/user\\-activity(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/user\\-activity(?:/)?$"
+    },
+    {
+      "page": "/api/admin/user-detail",
+      "regex": "^/api/admin/user\\-detail(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/user\\-detail(?:/)?$"
+    },
+    {
+      "page": "/api/admin/users",
+      "regex": "^/api/admin/users(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/users(?:/)?$"
+    },
+    {
+      "page": "/api/admin/users/premium",
+      "regex": "^/api/admin/users/premium(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/users/premium(?:/)?$"
+    },
+    {
+      "page": "/api/admin/users/role",
+      "regex": "^/api/admin/users/role(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/users/role(?:/)?$"
+    },
+    {
+      "page": "/api/admin/visitor-analytics",
+      "regex": "^/api/admin/visitor\\-analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/visitor\\-analytics(?:/)?$"
+    },
+    {
+      "page": "/api/analytics",
+      "regex": "^/api/analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/analytics(?:/)?$"
+    },
+    {
+      "page": "/api/anime-trending",
+      "regex": "^/api/anime\\-trending(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/anime\\-trending(?:/)?$"
+    },
+    {
+      "page": "/api/auth/change-password",
+      "regex": "^/api/auth/change\\-password(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/change\\-password(?:/)?$"
+    },
+    {
+      "page": "/api/auth/delete-account",
+      "regex": "^/api/auth/delete\\-account(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/delete\\-account(?:/)?$"
+    },
+    {
+      "page": "/api/auth/reset-ratings",
+      "regex": "^/api/auth/reset\\-ratings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/reset\\-ratings(?:/)?$"
+    },
+    {
+      "page": "/api/auth/signout",
+      "regex": "^/api/auth/signout(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/signout(?:/)?$"
+    },
+    {
+      "page": "/api/billing/portal",
+      "regex": "^/api/billing/portal(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/billing/portal(?:/)?$"
+    },
+    {
+      "page": "/api/check-username",
+      "regex": "^/api/check\\-username(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/check\\-username(?:/)?$"
+    },
+    {
+      "page": "/api/collections",
+      "regex": "^/api/collections(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/collections(?:/)?$"
+    },
+    {
+      "page": "/api/collections/published",
+      "regex": "^/api/collections/published(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/collections/published(?:/)?$"
+    },
+    {
+      "page": "/api/discover-by-year",
+      "regex": "^/api/discover\\-by\\-year(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/discover\\-by\\-year(?:/)?$"
+    },
+    {
+      "page": "/api/episodes",
+      "regex": "^/api/episodes(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/episodes(?:/)?$"
+    },
+    {
+      "page": "/api/feedback",
+      "regex": "^/api/feedback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/feedback(?:/)?$"
+    },
+    {
+      "page": "/api/follow",
+      "regex": "^/api/follow(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/follow(?:/)?$"
+    },
+    {
+      "page": "/api/for-you",
+      "regex": "^/api/for\\-you(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/for\\-you(?:/)?$"
+    },
+    {
+      "page": "/api/history",
+      "regex": "^/api/history(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/history(?:/)?$"
+    },
+    {
+      "page": "/api/human-proof",
+      "regex": "^/api/human\\-proof(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/human\\-proof(?:/)?$"
+    },
+    {
+      "page": "/api/image-proxy",
+      "regex": "^/api/image\\-proxy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/image\\-proxy(?:/)?$"
+    },
+    {
+      "page": "/api/import/tv-time",
+      "regex": "^/api/import/tv\\-time(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/import/tv\\-time(?:/)?$"
+    },
+    {
+      "page": "/api/library",
+      "regex": "^/api/library(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/library(?:/)?$"
+    },
+    {
+      "page": "/api/library/stats",
+      "regex": "^/api/library/stats(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/library/stats(?:/)?$"
+    },
+    {
+      "page": "/api/mood-search",
+      "regex": "^/api/mood\\-search(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/mood\\-search(?:/)?$"
+    },
+    {
+      "page": "/api/notifications",
+      "regex": "^/api/notifications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/notifications(?:/)?$"
+    },
+    {
+      "page": "/api/onboarding-curation",
+      "regex": "^/api/onboarding\\-curation(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/onboarding\\-curation(?:/)?$"
+    },
+    {
+      "page": "/api/persons/like",
+      "regex": "^/api/persons/like(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/persons/like(?:/)?$"
+    },
+    {
+      "page": "/api/persons/like-count",
+      "regex": "^/api/persons/like\\-count(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/persons/like\\-count(?:/)?$"
+    },
+    {
+      "page": "/api/persons/likes",
+      "regex": "^/api/persons/likes(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/persons/likes(?:/)?$"
+    },
+    {
+      "page": "/api/polls",
+      "regex": "^/api/polls(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/polls(?:/)?$"
+    },
+    {
+      "page": "/api/polls/admin",
+      "regex": "^/api/polls/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/polls/admin(?:/)?$"
+    },
+    {
+      "page": "/api/polls/close",
+      "regex": "^/api/polls/close(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/polls/close(?:/)?$"
+    },
+    {
+      "page": "/api/polls/history",
+      "regex": "^/api/polls/history(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/polls/history(?:/)?$"
+    },
+    {
+      "page": "/api/polls/vote",
+      "regex": "^/api/polls/vote(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/polls/vote(?:/)?$"
+    },
+    {
+      "page": "/api/premium",
+      "regex": "^/api/premium(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/premium(?:/)?$"
+    },
+    {
+      "page": "/api/profile",
+      "regex": "^/api/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/profile(?:/)?$"
+    },
+    {
+      "page": "/api/profile/avatar",
+      "regex": "^/api/profile/avatar(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/profile/avatar(?:/)?$"
+    },
+    {
+      "page": "/api/profile/background",
+      "regex": "^/api/profile/background(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/profile/background(?:/)?$"
+    },
+    {
+      "page": "/api/report",
+      "regex": "^/api/report(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/report(?:/)?$"
+    },
+    {
+      "page": "/api/review-comments",
+      "regex": "^/api/review\\-comments(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/review\\-comments(?:/)?$"
+    },
+    {
+      "page": "/api/reviews",
+      "regex": "^/api/reviews(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reviews(?:/)?$"
+    },
+    {
+      "page": "/api/roulette",
+      "regex": "^/api/roulette(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/roulette(?:/)?$"
+    },
+    {
+      "page": "/api/search",
+      "regex": "^/api/search(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/search(?:/)?$"
+    },
+    {
+      "page": "/api/search-log",
+      "regex": "^/api/search\\-log(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/search\\-log(?:/)?$"
+    },
+    {
+      "page": "/api/set-locale",
+      "regex": "^/api/set\\-locale(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/set\\-locale(?:/)?$"
+    },
+    {
+      "page": "/api/streaming-top10",
+      "regex": "^/api/streaming\\-top10(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/streaming\\-top10(?:/)?$"
+    },
+    {
+      "page": "/api/tmdb/year-posters",
+      "regex": "^/api/tmdb/year\\-posters(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/tmdb/year\\-posters(?:/)?$"
+    },
+    {
+      "page": "/api/track",
+      "regex": "^/api/track(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/track(?:/)?$"
+    },
+    {
+      "page": "/api/trending-searches",
+      "regex": "^/api/trending\\-searches(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/trending\\-searches(?:/)?$"
+    },
+    {
+      "page": "/api/user/export",
+      "regex": "^/api/user/export(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/user/export(?:/)?$"
+    },
+    {
+      "page": "/api/users",
+      "regex": "^/api/users(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/users(?:/)?$"
+    },
+    {
+      "page": "/api/users/check-username",
+      "regex": "^/api/users/check\\-username(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/users/check\\-username(?:/)?$"
+    },
+    {
+      "page": "/api/users/language",
+      "regex": "^/api/users/language(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/users/language(?:/)?$"
+    },
+    {
+      "page": "/api/visit",
+      "regex": "^/api/visit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/visit(?:/)?$"
+    },
+    {
+      "page": "/auth/callback",
+      "regex": "^/auth/callback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/callback(?:/)?$"
+    },
+    {
+      "page": "/auth/confirm",
+      "regex": "^/auth/confirm(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/confirm(?:/)?$"
+    },
+    {
+      "page": "/de/letterboxd-alternative",
+      "regex": "^/de/letterboxd\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/de/letterboxd\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/de/tv-time-alternative",
+      "regex": "^/de/tv\\-time\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/de/tv\\-time\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/es/letterboxd-alternative",
+      "regex": "^/es/letterboxd\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/es/letterboxd\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/es/tv-time-alternative",
+      "regex": "^/es/tv\\-time\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/es/tv\\-time\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/feed",
+      "regex": "^/feed(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/feed(?:/)?$"
+    },
+    {
+      "page": "/fr/letterboxd-alternative",
+      "regex": "^/fr/letterboxd\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/fr/letterboxd\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/fr/tv-time-alternative",
+      "regex": "^/fr/tv\\-time\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/fr/tv\\-time\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/ja/letterboxd-alternative",
+      "regex": "^/ja/letterboxd\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ja/letterboxd\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/ja/tv-time-alternative",
+      "regex": "^/ja/tv\\-time\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ja/tv\\-time\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/ko/letterboxd-alternative",
+      "regex": "^/ko/letterboxd\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ko/letterboxd\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/ko/tv-time-alternative",
+      "regex": "^/ko/tv\\-time\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ko/tv\\-time\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/letterboxd-alternative",
+      "regex": "^/letterboxd\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/letterboxd\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/library",
+      "regex": "^/library(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/library(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/onboarding",
+      "regex": "^/onboarding(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/onboarding(?:/)?$"
+    },
+    {
+      "page": "/privacy",
+      "regex": "^/privacy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/privacy(?:/)?$"
+    },
+    {
+      "page": "/pro",
+      "regex": "^/pro(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pro(?:/)?$"
+    },
+    {
+      "page": "/profile",
+      "regex": "^/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/profile(?:/)?$"
+    },
+    {
+      "page": "/profile/settings",
+      "regex": "^/profile/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/profile/settings(?:/)?$"
+    },
+    {
+      "page": "/profile/settings/change-profile",
+      "regex": "^/profile/settings/change\\-profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/profile/settings/change\\-profile(?:/)?$"
+    },
+    {
+      "page": "/pt/letterboxd-alternative",
+      "regex": "^/pt/letterboxd\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pt/letterboxd\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/pt/tv-time-alternative",
+      "regex": "^/pt/tv\\-time\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pt/tv\\-time\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/search",
+      "regex": "^/search(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/search(?:/)?$"
+    },
+    {
+      "page": "/signup",
+      "regex": "^/signup(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/signup(?:/)?$"
+    },
+    {
+      "page": "/sitemap.xml",
+      "regex": "^/sitemap\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap\\.xml(?:/)?$"
+    },
+    {
+      "page": "/terms",
+      "regex": "^/terms(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/terms(?:/)?$"
+    },
+    {
+      "page": "/tv-time-alternative",
+      "regex": "^/tv\\-time\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/tv\\-time\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/welcome",
+      "regex": "^/welcome(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/welcome(?:/)?$"
+    },
+    {
+      "page": "/zh/letterboxd-alternative",
+      "regex": "^/zh/letterboxd\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/zh/letterboxd\\-alternative(?:/)?$"
+    },
+    {
+      "page": "/zh/tv-time-alternative",
+      "regex": "^/zh/tv\\-time\\-alternative(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/zh/tv\\-time\\-alternative(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

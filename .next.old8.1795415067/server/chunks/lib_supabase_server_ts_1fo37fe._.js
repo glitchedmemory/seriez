@@ -1,0 +1,3 @@
+module.exports=[89660,t=>{"use strict";var e=t.i(87022),s=t.i(493458);async function r(){let t=await (0,s.cookies)();return(0,e.createServerClient)("https://zntyjtjodyzizoafxord.supabase.co","sb_publishable_6_O4sP7ZZBT4wxHMVwVtGg_rIgRD1NH",{cookies:{getAll:()=>t.getAll(),setAll(e){try{e.forEach(({name:e,value:s,options:r})=>t.set(e,s,r))}catch{}}}})}t.s(["createClient",0,r])}];
+
+//# sourceMappingURL=lib_supabase_server_ts_1fo37fe._.js.map

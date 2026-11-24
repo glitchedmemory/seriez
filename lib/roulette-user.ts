@@ -326,7 +326,7 @@ export async function searchAniListWithFilters(
 ): Promise<any[]> {
   const { genres, yearGte, yearLte, excludeIds, seasons, searchYear } = params;
 
-  let allResults: any[] = [];
+  const allResults: any[] = [];
   const excludeSet = new Set(excludeIds);
 
   for (const season of seasons) {

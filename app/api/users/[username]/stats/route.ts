@@ -546,7 +546,7 @@ async function computeAndStore(username: string, userId: string): Promise<NextRe
 
     // ── 6. Watch time using actual runtime (no fallback — missing = excluded) ──
     let totalMinutes = 0;
-    let mediaMinutes: Record<string, number> = { movie: 0, tv: 0, anime: 0 };
+    const mediaMinutes: Record<string, number> = { movie: 0, tv: 0, anime: 0 };
 
     for (const t of watched) {
       const runtime = runtimeMap.get(t.tmdb_id);

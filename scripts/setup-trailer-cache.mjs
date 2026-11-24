@@ -1,8 +1,11 @@
 // One-time setup: create trailer_cache table
 import { createClient } from '@supabase/supabase-js';
 
-const URL = 'https://zntyjtjodyzizoafxord.supabase.co';
-const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpudHlqdGpvZHl6aXpvYWZ4b3JkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDYzMzA5NywiZXhwIjoyMDk2MjA5MDk3fQ.AwCNozt98O1pqkGu29jeOszpVH4VXl19E74TYeKZ-Eg';
+const URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+if (!URL || !KEY) {
+  throw new Error('NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables are required');
+}
 
 const supabase = createClient(URL, KEY);
 

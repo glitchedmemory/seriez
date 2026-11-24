@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
 
   // Fetch comment counts for visible reviews
   const reviewIds = visible.map((r: any) => r.id);
-  let commentCounts: Record<string, number> = {};
+  const commentCounts: Record<string, number> = {};
   if (reviewIds.length > 0) {
     const { data: counts } = await supabase
       .from("review_comments")

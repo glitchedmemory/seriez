@@ -30,8 +30,8 @@ export default function AnimeHero({ detail, children, shareUrl }: { detail: Anim
     <>
       {/* Backdrop */}
       {hasBackdrop && (
-        <div className="relative w-full h-48 md:h-72 overflow-hidden">
-          <PosterImage src={detail.backdrop || detail.poster} alt="" fill priority unoptimized className={!detail.backdrop ? "blur-2xl scale-125 opacity-50" : ""} />
+        <div className="relative w-full h-64 md:h-96 overflow-hidden">
+          <PosterImage src={detail.backdrop || detail.poster} alt="" fill priority unoptimized className={!detail.backdrop ? "blur-2xl scale-125 opacity-50" : "object-top"} />
           <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-[#0f0f1a]/60 to-transparent" />
           {shareUrl && <ShareButton title={shownTitle} url={shareUrl} variant="backdrop" />}
         </div>
