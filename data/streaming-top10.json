@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-23T10:00:31.857475+00:00",
+  "updated_at": "2026-11-24T10:00:57.969261+00:00",
   "data": {
     "netflix": {
       "movies": [
@@ -7,17 +7,17 @@
           "title": "Obsession",
           "mediaType": "movie",
           "rank": 1,
-          "score": 2,
+          "score": 3,
           "tmdbId": 1339713,
           "poster": "https://image.tmdb.org/t/p/w342/bRwnj8WEKBCvmfeUNOukJPwB43K.jpg"
         },
         {
-          "title": "Godzilla Minus One",
+          "title": "Anthropoid",
           "mediaType": "movie",
           "rank": 2,
-          "score": 7,
-          "tmdbId": 940721,
-          "poster": "https://image.tmdb.org/t/p/w342/2E2WTX0TJEflAged6kzErwqX1kt.jpg"
+          "score": 8,
+          "tmdbId": 351339,
+          "poster": "https://image.tmdb.org/t/p/w342/5hUghRVVkBYufftfNQkGevY5AmE.jpg"
         },
         {
           "title": "Gentle Monster",
@@ -28,60 +28,60 @@
           "poster": "https://image.tmdb.org/t/p/w342/tZg30lLnTwXFayKbVdgtk69zMim.jpg"
         },
         {
-          "title": "Anthropoid",
+          "title": "Godzilla Minus One",
           "mediaType": "movie",
           "rank": 4,
           "score": 13,
-          "tmdbId": 351339,
-          "poster": "https://image.tmdb.org/t/p/w342/5hUghRVVkBYufftfNQkGevY5AmE.jpg"
+          "tmdbId": 940721,
+          "poster": "https://image.tmdb.org/t/p/w342/2E2WTX0TJEflAged6kzErwqX1kt.jpg"
         },
         {
           "title": "Guarding Stars",
           "mediaType": "movie",
           "rank": 5,
-          "score": 15,
+          "score": 14,
           "tmdbId": 1551025,
           "poster": "https://image.tmdb.org/t/p/w342/5bsXFYXOlbzHBpl9mPaxmOPIQJ9.jpg"
         },
         {
-          "title": "Heartland",
+          "title": "Insidious: Out of the Further",
           "mediaType": "movie",
           "rank": 6,
-          "score": 18,
-          "tmdbId": 1543469,
-          "poster": "https://image.tmdb.org/t/p/w342/zhxlzxBlO1sWB1rPn7RmAoeQ2na.jpg"
-        },
-        {
-          "title": "Carolina Caroline",
-          "mediaType": "movie",
-          "rank": 7,
-          "score": 24,
-          "tmdbId": 1329471,
-          "poster": "https://image.tmdb.org/t/p/w342/9Jkylw7Y5NQyi7C8IwXLBvVSrH2.jpg"
+          "score": 19,
+          "tmdbId": 1291595,
+          "poster": "https://image.tmdb.org/t/p/w342/4tTrW9dXCByS5wt2pXVWb58zNjz.jpg"
         },
         {
           "title": "Violent Night",
           "mediaType": "movie",
-          "rank": 8,
-          "score": 29,
+          "rank": 7,
+          "score": 23,
           "tmdbId": 899112,
           "poster": "https://image.tmdb.org/t/p/w342/e8CpMgdyihz9Td7amQDqubPuzfN.jpg"
         },
         {
-          "title": "Gail Daughtry and the Celebrity Sex Pass",
+          "title": "Steps",
           "mediaType": "movie",
-          "rank": 9,
-          "score": 32,
-          "tmdbId": 1476682,
-          "poster": "https://image.tmdb.org/t/p/w342/98T4bnMjJs71WOVZoeY8edZhfgZ.jpg"
+          "rank": 8,
+          "score": 31,
+          "tmdbId": 1595124,
+          "poster": "https://image.tmdb.org/t/p/w342/jtfCcWZ3ZyKdgi0u7JVOxEOSSJP.jpg"
         },
         {
-          "title": "Green Room",
+          "title": "Carolina Caroline",
+          "mediaType": "movie",
+          "rank": 9,
+          "score": 34,
+          "tmdbId": 1329471,
+          "poster": "https://image.tmdb.org/t/p/w342/9Jkylw7Y5NQyi7C8IwXLBvVSrH2.jpg"
+        },
+        {
+          "title": "Gail Daughtry and the Celebrity Sex Pass",
           "mediaType": "movie",
           "rank": 10,
-          "score": 48,
-          "tmdbId": 313922,
-          "poster": "https://image.tmdb.org/t/p/w342/evZicaR7nXe4LiD9G6QYTorcJGO.jpg"
+          "score": 38,
+          "tmdbId": 1476682,
+          "poster": "https://image.tmdb.org/t/p/w342/98T4bnMjJs71WOVZoeY8edZhfgZ.jpg"
         }
       ],
       "tv": [
@@ -97,49 +97,49 @@
           "title": "FROM",
           "mediaType": "tv",
           "rank": 2,
-          "score": 2,
+          "score": 3,
           "tmdbId": 124364,
           "poster": "https://image.tmdb.org/t/p/w342/pRtJagIxpfODzzb0T0NAvZSzErC.jpg"
         },
         {
-          "title": "Black Doves",
-          "mediaType": "tv",
-          "rank": 3,
-          "score": 10,
-          "tmdbId": 225385,
-          "poster": "https://image.tmdb.org/t/p/w342/srlsyEfIBz2MNWBndVc3opOaNGS.jpg"
-        },
-        {
           "title": "Yellowjackets",
           "mediaType": "tv",
-          "rank": 4,
-          "score": 12,
+          "rank": 3,
+          "score": 5,
           "tmdbId": 117488,
           "poster": "https://image.tmdb.org/t/p/w342/xRnGrn7Z7SC0KIBodocoU1QgDZF.jpg"
         },
         {
           "title": "The Altruists",
           "mediaType": "tv",
-          "rank": 5,
-          "score": 14,
+          "rank": 4,
+          "score": 8,
           "tmdbId": 308007,
           "poster": "https://image.tmdb.org/t/p/w342/hiX70sXdvEPVE11QqmLuaX16gdh.jpg"
         },
         {
-          "title": "Cunk on Cinema",
+          "title": "Black Doves",
           "mediaType": "tv",
-          "rank": 6,
-          "score": 15,
-          "tmdbId": 335981,
-          "poster": "https://image.tmdb.org/t/p/w342/zrrRRvavkLQupkC6aEkdA8sX4E8.jpg"
+          "rank": 5,
+          "score": 14,
+          "tmdbId": 225385,
+          "poster": "https://image.tmdb.org/t/p/w342/srlsyEfIBz2MNWBndVc3opOaNGS.jpg"
         },
         {
           "title": "The Diplomat",
           "mediaType": "tv",
-          "rank": 7,
-          "score": 16,
+          "rank": 6,
+          "score": 17,
           "tmdbId": 203857,
           "poster": "https://image.tmdb.org/t/p/w342/cUy0ZYme43lop08nOtbQLWL0dX.jpg"
+        },
+        {
+          "title": "Cunk on Cinema",
+          "mediaType": "tv",
+          "rank": 7,
+          "score": 21,
+          "tmdbId": 335981,
+          "poster": "https://image.tmdb.org/t/p/w342/zrrRRvavkLQupkC6aEkdA8sX4E8.jpg"
         },
         {
           "title": "Best Medicine",
@@ -153,59 +153,59 @@
           "title": "Nobody Wants This",
           "mediaType": "tv",
           "rank": 9,
-          "score": 25,
+          "score": 26,
           "tmdbId": 250923,
           "poster": "https://image.tmdb.org/t/p/w342/1RNtqMeSNNBkXqK8WPUMf72vGrt.jpg"
         },
         {
-          "title": "Gordon",
+          "title": "Percy Jackson and the Olympians",
           "mediaType": "tv",
           "rank": 10,
-          "score": 36,
-          "tmdbId": 340280,
-          "poster": "https://image.tmdb.org/t/p/w342/yLgl70D5Up0MlvBWP2MJTLAbFAF.jpg"
+          "score": 31,
+          "tmdbId": 103540,
+          "poster": "https://image.tmdb.org/t/p/w342/zofPiEpwCRYaezOncTlQwXebHFU.jpg"
         }
       ]
     },
     "disney": {
       "movies": [
         {
-          "title": "Avengers: Endgame",
-          "mediaType": "movie",
-          "rank": 1,
-          "score": 25,
-          "tmdbId": 299534,
-          "poster": "https://image.tmdb.org/t/p/w342/jtDv3lCnST0fZRvdYFwR5CVwK2x.jpg"
-        },
-        {
           "title": "Home Alone",
           "mediaType": "movie",
-          "rank": 2,
-          "score": 46,
+          "rank": 1,
+          "score": 32,
           "tmdbId": 771,
           "poster": "https://image.tmdb.org/t/p/w342/onTSipZ8R3bliBdKfPtsDuHTdlL.jpg"
         },
         {
-          "title": "Nine to Five",
+          "title": "Avengers: Endgame",
           "mediaType": "movie",
-          "rank": 3,
-          "score": 66,
-          "tmdbId": 19494,
-          "poster": "https://image.tmdb.org/t/p/w342/wndwKY8WnSfhCUn7iSXI37dE7yo.jpg"
+          "rank": 2,
+          "score": 41,
+          "tmdbId": 299534,
+          "poster": "https://image.tmdb.org/t/p/w342/jtDv3lCnST0fZRvdYFwR5CVwK2x.jpg"
         },
         {
           "title": "Toy Story 5",
           "mediaType": "movie",
-          "rank": 4,
+          "rank": 3,
           "score": 68,
           "tmdbId": 1084244,
           "poster": "https://image.tmdb.org/t/p/w342/sfQtVlIHljToOwYjhe21KPGzZWK.jpg"
         },
         {
+          "title": "Nine to Five",
+          "mediaType": "movie",
+          "rank": 4,
+          "score": 78,
+          "tmdbId": 19494,
+          "poster": "https://image.tmdb.org/t/p/w342/wndwKY8WnSfhCUn7iSXI37dE7yo.jpg"
+        },
+        {
           "title": "The Mandalorian and Grogu",
           "mediaType": "movie",
           "rank": 5,
-          "score": 106,
+          "score": 113,
           "tmdbId": 1228710,
           "poster": "https://image.tmdb.org/t/p/w342/uwMKWjcNID0D9jjplsjkQS2OrB4.jpg"
         },
@@ -213,41 +213,41 @@
           "title": "The Princess Bride",
           "mediaType": "movie",
           "rank": 6,
-          "score": 116,
+          "score": 115,
           "tmdbId": 2493,
           "poster": "https://image.tmdb.org/t/p/w342/2FC9L9MrjBoGHYjYZjdWQdopVYb.jpg"
         },
         {
-          "title": "Fantastic Mr. Fox",
+          "title": "The Pursuit: F1 ACADEMY",
           "mediaType": "movie",
           "rank": 7,
-          "score": 200,
+          "score": 149,
+          "tmdbId": 1804968,
+          "poster": "https://image.tmdb.org/t/p/w342/uVTEtFV01czYnVziWoR1QfoW9Wu.jpg"
+        },
+        {
+          "title": "Fantastic Mr. Fox",
+          "mediaType": "movie",
+          "rank": 8,
+          "score": 179,
           "tmdbId": 10315,
           "poster": "https://image.tmdb.org/t/p/w342/bOVr292mwn3jxr1e0NmUPM1rcjo.jpg"
         },
         {
           "title": "The Muppet Christmas Carol",
           "mediaType": "movie",
-          "rank": 8,
-          "score": 215,
+          "rank": 9,
+          "score": 226,
           "tmdbId": 10437,
           "poster": "https://image.tmdb.org/t/p/w342/ssrV29QSVVJuemBHho0Qx7pFYak.jpg"
         },
         {
           "title": "Ready or Not: Here I Come",
           "mediaType": "movie",
-          "rank": 9,
-          "score": 218,
+          "rank": 10,
+          "score": 240,
           "tmdbId": 1266127,
           "poster": "https://image.tmdb.org/t/p/w342/13ZcJzSGEqVgDSqsS9U5EkQwPkV.jpg"
-        },
-        {
-          "title": "The Nightmare Before Christmas",
-          "mediaType": "movie",
-          "rank": 10,
-          "score": 244,
-          "tmdbId": 9479,
-          "poster": "https://image.tmdb.org/t/p/w342/oQffRNjK8e19rF7xVYEN8ew0j7b.jpg"
         }
       ],
       "tv": [
@@ -255,7 +255,7 @@
           "title": "VisionQuest",
           "mediaType": "tv",
           "rank": 1,
-          "score": 9,
+          "score": 11,
           "tmdbId": 213375,
           "poster": "https://image.tmdb.org/t/p/w342/WGyAyBPncfuu8MZhLY9RtfZPM0.jpg"
         },
@@ -263,7 +263,7 @@
           "title": "Grey's Anatomy",
           "mediaType": "tv",
           "rank": 2,
-          "score": 46,
+          "score": 42,
           "tmdbId": 1416,
           "poster": "https://image.tmdb.org/t/p/w342/gO8Fo47KV1opiutRDdBS5jclTQB.jpg"
         },
@@ -271,7 +271,7 @@
           "title": "9-1-1",
           "mediaType": "tv",
           "rank": 3,
-          "score": 70,
+          "score": 68,
           "tmdbId": 75219,
           "poster": "https://image.tmdb.org/t/p/w342/u6HuWWohheyzAj5PUn4rBd0eH92.jpg"
         },
@@ -279,55 +279,55 @@
           "title": "The Simpsons",
           "mediaType": "tv",
           "rank": 4,
-          "score": 87,
+          "score": 92,
           "tmdbId": 456,
           "poster": "https://image.tmdb.org/t/p/w342/tf0CUEynk6GfmrlHIQKQ5mfFP5P.jpg"
         },
         {
-          "title": "Over the Garden Wall",
-          "mediaType": "tv",
-          "rank": 5,
-          "score": 115,
-          "tmdbId": 61617,
-          "poster": "https://image.tmdb.org/t/p/w342/m3lU8n7WxzMecxKZcqhq5y5ESy.jpg"
-        },
-        {
           "title": "Dancing with the Stars",
           "mediaType": "tv",
-          "rank": 6,
-          "score": 117,
+          "rank": 5,
+          "score": 123,
           "tmdbId": 1508,
           "poster": "https://image.tmdb.org/t/p/w342/iisHVZ6we56PE4BcV1csB46SbiG.jpg"
         },
         {
           "title": "The Bear",
           "mediaType": "tv",
-          "rank": 7,
-          "score": 134,
+          "rank": 6,
+          "score": 131,
           "tmdbId": 136315,
           "poster": "https://image.tmdb.org/t/p/w342/eKfVzzEazSIjJMrw9ADa2x8ksLz.jpg"
+        },
+        {
+          "title": "Only Murders in the Building",
+          "mediaType": "tv",
+          "rank": 7,
+          "score": 138,
+          "tmdbId": 107113,
+          "poster": "https://image.tmdb.org/t/p/w342/tvdmO28R440JQVdThrNPrOl5vBm.jpg"
         },
         {
           "title": "How I Met Your Mother",
           "mediaType": "tv",
           "rank": 8,
-          "score": 145,
+          "score": 144,
           "tmdbId": 1100,
           "poster": "https://image.tmdb.org/t/p/w342/b34jPzmB0wZy7EjUZoleXOl2RRI.jpg"
         },
         {
-          "title": "Only Murders in the Building",
+          "title": "Over the Garden Wall",
           "mediaType": "tv",
           "rank": 9,
-          "score": 160,
-          "tmdbId": 107113,
-          "poster": "https://image.tmdb.org/t/p/w342/tvdmO28R440JQVdThrNPrOl5vBm.jpg"
+          "score": 145,
+          "tmdbId": 61617,
+          "poster": "https://image.tmdb.org/t/p/w342/m3lU8n7WxzMecxKZcqhq5y5ESy.jpg"
         },
         {
           "title": "Pok\u00e9mon",
           "mediaType": "tv",
           "rank": 10,
-          "score": 184,
+          "score": 180,
           "tmdbId": 60572,
           "poster": "https://image.tmdb.org/t/p/w342/lP4zwr0F7hWTbAFltfoFTc2AxRG.jpg"
         }
@@ -347,31 +347,31 @@
           "title": "Project Hail Mary",
           "mediaType": "movie",
           "rank": 2,
-          "score": 9,
+          "score": 10,
           "tmdbId": 687163,
           "poster": "https://image.tmdb.org/t/p/w342/iOb2fjXLbpJgyQXe46n1WtGCnaa.jpg"
         },
         {
-          "title": "Once Upon a Time in... Hollywood",
+          "title": "Rocky",
           "mediaType": "movie",
           "rank": 3,
+          "score": 16,
+          "tmdbId": 1366,
+          "poster": "https://image.tmdb.org/t/p/w342/1mcJmdbRLusxhoSGjFI3pbEboXt.jpg"
+        },
+        {
+          "title": "Once Upon a Time in... Hollywood",
+          "mediaType": "movie",
+          "rank": 4,
           "score": 17,
           "tmdbId": 466272,
           "poster": "https://image.tmdb.org/t/p/w342/8j58iEBw9pOXFD2L0nt0ZXeHviB.jpg"
         },
         {
-          "title": "Rocky",
-          "mediaType": "movie",
-          "rank": 4,
-          "score": 19,
-          "tmdbId": 1366,
-          "poster": "https://image.tmdb.org/t/p/w342/1mcJmdbRLusxhoSGjFI3pbEboXt.jpg"
-        },
-        {
           "title": "Casino Royale",
           "mediaType": "movie",
           "rank": 5,
-          "score": 20,
+          "score": 18,
           "tmdbId": 36557,
           "poster": "https://image.tmdb.org/t/p/w342/lMrxYKKhd4lqRzwUHAy5gcx9PSO.jpg"
         },
@@ -379,7 +379,7 @@
           "title": "Elf",
           "mediaType": "movie",
           "rank": 6,
-          "score": 21,
+          "score": 19,
           "tmdbId": 10719,
           "poster": "https://image.tmdb.org/t/p/w342/oOleziEempUPu96jkGs0Pj6tKxj.jpg"
         },
@@ -395,25 +395,25 @@
           "title": "The Sheep Detectives",
           "mediaType": "movie",
           "rank": 8,
-          "score": 57,
+          "score": 58,
           "tmdbId": 1301421,
           "poster": "https://image.tmdb.org/t/p/w342/iKy5460GdsoknM8ppmGlJbKxAKa.jpg"
         },
         {
-          "title": "Nine to Five",
+          "title": "Fiddlin'",
           "mediaType": "movie",
           "rank": 9,
-          "score": 66,
-          "tmdbId": 19494,
-          "poster": "https://image.tmdb.org/t/p/w342/wndwKY8WnSfhCUn7iSXI37dE7yo.jpg"
+          "score": 63,
+          "tmdbId": 591732,
+          "poster": "https://image.tmdb.org/t/p/w342/xgUjmcK0UKq9ObUxBYJzqqoda76.jpg"
         },
         {
-          "title": "Gone in the Night",
+          "title": "Nine to Five",
           "mediaType": "movie",
           "rank": 10,
           "score": 69,
-          "tmdbId": 874355,
-          "poster": "https://image.tmdb.org/t/p/w342/A1F9RpyLNbYyE9nE4INrVQh0b7T.jpg"
+          "tmdbId": 19494,
+          "poster": "https://image.tmdb.org/t/p/w342/wndwKY8WnSfhCUn7iSXI37dE7yo.jpg"
         }
       ],
       "tv": [
@@ -429,31 +429,31 @@
           "title": "The Chosen",
           "mediaType": "tv",
           "rank": 2,
-          "score": 20,
+          "score": 22,
           "tmdbId": 85077,
           "poster": "https://image.tmdb.org/t/p/w342/nr0r7YTn1l84KLG1iCSO5ofHTvO.jpg"
         },
         {
-          "title": "The Terminal List",
-          "mediaType": "tv",
-          "rank": 3,
-          "score": 26,
-          "tmdbId": 120911,
-          "poster": "https://image.tmdb.org/t/p/w342/xyFAzP7RKK8cARCSalIZ9A9T0jV.jpg"
-        },
-        {
           "title": "The Rainmaker",
           "mediaType": "tv",
-          "rank": 4,
-          "score": 27,
+          "rank": 3,
+          "score": 25,
           "tmdbId": 256711,
           "poster": "https://image.tmdb.org/t/p/w342/q8l0lj20amBFi0SBs8NI9yJpaHq.jpg"
+        },
+        {
+          "title": "The Terminal List",
+          "mediaType": "tv",
+          "rank": 4,
+          "score": 28,
+          "tmdbId": 120911,
+          "poster": "https://image.tmdb.org/t/p/w342/xyFAzP7RKK8cARCSalIZ9A9T0jV.jpg"
         },
         {
           "title": "Carrie",
           "mediaType": "tv",
           "rank": 5,
-          "score": 35,
+          "score": 36,
           "tmdbId": 288673,
           "poster": "https://image.tmdb.org/t/p/w342/sSFwvLI4rVqRil8J2cZOM3rOYGv.jpg"
         },
@@ -461,7 +461,7 @@
           "title": "The Institute",
           "mediaType": "tv",
           "rank": 6,
-          "score": 39,
+          "score": 40,
           "tmdbId": 253372,
           "poster": "https://image.tmdb.org/t/p/w342/4MwXkOAMd9ObxdacasPFM32n9dZ.jpg"
         },
@@ -469,7 +469,7 @@
           "title": "Saturday Night Live",
           "mediaType": "tv",
           "rank": 7,
-          "score": 41,
+          "score": 51,
           "tmdbId": 1667,
           "poster": "https://image.tmdb.org/t/p/w342/s1cZBqbMwAF3w8S3Yo0j5nr2Yuo.jpg"
         },
@@ -477,7 +477,7 @@
           "title": "Reacher",
           "mediaType": "tv",
           "rank": 8,
-          "score": 77,
+          "score": 78,
           "tmdbId": 108978,
           "poster": "https://image.tmdb.org/t/p/w342/f1VCQIG2iCyOookdgOzwtUpwWC0.jpg"
         },
@@ -485,7 +485,7 @@
           "title": "Supernatural",
           "mediaType": "tv",
           "rank": 9,
-          "score": 85,
+          "score": 82,
           "tmdbId": 1622,
           "poster": "https://image.tmdb.org/t/p/w342/8iixmfGx5EIFPdpNvB2JvI3VIqX.jpg"
         },
@@ -493,7 +493,7 @@
           "title": "American Horror Story",
           "mediaType": "tv",
           "rank": 10,
-          "score": 92,
+          "score": 100,
           "tmdbId": 1413,
           "poster": "https://image.tmdb.org/t/p/w342/yCkPLQ10qKIUgRBXmQVVMF1h96d.jpg"
         }
