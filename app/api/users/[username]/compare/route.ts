@@ -20,22 +20,28 @@ export async function GET(
   const me = searchParams.get("me") || await resolveUsername(req);
   if (!me) return NextResponse.json({ error: "Sign in" }, { status: 401 });
 
-  // Resolve usernames to UUIDs (media_trackings.username stores UUIDs)
-  const myUserId = await resolveUserId(me);
-  const targetUserId = await resolveUserId(target);
+  // Resolve usernames to UUIDs (media_trackings.username stores UUIDs).
+  // Both lookups are independent, so issue them together. When me === target
+  // skip the duplicate call entirely rather than hitting the DB twice.
+  const [myUserId, targetUserId] = me === target
+    ? await resolveUserId(me).then((id) => [id, id] as const)
+    : await Promise.all([resolveUserId(me), resolveUserId(target)]);
   if (!myUserId || !targetUserId) return NextResponse.json({ matchRate: 0, bothEnjoyed: [], divergent: [] });
 
-  // Get both users' rated titles with ratings
-  const { data: myRatings } = await supabaseAdmin
-    .from("media_trackings")
-    .select("tmdb_id, media_type, rating")
-    .eq("username", myUserId)
-    .not("rating", "is", null);
-  const { data: theirRatings } = await supabaseAdmin
-    .from("media_trackings")
-    .select("tmdb_id, media_type, rating")
-    .eq("username", targetUserId)
-    .not("rating", "is", null);
+  // Both rating queries are independent of each other (only of their own user
+  // id above), so run them concurrently.
+  const [{ data: myRatings }, { data: theirRatings }] = await Promise.all([
+    supabaseAdmin
+      .from("media_trackings")
+      .select("tmdb_id, media_type, rating")
+      .eq("username", myUserId)
+      .not("rating", "is", null),
+    supabaseAdmin
+      .from("media_trackings")
+      .select("tmdb_id, media_type, rating")
+      .eq("username", targetUserId)
+      .not("rating", "is", null),
+  ]);
 
   if (!theirRatings?.length) return NextResponse.json({ matchRate: 0, bothEnjoyed: [], divergent: [] });
 
