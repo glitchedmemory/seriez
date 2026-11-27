@@ -128,7 +128,12 @@ async function fetchRuntimes(
   // Only fetch runtimes we don't already know
   const knownIds = new Set(known.keys());
   const movieIds = [...new Set(tracking.filter(t => t.media_type === "movie").map(t => t.tmdb_id))].filter(id => !knownIds.has(id));
-  const tvIds = [...new Set(tracking.filter(t => t.media_type === "tv" || t.media_type === "anime").map(t => t.tmdb_id))].filter(id => !knownIds.has(id));
+  // anime are NOT TMDB ids — this app tracks anime by AniList id (see
+  // app/anime/[id]/page.tsx, whose route param is passed through as tmdb_id).
+  // Sending them to TMDB either missed entirely or matched an unrelated title
+  // whose episode_run_time was empty anyway. They are resolved from AniList below.
+  const tvIds = [...new Set(tracking.filter(t => t.media_type === "tv").map(t => t.tmdb_id))].filter(id => !knownIds.has(id));
+  const animeIds = [...new Set(tracking.filter(t => t.media_type === "anime").map(t => t.tmdb_id))].filter(id => !knownIds.has(id));
 
   const BATCH = 8;
 
@@ -169,6 +174,36 @@ async function fetchRuntimes(
         ? Math.round(runtimes.reduce((a: number, b: number) => a + b, 0) / runtimes.length)
         : 0;
       if (avg > 0) map.set(batch[j], avg);
+    }
+  }
+
+  // ── Anime runtimes from AniList ──
+  // Anime ids here are AniList ids, so TMDB can never resolve them. AniList
+  // returns duration (minutes per episode) plus episode count in one batched
+  // request, which is exactly what the watch-time maths needs.
+  if (animeIds.length > 0) {
+    for (let i = 0; i < animeIds.length; i += 50) {
+      const chunk = animeIds.slice(i, i + 50);
+      try {
+        const res = await fetch("https://graphql.anilist.co", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({
+            query: "query($ids:[Int]){Page(perPage:50){media(id_in:$ids,type:ANIME){id duration episodes title{romaji english}}}}",
+            variables: { ids: chunk },
+          }),
+          signal: AbortSignal.timeout(4000),
+          next: { revalidate: 86400 },
+        });
+        if (res.ok) {
+          const media = (await res.json())?.data?.Page?.media || [];
+          for (const m of media) {
+            if (m?.duration > 0) map.set(m.id, m.duration);
+            const t = m?.title?.english || m?.title?.romaji;
+            if (t) titleMap.set(m.id, t);
+          }
+        }
+      } catch { /* fall through to the remaining sources */ }
     }
   }
 
@@ -374,7 +409,7 @@ async function fetchRuntimes(
   }
   // Persist "no runtime found" (runtime=0) for titles that walked the full chain
   // empty, so the next recompute skips re-walking all 8 fallback sources.
-  for (const id of [...movieIds, ...tvIds]) {
+  for (const id of [...movieIds, ...tvIds, ...animeIds]) {
     if (!map.has(id)) {
       freshEntries.push({ tmdb_id: id, media_type: typeById.get(id) || "movie", runtime: 0 });
     }
