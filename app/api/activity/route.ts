@@ -472,20 +472,8 @@ async function enrichAnime(anilistId: number): Promise<{ title: string; poster: 
         return { title, poster: m.coverImage.extraLarge, year };
       }
 
-      // No poster → try Jikan (using MAL id)
-      if (m.idMal) {
-        try {
-          const jikanRes = await fetch(`https://api.jikan.moe/v4/anime/${m.idMal}`);
-          if (jikanRes.ok) {
-            const jd = await jikanRes.json();
-            const jpg = jd?.data?.images?.jpg;
-            if (jpg?.large_image_url) {
-              return { title, poster: jpg.large_image_url, year };
-            }
-          }
-        } catch {}
-      }
-
+      // Jikan removed: api.jikan.moe is dead (no response at all) and this call
+      // hung the whole request for seconds. Kitsu below covers the same case.
       // Still no poster → try Kitsu
       if (title) {
         try {
@@ -508,21 +496,8 @@ async function enrichAnime(anilistId: number): Promise<{ title: string; poster: 
     }
   } catch {}
 
-  // AniList failed — try Jikan directly (some AniList IDs happen to match MAL IDs)
-  try {
-    const jikanRes = await fetch(`https://api.jikan.moe/v4/anime/${anilistId}`);
-    if (jikanRes.ok) {
-      const jd = await jikanRes.json();
-      const d = jd?.data;
-      if (d) {
-        return {
-          title: d.title || "",
-          poster: d.images?.jpg?.large_image_url || null,
-          year: d.year?.toString() || null,
-        };
-      }
-    }
-  } catch {}
+  // AniList failed above — retry once without the type filter, in case this id
+  // points at a non-ANIME entry. (Jikan used to sit here; it is dead.)
 
   // Nothing worked
   return { title: "", poster: null, year: null };

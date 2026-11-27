@@ -28,35 +28,23 @@ async function getTmdbMeta(tmdbId: number, mediaType: string) {
 // Search anime metadata from Jikan + Kitsu when no anilist_id available
 // Tries multiple anime APIs with the enrichAnime chain
 async function searchAnimeMetadata(tmdbId: number): Promise<{ title: string; poster: string | null; year: number | null } | null> {
-  // Try Jikan — search by TMDB ID (some anime have matching MAL IDs or cross-refs)
+  // For anime, the id we store IS an AniList id (see app/anime/[id]/page.tsx — the
+  // route param is parsed and passed straight through as tmdbId). So resolve it
+  // directly by AniList id instead of searching by the numeric string.
+  //
+  // Jikan used to be tried here first. It is permanently down (api.jikan.moe
+  // returns no response at all) and the numeric search never matched a real
+  // anime anyway, so every anime review paid a multi-second timeout for nothing.
   try {
-    const jikanRes = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(String(tmdbId))}&limit=1`);
-    if (jikanRes.ok) {
-      const jd = await jikanRes.json();
-      const entry = jd?.data?.[0];
-      if (entry) {
-        const malId = entry.mal_id;
-        if (malId) {
-          // Use existing enrichAnime via anilistId derived from MAL
-          const anilistRes = await anilistFetch(`query($idMal:Int){Media(idMal:$idMal,type:ANIME){id title{romaji english}coverImage{extraLarge}seasonYear}}`, { idMal: malId });
-          if (anilistRes.ok) {
-            const aj = await anilistRes.json();
-            const m = aj.data?.Media;
-            if (m) {
-              return {
-                title: m.title?.english || m.title?.romaji || entry.title || "",
-                poster: m.coverImage?.extraLarge || entry.images?.jpg?.large_image_url || null,
-                year: m.seasonYear || entry.year || null,
-              };
-            }
-          }
-          // Fallback to Jikan data directly
-          return {
-            title: entry.title || `Anime #${tmdbId}`,
-            poster: entry.images?.jpg?.large_image_url || null,
-            year: entry.year || null,
-          };
-        }
+    const byId = await anilistFetch(`query($id:Int){Media(id:$id,type:ANIME){id title{romaji english}coverImage{extraLarge}seasonYear}}`, { id: tmdbId });
+    if (byId.ok) {
+      const m = (await byId.json()).data?.Media;
+      if (m?.title) {
+        return {
+          title: m.title?.english || m.title?.romaji || `Anime #${tmdbId}`,
+          poster: m.coverImage?.extraLarge || null,
+          year: m.seasonYear || null,
+        };
       }
     }
   } catch {}
@@ -97,17 +85,9 @@ async function enrichAnime(anilistId: number): Promise<{ title: string; poster: 
     if (m.coverImage?.extraLarge) {
       return { title, poster: m.coverImage.extraLarge, year };
     }
-    // Try Jikan
-    if (m.idMal) {
-      try {
-        const jikanRes = await fetch(`https://api.jikan.moe/v4/anime/${m.idMal}`);
-        if (jikanRes.ok) {
-          const jd = await jikanRes.json();
-          const jpg = jd?.data?.images?.jpg;
-          if (jpg?.large_image_url) return { title, poster: jpg.large_image_url, year };
-        }
-      } catch {}
-    }
+    // Jikan removed: api.jikan.moe is dead and made this path hang for seconds.
+    // AniList's own coverImage (checked above) plus the Kitsu fallback below
+    // cover the same ground.
     // Try Kitsu
     if (title) {
       try {

@@ -423,38 +423,31 @@ async function fetchKitsuStaff(kitsuId: string): Promise<AnimeDetail["staff"]> {
 }
 
 /** Fetch recommendations from Jikan/MAL (AniList has none when down; Kitsu has none at all). */
-async function fetchJikanRecommendations(malId: number): Promise<AnimeRecItem[]> {
-  if (!malId) return [];
+async function fetchAniListRecommendations(anilistId: number): Promise<AnimeRecItem[]> {
+  if (!anilistId) return [];
   try {
-    const res = await fetch(`https://api.jikan.moe/v4/anime/${malId}/recommendations`, {
-      headers: { "Accept": "application/json" },
-      next: { revalidate: 86400 },
-    });
+    const res = await anilistFetch(
+      `query($id:Int){Media(id:$id,type:ANIME){recommendations(sort:RATING_DESC,perPage:12){nodes{mediaRecommendation{id title{romaji english}coverImage{extraLarge}seasonYear averageScore genres}}}}}`,
+      { id: anilistId },
+      { revalidate: 86400 }
+    );
     if (!res.ok) return [];
-    const json = await res.json();
-    const recs = (json.data || []).slice(0, 12);
+    const nodes = (await res.json()).data?.Media?.recommendations?.nodes || [];
     const out: AnimeRecItem[] = [];
-    for (const r of recs) {
-      const entry = r.entry || {};
-      const recMalId = entry.mal_id;
-      if (!recMalId) continue;
-      // Map MAL id → AniList id so /anime/{id} links work.
-      // (Jikan returns MAL ids; our anime routes use AniList ids.)
-      let anilistId: number | null = null;
-      try {
-        const jid = await resolveMalIdToAnilist(recMalId);
-        anilistId = jid;
-      } catch {}
+    for (const n of nodes) {
+      const m = n?.mediaRecommendation;
+      if (!m?.id) continue;
       out.push({
-        id: anilistId || recMalId,
-        title: entry.title || "Unknown",
-        poster: entry.images?.jpg?.large_image_url || entry.images?.jpg?.image_url || null,
-        rating: 0,
-        year: 0,
-        genres: [],
+        // Already an AniList id, so /anime/{id} links resolve without a MAL hop.
+        id: m.id,
+        title: m.title?.english || m.title?.romaji || "Unknown",
+        poster: m.coverImage?.extraLarge || null,
+        rating: m.averageScore ? m.averageScore / 20 : 0,
+        year: m.seasonYear || 0,
+        genres: m.genres || [],
       });
     }
-    return out.filter((x) => x.title !== "Unknown");
+    return out;
   } catch {
     return [];
   }
@@ -560,7 +553,7 @@ export async function getAnimeDetailFromKitsu(anilistId: number): Promise<AnimeD
     const [characters, staff, recommendations] = await Promise.all([
       fetchKitsuCharacters(kitsuId),
       fetchKitsuStaff(kitsuId),
-      fetchJikanRecommendations(malId),
+      fetchAniListRecommendations(anilistId),
     ]);
     detail.characters = characters;
     detail.staff = staff;
@@ -985,21 +978,18 @@ const _getAnilistIdCached = unstable_cache(
   if (results[0]) return results[0];
   if (results[1]) return results[1];
 
-  // Fallback: search AniList via Jikan (MAL ID → AniList)
+  // Last resort: treat the TMDB id as an AniList id.
+  //
+  // This used to go through Jikan (search by the numeric string, then map MAL →
+  // AniList). That never matched a real anime — searching q="16498" returns
+  // nothing — and Jikan is dead besides, so the whole fallback cost seconds and
+  // always returned null. Trying the id directly is cheap and occasionally right,
+  // since anime are tracked by AniList id in this app.
   try {
-    const jikanRes = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(String(tmdbId))}&limit=1`, {
-      next: { revalidate: 86400 },
-    });
-    if (jikanRes.ok) {
-      const jd = await jikanRes.json();
-      const malId = jd?.data?.[0]?.mal_id;
-      if (malId) {
-        const anilistRes = await anilistFetch(`query($idMal:Int){Media(idMal:$idMal,type:ANIME){id}}`, { idMal: malId }, { revalidate: 86400 });
-        if (anilistRes.ok) {
-          const aj = await anilistRes.json();
-          return aj.data?.Media?.id || null;
-        }
-      }
+    const byId = await anilistFetch(`query($id:Int){Media(id:$id,type:ANIME){id}}`, { id: tmdbId }, { revalidate: 86400 });
+    if (byId.ok) {
+      const aj = await byId.json();
+      if (aj.data?.Media?.id) return aj.data.Media.id;
     }
   } catch {}
 
@@ -1022,64 +1012,10 @@ export async function getAnilistId(tmdbId: number): Promise<number | null> {
   } catch { return null; }
 }
 
-// ─── Episode fetching (Jikan primary + Kitsu/AniDB fallback) ───
-
-const JIKAN_API = "https://api.jikan.moe/v4";
-
-async function fetchJikanEpisodes(malId: number): Promise<AnimeEpisode[]> {
-  if (!malId || malId <= 0) return [];
-  try {
-    // Fetch page 1 to detect total pages
-    const firstRes = await fetch(`${JIKAN_API}/anime/${malId}/episodes?page=1`, {
-      headers: { "Accept": "application/json" },
-      next: { revalidate: 86400 },
-    });
-    if (!firstRes.ok) return [];
-    const firstData = await firstRes.json();
-    const firstPage: AnimeEpisode[] = (firstData.data || []).map((ep: any) => ({
-      number: ep.mal_id || 0,
-      title: ep.title || `Episode ${ep.mal_id}`,
-      titleJapanese: ep.title_japanese || "",
-      airDate: ep.aired ? ep.aired.slice(0, 10) : "",
-      thumbnail: null,
-      synopsis: ep.synopsis || "",
-      duration: ep.duration || 0,
-    }));
-
-    const totalPages = firstData.pagination?.last_visible_page || 1;
-    if (totalPages <= 1) return firstPage.sort((a, b) => a.number - b.number);
-
-    // Fetch remaining pages in parallel (cached, runs once per anime per day)
-    const remainingResults = await Promise.all(
-      Array.from({ length: totalPages - 1 }, (_, i) => i + 2).map(async (page) => {
-        try {
-          const res = await fetch(`${JIKAN_API}/anime/${malId}/episodes?page=${page}`, {
-            headers: { "Accept": "application/json" },
-            next: { revalidate: 86400 },
-          });
-          if (!res.ok) return [] as AnimeEpisode[];
-          const data = await res.json();
-          return ((data.data || []) as any[]).map((ep: any) => ({
-            number: ep.mal_id || 0,
-            title: ep.title || `Episode ${ep.mal_id}`,
-            titleJapanese: ep.title_japanese || "",
-            airDate: ep.aired ? ep.aired.slice(0, 10) : "",
-            thumbnail: null,
-            synopsis: ep.synopsis || "",
-            duration: ep.duration || 0,
-          }));
-        } catch {
-          return [] as AnimeEpisode[];
-        }
-      })
-    );
-
-    const allEpisodes = [firstPage, ...remainingResults].flat();
-    return allEpisodes.sort((a, b) => a.number - b.number);
-  } catch {
-    return [];
-  }
-}
+// ─── Episode fetching (Kitsu primary + AniDB fallback) ───
+// Jikan was removed entirely: api.jikan.moe stopped responding (no HTTP
+// response at all) and it sat in the episode fallback chain, silently burning
+// seconds on every anime whose Kitsu lookup came back empty.
 
 const KITSU_API = "https://kitsu.io/api/edge";
 
@@ -1580,13 +1516,7 @@ export const getAnimeEpisodes = unstable_cache(
     }
   }
 
-  // Track B: Jikan (MyAnimeList) — fallback when Kitsu has nothing
-  if (episodes.length === 0 && idMal && idMal > 0) {
-    const jikanEps = await fetchJikanEpisodes(idMal);
-    if (jikanEps.length > 0) episodes = jikanEps;
-  }
-
-  // Track C: AniDB fallback (slower, no thumbnails)
+  // Track B: AniDB fallback (slower, no thumbnails)
   if (episodes.length === 0) {
     const anidbEps = await fetchAniDBEpisodes(titleRomaji || title);
     if (anidbEps.length > 0) episodes = anidbEps;

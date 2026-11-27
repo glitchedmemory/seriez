@@ -281,33 +281,10 @@ async function fetchRuntimes(
     }
   }
 
-  // ── Source 6: Jikan v4 (MyAnimeList, free, no key) for remaining anime ──
-  const stillMissingTV = tvIds.filter(id => !map.has(id) && titleMap.has(id));
-  if (stillMissingTV.length > 0) {
-    const jikanRes = await Promise.allSettled(
-      stillMissingTV.map(async (tmdbId) => {
-        const title = titleMap.get(tmdbId)!;
-        try {
-          const r = await fetchWithTimeout(
-            `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(title)}&limit=1`,
-            2000
-          );
-          if (!r.ok) return { tmdbId, runtime: 0 };
-          const j = await r.json();
-          const dur = j?.data?.[0]?.duration || "";
-          const m = dur.match(/(\d+)\s*min/);
-          return { tmdbId, runtime: m ? parseInt(m[1]) : 0 };
-        } catch { return { tmdbId, runtime: 0 }; }
-      })
-    );
-    for (const res of jikanRes) {
-      if (res.status === "fulfilled" && res.value.runtime > 0) {
-        map.set(res.value.tmdbId, res.value.runtime);
-      }
-    }
-  }
-
-  // ── Source 7: Syoboi Calendar (Japanese, free, no key) ──
+  // ── Source 6: Syoboi Calendar (Japanese, free, no key) ──
+  // (The Jikan/MAL source that used to sit here was removed: api.jikan.moe
+  // stopped responding entirely. It still ran on every anime with a missing
+  // runtime, so each profile stats load paid its timeout for nothing.)
   const stillMissingAnime = tvIds.filter(id => !map.has(id) && titleMap.has(id));
   if (stillMissingAnime.length > 0) {
     const syoRes = await Promise.allSettled(
