@@ -20,20 +20,22 @@ export async function GET(req: NextRequest) {
   const userId = await resolveUserId(username);
   if (!userId) return NextResponse.json({ items: [], total: 0, page, totalPages: 0 });
 
-  // Count total
+  // Count + page fetch run concurrently: both filter on the same username/status
+  // and neither depends on the other's result, so awaiting them in series just
+  // adds a redundant ~230ms Supabase round-trip.
+  const offset = (page - 1) * limit;
+
   let countQuery = supabaseAdmin.from("media_trackings").select("*", { count: "exact", head: true }).eq("username", userId);
   if (status) countQuery = countQuery.eq("status", status);
-  const { count: total, error: countErr } = await countQuery;
-  if (countErr) return NextResponse.json({ error: countErr.message }, { status: 500 });
-  if (!total) return NextResponse.json({ items: [], total: 0, page, totalPages: 0 });
 
-  // Fetch page
   let query = supabaseAdmin.from("media_trackings").select("*").eq("username", userId).order("updated_at", { ascending: false });
   if (status) query = query.eq("status", status);
-  const offset = (page - 1) * limit;
   query = query.range(offset, offset + limit - 1);
-  const { data, error } = await query;
+
+  const [{ count: total, error: countErr }, { data, error }] = await Promise.all([countQuery, query]);
+  if (countErr) return NextResponse.json({ error: countErr.message }, { status: 500 });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!total) return NextResponse.json({ items: [], total: 0, page, totalPages: 0 });
   if (!data || data.length === 0) return NextResponse.json({ items: [], total: total || 0, page, totalPages: Math.ceil((total || 0) / limit) });
 
   // Use the poster_url already stored in DB — no per-request external refetch.
