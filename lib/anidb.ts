@@ -128,6 +128,116 @@ export async function resolveMalIdToAnilistEn(
   };
 }
 
+/**
+ * Resolve a title → AniDB id using AniDB's public titles dump.
+ *
+ * Why this exists: ani.zip derives its mappings from AniDB, and when a show is
+ * brand new the anidb_id column is still null even though AniDB already knows
+ * about it. Fetching ani.zip by anilist_id then returns episodes: {} — while
+ * fetching the very same endpoint by anidb_id returns the full episode list
+ * with TVDB screenshots. (Fool Night, AniList 213457: anilist_id lookup gave 0
+ * episodes, anidb_id=20121 gave 12 with images.)
+ *
+ * The dump is a 1.9MB gzip that expands to ~7MB; gunzip alone costs 60-160ms,
+ * so the parsed title→aid index is memoised in this module. It's rebuilt at most
+ * once per process lifetime and refreshed daily.
+ */
+const ANIDB_DUMP_URL = "https://anidb.net/api/animetitles.xml.gz";
+const ANIDB_INDEX_TTL_MS = 24 * 60 * 60 * 1000;
+
+let anidbIndex: Map<string, number> | null = null;
+let anidbIndexLoadedAt = 0;
+let anidbIndexInflight: Promise<Map<string, number> | null> | null = null;
+
+async function loadAniDBTitleIndex(): Promise<Map<string, number> | null> {
+  const now = Date.now();
+  if (anidbIndex && now - anidbIndexLoadedAt < ANIDB_INDEX_TTL_MS) return anidbIndex;
+  if (anidbIndexInflight) return anidbIndexInflight;
+
+  anidbIndexInflight = (async () => {
+    try {
+      const res = await fetch(ANIDB_DUMP_URL, {
+        headers: { "User-Agent": "Mozilla/5.0", "Accept-Encoding": "gzip" },
+        next: { revalidate: 86400 },
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!res.ok) return null;
+
+      const { gunzipSync } = await import("zlib");
+      const buf = Buffer.from(await res.arrayBuffer());
+      let xml: string;
+      try {
+        xml = gunzipSync(buf).toString("utf-8");
+      } catch {
+        xml = buf.toString("utf-8"); // not gzipped
+      }
+
+      // <anime aid="20121"><type>...</type><title ...>Fool Night</title>...</anime>
+      const index = new Map<string, number>();
+      const animeRe = /<anime\s+aid="(\d+)"[^>]*>([\s\S]*?)<\/anime>/g;
+      let m: RegExpExecArray | null;
+      while ((m = animeRe.exec(xml)) !== null) {
+        const aid = parseInt(m[1], 10);
+        if (!aid) continue;
+        const titleRe = /<title[^>]*>([^<]+)<\/title>/g;
+        let t: RegExpExecArray | null;
+        while ((t = titleRe.exec(m[2])) !== null) {
+          const key = t[1].trim().toLowerCase();
+          if (!key) continue;
+          // First writer wins: the main/romaji title appears before synonyms.
+          if (!index.has(key)) index.set(key, aid);
+        }
+      }
+
+      if (index.size > 0) {
+        anidbIndex = index;
+        anidbIndexLoadedAt = Date.now();
+        return index;
+      }
+      return null;
+    } catch {
+      return null;
+    } finally {
+      anidbIndexInflight = null;
+    }
+  })();
+
+  return anidbIndexInflight;
+}
+
+/**
+ * Find the AniDB id for a title. Tries the exact title first, then a
+ * containment pass (AniDB often carries "Fool Night" alongside longer
+ * synonym forms). Returns null when the index can't be built or nothing matches.
+ */
+export async function resolveTitleToAniDBId(title: string): Promise<number | null> {
+  const needle = title?.trim().toLowerCase();
+  if (!needle || needle.length < 2) return null;
+
+  const index = await loadAniDBTitleIndex();
+  if (!index) return null;
+
+  const exact = index.get(needle);
+  if (exact) return exact;
+
+  // Containment fallback, preferring the shortest matching title so
+  // "Fool Night" doesn't bind to "Fool Night Something Else".
+  let best: { aid: number; len: number } | null = null;
+  for (const [key, aid] of index) {
+    if (!key.includes(needle) && !needle.includes(key)) continue;
+    if (!best || key.length < best.len) best = { aid, len: key.length };
+  }
+  return best?.aid ?? null;
+}
+
+/**
+ * Fetch ani.zip episodes by AniDB id. Used when the anilist_id lookup returns
+ * nothing because ani.zip's mapping row hasn't been backfilled yet.
+ */
+export async function fetchAniZipByAniDBId(anidbId: number): Promise<AniZipData | null> {
+  return fetchAniZip(`anidb_id=${anidbId}`);
+}
+
 async function fetchAniZip(qs: string): Promise<AniZipData | null> {
   try {
     const res = await fetch(`${ANIZIP_API}/mappings?${qs}`, {

@@ -747,27 +747,35 @@ export const getAnimeDetail = unstable_cache(
     // because Kitsu tracks airing shows more accurately than ani.zip
     // (ani.zip said 12 eps while Kitsu and AniList said 26; ani.zip lags behind
     // on currently-airing seasons).
-    const anizip = await fetchAniZipByAnilistId(id);
-    // Kitsu detail is fetched up-front so it can win for episodeCount/synopsis/
-    // poster/backdrop. Non-fatal: null if Kitsu has no mapping or is down.
-    const kitsuPrimary = await getAnimeDetailFromKitsu(id).catch(() => null);
-
-    // Retry AniList fetch with backoff (handles 429 + network errors)
-    let res: Response | undefined;
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      res = await anilistFetch(DETAIL_QUERY, { id }, { revalidate: 3600 });
-      if (res.ok) break; // success
-      if (res.status === 429 && attempt < 3) {
-        // AniList sends Retry-After (seconds). Honour it instead of blind backoff,
-        // and never wait more than 2s here — a longer stall is worse than letting
-        // the Kitsu fallback below render the page immediately.
-        const ra = Number(res.headers.get("retry-after"));
-        const waitMs = Number.isFinite(ra) && ra > 0 ? Math.min(ra * 1000, 2000) : 500;
-        await new Promise((r) => setTimeout(r, waitMs));
-      } else if (!res.ok && attempt < 3) {
-        await new Promise((r) => setTimeout(r, 300));
+    // These three sources are independent — run them concurrently. Serially they
+    // cost 80-320ms each on a cold cache, which is what made some anime pages
+    // take 1-2.5s while others served in 40ms.
+    const fetchAniListWithRetry = async (): Promise<Response | undefined> => {
+      let res: Response | undefined;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        res = await anilistFetch(DETAIL_QUERY, { id }, { revalidate: 3600 });
+        if (res.ok) break; // success
+        if (res.status === 429 && attempt < 3) {
+          // AniList sends Retry-After (seconds). Honour it instead of blind
+          // backoff, and never wait more than 2s here — a longer stall is worse
+          // than letting the Kitsu fallback below render the page immediately.
+          const ra = Number(res.headers.get("retry-after"));
+          const waitMs = Number.isFinite(ra) && ra > 0 ? Math.min(ra * 1000, 2000) : 500;
+          await new Promise((r) => setTimeout(r, waitMs));
+        } else if (!res.ok && attempt < 3) {
+          await new Promise((r) => setTimeout(r, 300));
+        }
       }
-    }
+      return res;
+    };
+
+    const [anizip, kitsuPrimary, res] = await Promise.all([
+      fetchAniZipByAnilistId(id),
+      // Kitsu detail is fetched up-front so it can win for episodeCount/synopsis/
+      // poster/backdrop. Non-fatal: null if Kitsu has no mapping or is down.
+      getAnimeDetailFromKitsu(id).catch(() => null),
+      fetchAniListWithRetry(),
+    ]);
 
     if (!res!.ok) {
       // AniList down — fall back to Kitsu (via AniList ID → Kitsu mapping)
@@ -1561,22 +1569,20 @@ export const getAnimeEpisodes = unstable_cache(
       });
     }
 
-    // Apply TVmaze thumbnails — 마지막 소스.
-    // Kitsu/AniList/Crunchyroll 이 모두 비었을 때만 호출한다.
-    // TMDB 는 애니에 쓰지 않는다(실사 썸네일 혼입 방지).
-    if (episodes.filter(ep => !ep.thumbnail).length > 0) {
-      const tvTitles = [title, titleRomaji].filter(Boolean) as string[];
-      const tvThumbs = await fetchTvmazeThumbnails(tvTitles, episodes.length).catch(
-        () => new Map<number, string>()
-      );
-      if (tvThumbs.size > 0) {
-        episodes = episodes.map(ep => {
-          if (ep.thumbnail) return ep;
-          const thumb = tvThumbs.get(ep.number);
-          return thumb ? { ...ep, thumbnail: thumb } : ep;
-        });
-      }
-    }
+    // TVmaze is intentionally NOT used for anime episode thumbnails.
+    //
+    // It was the last fallback here, and it served wrong shows rather than
+    // admitting ignorance: Fool Night (AniList 213457, Netflix ONA, aired
+    // 2026-11-26) got Jujutsu Kaisen screencaps on all 12 episodes. The existing
+    // guard only compares episode counts, and TVmaze's bogus 12-episode entry
+    // matched ours exactly, so the ratio check (1.0) let it through. The show
+    // poster on TVmaze is correct — only the episode stills are polluted.
+    //
+    // Same problem on TVDB, which shares the record (tvdb_id 479566). Kitsu and
+    // AniList both return no episode thumbnails for this title at all, so the
+    // honest result is "no thumbnail" until one of them backfills it.
+    //
+    // TMDB is likewise never used for anime (would surface live-action stills).
   }
 
   // Apply seriesDuration as fallback for episodes with missing duration
@@ -1594,7 +1600,12 @@ export const getAnimeEpisodes = unstable_cache(
 
   return episodes;
   },
-  ["anime-episodes-v4"],
+  // v5: bumping the key invalidates every cached episode list written before the
+  // TVmaze thumbnail fallback was removed. Fool Night had 12 real episodes
+  // (AniList + Kitsu both say 12) but a stale entry held 22 placeholder
+  // "Episode N" rows with no title, no air date and no thumbnail, so the page
+  // rendered 22 empty episode slots.
+  ["anime-episodes-v5"],
   { revalidate: 3600 }
 );
 
