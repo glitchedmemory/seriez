@@ -1,6 +1,7 @@
 export const revalidate = 86400;
 
 import { getAnimeDetail, getAnimeIds, getAnimeEpisodes, enrichAnimeRelations, anilistFetch } from "@/lib/anilist";
+import { unstable_cache } from "next/cache";
 import AnimeHero from "@/components/AnimeHero";
 import AnimeOverview from "@/components/AnimeOverview";
 import AnimeSeasons from "@/components/AnimeSeasons";
@@ -42,9 +43,15 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://seriez.app";
 // Direct (uncached) AniList lookup for metadata — unstable_cache wrappers
 // (getAnilistId / getAnimeDetail) trigger DYNAMIC_SERVER_USAGE inside
 // generateMetadata, so we hit the API directly here instead.
-async function fetchAnimeMeta(numId: number): Promise<{ title: string; description: string; posterUrl: string | null } | null> {
+const fetchAnimeMetaCached = unstable_cache(
+  async (numId: number) => fetchAnimeMetaUncached(numId),
+  ["anime-meta"],
+  { revalidate: 3600 }
+);
+
+async function fetchAnimeMetaUncached(numId: number): Promise<{ title: string; description: string; posterUrl: string | null } | null> {
   try {
-    const res = await anilistFetch(`query($id:Int){Media(id:$id,type:ANIME){title{romaji english native}description coverImage{large}}}`, { id: numId }, { signal: AbortSignal.timeout(8000) });
+    const res = await anilistFetch(`query($id:Int){Media(id:$id,type:ANIME){title{romaji english native}description coverImage{large}}}`, { id: numId }, { signal: AbortSignal.timeout(3000) });
     if (!res.ok) return null;
     const json = await res.json();
     const media = json.data?.Media;
@@ -62,39 +69,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const numId = parseInt(id);
   if (isNaN(numId)) return {};
 
-  // `/anime/[id]` receives a TMDB id and must resolve it to an AniList id first.
+  // `/anime/[id]` URL id IS the AniList id (see render fn below — same assumption),
+  // so no TMDB→AniList resolution is needed here. Previously this fired 1-2 extra
+  // AniList calls per page load, burning the 30 req/min limit.
   try {
-    const resolveRes = await anilistFetch(`query($id:Int){Media(id:$id,type:ANIME){id}}`, { id: numId });
-    let anilistId: number | null = null;
-    if (resolveRes.ok) {
-      const rj = await resolveRes.json();
-      anilistId = rj.data?.Media?.id ?? null;
-    }
-    // If the TMDB id itself isn't an AniList id, resolve via Jikan search.
-    if (!anilistId) {
-      try {
-        const jikanRes = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(String(numId))}&limit=1`, {
-          headers: { Accept: "application/json" },
-          signal: AbortSignal.timeout(8000),
-        });
-        if (jikanRes.ok) {
-          const jd = await jikanRes.json();
-          const first = jd.data?.[0];
-          if (first?.mal_id) {
-            const alRes = await anilistFetch(`query($id:Int){Media(idMal:$id,type:ANIME){id}}`, { id: first.mal_id });
-            if (alRes.ok) {
-              const aj = await alRes.json();
-              anilistId = aj.data?.Media?.id ?? null;
-            }
-          }
-        }
-      } catch {
-        // ignore — fall through to null
-      }
-    }
-    if (!anilistId) return {};
-
-    const meta = await fetchAnimeMeta(anilistId);
+    // Jikan fallback removed: the URL id is always a valid AniList id here, so
+    // this branch was dead code that also held a 8s-timeout Jikan call.
+    const meta = await fetchAnimeMetaCached(numId);
     if (!meta) return {};
 
     return {

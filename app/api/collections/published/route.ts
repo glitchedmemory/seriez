@@ -48,13 +48,11 @@ export const revalidate = 1800;
 
 export async function GET() {
   try {
-    // Get all published collections (no min likes)
-    const { data: collections, error } = await supabase.rpc("get_published_collections", {
-      min_likes: MIN_LIKES,
-    });
-
-    if (error) {
-      // Fallback: manual query if RPC not available
+    // Direct query. The old get_published_collections RPC was never created in
+    // any migration (verified: 0 matches across supabase/migrations/, and the
+    // endpoint returns PGRST202), so every request paid a ~250ms round-trip for
+    // an error before falling through to this branch anyway.
+    {
       const { data: fallback } = await supabase
         .from("user_lists")
         .select("id, name, user_id, created_at, published_at")
@@ -65,42 +63,45 @@ export async function GET() {
         return NextResponse.json({ collections: [] });
       }
 
-      // Count likes for each
-      const listIds = fallback.map((l) => l.id);
-      const { data: likeCounts } = await supabase
-        .from("collection_likes")
-        .select("list_id")
-        .in("list_id", listIds);
+      // All published collections qualify (no min likes)
+      const shuffled = fallback.sort(() => Math.random() - 0.5).slice(0, PICK_COUNT);
+      const fbListIds = shuffled.map((l) => l.id);
+      const userIds = [...new Set(shuffled.map((l) => l.user_id))];
+
+      // Run the three lookups CONCURRENTLY — each Supabase round-trip is ~230ms,
+      // so awaiting them in sequence cost ~700ms of pure latency here.
+      const [{ data: likeCounts }, { data: users }, { data: fbItems }] = await Promise.all([
+        supabase.from("collection_likes").select("list_id").in("list_id", fbListIds),
+        supabase.from("users").select("id, username").in("id", userIds),
+        supabase.from("list_items").select("list_id, tmdb_id, media_type").in("list_id", fbListIds),
+      ]);
 
       const likeMap: Record<string, number> = {};
       for (const l of likeCounts || []) {
         likeMap[l.list_id] = (likeMap[l.list_id] || 0) + 1;
       }
-
-      // All published collections qualify (no min likes)
-      const shuffled = fallback.sort(() => Math.random() - 0.5).slice(0, PICK_COUNT);
-
-      const userIds = [...new Set(shuffled.map((l) => l.user_id))];
-      const { data: users } = await supabase
-        .from("users").select("id, username").in("id", userIds);
       const userMap: Record<string, string> = {};
       for (const u of users || []) userMap[u.id] = u.username;
+      const fbItemsByList = new Map<string, { tmdb_id: number; media_type: string }[]>();
+      const fbCountByList = new Map<string, number>();
+      for (const it of fbItems || []) {
+        const arr = fbItemsByList.get(it.list_id) || [];
+        if (arr.length < 4) arr.push({ tmdb_id: it.tmdb_id, media_type: it.media_type });
+        fbItemsByList.set(it.list_id, arr);
+        fbCountByList.set(it.list_id, (fbCountByList.get(it.list_id) || 0) + 1);
+      }
 
-      // Get items for each to build thumbnails
       const enriched = await Promise.all(
         shuffled.map(async (l) => {
-          const { data: items, count: realCount } = await supabase
-            .from("list_items")
-            .select("tmdb_id, media_type", { count: "exact", head: false })
-            .eq("list_id", l.id)
-            .limit(4);
-          const thumbs = await getThumbnails(items || []);
+          const items = fbItemsByList.get(l.id) || [];
+          const realCount = fbCountByList.get(l.id) ?? 0;
+          const thumbs = await getThumbnails(items);
           return {
             id: l.id,
             name: l.name,
             owner: userMap[l.user_id] || "unknown",
             likesCount: likeMap[l.id] || 0,
-            itemCount: realCount ?? 0,
+            itemCount: realCount,
             thumbnails: thumbs,
           };
         })
@@ -108,30 +109,6 @@ export async function GET() {
 
       return NextResponse.json({ collections: enriched.filter(c => c.itemCount > 0) });
     }
-
-    // RPC path — already filtered and counted
-    const shuffled = (collections || []).sort(() => Math.random() - 0.5).slice(0, PICK_COUNT);
-
-    const enriched = await Promise.all(
-      shuffled.map(async (c: any) => {
-        const { data: items, count: realCount } = await supabase
-          .from("list_items")
-          .select("tmdb_id, media_type", { count: "exact", head: false })
-          .eq("list_id", c.id)
-          .limit(4);
-        const thumbs = await getThumbnails(items || []);
-        return {
-          id: c.id,
-          name: c.name,
-          owner: c.owner_username || "unknown",
-          likesCount: c.likes_count || 0,
-          itemCount: realCount ?? 0,
-          thumbnails: thumbs,
-        };
-      })
-    );
-
-    return NextResponse.json({ collections: enriched.filter(c => c.itemCount > 0) });
   } catch (err) {
     return NextResponse.json({ collections: [], error: "Failed to load" }, { status: 500 });
   }

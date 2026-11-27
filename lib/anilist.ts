@@ -48,7 +48,8 @@ export async function anilistFetch(
     method: "POST",
     headers: ANILIST_HEADERS,
     body: JSON.stringify({ query, variables }),
-    cache: "no-store",
+    // [test] no-store 제거 → unstable_cache가 실제로 저장하는지 검증
+    ...(opts.revalidate ? { next: { revalidate: opts.revalidate } } : {}),
     ...(opts.signal ? { signal: opts.signal } : {}),
   });
 }
@@ -764,9 +765,14 @@ export const getAnimeDetail = unstable_cache(
       res = await anilistFetch(DETAIL_QUERY, { id }, { revalidate: 3600 });
       if (res.ok) break; // success
       if (res.status === 429 && attempt < 3) {
-        await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
+        // AniList sends Retry-After (seconds). Honour it instead of blind backoff,
+        // and never wait more than 2s here — a longer stall is worse than letting
+        // the Kitsu fallback below render the page immediately.
+        const ra = Number(res.headers.get("retry-after"));
+        const waitMs = Number.isFinite(ra) && ra > 0 ? Math.min(ra * 1000, 2000) : 500;
+        await new Promise((r) => setTimeout(r, waitMs));
       } else if (!res.ok && attempt < 3) {
-        await new Promise((r) => setTimeout(r, 500));
+        await new Promise((r) => setTimeout(r, 300));
       }
     }
 
