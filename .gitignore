@@ -69,3 +69,8 @@ setup-env.sh
 # 런타임 로그는 커밋하지 않는다 (배포 시마다 변경되어 갈래를 만든다)
 logs/*.log
 *.log
+
+# Cron-generated data (scraped daily on the Windows box, scp'd to this server).
+# If git tracks it, deploy.sh's dirty check blocks every deploy and
+# git reset --hard wipes the fresh scrape back to the last commit.
+data/streaming-top10.json
