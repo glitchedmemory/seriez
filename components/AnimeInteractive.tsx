@@ -313,10 +313,20 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
     const key = `1-${episodeNumber}`;
     const username = authUser.user_metadata?.username || "";
     const wasWatched = watchedEpisodes.has(key);
+
+    // Tick first, save second — same order as SeasonInteractive. Waiting for the
+    // server before flipping the check made every tap feel laggy: /api/episodes
+    // answers in 5-15ms locally, but the round trip plus the 429/5xx retry
+    // backoff (up to 3 x 1.2s) is felt by the user. Optimistic first, then revert
+    // if the write failed, so a check still never survives an unsaved episode.
+    setWatchedEpisodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
     setEpToggleLoading(key);
 
-    // 1) 에피소드 기록을 먼저 저장하고 결과를 확인한다.
-    //    저장이 안 됐는데 체크만 켜두면 새로고침 후 사라지므로, 실패하면 체크를 켜지 않고 알린다.
     const epSaved = await sendJson("POST", "/api/episodes", {
       username,
       tmdbId: detail.id,
@@ -325,17 +335,29 @@ export default function AnimeInteractive({ detail, episodes, mode }: { detail: A
       episodeNumber,
     });
     if (!epSaved) {
+      setWatchedEpisodes((prev) => {
+        const reverted = new Set(prev);
+        if (wasWatched) reverted.add(key);
+        else reverted.delete(key);
+        return reverted;
+      });
       setEpToggleLoading(null);
       setEpSaveError(true);
       return;
     }
-    setWatchedEpisodes((prev) => { const next = new Set(prev); if (wasWatched) next.delete(key); else next.add(key); return next; });
 
-    const willHaveWatched = !wasWatched || watchedEpisodes.size > 1;
-    if (willHaveWatched && (!trackStatus || trackStatus === "plan_to_watch" || trackStatus === "completed")) {
+    // Count what WILL remain after this tap, not what is in state right now —
+    // the optimistic update above already applied this episode, so reading
+    // watchedEpisodes.size would double-count it. The old `size > 1` test only
+    // tripped when unwatching the very last episode, so unwatching everything
+    // left the row stuck on "watching" in the library. SeasonInteractive was
+    // fixed for exactly this in 2be4ff60; anime was missed.
+    const remainingWatched = wasWatched ? Math.max(0, watchedEpisodes.size - 1) : watchedEpisodes.size + 1;
+
+    if (remainingWatched > 0 && (!trackStatus || trackStatus === "plan_to_watch" || trackStatus === "completed")) {
       const ok = await sendJson("POST", "/api/track", { username, tmdbId: detail.id, mediaType: "anime", seasonNumber: 1, status: "watching", title: detail.title || undefined, posterUrl: detail.poster || undefined, year: detail.year || undefined, tmdbRating: detail.rating || undefined });
       if (ok) syncTrackState("watching"); else setEpSaveError(true);
-    } else if (!willHaveWatched && trackStatus === "watching") {
+    } else if (remainingWatched === 0 && (trackStatus === "watching" || trackStatus === "completed")) {
       const ok = await sendJson("DELETE", "/api/track", { username, tmdbId: detail.id, mediaType: "anime" });
       if (ok) syncTrackState(null); else setEpSaveError(true);
     }
